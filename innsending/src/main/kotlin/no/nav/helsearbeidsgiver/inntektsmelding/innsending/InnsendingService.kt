@@ -4,6 +4,8 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -13,8 +15,9 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -25,25 +28,55 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
+data class Steg0(
+    val transaksjonId: UUID,
+    val forespoerselId: UUID,
+    val avsenderFnr: Fnr,
+    val skjema: JsonElement,
+)
+
+data class Steg1(
+    val forespoersel: Forespoersel,
+)
+
+sealed class Steg2 {
+    data class Komplett(
+        val aarsakInnsending: AarsakInnsending,
+        val orgNavn: String,
+        val sykmeldt: PersonDato,
+        val avsender: PersonDato,
+    ) : Steg2()
+
+    data object Delvis : Steg2()
+}
+
+data class Steg3(
+    val inntektsmelding: Inntektsmelding,
+    val erDuplikat: Boolean,
+)
+
 class InnsendingService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStoreClassSpecific
-) : Service() {
+    override val redisStore: RedisStore,
+) : ServiceMed1Steg<Steg0, Steg1>(),
+    Service.MedRedis {
     private val logger = logger()
 
     override val eventName = EventName.INSENDING_STARTED
-    override val startKeys = setOf(
-        Key.FORESPOERSEL_ID,
-        Key.ORGNRUNDERENHET,
-        Key.IDENTITETSNUMMER,
-        Key.ARBEIDSGIVER_ID,
-        Key.SKJEMA_INNTEKTSMELDING,
-        Key.CLIENT_ID
-    )
-    override val dataKeys = setOf(
-        Key.ER_DUPLIKAT_IM,
-        Key.PERSISTERT_SKJEMA_INNTEKTSMELDING
-    )
+    override val startKeys =
+        setOf(
+            Key.FORESPOERSEL_ID,
+            Key.ORGNRUNDERENHET,
+            Key.IDENTITETSNUMMER,
+            Key.ARBEIDSGIVER_ID,
+            Key.SKJEMA_INNTEKTSMELDING,
+            Key.CLIENT_ID,
+        )
+    override val dataKeys =
+        setOf(
+            Key.ER_DUPLIKAT_IM,
+            Key.PERSISTERT_SKJEMA_INNTEKTSMELDING,
+        )
 
     override fun onData(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
@@ -61,7 +94,7 @@ class InnsendingService(
     private fun onStep0(
         melding: Map<Key, JsonElement>,
         transaksjonId: UUID,
-        startData: Array<Pair<Key, JsonElement>>
+        startData: Array<Pair<Key, JsonElement>>,
     ) {
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
         val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
@@ -69,7 +102,7 @@ class InnsendingService(
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId)
+            Log.transaksjonId(transaksjonId),
         ) {
             rapid.publish(
                 Key.EVENT_NAME to eventName.toJson(),
@@ -77,7 +110,7 @@ class InnsendingService(
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(Innsending.serializer()),
-                *startData
+                *startData,
             )
         }
     }
@@ -85,7 +118,7 @@ class InnsendingService(
     private fun onFinished(
         melding: Map<Key, JsonElement>,
         transaksjonId: UUID,
-        startData: Array<Pair<Key, JsonElement>>
+        startData: Array<Pair<Key, JsonElement>>,
     ) {
         val erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding)
         val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
@@ -98,20 +131,23 @@ class InnsendingService(
         if (!erDuplikat) {
             logger.info("Publiserer INNTEKTSMELDING_SKJEMA_LAGRET under uuid $transaksjonId")
             logger.info("InnsendingService: emitting event INNTEKTSMELDING_SKJEMA_LAGRET")
-            rapid.publish(
-                Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.DATA to "".toJson(),
-                *startData
-            )
-                .also {
+            rapid
+                .publish(
+                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.DATA to "".toJson(),
+                    *startData,
+                ).also {
                     logger.info("Submitting INNTEKTSMELDING_SKJEMA_LAGRET")
                     sikkerLogger.info("Submitting INNTEKTSMELDING_SKJEMA_LAGRET ${it.toPretty()}")
                 }
         }
     }
 
-    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
+    override fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    ) {
         val clientId = Key.CLIENT_ID.les(UuidSerializer, melding)
         val resultJson = ResultJson(failure = fail.feilmelding.toJson())
 
@@ -132,7 +168,7 @@ class InnsendingService(
             Key.IDENTITETSNUMMER to sykmeldtFnr.toJson(Fnr.serializer()),
             Key.ARBEIDSGIVER_ID to innsenderFnr.toJson(Fnr.serializer()),
             Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(Innsending.serializer()),
-            Key.CLIENT_ID to clientId.toJson()
+            Key.CLIENT_ID to clientId.toJson(),
         ).toTypedArray()
     }
 

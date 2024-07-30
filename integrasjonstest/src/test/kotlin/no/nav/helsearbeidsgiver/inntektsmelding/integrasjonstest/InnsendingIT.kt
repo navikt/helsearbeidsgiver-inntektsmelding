@@ -41,7 +41,6 @@ import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class InnsendingIT : EndToEndTest() {
-
     @BeforeEach
     fun setup() {
         truncateDatabase()
@@ -59,16 +58,26 @@ class InnsendingIT : EndToEndTest() {
             eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoerselSvar = Mock.forespoerselSvar
+            forespoerselSvar = Mock.forespoerselSvar,
         )
 
         coEvery {
             dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
-        } returns OpprettOgFerdigstillResponse(
-            journalpostId = Mock.JOURNALPOST_ID,
-            journalpostFerdigstilt = true,
-            melding = "Ha en fin dag!",
-            dokumenter = emptyList()
+        } returns
+            OpprettOgFerdigstillResponse(
+                journalpostId = Mock.JOURNALPOST_ID,
+                journalpostFerdigstilt = true,
+                melding = "Ha en fin dag!",
+                dokumenter = emptyList(),
+            )
+
+        publish(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+            Key.ARBEIDSGIVER_ID to Mock.skjema.identitetsnummer.toJson(),
+            Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
         )
 
         mockStatic(::randomUuid) {
@@ -82,32 +91,37 @@ class InnsendingIT : EndToEndTest() {
                 Key.ORGNRUNDERENHET to Mock.skjema.orgnrUnderenhet.toJson(),
                 Key.IDENTITETSNUMMER to Mock.skjema.identitetsnummer.toJson(),
                 Key.ARBEIDSGIVER_ID to Mock.skjema.identitetsnummer.toJson(),
-                Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer())
+                Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
             )
         }
 
-        messages.filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+        messages
+            .filter(EventName.INSENDING_STARTED) // Muligens EventName.INNTEKTSMELDING_SKJEMA_LAGRET ?
             .filter(Key.INNTEKTSMELDING_DOKUMENT)
             .firstAsMap()
             .also {
                 // Ble lagret i databasen
                 it[Key.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
             }
-        messages.filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+
+        messages
+            .filter(EventName.INSENDING_STARTED)
             .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {
                 it[Key.ER_DUPLIKAT_IM]!!.fromJson(Boolean.serializer()) shouldBe false
             }
 
-        messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
+        messages
+            .filter(EventName.INNTEKTSMELDING_MOTTATT)
             .firstAsMap()
             .also {
                 // EVENT: Mottatt inntektsmelding
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
+        messages
+            .filter(EventName.INNTEKTSMELDING_MOTTATT)
             .filter(BehovType.LAGRE_JOURNALPOST_ID)
             .firstAsMap()
             .also {
@@ -116,7 +130,8 @@ class InnsendingIT : EndToEndTest() {
                 it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
             }
 
-        messages.filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
+        messages
+            .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
             .firstAsMap()
             .also {
                 it shouldContainKey Key.INNTEKTSMELDING_DOKUMENT
@@ -124,7 +139,8 @@ class InnsendingIT : EndToEndTest() {
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
+        messages
+            .filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
             .firstAsMap()
             .also {
                 // Verifiser at inntektsmelding er distribuert på ekstern kafka
@@ -151,17 +167,18 @@ class InnsendingIT : EndToEndTest() {
             eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoerselSvar = Mock.forespoerselSvar
+            forespoerselSvar = Mock.forespoerselSvar,
         )
 
         coEvery {
             dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
-        } returns OpprettOgFerdigstillResponse(
-            journalpostId = Mock.JOURNALPOST_ID,
-            journalpostFerdigstilt = true,
-            melding = "Ha en fin dag!",
-            dokumenter = emptyList()
-        )
+        } returns
+            OpprettOgFerdigstillResponse(
+                journalpostId = Mock.JOURNALPOST_ID,
+                journalpostFerdigstilt = true,
+                melding = "Ha en fin dag!",
+                dokumenter = emptyList(),
+            )
 
         coEvery { brregClient.hentVirksomhetNavn(any()) } returns "Bedrift A/S"
 
@@ -176,11 +193,21 @@ class InnsendingIT : EndToEndTest() {
                 Key.ORGNRUNDERENHET to Mock.skjema.orgnrUnderenhet.toJson(),
                 Key.IDENTITETSNUMMER to bjarneBetjent.ident!!.toJson(),
                 Key.ARBEIDSGIVER_ID to maxMekker.ident!!.toJson(),
-                Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer())
+                Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
             )
         }
 
-        messages.filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+        publish(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+            Key.ARBEIDSGIVER_ID to maxMekker.ident!!.toJson(),
+            Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
+        )
+
+        messages
+            .filter(EventName.INSENDING_STARTED)
             .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {
@@ -195,14 +222,16 @@ class InnsendingIT : EndToEndTest() {
     }
 
     private fun bekreftForventedeMeldingerForFerdigstilligAvOppgaveOgSak() {
-        messages.filter(EventName.FORESPOERSEL_BESVART)
+        messages
+            .filter(EventName.FORESPOERSEL_BESVART)
             .filter(BehovType.NOTIFIKASJON_HENT_ID)
             .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.FORESPOERSEL_BESVART)
+        messages
+            .filter(EventName.FORESPOERSEL_BESVART)
             .filter(Key.SAK_ID, utenDataKey = true)
             .firstAsMap()
             .also {
@@ -210,7 +239,8 @@ class InnsendingIT : EndToEndTest() {
                 Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
             }
 
-        messages.filter(EventName.FORESPOERSEL_BESVART)
+        messages
+            .filter(EventName.FORESPOERSEL_BESVART)
             .filter(Key.OPPGAVE_ID, utenDataKey = true)
             .firstAsMap()
             .also {
@@ -218,14 +248,16 @@ class InnsendingIT : EndToEndTest() {
                 Key.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
             }
 
-        messages.filter(EventName.SAK_FERDIGSTILT)
+        messages
+            .filter(EventName.SAK_FERDIGSTILT)
             .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
                 Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
             }
 
-        messages.filter(EventName.OPPGAVE_FERDIGSTILT)
+        messages
+            .filter(EventName.OPPGAVE_FERDIGSTILT)
             .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
@@ -237,7 +269,7 @@ class InnsendingIT : EndToEndTest() {
         verify(exactly = 1) {
             mockPriProducer.send(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
+                Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
             )
         }
     }
@@ -255,31 +287,33 @@ class InnsendingIT : EndToEndTest() {
                 innsending.copy(
                     identitetsnummer = innsenderFnr.toString(),
                     orgnrUnderenhet = orgnr.toString(),
-                    bestemmendeFraværsdag = innsending.fraværsperioder.lastOrNull()?.fom ?: innsending.bestemmendeFraværsdag
+                    bestemmendeFraværsdag = innsending.fraværsperioder.lastOrNull()?.fom ?: innsending.bestemmendeFraværsdag,
                 )
             }
 
         private val forespoersel = skjema.tilForespoersel(UUID.randomUUID())
 
-        val innsendtInntektsmelding = mapInntektsmelding(
-            forespoersel = forespoersel,
-            skjema = skjema,
-            fulltnavnArbeidstaker = bjarneBetjent.navn.fulltNavn(),
-            virksomhetNavn = "Bedrift A/S",
-            innsenderNavn = maxMekker.navn.fulltNavn()
-        )
+        val innsendtInntektsmelding =
+            mapInntektsmelding(
+                forespoersel = forespoersel,
+                skjema = skjema,
+                fulltnavnArbeidstaker = bjarneBetjent.navn.fulltNavn(),
+                virksomhetNavn = "Bedrift A/S",
+                innsenderNavn = maxMekker.navn.fulltNavn(),
+            )
 
-        val forespoerselSvar = ForespoerselSvar.Suksess(
-            type = ForespoerselType.KOMPLETT,
-            orgnr = forespoersel.orgnr,
-            fnr = forespoersel.fnr,
-            vedtaksperiodeId = forespoersel.vedtaksperiodeId,
-            egenmeldingsperioder = forespoersel.egenmeldingsperioder,
-            sykmeldingsperioder = forespoersel.sykmeldingsperioder,
-            skjaeringstidspunkt = null,
-            bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager,
-            forespurtData = mockForespurtData(),
-            erBesvart = false
-        )
+        val forespoerselSvar =
+            ForespoerselSvar.Suksess(
+                type = ForespoerselType.KOMPLETT,
+                orgnr = forespoersel.orgnr,
+                fnr = forespoersel.fnr,
+                vedtaksperiodeId = forespoersel.vedtaksperiodeId,
+                egenmeldingsperioder = forespoersel.egenmeldingsperioder,
+                sykmeldingsperioder = forespoersel.sykmeldingsperioder,
+                skjaeringstidspunkt = null,
+                bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager,
+                forespurtData = mockForespurtData(),
+                erBesvart = false,
+            )
     }
 }

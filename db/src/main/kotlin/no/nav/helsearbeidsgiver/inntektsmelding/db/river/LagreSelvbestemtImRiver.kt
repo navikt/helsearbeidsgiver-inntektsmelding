@@ -24,13 +24,12 @@ data class LagreSelvbestemtImMelding(
     val eventName: EventName,
     val behovType: BehovType,
     val transaksjonId: UUID,
-    val selvbestemtInntektsmelding: Inntektsmelding
+    val selvbestemtInntektsmelding: Inntektsmelding,
 )
 
 class LagreSelvbestemtImRiver(
-    private val selvbestemtImRepo: SelvbestemtImRepo
+    private val selvbestemtImRepo: SelvbestemtImRepo,
 ) : ObjectRiver<LagreSelvbestemtImMelding>() {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -42,7 +41,7 @@ class LagreSelvbestemtImRiver(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.LAGRE_SELVBESTEMT_IM, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
-                selvbestemtInntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), json)
+                selvbestemtInntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), json),
             )
         }
 
@@ -70,32 +69,38 @@ class LagreSelvbestemtImRiver(
             }
         }
 
-        val dataFields = arrayOf(
-            Key.SELVBESTEMT_INNTEKTSMELDING to selvbestemtInntektsmelding.toJson(Inntektsmelding.serializer()),
-            Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer())
-        )
+        val dataFields =
+            arrayOf(
+                Key.SELVBESTEMT_INNTEKTSMELDING to selvbestemtInntektsmelding.toJson(Inntektsmelding.serializer()),
+                Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer()),
+            )
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to dataFields.toMap().toJson(),
-            *dataFields
+            *dataFields,
         )
     }
 
-    override fun LagreSelvbestemtImMelding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement> {
-        val fail = Fail(
-            feilmelding = "Klarte ikke lagre selvbestemt inntektsmelding.",
-            event = eventName,
-            transaksjonId = transaksjonId,
-            forespoerselId = null,
-            utloesendeMelding = json.toJson()
-        )
+    override fun LagreSelvbestemtImMelding.haandterFeil(
+        json: Map<Key, JsonElement>,
+        error: Throwable,
+    ): Map<Key, JsonElement> {
+        val fail =
+            Fail(
+                feilmelding = "Klarte ikke lagre selvbestemt inntektsmelding.",
+                event = eventName,
+                transaksjonId = transaksjonId,
+                forespoerselId = null,
+                utloesendeMelding = json.toJson(),
+            )
 
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
-        return fail.tilMelding()
+        return fail
+            .tilMelding()
             .minus(Key.FORESPOERSEL_ID)
             .plus(Key.SELVBESTEMT_ID to selvbestemtInntektsmelding.type.id.toJson())
     }
@@ -106,16 +111,19 @@ class LagreSelvbestemtImRiver(
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),
-            Log.selvbestemtId(selvbestemtInntektsmelding.type.id)
+            Log.selvbestemtId(selvbestemtInntektsmelding.type.id),
         )
 }
 
 private fun Inntektsmelding.erDuplikatAv(other: Inntektsmelding): Boolean =
-    this == other.copy(
-        avsender = other.avsender.copy(
-            navn = avsender.navn,
-            tlf = avsender.tlf
-        ),
-        aarsakInnsending = aarsakInnsending,
-        mottatt = mottatt
-    )
+    this ==
+        other.copy(
+            id = id,
+            avsender =
+                other.avsender.copy(
+                    navn = avsender.navn,
+                    tlf = avsender.tlf,
+                ),
+            aarsakInnsending = aarsakInnsending,
+            mottatt = mottatt,
+        )

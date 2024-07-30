@@ -17,66 +17,68 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 class AuthorizationTest : ApiTest() {
-
     @Test
-    fun `stopp uautoriserte kall mot API`() = testApi {
-        listOf(
-            Routes.HENT_FORESPOERSEL to ::postUtenAuth,
-            Routes.TRENGER to ::postUtenAuth,
-            Routes.INNTEKT to ::postUtenAuth,
-            Routes.INNTEKT_SELVBESTEMT to ::postUtenAuth,
-            Routes.INNSENDING + "/0" to ::postUtenAuth,
-            Routes.SELVBESTEMT_INNTEKTSMELDING to ::postUtenAuth,
-            Routes.SELVBESTEMT_INNTEKTSMELDING + "/0" to ::getUtenAuth,
-            Routes.KVITTERING to ::getUtenAuth,
-            Routes.AKTIVEORGNR to ::postUtenAuth
-        ).forEach { (path, callFn) ->
-            val response = callFn(Routes.PREFIX + path)
+    fun `stopp uautoriserte kall mot API`() =
+        testApi {
+            listOf(
+                Routes.HENT_FORESPOERSEL to ::postUtenAuth,
+                Routes.TRENGER to ::postUtenAuth,
+                Routes.INNTEKT to ::postUtenAuth,
+                Routes.INNTEKT_SELVBESTEMT to ::postUtenAuth,
+                Routes.INNSENDING + "/0" to ::postUtenAuth,
+                Routes.SELVBESTEMT_INNTEKTSMELDING to ::postUtenAuth,
+                Routes.SELVBESTEMT_INNTEKTSMELDING + "/0" to ::getUtenAuth,
+                Routes.KVITTERING to ::getUtenAuth,
+                Routes.AKTIVEORGNR to ::postUtenAuth,
+            ).forEach { (path, callFn) ->
+                val response = callFn(Routes.PREFIX + path)
 
-            Assertions.assertEquals(
-                HttpStatusCode.Unauthorized,
-                response.status,
-                "Test feiler mot '$path'."
-            )
-        }
-    }
-
-    @Test
-    fun `fnr kan leses fra autorisasjonstoken`() = testApplication {
-        val path = "/test/auth"
-
-        application {
-            apiModule(mockk(relaxed = true), mockk())
-
-            routing {
-                authenticate {
-                    get(path) {
-                        val fnr = try {
-                            call.request.lesFnrFraAuthToken()
-                        } catch (e: Exception) {
-                            Assertions.fail("Klarte ikke lese fnr pga. exception.", e)
-                        }
-
-                        Assertions.assertEquals(mockPid, fnr)
-
-                        respondOk("", String.serializer())
-                    }
-                }
+                Assertions.assertEquals(
+                    HttpStatusCode.Unauthorized,
+                    response.status,
+                    "Test feiler mot '$path'.",
+                )
             }
         }
 
-        val testClient = TestClient(this, ::mockAuthToken)
+    @Test
+    fun `fnr kan leses fra autorisasjonstoken`() =
+        testApplication {
+            val path = "/test/auth"
 
-        val response = testClient.get(path)
+            application {
+                apiModule(mockk(relaxed = true), mockk())
 
-        Assertions.assertEquals(HttpStatusCode.OK, response.status)
-    }
+                routing {
+                    authenticate {
+                        get(path) {
+                            val fnr =
+                                try {
+                                    call.request.lesFnrFraAuthToken()
+                                } catch (e: Exception) {
+                                    Assertions.fail("Klarte ikke lese fnr pga. exception.", e)
+                                }
+
+                            Assertions.assertEquals(mockPid, fnr)
+
+                            respondOk("", String.serializer())
+                        }
+                    }
+                }
+            }
+
+            val testClient = TestClient(this, ::mockAuthToken)
+
+            val response = testClient.get(path)
+
+            Assertions.assertEquals(HttpStatusCode.OK, response.status)
+        }
 }
 
 private fun TestClient.getUtenAuth(path: String): HttpResponse =
     get(
         path = path,
-        block = {} // override default auth-block
+        block = {}, // override default auth-block
     )
 
 private fun TestClient.postUtenAuth(path: String): HttpResponse =
@@ -84,5 +86,5 @@ private fun TestClient.postUtenAuth(path: String): HttpResponse =
         path = path,
         body = "",
         bodySerializer = String.serializer(),
-        block = {} // override default auth-block
+        block = {}, // override default auth-block
     )

@@ -33,13 +33,12 @@ data class JournalfoerImMelding(
     val eventName: EventName,
     val transaksjonId: UUID,
     // TODO endre til v1.Inntektsmelding når kun den brukes
-    val inntektsmeldingJson: JsonElement
+    val inntektsmeldingJson: JsonElement,
 )
 
 class JournalfoerImRiver(
-    private val dokArkivClient: DokArkivClient
+    private val dokArkivClient: DokArkivClient,
 ) : ObjectRiver<JournalfoerImMelding>() {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -59,14 +58,14 @@ class JournalfoerImRiver(
                     JournalfoerImMelding(
                         eventName = eventName,
                         transaksjonId = transaksjonId,
-                        inntektsmeldingJson = Key.INNTEKTSMELDING_DOKUMENT.les(JsonElement.serializer(), json)
+                        inntektsmeldingJson = Key.INNTEKTSMELDING_DOKUMENT.les(JsonElement.serializer(), json),
                     )
 
                 EventName.SELVBESTEMT_IM_LAGRET ->
                     JournalfoerImMelding(
                         eventName = eventName,
                         transaksjonId = transaksjonId,
-                        inntektsmeldingJson = Key.SELVBESTEMT_INNTEKTSMELDING.les(JsonElement.serializer(), json)
+                        inntektsmeldingJson = Key.SELVBESTEMT_INNTEKTSMELDING.les(JsonElement.serializer(), json),
                     )
 
                 else ->
@@ -81,12 +80,13 @@ class JournalfoerImRiver(
             sikkerLogger.info("$it Innkommende melding:\n${json.toPretty()}")
         }
 
-        val inntektsmelding = runCatching {
-            // Prøv ny IM-modell
-            inntektsmeldingJson.fromJson(InntektsmeldingV1.serializer())
-                .convert()
-        }
-            .getOrElse {
+        val inntektsmelding =
+            runCatching {
+                // Prøv ny IM-modell
+                inntektsmeldingJson
+                    .fromJson(InntektsmeldingV1.serializer())
+                    .convert()
+            }.getOrElse {
                 // Fall tilbake til gammel IM-modell
                 inntektsmeldingJson.fromJson(Inntektsmelding.serializer())
             }
@@ -100,12 +100,11 @@ class JournalfoerImRiver(
             Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
-            Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID]
-        )
-            .mapValuesNotNull { it }
+            Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
+        ).mapValuesNotNull { it }
             .also {
                 MdcUtils.withLogFields(
-                    Log.behov(BehovType.LAGRE_JOURNALPOST_ID)
+                    Log.behov(BehovType.LAGRE_JOURNALPOST_ID),
                 ) {
                     logger.info("Publiserer behov '${BehovType.LAGRE_JOURNALPOST_ID}' med journalpost-ID '$journalpostId'.")
                     sikkerLogger.info("Publiserer behov:\n${it.toPretty()}")
@@ -113,22 +112,28 @@ class JournalfoerImRiver(
             }
     }
 
-    override fun JournalfoerImMelding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement> {
-        val fail = Fail(
-            feilmelding = "Klarte ikke journalføre.",
-            event = eventName,
-            transaksjonId = transaksjonId,
-            forespoerselId = json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer),
-            utloesendeMelding = json.plus(
-                Key.BEHOV to BehovType.JOURNALFOER.toJson()
+    override fun JournalfoerImMelding.haandterFeil(
+        json: Map<Key, JsonElement>,
+        error: Throwable,
+    ): Map<Key, JsonElement> {
+        val fail =
+            Fail(
+                feilmelding = "Klarte ikke journalføre.",
+                event = eventName,
+                transaksjonId = transaksjonId,
+                forespoerselId = json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer),
+                utloesendeMelding =
+                    json
+                        .plus(
+                            Key.BEHOV to BehovType.JOURNALFOER.toJson(),
+                        ).toJson(),
             )
-                .toJson()
-        )
 
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
-        return fail.tilMelding()
+        return fail
+            .tilMelding()
             .plus(Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID])
             .mapValuesNotNull { it }
     }
@@ -137,29 +142,34 @@ class JournalfoerImRiver(
         mapOf(
             Log.klasse(this@JournalfoerImRiver),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId)
+            Log.transaksjonId(transaksjonId),
         )
 
-    private fun opprettOgFerdigstillJournalpost(transaksjonId: UUID, inntektsmelding: Inntektsmelding): String {
+    private fun opprettOgFerdigstillJournalpost(
+        transaksjonId: UUID,
+        inntektsmelding: Inntektsmelding,
+    ): String {
         "Prøver å opprette og ferdigstille journalpost.".also {
             logger.info(it)
             sikkerLogger.info("$it Gjelder IM:\n$inntektsmelding")
         }
 
-        val response = Metrics.dokArkivRequest.recordTime(dokArkivClient::opprettOgFerdigstillJournalpost) {
-            dokArkivClient.opprettOgFerdigstillJournalpost(
-                tittel = "Inntektsmelding",
-                gjelderPerson = GjelderPerson(inntektsmelding.identitetsnummer),
-                avsender = Avsender.Organisasjon(
-                    orgnr = inntektsmelding.orgnrUnderenhet,
-                    navn = inntektsmelding.virksomhetNavn
-                ),
-                datoMottatt = LocalDate.now(),
-                dokumenter = tilDokumenter(transaksjonId, inntektsmelding),
-                eksternReferanseId = "ARI-$transaksjonId",
-                callId = "callId_$transaksjonId"
-            )
-        }
+        val response =
+            Metrics.dokArkivRequest.recordTime(dokArkivClient::opprettOgFerdigstillJournalpost) {
+                dokArkivClient.opprettOgFerdigstillJournalpost(
+                    tittel = "Inntektsmelding",
+                    gjelderPerson = GjelderPerson(inntektsmelding.identitetsnummer),
+                    avsender =
+                        Avsender.Organisasjon(
+                            orgnr = inntektsmelding.orgnrUnderenhet,
+                            navn = inntektsmelding.virksomhetNavn,
+                        ),
+                    datoMottatt = LocalDate.now(),
+                    dokumenter = tilDokumenter(transaksjonId, inntektsmelding),
+                    eksternReferanseId = "ARI-$transaksjonId",
+                    callId = "callId_$transaksjonId",
+                )
+            }
 
         if (response.journalpostFerdigstilt) {
             "Opprettet og ferdigstilte journalpost med ID '${response.journalpostId}'.".also {

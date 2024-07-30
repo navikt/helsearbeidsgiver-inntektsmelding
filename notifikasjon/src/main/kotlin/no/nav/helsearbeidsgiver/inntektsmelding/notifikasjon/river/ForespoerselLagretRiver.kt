@@ -22,34 +22,36 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
 class ForespoerselLagretRiver(
-    rapid: RapidsConnection
+    rapid: RapidsConnection,
 ) : River.PacketListener {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     init {
-        River(rapid).apply {
-            validate {
-                it.demandValues(
-                    Key.EVENT_NAME to EventName.FORESPØRSEL_LAGRET.name
-                )
-                it.rejectKeys(
-                    Key.BEHOV,
-                    Key.DATA,
-                    Key.FAIL
-                )
-                it.requireKeys(
-                    Key.FORESPOERSEL_ID,
-                    Key.ORGNRUNDERENHET,
-                    Key.IDENTITETSNUMMER
-                )
-            }
-        }
-            .register(this)
+        River(rapid)
+            .apply {
+                validate {
+                    it.demandValues(
+                        Key.EVENT_NAME to EventName.FORESPØRSEL_LAGRET.name,
+                    )
+                    it.rejectKeys(
+                        Key.BEHOV,
+                        Key.DATA,
+                        Key.FAIL,
+                    )
+                    it.requireKeys(
+                        Key.FORESPOERSEL_ID,
+                        Key.ORGNRUNDERENHET,
+                        Key.IDENTITETSNUMMER,
+                    )
+                }
+            }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         "Mottok event ${EventName.FORESPØRSEL_LAGRET}. Sender event ${EventName.SAK_OPPRETT_REQUESTED} og ${EventName.OPPGAVE_OPPRETT_REQUESTED}.".also {
             logger.info(it)
             sikkerLogger.info(it)
@@ -64,16 +66,18 @@ class ForespoerselLagretRiver(
         context.publish(
             Key.EVENT_NAME to EventName.SAK_OPPRETT_REQUESTED.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
+            Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.ORGNRUNDERENHET to orgnr.toJson(),
-            Key.IDENTITETSNUMMER to fnr.toJson()
+            Key.IDENTITETSNUMMER to fnr.toJson(),
         )
 
         context.publish(
             Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
+            Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.ORGNRUNDERENHET to orgnr.toJson()
+            Key.ORGNRUNDERENHET to orgnr.toJson(),
         )
     }
 }

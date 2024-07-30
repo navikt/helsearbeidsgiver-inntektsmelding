@@ -10,135 +10,109 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreDataRedisRiver
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreStartDataRedisRiver
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 class OpprettOppgaveService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore
-) : CompositeEventListener() {
+    override val redisStore: RedisStore,
+) : ServiceMed1Steg<OpprettOppgaveService.Steg0, OpprettOppgaveService.Steg1>(),
+    Service.MedRedis {
+    override val logger = logger()
+    override val sikkerLogger = sikkerLogger()
 
-    private val logger = logger()
-    private val sikkerLogger = sikkerLogger()
+    override val eventName = EventName.OPPGAVE_OPPRETT_REQUESTED
+    override val startKeys =
+        setOf(
+            Key.UUID,
+            Key.FORESPOERSEL_ID,
+            Key.ORGNRUNDERENHET,
+        )
+    override val dataKeys =
+        setOf(
+            Key.VIRKSOMHET,
+        )
 
-    override val event = EventName.OPPGAVE_OPPRETT_REQUESTED
-    override val startKeys = setOf(
-        Key.UUID,
-        Key.FORESPOERSEL_ID,
-        Key.ORGNRUNDERENHET
+    data class Steg0(
+        val transaksjonId: UUID,
+        val forespoerselId: UUID,
+        val orgnr: Orgnr,
     )
-    override val dataKeys = setOf(
-        Key.VIRKSOMHET
+
+    data class Steg1(
+        val orgNavn: String,
     )
 
-    init {
-        LagreStartDataRedisRiver(event, startKeys, rapid, redisStore, ::onPacket)
-        LagreDataRedisRiver(event, dataKeys, rapid, redisStore, ::onPacket)
-        FailKanal(event, rapid, ::onPacket)
+    override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
+        Steg0(
+            transaksjonId = Key.UUID.les(UuidSerializer, melding),
+            forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
+            orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding),
+        )
+
+    override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
+        Steg1(
+            orgNavn = Key.VIRKSOMHET.les(String.serializer(), melding),
+        )
+
+    override fun utfoerSteg0(steg0: Steg0) {
+        rapid.publish(
+            Key.EVENT_NAME to eventName.toJson(),
+            Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
+            Key.UUID to steg0.transaksjonId.toJson(),
+            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+            Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
+        )
     }
 
-    override fun new(melding: Map<Key, JsonElement>) {
-        medTransaksjonIdOgForespoerselId(melding) { transaksjonId, forespoerselId ->
-            val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), melding)
-
-            rapid.publish(
-                Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to orgnr.toJson()
-            )
-        }
+    override fun utfoerSteg1(
+        steg0: Steg0,
+        steg1: Steg1,
+    ) {
+        rapid.publish(
+            Key.EVENT_NAME to eventName.toJson(),
+            Key.BEHOV to BehovType.OPPRETT_OPPGAVE.toJson(),
+            Key.UUID to steg0.transaksjonId.toJson(),
+            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+            Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
+            Key.VIRKSOMHET to steg1.orgNavn.toJson(),
+        )
     }
 
-    override fun inProgress(melding: Map<Key, JsonElement>) {
-        medTransaksjonIdOgForespoerselId(melding) { _, _ ->
-            "Service skal aldri være \"underveis\".".also {
-                logger.error(it)
-                sikkerLogger.error(it)
-            }
-        }
-    }
-
-    override fun finalize(melding: Map<Key, JsonElement>) {
-        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-
+    override fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    ) {
         MdcUtils.withLogFields(
             Log.klasse(this),
-            Log.event(EventName.OPPGAVE_OPPRETT_REQUESTED),
-            Log.transaksjonId(transaksjonId),
-            Log.forespoerselId(forespoerselId)
-        ) {
-            val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), melding)
-            val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
-
-            rapid.publish(
-                Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to BehovType.OPPRETT_OPPGAVE.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.VIRKSOMHET to virksomhetNavn.toJson(),
-                Key.ORGNRUNDERENHET to orgnr.toJson()
-            )
-        }
-    }
-
-    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
-        MdcUtils.withLogFields(
-            Log.klasse(this),
-            Log.event(EventName.OPPGAVE_OPPRETT_REQUESTED),
-            Log.transaksjonId(fail.transaksjonId)
+            Log.event(eventName),
+            Log.transaksjonId(fail.transaksjonId),
         ) {
             val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
-            if (utloesendeBehov == BehovType.VIRKSOMHET) {
-                val defaultVirksomhetNavnJson = "Arbeidsgiver".toJson()
-
-                redisStore.set(RedisKey.of(fail.transaksjonId, Key.VIRKSOMHET), defaultVirksomhetNavnJson.toString())
-
-                val meldingMedDefault = mapOf(Key.VIRKSOMHET to defaultVirksomhetNavnJson).plus(melding)
-
-                return finalize(meldingMedDefault)
-            }
-
-            val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, event))
-                ?.let(UUID::fromString)
-
-            if (clientId == null) {
-                sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespoerselId}")
-            } else {
-                redisStore.set(RedisKey.of(clientId), fail.feilmelding)
+            if (utloesendeBehov == BehovType.HENT_VIRKSOMHET_NAVN) {
+                // TODO må bruke Key.VIRKSOMHETER
+                val meldingMedDefault = mapOf(Key.VIRKSOMHET to "Arbeidsgiver".toJson()).plus(melding)
+                onData(meldingMedDefault)
             }
         }
     }
 
-    private inline fun medTransaksjonIdOgForespoerselId(melding: Map<Key, JsonElement>, block: (UUID, UUID) -> Unit) {
-        MdcUtils.withLogFields(
-            Log.klasse(this),
-            Log.event(EventName.OPPGAVE_OPPRETT_REQUESTED)
-        ) {
-            val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-            val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-
-            MdcUtils.withLogFields(
-                Log.transaksjonId(transaksjonId),
-                Log.forespoerselId(forespoerselId)
-            ) {
-                block(transaksjonId, forespoerselId)
-            }
-        }
-    }
+    override fun Steg0.loggfelt(): Map<String, String> =
+        mapOf(
+            Log.klasse(this@OpprettOppgaveService),
+            Log.event(eventName),
+            Log.transaksjonId(transaksjonId),
+            Log.forespoerselId(forespoerselId),
+        )
 }

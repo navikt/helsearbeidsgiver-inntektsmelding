@@ -9,5 +9,5 @@ import java.util.UUID
 
 @Serializable
 data class InnsendingResponse(
-    var uuid: UUID
+    var uuid: UUID,
 )

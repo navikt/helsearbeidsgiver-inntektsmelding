@@ -8,11 +8,12 @@ fun mockInntektsmeldingDokumentMedTommeLister(): Inntektsmelding =
         it.copy(
             behandlingsdager = emptyList(),
             egenmeldingsperioder = emptyList(),
-            refusjon = it.refusjon.copy(
-                refusjonEndringer = emptyList()
-            ),
+            refusjon =
+                it.refusjon.copy(
+                    refusjonEndringer = emptyList(),
+                ),
             naturalytelser = emptyList(),
             fraværsperioder = emptyList(),
-            arbeidsgiverperioder = emptyList()
+            arbeidsgiverperioder = emptyList(),
         )
     }

@@ -26,12 +26,11 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class VirksomhetLoeserTest {
-
     private val testRapid = TestRapid()
     private val mockBrregClient = mockk<BrregClient>()
 
-    private val ORGNR = "orgnr-1"
-    private val VIRKSOMHET_NAVN = "Norge AS"
+    private val orgnr = "orgnr-1"
+    private val virksomhetNavn = "Norge AS"
 
     init {
         VirksomhetLoeser(testRapid, mockBrregClient, false)
@@ -49,9 +48,9 @@ class VirksomhetLoeserTest {
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
-            Key.ORGNRUNDERENHET to ORGNR.toJson(),
-            Key.UUID to UUID.randomUUID().toJson()
+            Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
+            Key.ORGNRUNDERENHET to orgnr.toJson(),
+            Key.UUID to UUID.randomUUID().toJson(),
         )
 
         val publisert = testRapid.firstMessage().readFail()
@@ -61,13 +60,13 @@ class VirksomhetLoeserTest {
 
     @Test
     fun `skal returnere løsning når gyldige data`() {
-        coEvery { mockBrregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = ORGNR, navn = VIRKSOMHET_NAVN))
+        coEvery { mockBrregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = orgnr, navn = virksomhetNavn))
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
-            Key.ORGNRUNDERENHET to ORGNR.toJson(),
-            Key.UUID to UUID.randomUUID().toJson()
+            Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
+            Key.ORGNRUNDERENHET to orgnr.toJson(),
+            Key.UUID to UUID.randomUUID().toJson(),
         )
 
         val publisert = testRapid.firstMessage().toMap()
@@ -75,16 +74,16 @@ class VirksomhetLoeserTest {
         publisert[Key.VIRKSOMHET]
             .shouldNotBeNull()
             .fromJson(String.serializer())
-            .shouldBe(VIRKSOMHET_NAVN)
+            .shouldBe(virksomhetNavn)
     }
 
     @Test
     fun `skal håndtere ukjente feil`() {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
-            Key.ORGNRUNDERENHET to ORGNR.toJson(),
-            Key.UUID to UUID.randomUUID().toJson()
+            Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
+            Key.ORGNRUNDERENHET to orgnr.toJson(),
+            Key.UUID to UUID.randomUUID().toJson(),
         )
 
         val publisert = testRapid.firstMessage()

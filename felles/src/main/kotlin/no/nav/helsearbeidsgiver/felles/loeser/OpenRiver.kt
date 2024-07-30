@@ -17,15 +17,18 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
  */
 internal class OpenRiver(
     rapid: RapidsConnection,
-    private val messageHandler: ObjectRiver<*>
+    private val messageHandler: ObjectRiver<*>,
 ) : River.PacketListener {
-
     init {
         River(rapid).register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        packet.toJson()
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
+        packet
+            .toJson()
             .parseJson()
             .toMap()
             .filterValues { it !is JsonNull }

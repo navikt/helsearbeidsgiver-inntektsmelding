@@ -20,28 +20,29 @@ fun MessageContext.publishEvent(
     eventName: EventName,
     transaksjonId: UUID?,
     forespoerselId: UUID?,
-    vararg messageFields: Pair<Key, JsonElement?>
+    vararg messageFields: Pair<Key, JsonElement?>,
 ): JsonElement {
-    val optionalIdFields = mapOf(
-        Key.UUID to transaksjonId,
-        Key.FORESPOERSEL_ID to forespoerselId
-    )
-        .mapValuesNotNull { it?.toJson() }
-        .toList()
-        .toTypedArray()
+    val optionalIdFields =
+        mapOf(
+            Key.UUID to transaksjonId,
+            Key.FORESPOERSEL_ID to forespoerselId,
+        ).mapValuesNotNull { it?.toJson() }
+            .toList()
+            .toTypedArray()
 
-    val nonNullMessageFields = messageFields.toMap()
-        .mapValuesNotNull { it }
-        .toList()
-        .toTypedArray()
+    val nonNullMessageFields =
+        messageFields
+            .toMap()
+            .mapValuesNotNull { it }
+            .toList()
+            .toTypedArray()
 
     return publish(
         Key.EVENT_NAME to eventName.toJson(),
         *optionalIdFields,
-        *nonNullMessageFields
-    )
-        .also {
-            logger.info("Publiserte event '$eventName' med transaksjonId '$transaksjonId'.")
-            sikkerLogger.info("Publiserte event:\n${it.toPretty()}")
-        }
+        *nonNullMessageFields,
+    ).also {
+        logger.info("Publiserte event '$eventName' med transaksjonId '$transaksjonId'.")
+        sikkerLogger.info("Publiserte event:\n${it.toPretty()}")
+    }
 }

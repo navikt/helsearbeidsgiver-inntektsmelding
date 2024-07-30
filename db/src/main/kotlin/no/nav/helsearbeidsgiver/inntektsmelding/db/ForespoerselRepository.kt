@@ -12,22 +12,28 @@ import org.jetbrains.exposed.sql.update
 import java.time.LocalDateTime
 import java.util.UUID
 
-class ForespoerselRepository(private val db: Database) {
+class ForespoerselRepository(
+    private val db: Database,
+) {
+    private val requestLatency =
+        Summary
+            .build()
+            .name("simba_db_forespoersel_repo_latency_seconds")
+            .help("database forespoerselRepo latency in seconds")
+            .labelNames("method")
+            .register()
 
-    private val requestLatency = Summary.build()
-        .name("simba_db_forespoersel_repo_latency_seconds")
-        .help("database forespoerselRepo latency in seconds")
-        .labelNames("method")
-        .register()
-
-    fun oppdaterOppgaveId(forespoerselId: String, oppgaveId: String) {
+    fun oppdaterOppgaveId(
+        forespoerselId: String,
+        oppgaveId: String,
+    ) {
         val requestTimer = requestLatency.labels("oppdaterOppgaveId").startTimer()
         transaction(db) {
             ForespoerselEntitet.update(
                 where = {
                     (ForespoerselEntitet.forespoerselId eq forespoerselId) and
                         ForespoerselEntitet.oppgaveId.isNull()
-                }
+                },
             ) {
                 it[ForespoerselEntitet.oppgaveId] = oppgaveId
             }
@@ -36,14 +42,17 @@ class ForespoerselRepository(private val db: Database) {
         }
     }
 
-    fun oppdaterSakId(forespoerselId: String, sakId: String) {
+    fun oppdaterSakId(
+        forespoerselId: String,
+        sakId: String,
+    ) {
         val requestTimer = requestLatency.labels("oppdaterSakId").startTimer()
         transaction(db) {
             ForespoerselEntitet.update(
                 where = {
                     (ForespoerselEntitet.forespoerselId eq forespoerselId) and
                         ForespoerselEntitet.sakId.isNull()
-                }
+                },
             ) {
                 it[ForespoerselEntitet.sakId] = sakId
             }
@@ -76,7 +85,10 @@ class ForespoerselRepository(private val db: Database) {
         }
     }
 
-    fun lagreForespoersel(forespoerselId: String, organisasjonsnummer: String) {
+    fun lagreForespoersel(
+        forespoerselId: String,
+        organisasjonsnummer: String,
+    ) {
         val requestTimer = requestLatency.labels("lagreForespoersel").startTimer()
         transaction(db) {
             ForespoerselEntitet.insert {

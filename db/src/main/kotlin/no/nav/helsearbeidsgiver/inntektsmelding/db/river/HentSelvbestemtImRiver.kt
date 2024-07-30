@@ -22,13 +22,12 @@ data class HentSelvbestemtImMelding(
     val eventName: EventName,
     val behovType: BehovType,
     val transaksjonId: UUID,
-    val selvbestemtId: UUID
+    val selvbestemtId: UUID,
 )
 
 class HentSelvbestemtImRiver(
-    private val selvbestemtImRepo: SelvbestemtImRepo
+    private val selvbestemtImRepo: SelvbestemtImRepo,
 ) : ObjectRiver<HentSelvbestemtImMelding>() {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -40,7 +39,7 @@ class HentSelvbestemtImRiver(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.HENT_SELVBESTEMT_IM, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
-                selvbestemtId = Key.SELVBESTEMT_ID.les(UuidSerializer, json)
+                selvbestemtId = Key.SELVBESTEMT_ID.les(UuidSerializer, json),
             )
         }
 
@@ -58,24 +57,27 @@ class HentSelvbestemtImRiver(
                 sikkerLogger.info(it)
             }
 
-            val dataFields = arrayOf(
-                Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
-                Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
-            )
+            val dataFields =
+                arrayOf(
+                    Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
+                    Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                )
 
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.DATA to dataFields.toMap().toJson(),
-                *dataFields
+                *dataFields,
             )
         } else {
             haandterFeil("Fant ikke selvbestemt inntektsmelding.", json)
         }
     }
 
-    override fun HentSelvbestemtImMelding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement> =
-        haandterFeil("Klarte ikke hente selvbestemt inntektsmelding.", json, error)
+    override fun HentSelvbestemtImMelding.haandterFeil(
+        json: Map<Key, JsonElement>,
+        error: Throwable,
+    ): Map<Key, JsonElement> = haandterFeil("Klarte ikke hente selvbestemt inntektsmelding.", json, error)
 
     override fun HentSelvbestemtImMelding.loggfelt(): Map<String, String> =
         mapOf(
@@ -83,26 +85,28 @@ class HentSelvbestemtImRiver(
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),
-            Log.selvbestemtId(selvbestemtId)
+            Log.selvbestemtId(selvbestemtId),
         )
 
     private fun HentSelvbestemtImMelding.haandterFeil(
         feilmelding: String,
         json: Map<Key, JsonElement>,
-        error: Throwable? = null
+        error: Throwable? = null,
     ): Map<Key, JsonElement> {
-        val fail = Fail(
-            feilmelding = feilmelding,
-            event = eventName,
-            transaksjonId = transaksjonId,
-            forespoerselId = null,
-            utloesendeMelding = json.toJson()
-        )
+        val fail =
+            Fail(
+                feilmelding = feilmelding,
+                event = eventName,
+                transaksjonId = transaksjonId,
+                forespoerselId = null,
+                utloesendeMelding = json.toJson(),
+            )
 
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
-        return fail.tilMelding()
+        return fail
+            .tilMelding()
             .minus(Key.FORESPOERSEL_ID)
             .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
     }

@@ -26,31 +26,33 @@ import java.util.UUID
 
 class MarkerForespoerselBesvartRiver(
     rapid: RapidsConnection,
-    private val priProducer: PriProducer
+    private val priProducer: PriProducer,
 ) : River.PacketListener {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     init {
-        River(rapid).validate { msg ->
-            msg.demandValues(
-                Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.name
-            )
-            msg.require(
-                Key.UUID to { it.fromJson(UuidSerializer) },
-                Key.FORESPOERSEL_ID to { it.fromJson(UuidSerializer) }
-            )
-            msg.rejectKeys(
-                Key.BEHOV,
-                Key.DATA,
-                Key.FAIL
-            )
-        }
-            .register(this)
+        River(rapid)
+            .validate { msg ->
+                msg.demandValues(
+                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.name,
+                )
+                msg.require(
+                    Key.UUID to { it.fromJson(UuidSerializer) },
+                    Key.FORESPOERSEL_ID to { it.fromJson(UuidSerializer) },
+                )
+                msg.rejectKeys(
+                    Key.BEHOV,
+                    Key.DATA,
+                    Key.FAIL,
+                )
+            }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         if (packet[Key.FORESPOERSEL_ID.str].asText().isEmpty()) {
             logger.warn("Mangler forespørselId!")
             sikkerLogger.warn("Mangler forespørselId!")
@@ -59,7 +61,7 @@ class MarkerForespoerselBesvartRiver(
 
         MdcUtils.withLogFields(
             Log.klasse(this),
-            Log.event(EventName.INNTEKTSMELDING_MOTTATT)
+            Log.event(EventName.INNTEKTSMELDING_MOTTATT),
         ) {
             logger.info("Mottok melding om ${EventName.INNTEKTSMELDING_MOTTATT}.")
             sikkerLogger.info("Mottok melding:\n${json.toPretty()}.")
@@ -71,7 +73,7 @@ class MarkerForespoerselBesvartRiver(
 
             MdcUtils.withLogFields(
                 Log.transaksjonId(transaksjonId),
-                Log.forespoerselId(forespoerselId)
+                Log.forespoerselId(forespoerselId),
             ) {
                 sendMeldingOmBesvarelse(forespoerselId)
             }
@@ -79,15 +81,14 @@ class MarkerForespoerselBesvartRiver(
     }
 
     private fun sendMeldingOmBesvarelse(forespoerselId: UUID) {
-        priProducer.send(
-            Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
-            Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson()
-        )
-            .onSuccess {
+        priProducer
+            .send(
+                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
+                Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            ).onSuccess {
                 logger.info("Publiserte melding på pri-topic om ${Pri.NotisType.FORESPOERSEL_BESVART_SIMBA}.")
                 sikkerLogger.info("Publiserte melding på pri-topic:\n${it.toPretty()}")
-            }
-            .onFailure {
+            }.onFailure {
                 logger.error("Klarte ikke publiserte melding på pri-topic om ${Pri.NotisType.FORESPOERSEL_BESVART_SIMBA}.")
             }
     }

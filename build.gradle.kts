@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("jvm")
@@ -10,38 +10,15 @@ plugins {
     id("jvm-test-suite")
 }
 
-buildscript {
-    repositories {
-        mavenCentral()
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_21
     }
-}
-
-dependencies {
-    subprojects.filter { it.name != "integrasjonstest" }
-        .forEach {
-            jacocoAggregation(project(":${it.name}"))
-        }
 }
 
 allprojects {
-    tasks {
-        val jvmTargetVersion: String by project
-
-        withType<KotlinCompile> {
-            kotlinOptions.jvmTarget = jvmTargetVersion
-        }
-
-        withType<Test> {
-            useJUnitPlatform()
-            testLogging {
-                events("skipped", "failed")
-            }
-        }
-    }
-
     repositories {
         val githubPassword: String by project
-
         mavenCentral()
         maven {
             setUrl("https://maven.pkg.github.com/navikt/*")
@@ -55,17 +32,23 @@ allprojects {
 
 subprojects {
     group = "no.nav.helsearbeidsgiver.inntektsmelding"
-    version = properties["version"] ?: "local-build"
 
     applyPlugins(
         "org.jetbrains.kotlin.jvm",
         "org.jetbrains.kotlin.plugin.serialization",
         "org.jmailen.kotlinter",
         "java",
-        "jacoco"
+        "jacoco",
     )
 
     tasks {
+        withType<Test> {
+            useJUnitPlatform()
+            testLogging {
+                events("skipped", "failed")
+            }
+        }
+
         if (!project.erFellesModul() && !project.erFellesDatabaseModul()) {
             named<Jar>("jar") {
                 archiveBaseName.set("app")
@@ -84,7 +67,11 @@ subprojects {
 
                 doLast {
                     dependencies.forEach {
-                        val file = layout.buildDirectory.file("libs/${it.name}").get().asFile
+                        val file =
+                            layout.buildDirectory
+                                .file("libs/${it.name}")
+                                .get()
+                                .asFile
                         if (!file.exists()) {
                             it.copyTo(file)
                         }
@@ -137,11 +124,19 @@ subprojects {
     }
 }
 
+dependencies {
+    subprojects
+        .filterNot { it.erIntegrasjonstestModul() }
+        .forEach {
+            jacocoAggregation(project(":${it.name}"))
+        }
+}
+
 tasks {
     create("buildMatrix") {
         doLast {
             taskOutputJson(
-                "project" to getBuildableProjects().toJsonList()
+                "project" to getBuildableProjects().toJsonList(),
             )
         }
     }
@@ -149,7 +144,7 @@ tasks {
     create("buildAllMatrix") {
         doLast {
             taskOutputJson(
-                "project" to getBuildableProjects(buildAll = true).toJsonList()
+                "project" to getBuildableProjects(buildAll = true).toJsonList(),
             )
         }
     }
@@ -173,22 +168,29 @@ tasks {
 
 fun getBuildableProjects(buildAll: Boolean = false): List<String> {
     if (buildAll) return subprojects.map { it.name }
-    val changedFiles = System.getenv("CHANGED_FILES")
-        ?.takeIf(String::isNotBlank)
-        ?.split(",")
-        ?: throw IllegalStateException("Ingen endrede filer funnet.")
+    val changedFiles =
+        System
+            .getenv("CHANGED_FILES")
+            ?.takeIf(String::isNotBlank)
+            ?.split(",")
+            ?: throw IllegalStateException("Ingen endrede filer funnet.")
 
-    val hasCommonChanges = changedFiles.any { it.startsWith("felles/") } ||
-        changedFiles.containsAny(
-            "Dockerfile",
-            ".github/workflows/build.yml",
-            "config/nais.yml",
-            "build.gradle.kts",
-            "gradle.properties"
-        )
+    val hasCommonChanges =
+        changedFiles.any {
+            it.startsWith("felles/") ||
+                it in
+                listOf(
+                    "Dockerfile",
+                    ".github/workflows/build.yml",
+                    "config/nais.yml",
+                    "build.gradle.kts",
+                    "gradle.properties",
+                )
+        }
 
-    return subprojects.map { it.name }
-        .filter { it != "integrasjonstest" }
+    return subprojects
+        .filterNot { it.erIntegrasjonstestModul() }
+        .map { it.name }
         .let { projects ->
             if (hasCommonChanges) {
                 projects
@@ -205,39 +207,40 @@ fun getBuildableProjects(buildAll: Boolean = false): List<String> {
 
 fun getDeployMatrixVariables(
     includeCluster: String? = null,
-    deployAll: Boolean = false
+    deployAll: Boolean = false,
 ): Triple<Set<String>, Set<String>, List<Pair<String, String>>> {
-    val clustersByProject = getBuildableProjects(deployAll).associateWith { project ->
-        File("config", project)
-            .listFiles()
-            ?.filter { it.isFile && it.name.endsWith(".yml") }
-            ?.map { it.name.removeSuffix(".yml") }
-            ?.let { clusters ->
-                if (includeCluster != null) {
-                    listOf(includeCluster).intersect(clusters.toSet())
-                } else {
-                    clusters
-                }
-            }
-            ?.toSet()
-            ?.ifEmpty { null }
-    }
-        .mapNotNull { (key, value) ->
-            value?.let { key to it }
-        }
-        .toMap()
+    val clustersByProject =
+        getBuildableProjects(deployAll)
+            .associateWith { project ->
+                File("config", project)
+                    .listFiles()
+                    ?.filter { it.isFile && it.name.endsWith(".yml") }
+                    ?.map { it.name.removeSuffix(".yml") }
+                    ?.let { clusters ->
+                        if (includeCluster != null) {
+                            listOf(includeCluster).intersect(clusters.toSet())
+                        } else {
+                            clusters
+                        }
+                    }?.toSet()
+                    ?.ifEmpty { null }
+            }.mapNotNull { (key, value) ->
+                value?.let { key to it }
+            }.toMap()
 
     val allClusters = clustersByProject.values.flatten().toSet()
 
-    val exclusions = clustersByProject.flatMap { (project, clusters) ->
-        allClusters.subtract(clusters)
-            .map { Pair(project, it) }
-    }
+    val exclusions =
+        clustersByProject.flatMap { (project, clusters) ->
+            allClusters
+                .subtract(clusters)
+                .map { Pair(project, it) }
+        }
 
     return Triple(
         clustersByProject.keys,
         allClusters,
-        exclusions
+        exclusions,
     )
 }
 
@@ -250,69 +253,64 @@ fun PluginAware.applyPlugins(vararg ids: String) {
 fun Task.validateMainClassFound(mainClass: String) {
     val mainClassOsSpecific = mainClass.replace(".", File.separator)
 
-    val mainClassFound = this.project.sourceSets
-        .findByName("main")
-        ?.output
-        ?.classesDirs
-        ?.asFileTree
-        ?.any { it.path.contains(mainClassOsSpecific) }
-        ?: false
+    val mainClassFound =
+        this.project.sourceSets
+            .findByName("main")
+            ?.output
+            ?.classesDirs
+            ?.asFileTree
+            ?.any { it.path.contains(mainClassOsSpecific) }
+            ?: false
 
     if (!mainClassFound) throw RuntimeException("Kunne ikke finne main class: $mainClass")
 }
 
-fun Project.mainClass(): String =
-    "$group.${name.replace("-", "")}.AppKt"
+fun Project.mainClass(): String = "$group.${name.replace("-", "")}.AppKt"
 
-fun Project.erFellesModul(): Boolean =
-    name == "felles"
+fun Project.erFellesModul(): Boolean = name == "felles"
 
-fun Project.erFellesDatabaseModul(): Boolean =
-    name == "felles-db-exposed"
+fun Project.erFellesDatabaseModul(): Boolean = name == "felles-db-exposed"
 
-fun List<String>.containsAny(vararg others: String): Boolean =
-    this.intersect(others.toSet()).isNotEmpty()
+fun Project.erIntegrasjonstestModul(): Boolean = name == "integrasjonstest"
 
-fun Task.deployMatrix(includeCluster: String? = null, deployAll: Boolean = false) {
+fun Task.deployMatrix(
+    includeCluster: String? = null,
+    deployAll: Boolean = false,
+) {
     doLast {
         val (
             deployableProjects,
             clusters,
-            exclusions
+            exclusions,
         ) = getDeployMatrixVariables(includeCluster, deployAll)
 
         taskOutputJson(
             "project" to deployableProjects.toJsonList(),
             "cluster" to clusters.toJsonList(),
-            "exclude" to exclusions.map { (project, cluster) ->
-                listOf(
-                    "project" to project,
-                    "cluster" to cluster
-                )
-                    .toJsonObject()
-            }
-                .toJsonList { it }
+            "exclude" to
+                exclusions
+                    .map { (project, cluster) ->
+                        listOf(
+                            "project" to project,
+                            "cluster" to cluster,
+                        ).toJsonObject()
+                    }.toJsonList { it },
         )
     }
 }
 
 fun taskOutputJson(vararg keyValuePairs: Pair<String, String>) {
-    keyValuePairs.toList()
+    keyValuePairs
+        .toList()
         .toJsonObject { it }
         .let(::println)
 }
 
-fun Iterable<String>.toJsonList(
-    transform: (String) -> String = { it.inQuotes() }
-): String =
-    joinToString(prefix = "[", postfix = "]", transform = transform)
+fun Iterable<String>.toJsonList(transform: (String) -> String = { it.inQuotes() }): String = joinToString(prefix = "[", postfix = "]", transform = transform)
 
-fun Iterable<Pair<String, String>>.toJsonObject(
-    transformValue: (String) -> String = { it.inQuotes() }
-): String =
+fun Iterable<Pair<String, String>>.toJsonObject(transformValue: (String) -> String = { it.inQuotes() }): String =
     joinToString(prefix = "{", postfix = "}") { (key, value) ->
         "${key.inQuotes()}: ${transformValue(value)}"
     }
 
-fun String.inQuotes(): String =
-    "\"$this\""
+fun String.inQuotes(): String = "\"$this\""

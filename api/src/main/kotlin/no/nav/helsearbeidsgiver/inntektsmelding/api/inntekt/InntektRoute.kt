@@ -12,6 +12,9 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.Tekst
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -30,12 +33,13 @@ import java.util.UUID
 fun Route.inntektRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
-    redisPoller: RedisPoller
+    redisConnection: RedisConnection,
 ) {
     val inntektProducer = InntektProducer(rapid)
+    val redisPoller = RedisStore(redisConnection, RedisPrefix.Inntekt).let(::RedisPoller)
 
     post(Routes.INNTEKT) {
-        val clientId = UUID.randomUUID()
+        val transaksjonId = UUID.randomUUID()
 
         val request = call.receive<InntektRequest>()
 
@@ -47,18 +51,18 @@ fun Route.inntektRoute(
         }
 
         try {
-            inntektProducer.publish(clientId, request)
+            inntektProducer.publish(transaksjonId, request)
 
-            val resultatJson = redisPoller.hent(clientId).fromJson(ResultJson.serializer())
+            val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
             sikkerLogger.info("Fikk inntektresultat:\n$resultatJson")
 
             val resultat = resultatJson.success?.fromJson(Inntekt.serializer())
             if (resultat != null) {
-                val response = InntektResponse(
-                    bruttoinntekt = resultat.gjennomsnitt(),
-                    tidligereInntekter = resultat.maanedOversikt
-                )
-                    .toJson(InntektResponse.serializer().nullable)
+                val response =
+                    InntektResponse(
+                        bruttoinntekt = resultat.gjennomsnitt(),
+                        tidligereInntekter = resultat.maanedOversikt,
+                    ).toJson(InntektResponse.serializer().nullable)
 
                 call.respond(HttpStatusCode.OK, response)
             } else {

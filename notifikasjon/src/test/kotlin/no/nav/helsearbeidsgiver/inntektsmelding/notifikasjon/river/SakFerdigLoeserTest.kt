@@ -24,43 +24,44 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class SakFerdigLoeserTest : FunSpec({
-    val testRapid = TestRapid()
-    val mockAgNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
-    val linkUrl = "dummyurl"
-    SakFerdigLoeser(testRapid, mockAgNotifikasjonKlient, linkUrl)
+class SakFerdigLoeserTest :
+    FunSpec({
+        val testRapid = TestRapid()
+        val mockAgNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
+        val linkUrl = "dummyurl"
+        SakFerdigLoeser(testRapid, mockAgNotifikasjonKlient, linkUrl)
 
-    beforeEach {
-        testRapid.reset()
-        clearAllMocks()
-    }
-
-    test("Ved besvart forespørsel med sak-ID så ferdigstilles saken") {
-        val expected = PublishedSak.mock()
-
-        testRapid.sendJson(
-            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            Key.SAK_ID to expected.sakId.toJson(),
-            Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
-            Key.UUID to expected.transaksjonId.toJson()
-        )
-
-        val actual = testRapid.firstMessage().fromJson(PublishedSak.serializer())
-
-        testRapid.inspektør.size shouldBeExactly 1
-
-        actual shouldBe expected
-
-        coVerifySequence {
-            mockAgNotifikasjonKlient.nyStatusSak(
-                id = expected.sakId,
-                status = SaksStatus.FERDIG,
-                statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding",
-                nyLenkeTilSak = "$linkUrl/im-dialog/kvittering/${expected.forespoerselId}"
-            )
+        beforeEach {
+            testRapid.reset()
+            clearAllMocks()
         }
-    }
-})
+
+        test("Ved besvart forespørsel med sak-ID så ferdigstilles saken") {
+            val expected = PublishedSak.mock()
+
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                Key.SAK_ID to expected.sakId.toJson(),
+                Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
+                Key.UUID to expected.transaksjonId.toJson(),
+            )
+
+            val actual = testRapid.firstMessage().fromJson(PublishedSak.serializer())
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            actual shouldBe expected
+
+            coVerifySequence {
+                mockAgNotifikasjonKlient.nyStatusSak(
+                    id = expected.sakId,
+                    status = SaksStatus.FERDIG,
+                    statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding",
+                    nyLenkeTilSak = "$linkUrl/im-dialog/kvittering/${expected.forespoerselId}",
+                )
+            }
+        }
+    })
 
 @Serializable
 private data class PublishedSak(
@@ -70,7 +71,7 @@ private data class PublishedSak(
     val sakId: String,
     val forespoerselId: UUID,
     @SerialName("uuid")
-    val transaksjonId: UUID
+    val transaksjonId: UUID,
 ) {
     companion object {
         fun mock(): PublishedSak =
@@ -78,7 +79,7 @@ private data class PublishedSak(
                 eventName = EventName.SAK_FERDIGSTILT,
                 sakId = "sulten-kalamari",
                 forespoerselId = UUID.randomUUID(),
-                transaksjonId = UUID.randomUUID()
+                transaksjonId = UUID.randomUUID(),
             )
     }
 }

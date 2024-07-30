@@ -23,51 +23,53 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 
-class ForespoerselBesvartFraSpleisLoeserTest : FunSpec({
-    val testRapid = TestRapid()
-    val mockPriProducer = mockk<PriProducer>(relaxed = true)
+class ForespoerselBesvartFraSpleisLoeserTest :
+    FunSpec({
+        val testRapid = TestRapid()
+        val mockPriProducer = mockk<PriProducer>(relaxed = true)
 
-    ForespoerselBesvartFraSpleisLoeser(testRapid, mockPriProducer)
+        ForespoerselBesvartFraSpleisLoeser(testRapid, mockPriProducer)
 
-    beforeEach {
-        testRapid.reset()
-        clearAllMocks()
-    }
-
-    test("Ved notis om besvart forespørsel publiseres behov om å hente notifikasjon-ID-er") {
-        val expected = Published.mock()
-
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns expected.transaksjonId
-
-            testRapid.sendJson(
-                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to expected.forespoerselId.toJson()
-            )
+        beforeEach {
+            testRapid.reset()
+            clearAllMocks()
         }
 
-        val actual = testRapid.firstMessage().fromJson(Published.serializer())
+        test("Ved notis om besvart forespørsel publiseres behov om å hente notifikasjon-ID-er") {
+            val expected = Published.mock()
 
-        testRapid.inspektør.size shouldBeExactly 1
-        actual shouldBe expected
-    }
+            mockStatic(::randomUuid) {
+                every { randomUuid() } returns expected.transaksjonId
 
-    test("Ved feil så republiseres den innkommende meldingen") {
-        val expectedRepublisert = mapOf(
-            Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
-            Pri.Key.FORESPOERSEL_ID to "ikke en uuid".toJson()
-        )
+                testRapid.sendJson(
+                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
+                    Pri.Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
+                )
+            }
 
-        testRapid.sendJson(expectedRepublisert)
+            val actual = testRapid.firstMessage().fromJson(Published.serializer())
 
-        testRapid.inspektør.size shouldBeExactly 0
-
-        verifySequence {
-            mockPriProducer.send(
-                withArg<JsonElement> { json ->
-                    json.fromJsonMapFiltered(Pri.Key.serializer()) shouldBe expectedRepublisert
-                }
-            )
+            testRapid.inspektør.size shouldBeExactly 1
+            actual shouldBe expected
         }
-    }
-})
+
+        test("Ved feil så republiseres den innkommende meldingen") {
+            val expectedRepublisert =
+                mapOf(
+                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
+                    Pri.Key.FORESPOERSEL_ID to "ikke en uuid".toJson(),
+                )
+
+            testRapid.sendJson(expectedRepublisert)
+
+            testRapid.inspektør.size shouldBeExactly 0
+
+            verifySequence {
+                mockPriProducer.send(
+                    withArg<JsonElement> { json ->
+                        json.fromJsonMapFiltered(Pri.Key.serializer()) shouldBe expectedRepublisert
+                    },
+                )
+            }
+        }
+    })

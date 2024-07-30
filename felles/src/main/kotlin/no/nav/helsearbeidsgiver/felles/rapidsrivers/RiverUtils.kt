@@ -14,14 +14,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.pipe.mapFirst
 
-fun JsonMessage.toPretty(): String =
-    toJson().parseJson().toPretty()
-
-fun JsonMessage.demandKeys(vararg keys: IKey) {
-    keys.forEach {
-        demandKey(it.toString())
-    }
-}
+fun JsonMessage.toPretty(): String = toJson().parseJson().toPretty()
 
 fun JsonMessage.demandValues(vararg keyAndValuePairs: Pair<IKey, String>) {
     keyAndValuePairs.forEach { (key, value) ->
@@ -49,24 +42,18 @@ fun JsonMessage.require(vararg keyAndParserPairs: Pair<IKey, (JsonElement) -> An
     validate(JsonMessage::require, keyStringAndParserPairs)
 }
 
-fun JsonMessage.interestedIn(vararg keyAndParserPairs: Pair<IKey, (JsonElement) -> Any>) {
-    val keyStringAndParserPairs = keyAndParserPairs.map { it.mapFirst(IKey::str) }
-    validate(JsonMessage::interestedIn, keyStringAndParserPairs)
-}
-
 fun JsonMessage.interestedIn(vararg keys: IKey) {
     val keysAsStr = keys.map(IKey::str).toTypedArray()
     interestedIn(*keysAsStr)
 }
 
-fun MessageContext.publishNotNull(vararg messageFields: Pair<Key, JsonElement?>): JsonElement =
-    publishNotNull(messageFields.toMap())
+fun MessageContext.publishNotNull(vararg messageFields: Pair<Key, JsonElement?>): JsonElement = publishNotNull(messageFields.toMap())
 
-fun MessageContext.publish(vararg messageFields: Pair<Key, JsonElement>): JsonElement =
-    publish(messageFields.toMap())
+fun MessageContext.publish(vararg messageFields: Pair<Key, JsonElement>): JsonElement = publish(messageFields.toMap())
 
 fun MessageContext.publishNotNull(messageFields: Map<Key, JsonElement?>): JsonElement =
-    messageFields.mapValuesNotNull { it }
+    messageFields
+        .mapValuesNotNull { it }
         .let(::publish)
 
 fun MessageContext.publish(messageFields: Map<Key, JsonElement>): JsonElement =
@@ -77,14 +64,13 @@ fun MessageContext.publish(messageFields: Map<Key, JsonElement>): JsonElement =
         .toString()
         .let {
             JsonMessage(it, MessageProblems(it), null)
-        }
-        .toJson()
+        }.toJson()
         .also(::publish)
         .parseJson()
 
 private fun JsonMessage.validate(
     validateFn: (JsonMessage, String, (JsonNode) -> Any) -> Unit,
-    keyAndParserPairs: List<Pair<String, (JsonElement) -> Any>>
+    keyAndParserPairs: List<Pair<String, (JsonElement) -> Any>>,
 ) {
     keyAndParserPairs.forEach { (key, block) ->
         validateFn(this, key) {

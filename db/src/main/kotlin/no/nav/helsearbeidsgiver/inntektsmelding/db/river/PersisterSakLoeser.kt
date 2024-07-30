@@ -6,7 +6,6 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
@@ -20,22 +19,25 @@ import java.util.UUID
 
 class PersisterSakLoeser(
     rapidsConnection: RapidsConnection,
-    private val repository: ForespoerselRepository
+    private val repository: ForespoerselRepository,
 ) : Loeser(rapidsConnection) {
     private val sikkerLogger = sikkerLogger()
 
-    override fun accept(): River.PacketValidation {
-        return River.PacketValidation {
+    override fun accept(): River.PacketValidation =
+        River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.PERSISTER_SAK_ID.name)
             it.requireKey(Key.FORESPOERSEL_ID.str)
             it.requireKey(Key.SAK_ID.str)
         }
-    }
 
     override fun onBehov(behov: Behov) {
-        val json = behov.jsonMessage.toJson().parseJson().toMap()
+        val json =
+            behov.jsonMessage
+                .toJson()
+                .parseJson()
+                .toMap()
 
-        val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
+        val transaksjonId = Key.UUID.les(UuidSerializer, json)
         val sakId = Key.SAK_ID.les(String.serializer(), json)
 
         val forespoerselId = behov.forespoerselId!!.let(UUID::fromString)
@@ -50,7 +52,7 @@ class PersisterSakLoeser(
             eventName = behov.event,
             transaksjonId = transaksjonId,
             forespoerselId = forespoerselId,
-            Key.PERSISTERT_SAK_ID to sakId.toJson()
+            Key.PERSISTERT_SAK_ID to sakId.toJson(),
         )
     }
 }

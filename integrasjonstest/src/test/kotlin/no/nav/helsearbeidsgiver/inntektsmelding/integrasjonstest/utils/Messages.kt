@@ -1,32 +1,30 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
 import io.kotest.matchers.nulls.shouldNotBeNull
-import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonPrimitive
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 
 @JvmInline
 value class Messages(
-    private val value: MutableList<JsonElement> = mutableListOf()
+    private val value: MutableList<JsonElement> = mutableListOf(),
 ) {
     fun firstAsMap(): Map<Key, JsonElement> =
-        value.firstOrNull()
+        value
+            .firstOrNull()
             .shouldNotBeNull()
             .toMap()
 
-    fun all(): List<JsonElement> =
-        value
+    fun all(): List<JsonElement> = value
 
     fun add(json: String) {
-        json.parseJson()
+        json
+            .parseJson()
             .let(value::add)
     }
 
@@ -36,7 +34,8 @@ value class Messages(
 
     fun filter(eventName: EventName): Messages =
         filter { msg ->
-            msg.toMap()[Key.EVENT_NAME]
+            msg
+                .toMap()[Key.EVENT_NAME]
                 ?.runCatching { fromJson(EventName.serializer()) }
                 ?.map { it == eventName }
                 ?.getOrElse { false }
@@ -44,21 +43,31 @@ value class Messages(
         }
 
     fun filter(behovType: BehovType): Messages =
-        filter {
-            it.toMap()[Key.BEHOV]
-                ?.runCatching { fromJsonToBehovTypeListe() }
-                ?.getOrElse { emptyList() }
-                ?.contains(behovType)
+        filter { msg ->
+            msg
+                .toMap()[Key.BEHOV]
+                ?.runCatching { fromJson(BehovType.serializer()) }
+                ?.map { it == behovType }
+                ?.getOrElse { false }
                 .orDefault(false)
         }
 
-    fun filter(dataFelt: Key, utenDataKey: Boolean = false): Messages =
+    fun filter(
+        dataFelt: Key,
+        nestedData: Boolean = false,
+        utenDataKey: Boolean = false,
+    ): Messages =
         filter { msg ->
-            val dataFunnet = utenDataKey || msg.toMap().contains(Key.DATA)
+            if (nestedData) {
+                val data = msg.toMap()[Key.DATA]?.runCatching { toMap() }?.getOrNull()
+                data != null && dataFelt in data
+            } else {
+                val dataFunnet = utenDataKey || msg.toMap().contains(Key.DATA)
 
-            val datafeltFunnet = msg.toMap().contains(dataFelt)
+                val datafeltFunnet = msg.toMap().contains(dataFelt)
 
-            dataFunnet && datafeltFunnet
+                dataFunnet && datafeltFunnet
+            }
         }
 
     fun filterFeil(): Messages =
@@ -67,17 +76,8 @@ value class Messages(
         }
 
     private fun filter(predicate: (JsonElement) -> Boolean): Messages =
-        value.filter(predicate)
+        value
+            .filter(predicate)
             .toMutableList()
             .let(::Messages)
 }
-
-private fun JsonElement.fromJsonToBehovTypeListe(): List<BehovType> =
-    when (this) {
-        is JsonPrimitive ->
-            fromJson(BehovType.serializer()).let(::listOf)
-        is JsonArray ->
-            fromJson(BehovType.serializer().list())
-        else ->
-            emptyList()
-    }

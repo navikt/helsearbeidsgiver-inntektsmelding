@@ -18,7 +18,7 @@ data class Published(
     val behov: BehovType,
     val forespoerselId: UUID,
     @SerialName("uuid")
-    val transaksjonId: UUID
+    val transaksjonId: UUID,
 ) {
     companion object {
         fun mock(): Published =
@@ -26,7 +26,7 @@ data class Published(
                 eventName = EventName.FORESPOERSEL_BESVART,
                 behov = BehovType.NOTIFIKASJON_HENT_ID,
                 forespoerselId = UUID.randomUUID(),
-                transaksjonId = UUID.randomUUID()
+                transaksjonId = UUID.randomUUID(),
             )
     }
 }

@@ -4,7 +4,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.db.exposed.Database
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentPersistertLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentLagretImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentSelvbestemtImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreEksternInntektsmeldingLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreForespoerselLoeser
@@ -36,14 +36,13 @@ fun main() {
         .registerShutdownLifecycle {
             logger.info("Stoppsignal mottatt, lukker databasetilkobling.")
             database.dataSource.close()
-        }
-        .start()
+        }.start()
 }
 
 fun RapidsConnection.createDbRivers(
     imRepo: InntektsmeldingRepository,
     selvbestemtImRepo: SelvbestemtImRepo,
-    forespoerselRepo: ForespoerselRepository
+    forespoerselRepo: ForespoerselRepository,
 ): RapidsConnection =
     also {
         logger.info("Starter ${LagreForespoerselLoeser::class.simpleName}...")
@@ -55,8 +54,8 @@ fun RapidsConnection.createDbRivers(
         logger.info("Starter ${PersisterImSkjemaLoeser::class.simpleName}...")
         PersisterImSkjemaLoeser(this, imRepo)
 
-        logger.info("Starter ${HentPersistertLoeser::class.simpleName}...")
-        HentPersistertLoeser(this, imRepo)
+        logger.info("Starter ${HentLagretImRiver::class.simpleName}...")
+        HentLagretImRiver(imRepo).connect(this)
 
         logger.info("Starter ${LagreJournalpostIdRiver::class.simpleName}...")
         LagreJournalpostIdRiver(imRepo, selvbestemtImRepo).connect(this)

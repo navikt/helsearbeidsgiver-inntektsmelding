@@ -10,7 +10,7 @@ import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
@@ -30,26 +30,28 @@ import kotlin.system.measureTimeMillis
 class VirksomhetLoeser(
     rapidsConnection: RapidsConnection,
     private val brregClient: BrregClient,
-    private val isPreProd: Boolean
+    private val isPreProd: Boolean,
 ) : Loeser(rapidsConnection) {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
-    private val preprodOrgnr = mapOf(
-        "810007702" to "ANSTENDIG PIGGSVIN BYDEL",
-        "810007842" to "ANSTENDIG PIGGSVIN BARNEHAGE",
-        "810008032" to "ANSTENDIG PIGGSVIN BRANNVESEN",
-        "810007982" to "ANSTENDIG PIGGSVIN SYKEHJEM"
-    )
+    private val preprodOrgnr =
+        mapOf(
+            "810007702" to "ANSTENDIG PIGGSVIN BYDEL",
+            "810007842" to "ANSTENDIG PIGGSVIN BARNEHAGE",
+            "810008032" to "ANSTENDIG PIGGSVIN BRANNVESEN",
+            "810007982" to "ANSTENDIG PIGGSVIN SYKEHJEM",
+        )
 
-    private val BEHOV = BehovType.VIRKSOMHET
-    private val requestLatency = Summary.build()
-        .name("simba_brreg_hent_virksomhet_latency_seconds")
-        .help("brreg hent virksomhet latency in seconds")
-        .register()
+    private val behov = BehovType.HENT_VIRKSOMHET_NAVN
+    private val requestLatency =
+        Summary
+            .build()
+            .name("simba_brreg_hent_virksomhet_latency_seconds")
+            .help("brreg hent virksomhet latency in seconds")
+            .register()
 
-    private fun hentVirksomheter(orgnrListe: List<String>): List<Virksomhet> {
-        return if (isPreProd) {
+    private fun hentVirksomheter(orgnrListe: List<String>): List<Virksomhet> =
+        if (isPreProd) {
             orgnrListe.map { orgnr -> Virksomhet(preprodOrgnr.getOrDefault(orgnr, "Ukjent arbeidsgiver"), orgnr) }
         } else {
             runBlocking {
@@ -64,38 +66,41 @@ class VirksomhetLoeser(
                 virksomheterNavn.ifEmpty { throw FantIkkeVirksomhetException(orgnrListe.toString()) }
             }
         }
-    }
 
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
             it.demandValues(
-                Key.BEHOV to BEHOV.name
+                Key.BEHOV to behov.name,
             )
             it.requireKeys(
-                Key.UUID
+                Key.UUID,
             )
             it.interestedIn(
                 Key.ORGNRUNDERENHET,
-                Key.ORGNRUNDERENHETER
+                Key.ORGNR_UNDERENHETER,
             )
         }
 
     override fun onBehov(behov: Behov) {
-        val json = behov.jsonMessage.toJson().parseJson().toMap()
+        val json =
+            behov.jsonMessage
+                .toJson()
+                .parseJson()
+                .toMap()
 
-        val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
+        val transaksjonId = Key.UUID.les(UuidSerializer, json)
         val orgnr: List<String> =
-            if (behov[Key.ORGNRUNDERENHETER].isEmpty) {
+            if (behov[Key.ORGNR_UNDERENHETER].isEmpty) {
                 listOf(
                     behov[Key.ORGNRUNDERENHET]
-                        .asText()
+                        .asText(),
                 )
             } else {
-                behov[Key.ORGNRUNDERENHETER]
+                behov[Key.ORGNR_UNDERENHETER]
                     .map { it.asText() }
             }
 
-        logger.info("Løser behov $BEHOV med uuid $transaksjonId")
+        logger.info("Løser behov ${this.behov} med uuid $transaksjonId")
 
         try {
             val navnListe: Map<String, String> =
@@ -116,7 +121,7 @@ class VirksomhetLoeser(
                 Key.VIRKSOMHET to navnListe.values.first().toJson(),
                 Key.VIRKSOMHETER to navnListe.toJson(),
                 Key.DATA to "".toJson(),
-                *bumerangdata
+                *bumerangdata,
             )
         } catch (ex: FantIkkeVirksomhetException) {
             logger.error("Fant ikke virksomhet for $orgnr")

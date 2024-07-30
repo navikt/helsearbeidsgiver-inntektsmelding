@@ -20,33 +20,39 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketListener {
-
+abstract class Loeser(
+    val rapidsConnection: RapidsConnection,
+) : River.PacketListener {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     init {
-        River(rapidsConnection).apply {
-            validate(accept())
-            validate {
-                Behov.packetValidator.validate(it)
-            }
-        }
-            .register(this)
+        River(rapidsConnection)
+            .apply {
+                validate(accept())
+                validate {
+                    Behov.packetValidator.validate(it)
+                }
+            }.register(this)
     }
 
     abstract fun accept(): River.PacketValidation
+
     abstract fun onBehov(behov: Behov)
 
     fun publishFail(fail: Fail) {
-        rapidsConnection.publish(fail.tilMelding())
+        rapidsConnection
+            .publish(fail.tilMelding())
             .also {
                 logger.info("Publiserte feil for eventname '${fail.event.name}'.")
                 sikkerLogger.info("Publiserte feil:\n${it.toPretty()}")
             }
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         val melding = packet.toJson().parseJson().toMap()
 
         val eventName = Key.EVENT_NAME.les(EventName.serializer(), melding)
@@ -56,7 +62,7 @@ abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketList
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(eventName),
-            Log.behov(behovType)
+            Log.behov(behovType),
         ) {
             logger.info("Mottok melding med behov '$behovType'.")
             sikkerLogger.info("Mottok melding:\n${packet.toPretty()}")

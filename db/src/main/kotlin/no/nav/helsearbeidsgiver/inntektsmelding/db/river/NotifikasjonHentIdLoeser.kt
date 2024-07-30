@@ -25,9 +25,8 @@ import java.util.UUID
 
 class NotifikasjonHentIdLoeser(
     private val rapid: RapidsConnection,
-    private val forespoerselRepo: ForespoerselRepository
+    private val forespoerselRepo: ForespoerselRepository,
 ) : Loeser(rapid) {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -35,11 +34,11 @@ class NotifikasjonHentIdLoeser(
         River.PacketValidation {
             it.demandValues(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.name,
-                Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.name
+                Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.name,
             )
             it.requireKeys(
                 Key.UUID,
-                Key.FORESPOERSEL_ID
+                Key.FORESPOERSEL_ID,
             )
         }
 
@@ -47,17 +46,16 @@ class NotifikasjonHentIdLoeser(
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(EventName.FORESPOERSEL_BESVART),
-            Log.behov(BehovType.NOTIFIKASJON_HENT_ID)
+            Log.behov(BehovType.NOTIFIKASJON_HENT_ID),
         ) {
             runCatching {
                 loesBehov(behov)
-            }
-                .onFailure { e ->
-                    "Ukjent feil.".also {
-                        logger.error("$it Se sikker logg for mer info.")
-                        sikkerLogger.error(it, e)
-                    }
+            }.onFailure { e ->
+                "Ukjent feil.".also {
+                    logger.error("$it Se sikker logg for mer info.")
+                    sikkerLogger.error(it, e)
                 }
+            }
         }
     }
 
@@ -72,7 +70,7 @@ class NotifikasjonHentIdLoeser(
         if (transaksjonId != null && forespoerselId != null) {
             MdcUtils.withLogFields(
                 Log.transaksjonId(transaksjonId),
-                Log.forespoerselId(forespoerselId)
+                Log.forespoerselId(forespoerselId),
             ) {
                 hentNotifikasjonId(transaksjonId, forespoerselId)
             }
@@ -84,7 +82,10 @@ class NotifikasjonHentIdLoeser(
         }
     }
 
-    private fun hentNotifikasjonId(transaksjonId: UUID, forespoerselId: UUID) {
+    private fun hentNotifikasjonId(
+        transaksjonId: UUID,
+        forespoerselId: UUID,
+    ) {
         val sakId = forespoerselRepo.hentSakId(forespoerselId)
         "Fant sakId '$sakId'.".also {
             logger.info(it)
@@ -102,7 +103,7 @@ class NotifikasjonHentIdLoeser(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.SAK_ID to sakId.toJson()
+                Key.SAK_ID to sakId.toJson(),
             )
         } else {
             "Fant ikke sakId.".also {
@@ -116,7 +117,7 @@ class NotifikasjonHentIdLoeser(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.OPPGAVE_ID to oppgaveId.toJson()
+                Key.OPPGAVE_ID to oppgaveId.toJson(),
             )
         } else {
             "Fant ikke oppgaveId.".also {

@@ -4,7 +4,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -13,21 +13,19 @@ private val logger = "helsearbeidsgiver-im-berikinntektsmeldingservice".logger()
 
 fun main() {
     val redisConnection = RedisConnection(Env.redisUrl)
-    val redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.BerikInntektsmeldingService)
 
     RapidApplication
         .create(System.getenv())
-        .createBerikInntektsmeldingService(redisStore)
+        .createBerikInntektsmeldingService(redisConnection)
         .registerShutdownLifecycle {
             redisConnection.close()
-        }
-        .start()
+        }.start()
 }
 
-fun RapidsConnection.createBerikInntektsmeldingService(redisStore: RedisStoreClassSpecific): RapidsConnection =
+fun RapidsConnection.createBerikInntektsmeldingService(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${BerikInntektsmeldingService::class.simpleName}...")
         ServiceRiver(
-            BerikInntektsmeldingService(this, redisStore)
+            BerikInntektsmeldingService(this, RedisStore(redisConnection, RedisPrefix.BerikInntektsmeldingService)),
         ).connect(this)
     }

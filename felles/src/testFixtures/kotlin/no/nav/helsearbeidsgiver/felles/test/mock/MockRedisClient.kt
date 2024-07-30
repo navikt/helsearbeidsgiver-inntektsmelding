@@ -19,9 +19,10 @@ fun redisWithMockRedisClient(mockStorageInit: Map<String, String?>): RedisConnec
 }
 
 fun mockRedisClient(commands: RedisCommands<String, String>): RedisClient {
-    val connection = mockk<StatefulRedisConnection<String, String>>(relaxed = true) {
-        every { sync() } returns commands
-    }
+    val connection =
+        mockk<StatefulRedisConnection<String, String>>(relaxed = true) {
+            every { sync() } returns commands
+        }
 
     return mockk<RedisClient> {
         every { connect() } returns connection
@@ -43,8 +44,10 @@ fun RedisCommands<String, String>.setupMock(mockStorageInit: Map<String, String?
         }
 
         every { mget(*varargAll { varargKeys.add(it) }) } answers {
-            val keyValuePairs = varargKeys.associateWith { mockStorage[it] }
-                .map { KeyValue.fromNullable(it.key, it.value) }
+            val keyValuePairs =
+                varargKeys
+                    .associateWith { mockStorage[it] }
+                    .map { KeyValue.fromNullable(it.key, it.value) }
 
             varargKeys.clear()
 

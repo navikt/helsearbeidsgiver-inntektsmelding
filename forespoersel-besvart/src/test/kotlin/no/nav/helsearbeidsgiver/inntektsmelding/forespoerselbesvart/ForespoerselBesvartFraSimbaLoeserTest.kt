@@ -13,42 +13,39 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
-class ForespoerselBesvartFraSimbaLoeserTest : FunSpec({
-    val testRapid = TestRapid()
+class ForespoerselBesvartFraSimbaLoeserTest :
+    FunSpec({
+        val testRapid = TestRapid()
 
-    ForespoerselBesvartFraSimbaLoeser(testRapid)
+        ForespoerselBesvartFraSimbaLoeser(testRapid)
 
-    beforeEach {
-        testRapid.reset()
-        clearAllMocks()
-    }
+        beforeEach {
+            testRapid.reset()
+            clearAllMocks()
+        }
 
-    test("Ved mottatt inntektsmelding publiseres behov om å hente notifikasjon-ID-er") {
-        val expected = Published.mock()
+        test("Ved mottatt inntektsmelding publiseres behov om å hente notifikasjon-ID-er") {
+            val expected = Published.mock()
 
-        testRapid.sendJson(
-            Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
-            Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
-            Key.UUID to expected.transaksjonId.toJson()
-        )
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
+                Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
+                Key.UUID to expected.transaksjonId.toJson(),
+            )
 
-        val actual = testRapid.firstMessage().fromJson(Published.serializer())
+            val actual = testRapid.firstMessage().fromJson(Published.serializer())
 
-        testRapid.inspektør.size shouldBeExactly 1
-        actual shouldBe expected
-    }
+            testRapid.inspektør.size shouldBeExactly 1
+            actual shouldBe expected
+        }
 
-    test("Ved feil så republiseres _ikke_ den innkommende meldingen") {
-        val expectedRepublisert = mapOf(
-            Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
-            Key.FORESPOERSEL_ID to "ikke en uuid".toJson(),
-            Key.UUID to "heller ikke en uuid".toJson()
-        )
+        test("Ved feil så republiseres _ikke_ den innkommende meldingen") {
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
+                Key.FORESPOERSEL_ID to "ikke en uuid".toJson(),
+                Key.UUID to "heller ikke en uuid".toJson(),
+            )
 
-        testRapid.sendJson(
-            *expectedRepublisert.toList().toTypedArray()
-        )
-
-        testRapid.inspektør.size shouldBeExactly 0
-    }
-})
+            testRapid.inspektør.size shouldBeExactly 0
+        }
+    })

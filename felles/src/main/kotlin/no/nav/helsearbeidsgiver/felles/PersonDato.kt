@@ -11,5 +11,5 @@ import java.time.LocalDate
 data class PersonDato(
     val navn: String,
     val fødselsdato: LocalDate?,
-    val ident: String
+    val ident: String,
 )

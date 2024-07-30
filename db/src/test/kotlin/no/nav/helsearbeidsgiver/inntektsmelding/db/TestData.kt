@@ -6,52 +6,47 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.FullLoennIArbe
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Refusjon
-import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
 
-val INNTEKTSMELDING_DOKUMENT = Inntektsmelding(
-    orgnrUnderenhet = "",
-    identitetsnummer = "",
-    fulltNavn = "Ola Normann",
-    virksomhetNavn = "Norge AS",
-    behandlingsdager = emptyList(),
-    egenmeldingsperioder = emptyList(),
-    bestemmendeFraværsdag = LocalDate.now(),
-    fraværsperioder = emptyList(),
-    arbeidsgiverperioder = emptyList(),
-    beregnetInntekt = 502.0,
-    inntekt = Inntekt(
-        bekreftet = true,
+val INNTEKTSMELDING_DOKUMENT =
+    Inntektsmelding(
+        orgnrUnderenhet = "",
+        identitetsnummer = "",
+        fulltNavn = "Ola Normann",
+        virksomhetNavn = "Norge AS",
+        behandlingsdager = emptyList(),
+        egenmeldingsperioder = emptyList(),
+        bestemmendeFraværsdag = LocalDate.now(),
+        fraværsperioder = emptyList(),
+        arbeidsgiverperioder = emptyList(),
         beregnetInntekt = 502.0,
-        endringÅrsak = null,
-        manueltKorrigert = false
-    ),
-    refusjon = Refusjon(
-        true,
-        500.0,
-        refusjonOpphører = LocalDate.now(),
-        refusjonEndringer = emptyList()
-    ),
-    årsakInnsending = AarsakInnsending.NY,
-    tidspunkt = ZonedDateTime.now().toOffsetDateTime(),
-    fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
-        utbetalerFullLønn = true,
-        begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BeskjedGittForSent,
-        utbetalt = 500.0
-    ),
-    innsenderNavn = "Fido",
-    vedtaksperiodeId = UUID.randomUUID()
-)
-
-val EKSTERN_INNTEKTSMELDING_DOKUMENT = EksternInntektsmelding(
-    "AltinnPortal",
-    "1.63",
-    "AR123456",
-    LocalDateTime.now()
-)
+        inntekt =
+            Inntekt(
+                bekreftet = true,
+                beregnetInntekt = 502.0,
+                endringÅrsak = null,
+                manueltKorrigert = false,
+            ),
+        refusjon =
+            Refusjon(
+                true,
+                500.0,
+                refusjonOpphører = LocalDate.now(),
+                refusjonEndringer = emptyList(),
+            ),
+        årsakInnsending = AarsakInnsending.NY,
+        tidspunkt = ZonedDateTime.now().toOffsetDateTime(),
+        fullLønnIArbeidsgiverPerioden =
+            FullLoennIArbeidsgiverPerioden(
+                utbetalerFullLønn = true,
+                begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BeskjedGittForSent,
+                utbetalt = 500.0,
+            ),
+        innsenderNavn = "Fido",
+        vedtaksperiodeId = UUID.randomUUID(),
+    )
 
 val INNTEKTSMELDING_DOKUMENT_GAMMELT_INNTEKTFORMAT = INNTEKTSMELDING_DOKUMENT.copy(inntekt = null)
 

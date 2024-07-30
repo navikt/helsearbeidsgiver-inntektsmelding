@@ -18,7 +18,7 @@ fun mockForespoerselSvarMedSuksess(): ForespoerselSvar =
         forespoerselId = UUID.randomUUID(),
         resultat = mockForespoerselSvarSuksess(),
         feil = null,
-        boomerang = mockBoomerang()
+        boomerang = mockBoomerang(),
     )
 
 fun mockForespoerselSvarMedSuksessMedFastsattInntekt(): ForespoerselSvar =
@@ -26,7 +26,7 @@ fun mockForespoerselSvarMedSuksessMedFastsattInntekt(): ForespoerselSvar =
         forespoerselId = UUID.randomUUID(),
         resultat = mockForespoerselSvarSuksessMedFastsattInntekt(),
         feil = null,
-        boomerang = mockBoomerang()
+        boomerang = mockBoomerang(),
     )
 
 fun mockForespoerselSvarMedFeil(): ForespoerselSvar =
@@ -34,7 +34,7 @@ fun mockForespoerselSvarMedFeil(): ForespoerselSvar =
         forespoerselId = UUID.randomUUID(),
         resultat = null,
         feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET,
-        boomerang = mockBoomerang()
+        boomerang = mockBoomerang(),
     )
 
 fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
@@ -48,7 +48,7 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
         egenmeldingsperioder = listOf(1.januar til 1.januar),
         bestemmendeFravaersdager = mapOf("hungry-traitor-chaplain" to 1.januar),
         forespurtData = mockForespurtData(),
-        erBesvart = false
+        erBesvart = false,
     )
 
 fun mockForespoerselSvarSuksessMedFastsattInntekt(): ForespoerselSvar.Suksess =
@@ -58,19 +58,19 @@ fun mockForespoerselSvarSuksessMedFastsattInntekt(): ForespoerselSvar.Suksess =
         fnr = "captain-snowy-quirk",
         vedtaksperiodeId = UUID.randomUUID(),
         skjaeringstidspunkt = null,
-        sykmeldingsperioder = listOf(
-            2.januar til 10.januar,
-            15.januar til 31.januar
-        ),
+        sykmeldingsperioder =
+            listOf(
+                2.januar til 10.januar,
+                15.januar til 31.januar,
+            ),
         egenmeldingsperioder = listOf(1.januar til 1.januar),
         bestemmendeFravaersdager = mapOf("full-traitor-chaplain" to 1.januar),
         forespurtData = mockForespurtDataMedFastsattInntekt(),
-        erBesvart = false
+        erBesvart = false,
     )
 
 private fun mockBoomerang(): JsonElement =
     mapOf(
         Key.EVENT_NAME.str to EventName.INNTEKT_REQUESTED.toJson(),
-        Key.UUID.str to UUID.randomUUID().toJson()
-    )
-        .toJson()
+        Key.UUID.str to UUID.randomUUID().toJson(),
+    ).toJson()

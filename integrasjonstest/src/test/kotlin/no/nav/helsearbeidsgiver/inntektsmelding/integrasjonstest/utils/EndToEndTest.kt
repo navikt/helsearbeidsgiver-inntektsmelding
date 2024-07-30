@@ -28,18 +28,16 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
-import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
+import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAaregRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice.createBerikInntektsmeldingService
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
-import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createEksternInntektsmeldingLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createHentEksternImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createSpinnService
-import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
+import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrregRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
@@ -51,14 +49,16 @@ import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.create
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsendingService
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createKvitteringService
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektselvbestemtservice.createInntektSelvbestemtService
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJournalfoerImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonRivers
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonServices
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
+import no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice.createLagreSelvbestemtImService
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.createTilgangService
 import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createHentForespoerselService
 import no.nav.helsearbeidsgiver.pdl.PdlClient
@@ -83,49 +83,53 @@ import kotlin.io.path.absolutePathString
 
 private const val NOTIFIKASJON_LINK = "notifikasjonLink"
 
-val bjarneBetjent = FullPerson(
-    navn = PersonNavn(
-        fornavn = "Bjarne",
-        mellomnavn = null,
-        etternavn = "Betjent"
-    ),
-    foedselsdato = 28.mai,
-    ident = Fnr.genererGyldig().verdi
-)
-val maxMekker = FullPerson(
-    navn = PersonNavn(
-        fornavn = "Max",
-        mellomnavn = null,
-        etternavn = "Mekker"
-    ),
-    foedselsdato = 6.august,
-    ident = Fnr.genererGyldig().verdi
-)
+val bjarneBetjent =
+    FullPerson(
+        navn =
+            PersonNavn(
+                fornavn = "Bjarne",
+                mellomnavn = null,
+                etternavn = "Betjent",
+            ),
+        foedselsdato = 28.mai,
+        ident = Fnr.genererGyldig().verdi,
+    )
+val maxMekker =
+    FullPerson(
+        navn =
+            PersonNavn(
+                fornavn = "Max",
+                mellomnavn = null,
+                etternavn = "Mekker",
+            ),
+        foedselsdato = 6.august,
+        ident = Fnr.genererGyldig().verdi,
+    )
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class EndToEndTest : ContainerTest() {
-
     private val imTestRapid = ImTestRapid()
 
     private val inntektsmeldingDatabase by lazy {
-        println("Database jdbcUrl: ${postgreSQLContainer.jdbcUrl}")
-        postgreSQLContainer.toHikariConfig()
+        println("Database jdbcUrl for im-db: ${postgresContainerOne.jdbcUrl}")
+        postgresContainerOne
+            .toHikariConfig()
             .let(::Database)
             .also {
                 val migrationLocation = Path("../db/src/main/resources/db/migration").absolutePathString()
                 it.migrate(migrationLocation)
-            }
-            .createTruncateFunction()
+            }.createTruncateFunction()
     }
 
-    // Vent på rediscontainer
-    val redisStore by lazy {
-        repeat(5) {
-            runCatching { RedisStore(redisContainer.redisURI) }
-                .onSuccess { return@lazy it }
-                .onFailure { runBlocking { delay(1000) } }
-        }
-        throw IllegalStateException("Klarte ikke koble til Redis.")
+    private val notifikasjonDatabase by lazy {
+        println("Database jdbcUrl for im-notifikasjon: ${postgresContainerTwo.jdbcUrl}")
+        postgresContainerTwo
+            .toHikariConfig()
+            .let(::Database)
+            .also {
+                val migrationLocation = Path("../notifikasjon/src/main/resources/db/migration").absolutePathString()
+                it.migrate(migrationLocation)
+            }.createTruncateFunction()
     }
 
     // Vent på rediscontainer
@@ -146,6 +150,8 @@ abstract class EndToEndTest : ContainerTest() {
     val selvbestemtImRepo by lazy { SelvbestemtImRepo(inntektsmeldingDatabase.db) }
     val forespoerselRepository by lazy { ForespoerselRepository(inntektsmeldingDatabase.db) }
 
+    private val selvbestemtRepo by lazy { SelvbestemtRepo(notifikasjonDatabase.db) }
+
     val altinnClient = mockk<AltinnClient>()
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
     val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
@@ -162,16 +168,17 @@ abstract class EndToEndTest : ContainerTest() {
         imTestRapid.reset()
         clearAllMocks()
 
-        coEvery { pdlKlient.personBolk(any()) } returns listOf(
-            bjarneBetjent,
-            maxMekker
-        )
+        coEvery { pdlKlient.personBolk(any()) } returns
+            listOf(
+                bjarneBetjent,
+                maxMekker,
+            )
         coEvery { brregClient.hentVirksomhetNavn(any()) } returns "Bedrift A/S"
         coEvery { brregClient.hentVirksomheter(any()) } answers {
             firstArg<List<String>>().map { orgnr ->
                 Virksomhet(
                     organisasjonsnummer = orgnr,
-                    navn = "Bedrift A/S"
+                    navn = "Bedrift A/S",
                 )
             }
         }
@@ -192,51 +199,32 @@ abstract class EndToEndTest : ContainerTest() {
         println("Starter rivers...")
         imTestRapid.apply {
             // Servicer
-            createAktiveOrgnrService(redisStore)
-            createInnsendingService(
-                RedisStoreClassSpecific(
-                    redis = redisConnection,
-                    keyPrefix = RedisPrefix.InnsendingService
-                )
-            )
-            createKvitteringService(redisStore)
-            createInntektService(redisStore)
-            createInntektSelvbestemtService(
-                RedisStoreClassSpecific(
-                    redis = redisConnection,
-                    keyPrefix = RedisPrefix.InntektSelvbestemtService
-                )
-            )
-            createSpinnService(redisStore)
-            createTilgangService(redisStore)
-            createBerikInntektsmeldingService(
-                RedisStoreClassSpecific(
-                    redis = redisConnection,
-                    keyPrefix = RedisPrefix.BerikInntektsmeldingService
-                )
-            )
-            createHentForespoerselService(
-                RedisStoreClassSpecific(
-                    redis = redisConnection,
-                    keyPrefix = RedisPrefix.HentForespoerselService
-                )
-            )
+            createAktiveOrgnrService(redisConnection)
+            createInnsending(redisConnection)
+            createInntektService(redisConnection)
+            createInntektSelvbestemtService(redisConnection)
+            createLagreSelvbestemtImService(redisConnection)
+            createNotifikasjonServices(redisConnection)
+            createSpinnService()
+            createTilgangService(redisConnection)
+            createHentForespoerselService(redisConnection)
+            createBerikInntektsmeldingService(redisConnection)
 
             // Rivers
-            createAareg(aaregClient)
+            createAaregRiver(aaregClient)
             createAltinn(altinnClient)
-            createBrreg(brregClient, false)
+            createBrregRiver(brregClient, false)
             createDbRivers(imRepository, selvbestemtImRepo, forespoerselRepository)
             createDistribusjonRiver(mockk(relaxed = true))
-            createEksternInntektsmeldingLoeser(spinnKlient)
             createForespoerselBesvartFraSimba()
             createForespoerselBesvartFraSpleis(mockPriProducer)
             createForespoerselMottatt(mockPriProducer)
             createHelsebro(mockPriProducer)
+            createHentEksternImRiver(spinnKlient)
             createInntekt(inntektClient)
             createJournalfoerImRiver(dokarkivClient)
             createMarkerForespoerselBesvart(mockPriProducer)
-            createNotifikasjonRivers(NOTIFIKASJON_LINK, mockk(), redisStore, arbeidsgiverNotifikasjonKlient)
+            createNotifikasjonRivers(NOTIFIKASJON_LINK, selvbestemtRepo, arbeidsgiverNotifikasjonKlient)
             createPdl(pdlKlient)
         }
     }
@@ -245,8 +233,9 @@ abstract class EndToEndTest : ContainerTest() {
     fun afterAllEndToEnd() {
         // Prometheus-metrikker spenner bein på testene uten denne
         CollectorRegistry.defaultRegistry.clear()
-        redisStore.shutdown()
+        redisConnection.close()
         inntektsmeldingDatabase.dataSource.close()
+        notifikasjonDatabase.dataSource.close()
         println("Stopped.")
     }
 
@@ -257,14 +246,14 @@ abstract class EndToEndTest : ContainerTest() {
 
     fun publish(vararg messageFields: Pair<Pri.Key, JsonElement>): JsonElement {
         println("Publiserer pri-melding med felt: ${messageFields.toMap()}")
-        return messageFields.toMap()
+        return messageFields
+            .toMap()
             .mapKeys { (key, _) -> key.toString() }
             .toJson()
             .toString()
             .let {
                 JsonMessage(it, MessageProblems(it), null)
-            }
-            .toJson()
+            }.toJson()
             .also(imTestRapid::publish)
             .parseJson()
     }
@@ -273,14 +262,14 @@ abstract class EndToEndTest : ContainerTest() {
         eventName: EventName,
         transaksjonId: UUID,
         forespoerselId: UUID,
-        forespoerselSvar: ForespoerselSvar.Suksess
+        forespoerselSvar: ForespoerselSvar.Suksess,
     ) {
         every {
             mockPriProducer.send(
                 *varargAny { (key, value) ->
                     key == Pri.Key.BEHOV &&
                         runCatching { value.fromJson(Pri.BehovType.serializer()) }.getOrNull() == Pri.BehovType.TRENGER_FORESPØRSEL
-                }
+                },
             )
         } answers {
             publish(
@@ -289,16 +278,24 @@ abstract class EndToEndTest : ContainerTest() {
                     ForespoerselSvar(
                         forespoerselId = forespoerselId,
                         resultat = forespoerselSvar,
-                        boomerang = getBoomerangData(it, eventName, transaksjonId)
-                    ).toJson(ForespoerselSvar.serializer())
+                        boomerang = getBoomerangData(it, eventName, transaksjonId),
+                    ).toJson(ForespoerselSvar.serializer()),
             )
 
             Result.success(JsonObject(emptyMap()))
         }
     }
 
+    fun RedisConnection.get(
+        prefix: RedisPrefix,
+        transaksjonId: UUID,
+    ): String? = get("$prefix#$transaksjonId")
+
     fun truncateDatabase() {
         transaction(inntektsmeldingDatabase.db) {
+            exec("SELECT truncate_tables()")
+        }
+        transaction(notifikasjonDatabase.db) {
             exec("SELECT truncate_tables()")
         }
     }
@@ -306,7 +303,7 @@ abstract class EndToEndTest : ContainerTest() {
     private fun getBoomerangData(
         call: Call,
         eventName: EventName,
-        transaksjonId: UUID
+        transaksjonId: UUID,
     ): JsonElement = getBoomerangDataFromInvocationCall(call) ?: mockBoomerangData(eventName, transaksjonId)
 
     private fun getBoomerangDataFromInvocationCall(call: Call): JsonElement? =
@@ -319,11 +316,11 @@ abstract class EndToEndTest : ContainerTest() {
 
     private fun mockBoomerangData(
         eventName: EventName,
-        transaksjonId: UUID
+        transaksjonId: UUID,
     ): JsonElement =
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.UUID to transaksjonId.toJson()
+            Key.UUID to transaksjonId.toJson(),
         ).toJson()
 }
 

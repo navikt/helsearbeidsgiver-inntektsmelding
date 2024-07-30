@@ -4,30 +4,31 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "helsearbeidsgiver-im-hent-forespoersel-service".logger()
 
 fun main() {
     val redisConnection = RedisConnection(Env.redisUrl)
-    val redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.HentForespoerselService)
 
     RapidApplication
         .create(System.getenv())
-        .createHentForespoerselService(redisStore)
+        .createHentForespoerselService(redisConnection)
         .registerShutdownLifecycle {
             redisConnection.close()
-        }
-        .start()
+        }.start()
 }
 
-fun RapidsConnection.createHentForespoerselService(redisStore: RedisStoreClassSpecific): RapidsConnection =
+fun RapidsConnection.createHentForespoerselService(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${HentForespoerselService::class.simpleName}...")
-        ServiceRiver(
-            HentForespoerselService(this, redisStore)
+        ServiceRiverStateful(
+            HentForespoerselService(
+                rapid = this,
+                redisStore = RedisStore(redisConnection, RedisPrefix.HentForespoersel),
+            ),
         ).connect(this)
     }

@@ -15,80 +15,90 @@ fun mapInntektsmelding(
     skjema: Innsending,
     fulltnavnArbeidstaker: String,
     virksomhetNavn: String,
-    innsenderNavn: String
+    innsenderNavn: String,
 ): Inntektsmelding {
-    val egenmeldingsperioder = if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
-        skjema.egenmeldingsperioder
-    } else {
-        forespoersel.egenmeldingsperioder
-    }
-
-    val arbeidsgiverperioder = if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
-        skjema.arbeidsgiverperioder
-    } else {
-        emptyList()
-    }
-
-    val fullLoennIArbeidsgiverPerioden = if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
-        if (skjema.fullLønnIArbeidsgiverPerioden?.utbetalerFullLønn == false) {
-            skjema.fullLønnIArbeidsgiverPerioden
+    val egenmeldingsperioder =
+        if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
+            skjema.egenmeldingsperioder
         } else {
-            FullLoennIArbeidsgiverPerioden(
-                utbetalerFullLønn = true,
-                begrunnelse = null,
-                utbetalt = null
+            forespoersel.egenmeldingsperioder
+        }
+
+    val arbeidsgiverperioder =
+        if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
+            skjema.arbeidsgiverperioder
+        } else {
+            emptyList()
+        }
+
+    val fullLoennIArbeidsgiverPerioden =
+        if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
+            if (skjema.fullLønnIArbeidsgiverPerioden?.utbetalerFullLønn == false) {
+                skjema.fullLønnIArbeidsgiverPerioden
+            } else {
+                FullLoennIArbeidsgiverPerioden(
+                    utbetalerFullLønn = true,
+                    begrunnelse = null,
+                    utbetalt = null,
+                )
+            }
+        } else {
+            null
+        }
+
+    val inntektsdato =
+        if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
+            // NB!: 'skjema.bestemmendeFraværsdag' inneholder egentlig inntektsdato og ikke bestemmende fraværsdag. Utbedring kommer.
+            skjema.bestemmendeFraværsdag
+        } else {
+            forespoersel.forslagInntektsdato()
+        }
+
+    val bestemmendeFravaersdag =
+        if (
+            forespoersel.forespurtData.arbeidsgiverperiode.paakrevd ||
+            (!forespoersel.forespurtData.inntekt.paakrevd && forespoersel.forespurtData.refusjon.paakrevd)
+        ) {
+            bestemmendeFravaersdag(
+                arbeidsgiverperioder = arbeidsgiverperioder,
+                sykmeldingsperioder = forespoersel.sykmeldingsperioder,
+            )
+        } else {
+            forespoersel.forslagBestemmendeFravaersdag()
+        }
+
+    val inntekt =
+        if (forespoersel.forespurtData.inntekt.paakrevd) {
+            skjema.inntekt
+        } else {
+            Inntekt(
+                bekreftet = true,
+                beregnetInntekt = (forespoersel.forespurtData.inntekt.forslag as ForslagInntekt.Fastsatt).fastsattInntekt,
+                endringÅrsak = null,
+                manueltKorrigert = true,
             )
         }
-    } else {
-        null
-    }
 
-    val inntektsdato = if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
-        // NB!: 'skjema.bestemmendeFraværsdag' inneholder egentlig inntektsdato og ikke bestemmende fraværsdag. Utbedring kommer.
-        skjema.bestemmendeFraværsdag
-    } else {
-        forespoersel.forslagInntektsdato()
-    }
+    val refusjon =
+        if (forespoersel.forespurtData.refusjon.paakrevd && skjema.refusjon.utbetalerHeleEllerDeler) {
+            skjema.refusjon
+        } else {
+            Refusjon(
+                utbetalerHeleEllerDeler = false,
+                refusjonPrMnd = null,
+                refusjonOpphører = null,
+                refusjonEndringer = null,
+            )
+        }
 
-    val bestemmendeFravaersdag = if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
-        bestemmendeFravaersdag(
-            arbeidsgiverperioder = arbeidsgiverperioder,
-            sykmeldingsperioder = forespoersel.sykmeldingsperioder
-        )
-    } else {
-        forespoersel.forslagBestemmendeFravaersdag()
-    }
-
-    val inntekt = if (forespoersel.forespurtData.inntekt.paakrevd) {
-        skjema.inntekt
-    } else {
-        Inntekt(
-            bekreftet = true,
-            beregnetInntekt = (forespoersel.forespurtData.inntekt.forslag as ForslagInntekt.Fastsatt).fastsattInntekt,
-            endringÅrsak = null,
-            manueltKorrigert = true
-        )
-    }
-
-    val refusjon = if (forespoersel.forespurtData.refusjon.paakrevd && skjema.refusjon.utbetalerHeleEllerDeler) {
-        skjema.refusjon
-    } else {
-        Refusjon(
-            utbetalerHeleEllerDeler = false,
-            refusjonPrMnd = null,
-            refusjonOpphører = null,
-            refusjonEndringer = null
-        )
-    }
-
-    val forespurtData = mapOf(
-        "arbeidsgiverperiode" to forespoersel.forespurtData.arbeidsgiverperiode.paakrevd,
-        "inntekt" to forespoersel.forespurtData.inntekt.paakrevd,
-        "refusjon" to forespoersel.forespurtData.refusjon.paakrevd
-    )
-        .filterValues { it }
-        .keys
-        .toList()
+    val forespurtData =
+        mapOf(
+            "arbeidsgiverperiode" to forespoersel.forespurtData.arbeidsgiverperiode.paakrevd,
+            "inntekt" to forespoersel.forespurtData.inntekt.paakrevd,
+            "refusjon" to forespoersel.forespurtData.refusjon.paakrevd,
+        ).filterValues { it }
+            .keys
+            .toList()
 
     return Inntektsmelding(
         vedtaksperiodeId = forespoersel.vedtaksperiodeId,
@@ -111,6 +121,6 @@ fun mapInntektsmelding(
         innsenderNavn = innsenderNavn,
         telefonnummer = skjema.telefonnummer,
         forespurtData = forespurtData,
-        bestemmendeFraværsdag = bestemmendeFravaersdag
+        bestemmendeFraværsdag = bestemmendeFravaersdag,
     )
 }

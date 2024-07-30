@@ -11,7 +11,7 @@ import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
 import java.util.Collections
 
-fun Application.HelsesjekkerRouting() {
+fun Application.helsesjekkerRouting() {
     routing {
         get("isalive") {
             call.respondText("I'm alive")
@@ -20,7 +20,10 @@ fun Application.HelsesjekkerRouting() {
             call.respondText("I'm ready")
         }
         get("metrics") {
-            val names = call.request.queryParameters.getAll("name[]")?.toSet() ?: Collections.emptySet()
+            val names =
+                call.request.queryParameters
+                    .getAll("name[]")
+                    ?.toSet() ?: Collections.emptySet()
             call.respondTextWriter(ContentType.parse(TextFormat.CONTENT_TYPE_004)) {
                 TextFormat.write004(this, CollectorRegistry.defaultRegistry.filteredMetricFamilySamples(names))
             }

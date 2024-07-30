@@ -13,11 +13,11 @@ data class EksternInntektsmelding(
     val avsenderSystemNavn: String,
     val avsenderSystemVersjon: String,
     val arkivreferanse: String,
-    val tidspunkt: LocalDateTime
+    val tidspunkt: LocalDateTime,
 )
 
 @Serializable
 data class InnsendtInntektsmelding(
-    val dokument: Inntektsmelding? = null,
-    val eksternInntektsmelding: EksternInntektsmelding? = null
+    val dokument: Inntektsmelding?,
+    val eksternInntektsmelding: EksternInntektsmelding?,
 )

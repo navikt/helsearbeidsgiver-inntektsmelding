@@ -5,18 +5,18 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class BehovType {
     // Hente data
-    ARBEIDSFORHOLD,
+    HENT_ARBEIDSFORHOLD,
     ARBEIDSGIVERE,
     FULLT_NAVN,
     HENT_EKSTERN_INNTEKTSMELDING,
-    HENT_PERSISTERT_IM,
+    HENT_INNTEKT,
+    HENT_LAGRET_IM,
     HENT_PERSONER,
     HENT_SELVBESTEMT_IM,
     HENT_TRENGER_IM, // TODO: SPLEIS_FORESPOERSEL eller SPLEIS_FORESPOERSEL_DETALJER??
-    INNTEKT,
+    HENT_VIRKSOMHET_NAVN,
     NOTIFIKASJON_HENT_ID,
     TILGANGSKONTROLL,
-    VIRKSOMHET,
 
     // Synkrone endringer
     LAGRE_SELVBESTEMT_IM,
@@ -36,7 +36,7 @@ enum class BehovType {
 
     // Asynkrone endringer, men brukt til å prøve igjen ved feil
     JOURNALFOER,
-    DISTRIBUER_IM
+    DISTRIBUER_IM,
 }
 
 @Serializable
@@ -78,5 +78,5 @@ enum class EventName {
     OPPGAVE_OPPRETT_REQUESTED,
     OPPGAVE_OPPRETTET,
     OPPGAVE_LAGRET,
-    OPPGAVE_FERDIGSTILT
+    OPPGAVE_FERDIGSTILT,
 }

@@ -29,83 +29,87 @@ import no.nav.helsearbeidsgiver.inntektsmelding.aareg.tilArbeidsforhold
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
-class ArbeidsforholdLoeserTest : FunSpec({
-    val testRapid = TestRapid()
+class ArbeidsforholdLoeserTest :
+    FunSpec({
+        val testRapid = TestRapid()
 
-    val mockAaregClient = mockk<AaregClient>()
+        val mockAaregClient = mockk<AaregClient>()
 
-    ArbeidsforholdLoeser(testRapid, mockAaregClient)
+        ArbeidsforholdLoeser(testRapid, mockAaregClient)
 
-    beforeEach {
-        testRapid.reset()
-        clearAllMocks()
-    }
+        beforeEach {
+            testRapid.reset()
+            clearAllMocks()
+        }
 
-    test("ved innkommende behov så hentes og publiseres arbeidsforhold fra aareg") {
-        val expectedUuid = UUID.randomUUID()
+        test("ved innkommende behov så hentes og publiseres arbeidsforhold fra aareg") {
+            val expectedUuid = UUID.randomUUID()
+            val fnr = Fnr.genererGyldig().verdi
 
-        val expectedArbeidsforhold = mockKlientArbeidsforhold()
-            .tilArbeidsforhold()
-            .let(::listOf)
-            .toJson(Arbeidsforhold.serializer())
+            val expectedArbeidsforhold =
+                mockKlientArbeidsforhold()
+                    .tilArbeidsforhold()
+                    .let(::listOf)
+                    .toJson(Arbeidsforhold.serializer())
 
-        coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } returns mockKlientArbeidsforhold().let(::listOf)
+            coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } returns mockKlientArbeidsforhold().let(::listOf)
 
-        testRapid.sendJson(
-            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
-            Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
-            Key.UUID to expectedUuid.toJson()
-        )
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+                Key.BEHOV to BehovType.HENT_ARBEIDSFORHOLD.toJson(),
+                Key.IDENTITETSNUMMER to fnr.toJson(),
+                Key.UUID to expectedUuid.toJson(),
+            )
 
-        val actual = testRapid.firstMessage().toMap()
+            val actual = testRapid.firstMessage().toMap()
 
-        coVerifySequence { mockAaregClient.hentArbeidsforhold(Mock.FNR, expectedUuid.toString()) }
-        testRapid.inspektør.size shouldBeExactly 1
+            coVerifySequence { mockAaregClient.hentArbeidsforhold(fnr, expectedUuid.toString()) }
+            testRapid.inspektør.size shouldBeExactly 1
 
-        actual[Key.UUID]?.fromJson(UuidSerializer) shouldBe expectedUuid
-        actual[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.INSENDING_STARTED
-        actual[Key.ARBEIDSFORHOLD] shouldBe expectedArbeidsforhold
-    }
+            actual[Key.UUID]?.fromJson(UuidSerializer) shouldBe expectedUuid
+            actual[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.INSENDING_STARTED
+            actual[Key.ARBEIDSFORHOLD] shouldBe expectedArbeidsforhold
+        }
 
-    test("ved feil fra aareg så publiseres løsning med feilmelding") {
-        val event = EventName.TRENGER_REQUESTED
-        val transaksjonId = UUID.randomUUID()
-        val forespoerselId = UUID.randomUUID()
+        test("ved feil fra aareg så publiseres løsning med feilmelding") {
+            val event = EventName.TRENGER_REQUESTED
+            val transaksjonId = UUID.randomUUID()
+            val forespoerselId = UUID.randomUUID()
+            val fnr = Fnr.genererGyldig().verdi
 
-        val innkommendeMelding = mapOf(
-            Key.EVENT_NAME to event.toJson(),
-            Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
-            Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson()
-        )
+            val innkommendeMelding =
+                mapOf(
+                    Key.EVENT_NAME to event.toJson(),
+                    Key.BEHOV to BehovType.HENT_ARBEIDSFORHOLD.toJson(),
+                    Key.IDENTITETSNUMMER to fnr.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                )
 
-        val expected = Fail(
-            feilmelding = "Klarte ikke hente arbeidsforhold",
-            event = event,
-            transaksjonId = transaksjonId,
-            forespoerselId = forespoerselId,
-            utloesendeMelding = innkommendeMelding.toJson()
-        )
+            val expected =
+                Fail(
+                    feilmelding = "Klarte ikke hente arbeidsforhold",
+                    event = event,
+                    transaksjonId = transaksjonId,
+                    forespoerselId = forespoerselId,
+                    utloesendeMelding = innkommendeMelding.toJson(),
+                )
 
-        coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } throws RuntimeException()
+            coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } throws RuntimeException()
 
-        testRapid.sendJson(innkommendeMelding)
+            testRapid.sendJson(innkommendeMelding)
 
-        coVerifySequence { mockAaregClient.hentArbeidsforhold(Mock.FNR, expected.transaksjonId.toString()) }
+            coVerifySequence { mockAaregClient.hentArbeidsforhold(fnr, expected.transaksjonId.toString()) }
 
-        testRapid.inspektør.size shouldBeExactly 1
+            testRapid.inspektør.size shouldBeExactly 1
 
-        val fail = testRapid.firstMessage().readFail()
+            val fail = testRapid.firstMessage().readFail()
 
-        fail.shouldBeEqualToIgnoringFields(expected, Fail::utloesendeMelding)
-        fail.utloesendeMelding.toMap() shouldContainAll innkommendeMelding
-    }
-})
-
-private object Mock {
-    const val FNR = "12121200012"
-}
+            fail.shouldBeEqualToIgnoringFields(expected, Fail::utloesendeMelding)
+            fail.utloesendeMelding.toMap() shouldContainAll innkommendeMelding
+        }
+    })

@@ -26,6 +26,6 @@ private fun createDokArkivClient(): DokArkivClient {
     return DokArkivClient(
         url = Env.dokArkivUrl,
         maxRetries = 3,
-        getAccessToken = tokenGetter
+        getAccessToken = tokenGetter,
     )
 }

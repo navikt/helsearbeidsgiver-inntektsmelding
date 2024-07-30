@@ -10,125 +10,181 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreDataRedisRiver
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreStartDataRedisRiver
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed4Steg
+import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
 
 class ManuellOpprettSakService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore
-) : CompositeEventListener() {
+    override val redisStore: RedisStore,
+) : ServiceMed4Steg<
+        ManuellOpprettSakService.Steg0,
+        ManuellOpprettSakService.Steg1,
+        ManuellOpprettSakService.Steg2,
+        ManuellOpprettSakService.Steg3,
+        ManuellOpprettSakService.Steg4,
+    >(),
+    Service.MedRedis {
+    override val logger = logger()
+    override val sikkerLogger = sikkerLogger()
 
-    private val sikkerLogger = sikkerLogger()
+    override val eventName = EventName.MANUELL_OPPRETT_SAK_REQUESTED
+    override val startKeys =
+        setOf(
+            Key.FORESPOERSEL_ID,
+            Key.UUID,
+        )
+    override val dataKeys =
+        setOf(
+            Key.FORESPOERSEL_SVAR,
+            Key.ARBEIDSTAKER_INFORMASJON,
+            Key.SAK_ID,
+            Key.PERSISTERT_SAK_ID,
+        )
 
-    override val event = EventName.MANUELL_OPPRETT_SAK_REQUESTED
-    override val startKeys = setOf(
-        Key.FORESPOERSEL_ID,
-        Key.UUID
+    data class Steg0(
+        val transaksjonId: UUID,
+        val forespoerselId: UUID,
     )
-    override val dataKeys = setOf(
-        Key.FORESPOERSEL_SVAR,
-        Key.ARBEIDSTAKER_INFORMASJON,
-        Key.SAK_ID,
-        Key.PERSISTERT_SAK_ID
+
+    data class Steg1(
+        val forespoersel: Forespoersel,
     )
 
-    private val step2Keys = setOf(Key.FORESPOERSEL_SVAR)
-    private val step3Keys = setOf(Key.ARBEIDSTAKER_INFORMASJON)
-    private val step4Keys = setOf(Key.SAK_ID)
+    data class Steg2(
+        val sykmeldt: PersonDato,
+    )
 
-    init {
-        LagreStartDataRedisRiver(event, startKeys, rapid, redisStore, ::onPacket)
-        LagreDataRedisRiver(event, dataKeys, rapid, redisStore, ::onPacket)
-        FailKanal(event, rapid, ::onPacket)
-    }
+    data class Steg3(
+        val sakId: String,
+    )
 
-    override fun new(melding: Map<Key, JsonElement>) {
-        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
+    data class Steg4(
+        val persistertSakId: String,
+    )
 
+    override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
+        Steg0(
+            transaksjonId = Key.UUID.les(UuidSerializer, melding),
+            forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
+        )
+
+    override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
+        Steg1(
+            forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding),
+        )
+
+    override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 =
+        Steg2(
+            sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding),
+        )
+
+    override fun lesSteg3(melding: Map<Key, JsonElement>): Steg3 =
+        Steg3(
+            sakId = Key.SAK_ID.les(String.serializer(), melding),
+        )
+
+    override fun lesSteg4(melding: Map<Key, JsonElement>): Steg4 =
+        Steg4(
+            persistertSakId = Key.PERSISTERT_SAK_ID.les(String.serializer(), melding),
+        )
+
+    override fun utfoerSteg0(steg0: Steg0) {
         rapid.publish(
-            Key.EVENT_NAME to event.toJson(),
+            Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson()
+            Key.UUID to steg0.transaksjonId.toJson(),
+            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
         )
     }
 
-    override fun inProgress(melding: Map<Key, JsonElement>) {
-        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val forespoerselId = Key.FORESPOERSEL_ID.les(String.serializer(), melding)
-        val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
+    override fun utfoerSteg1(
+        steg0: Steg0,
+        steg1: Steg1,
+    ) {
+        rapid.publish(
+            Key.EVENT_NAME to eventName.toJson(),
+            Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
+            Key.UUID to steg0.transaksjonId.toJson(),
+            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+            Key.IDENTITETSNUMMER to steg1.forespoersel.fnr.toJson(),
+        )
+    }
 
-        when {
-            step4Keys.all(melding::containsKey) -> {
-                val sakId = Key.SAK_ID.les(String.serializer(), melding)
+    override fun utfoerSteg2(
+        steg0: Steg0,
+        steg1: Steg1,
+        steg2: Steg2,
+    ) {
+        rapid.publish(
+            Key.EVENT_NAME to eventName.toJson(),
+            Key.BEHOV to BehovType.OPPRETT_SAK.toJson(),
+            Key.UUID to steg0.transaksjonId.toJson(),
+            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+            Key.ORGNRUNDERENHET to steg1.forespoersel.orgnr.toJson(),
+            Key.ARBEIDSTAKER_INFORMASJON to steg2.sykmeldt.toJson(PersonDato.serializer()),
+        )
+    }
 
-                rapid.publish(
-                    Key.EVENT_NAME to event.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.BEHOV to BehovType.PERSISTER_SAK_ID.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.SAK_ID to sakId.toJson()
-                )
+    override fun utfoerSteg3(
+        steg0: Steg0,
+        steg1: Steg1,
+        steg2: Steg2,
+        steg3: Steg3,
+    ) {
+        rapid.publish(
+            Key.EVENT_NAME to eventName.toJson(),
+            Key.UUID to steg0.transaksjonId.toJson(),
+            Key.BEHOV to BehovType.PERSISTER_SAK_ID.toJson(),
+            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+            Key.SAK_ID to steg3.sakId.toJson(),
+        )
 
-                if (forespoersel.erBesvart) {
-                    rapid.publish(
-                        Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                        Key.UUID to transaksjonId.toJson(),
-                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                        Key.SAK_ID to sakId.toJson()
-                    )
-                }
-            }
-
-            step3Keys.all(melding::containsKey) -> {
-                val arbeidstaker = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
-
-                rapid.publish(
-                    Key.EVENT_NAME to event.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.BEHOV to BehovType.OPPRETT_SAK.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
-                    Key.ARBEIDSTAKER_INFORMASJON to arbeidstaker.toJson(PersonDato.serializer())
-                )
-            }
-
-            step2Keys.all(melding::containsKey) -> {
-                rapid.publish(
-                    Key.EVENT_NAME to event.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.IDENTITETSNUMMER to forespoersel.fnr.toJson()
-                )
-            }
+        if (steg1.forespoersel.erBesvart) {
+            rapid.publish(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                Key.UUID to steg0.transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                Key.SAK_ID to steg3.sakId.toJson(),
+            )
         }
     }
 
-    override fun finalize(melding: Map<Key, JsonElement>) {
-        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-
-        val sakId = Key.SAK_ID.les(String.serializer(), melding)
-
+    override fun utfoerSteg4(
+        steg0: Steg0,
+        steg1: Steg1,
+        steg2: Steg2,
+        steg3: Steg3,
+        steg4: Steg4,
+    ) {
         rapid.publish(
             Key.EVENT_NAME to EventName.SAK_OPPRETTET.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.SAK_ID to sakId.toJson()
+            Key.UUID to steg0.transaksjonId.toJson(),
+            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+            Key.SAK_ID to steg4.persistertSakId.toJson(),
         )
     }
 
-    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
+    override fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    ) {
         sikkerLogger.error("Mottok feil:\n$fail")
     }
+
+    override fun Steg0.loggfelt(): Map<String, String> =
+        mapOf(
+            Log.klasse(this@ManuellOpprettSakService),
+            Log.event(eventName),
+            Log.transaksjonId(transaksjonId),
+            Log.forespoerselId(forespoerselId),
+        )
 }

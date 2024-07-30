@@ -34,51 +34,56 @@ import java.util.UUID
 
 class InntektLoeser(
     rapid: RapidsConnection,
-    private val inntektKlient: InntektKlient
+    private val inntektKlient: InntektKlient,
 ) : Loeser(rapid) {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
-    private val requestLatency = Summary.build()
-        .name("simba_inntekt_latency_seconds")
-        .help("hentInntekt latency in seconds")
-        .register()
+    private val requestLatency =
+        Summary
+            .build()
+            .name("simba_inntekt_latency_seconds")
+            .help("hentInntekt latency in seconds")
+            .register()
 
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
             it.demandKey(Key.EVENT_NAME.str)
             it.demandValues(
-                Key.BEHOV to BehovType.INNTEKT.name
+                Key.BEHOV to BehovType.HENT_INNTEKT.name,
             )
             it.interestedIn(
                 Key.UUID,
                 Key.ORGNRUNDERENHET,
                 Key.FNR,
                 Key.SKJAERINGSTIDSPUNKT,
-                Key.FORESPOERSEL_ID
+                Key.FORESPOERSEL_ID,
             )
         }
 
     override fun onBehov(behov: Behov) {
-        logger.info("Mottok melding med behov '${BehovType.INNTEKT}'.")
+        logger.info("Mottok melding med behov '${BehovType.HENT_INNTEKT}'.")
         sikkerLogger.info("Mottok melding:\n${behov.jsonMessage.toPretty()}")
 
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(behov.event),
-            Log.behov(BehovType.INNTEKT)
+            Log.behov(BehovType.HENT_INNTEKT),
         ) {
             runCatching {
                 hentInntekt(behov)
+            }.onFailure { feil ->
+                sikkerLogger.error("Ukjent feil.", feil)
+                behov.createFail("Ukjent feil.").also { this.publishFail(it) }
             }
-                .onFailure { feil ->
-                    sikkerLogger.error("Ukjent feil.", feil)
-                    behov.createFail("Ukjent feil.").also { this.publishFail(it) }
-                }
         }
     }
 
     private fun hentInntekt(behov: Behov) {
-        val json = behov.jsonMessage.toJson().parseJson().toMap()
+        val json =
+            behov.jsonMessage
+                .toJson()
+                .parseJson()
+                .toMap()
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
         val fnr = Key.FNR.les(Fnr.serializer(), json)
@@ -92,22 +97,23 @@ class InntektLoeser(
 
         hentInntektPerOrgnrOgMaaned(fnr, fom, tom, transaksjonId)
             .onSuccess { inntektPerOrgnrOgMaaned ->
-                val inntektPerMaaned = inntektPerOrgnrOgMaaned[orgnr.verdi]
-                    .orEmpty()
+                val inntektPerMaaned =
+                    inntektPerOrgnrOgMaaned[orgnr.verdi]
+                        .orEmpty()
 
-                val inntekt = listOf(fom, middle, tom)
-                    .associateWith { inntektPerMaaned[it] }
-                    .map { (maaned, inntekt) -> InntektPerMaaned(maaned, inntekt) }
-                    .let(::Inntekt)
+                val inntekt =
+                    listOf(fom, middle, tom)
+                        .associateWith { inntektPerMaaned[it] }
+                        .map { (maaned, inntekt) -> InntektPerMaaned(maaned, inntekt) }
+                        .let(::Inntekt)
 
                 rapidsConnection.publishData(
                     eventName = behov.event,
                     transaksjonId = transaksjonId,
                     forespoerselId = behov.forespoerselId?.let(UUID::fromString),
-                    Key.INNTEKT to inntekt.toJson(Inntekt.serializer())
+                    Key.INNTEKT to inntekt.toJson(Inntekt.serializer()),
                 )
-            }
-            .onFailure {
+            }.onFailure {
                 sikkerLogger.error("Klarte ikke hente inntekt.", it)
                 publishFail(behov.createFail("Klarte ikke hente inntekt."))
             }
@@ -115,7 +121,12 @@ class InntektLoeser(
         requestTimer.observeDuration()
     }
 
-    private fun hentInntektPerOrgnrOgMaaned(fnr: Fnr, fom: YearMonth, tom: YearMonth, id: UUID): Result<Map<String, Map<YearMonth, Double>>> {
+    private fun hentInntektPerOrgnrOgMaaned(
+        fnr: Fnr,
+        fom: YearMonth,
+        tom: YearMonth,
+        id: UUID,
+    ): Result<Map<String, Map<YearMonth, Double>>> {
         val callId = "helsearbeidsgiver-im-inntekt-$id"
 
         sikkerLogger.info("Henter inntekt for $fnr i perioden $fom til $tom (callId: $callId).")
@@ -127,12 +138,11 @@ class InntektLoeser(
                     fom = fom,
                     tom = tom,
                     navConsumerId = "helsearbeidsgiver-im-inntekt",
-                    callId = callId
+                    callId = callId,
                 )
             }
         }
     }
 }
 
-private fun LocalDate.minusMaaneder(maanederTilbake: Long): YearMonth =
-    toYearMonth().minusMonths(maanederTilbake)
+private fun LocalDate.minusMaaneder(maanederTilbake: Long): YearMonth = toYearMonth().minusMonths(maanederTilbake)

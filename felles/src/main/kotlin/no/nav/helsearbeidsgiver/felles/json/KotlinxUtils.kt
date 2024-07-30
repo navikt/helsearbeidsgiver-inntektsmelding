@@ -21,24 +21,20 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 val personMapSerializer =
     MapSerializer(
         Fnr.serializer(),
-        Person.serializer()
+        Person.serializer(),
     )
 
-fun EventName.toJson(): JsonElement =
-    toJson(EventName.serializer())
+fun EventName.toJson(): JsonElement = toJson(EventName.serializer())
 
-fun BehovType.toJson(): JsonElement =
-    toJson(BehovType.serializer())
+fun BehovType.toJson(): JsonElement = toJson(BehovType.serializer())
 
-fun Fnr.toJson(): JsonElement =
-    toJson(Fnr.serializer())
+fun Fnr.toJson(): JsonElement = toJson(Fnr.serializer())
 
-fun Orgnr.toJson(): JsonElement =
-    toJson(Orgnr.serializer())
+fun Orgnr.toJson(): JsonElement = toJson(Orgnr.serializer())
 
 fun <T> Set<T>.toJson(elementSerializer: KSerializer<T>): JsonElement =
     toJson(
-        elementSerializer.set()
+        elementSerializer.set(),
     )
 
 @JvmName("toJsonMapKeyStringValueString")
@@ -46,8 +42,8 @@ fun Map<String, String>.toJson(): JsonElement =
     toJson(
         MapSerializer(
             String.serializer(),
-            String.serializer()
-        )
+            String.serializer(),
+        ),
     )
 
 @JvmName("toJsonMapKeyKeyValueJsonElement")
@@ -55,26 +51,40 @@ fun Map<Key, JsonElement>.toJson(): JsonElement =
     toJson(
         MapSerializer(
             Key.serializer(),
-            JsonElement.serializer()
-        )
+            JsonElement.serializer(),
+        ),
     )
 
-fun JsonElement.toMap(): Map<Key, JsonElement> =
-    fromJsonMapFiltered(Key.serializer())
+fun JsonElement.toMap(): Map<Key, JsonElement> = fromJsonMapFiltered(Key.serializer())
 
-fun <K : IKey, T : Any> K.lesOrNull(serializer: KSerializer<T>, melding: Map<K, JsonElement>): T? =
-    melding[this]?.fromJson(serializer.nullable)
+fun <K : IKey, T : Any> K.lesOrNull(
+    serializer: KSerializer<T>,
+    melding: Map<K, JsonElement>,
+): T? = melding[this]?.fromJson(serializer.nullable)
 
-fun <K : IKey, T : Any> K.les(serializer: KSerializer<T>, melding: Map<K, JsonElement>): T =
+fun <K : IKey, T : Any> K.les(
+    serializer: KSerializer<T>,
+    melding: Map<K, JsonElement>,
+): T =
     lesOrNull(serializer, melding)
-        ?: throw IllegalArgumentException("Felt '$this' mangler i JSON-map.")
+        ?: throw MeldingException("Felt '$this' mangler i JSON-map.")
 
-fun <K : IKey, T : Any> K.krev(krav: T, serializer: KSerializer<T>, melding: Map<K, JsonElement>): T =
+fun <K : IKey, T : Any> K.krev(
+    krav: T,
+    serializer: KSerializer<T>,
+    melding: Map<K, JsonElement>,
+): T =
     les(serializer, melding).also {
         if (it != krav) {
-            throw IllegalArgumentException("Nøkkel '$this' har verdi '$it', som ikke matcher med påkrevd verdi '$krav'.")
+            throw MeldingException("Nøkkel '$this' har verdi '$it', som ikke matcher med påkrevd verdi '$krav'.")
         }
     }
 
-fun Map<Key, JsonElement>.toPretty(): String =
-    toJson().toPretty()
+fun Map<Key, JsonElement>.toPretty(): String = toJson().toPretty()
+
+// Exception uten stacktrace, som er billigere å kaste
+internal class MeldingException(
+    message: String,
+) : IllegalArgumentException(message) {
+    override fun fillInStackTrace(): Throwable? = null
+}

@@ -8,7 +8,9 @@ interface IKey {
 }
 
 @Serializable(KeySerializer::class)
-enum class Key(override val str: String) : IKey {
+enum class Key(
+    override val str: String,
+) : IKey {
     // Predefinerte fra rapids-and-rivers-biblioteket
     EVENT_NAME("@event_name"),
     BEHOV("@behov"),
@@ -21,13 +23,13 @@ enum class Key(override val str: String) : IKey {
     ARBEIDSGIVER_ID("arbeidsgiverId"),
     ARBEIDSGIVER_FNR("arbeidsgiver_fnr"),
     UUID("uuid"),
-    CLIENT_ID("client_id"),
     FORESPOERSEL_ID("forespoerselId"),
     JOURNALPOST_ID("journalpostId"),
     DATA("data"),
     FAIL("fail"),
     SKJEMA_INNTEKTSMELDING("skjema_inntektsmelding"),
     INNTEKTSMELDING("inntektsmelding"),
+    LAGRET_INNTEKTSMELDING("lagret_inntektsmelding"),
     SELVBESTEMT_INNTEKTSMELDING("selvbestemt_inntektsmelding"),
 
     // Tidligere DataFelt
@@ -42,7 +44,7 @@ enum class Key(override val str: String) : IKey {
     PERSISTERT_SKJEMA_INNTEKTSMELDING("persistert_skjema_inntektsmelding"),
     OPPGAVE_ID("oppgave_id"),
     ORGNRUNDERENHET("orgnrUnderenhet"),
-    ORGNRUNDERENHETER("orgnrUnderenheter"),
+    ORGNR_UNDERENHETER("orgnr_underenheter"),
     ORG_RETTIGHETER("org_rettigheter"),
     FORESPOERSEL_SVAR("forespoersel-svar"),
     INNTEKT("inntekt"),
@@ -50,13 +52,14 @@ enum class Key(override val str: String) : IKey {
     FNR_LISTE("fnr_liste"),
     PERSONER("personer"),
     SKJAERINGSTIDSPUNKT("skjaeringstidspunkt"),
+    INNTEKTSDATO("inntektsdato"),
     TILGANG("tilgang"),
     SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
     EKSTERN_INNTEKTSMELDING("eksternInntektsmelding"),
-    ER_DUPLIKAT_IM("er_duplikat_im");
+    ER_DUPLIKAT_IM("er_duplikat_im"),
+    ;
 
-    override fun toString(): String =
-        str
+    override fun toString(): String = str
 
     companion object {
         internal fun fromString(key: String): Key =
@@ -69,5 +72,5 @@ enum class Key(override val str: String) : IKey {
 
 internal object KeySerializer : AsStringSerializer<Key>(
     serialName = "helsearbeidsgiver.kotlinx.felles.Key",
-    parse = Key::fromString
+    parse = Key::fromString,
 )

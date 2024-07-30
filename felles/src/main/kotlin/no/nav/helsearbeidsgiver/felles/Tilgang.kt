@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class Tilgang {
     HAR_TILGANG,
-    IKKE_TILGANG
+    IKKE_TILGANG,
 }

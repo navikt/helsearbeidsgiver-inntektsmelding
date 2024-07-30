@@ -29,13 +29,12 @@ data class Melding(
     val eventName: EventName,
     val behovType: BehovType,
     val transaksjonId: UUID,
-    val fnrListe: List<Fnr>
+    val fnrListe: List<Fnr>,
 )
 
 class HentPersonerRiver(
-    private val pdlClient: PdlClient
+    private val pdlClient: PdlClient,
 ) : ObjectRiver<Melding>() {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -47,7 +46,7 @@ class HentPersonerRiver(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.HENT_PERSONER, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
-                fnrListe = Key.FNR_LISTE.les(Fnr.serializer().list(), json)
+                fnrListe = Key.FNR_LISTE.les(Fnr.serializer().list(), json),
             )
         }
 
@@ -64,34 +63,39 @@ class HentPersonerRiver(
             sikkerLogger.info(it)
         }
 
-        val dataMap = mapOf(
-            Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
-            Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
-            Key.PERSONER to personer.toJson(personMapSerializer)
-        )
-            .mapValuesNotNull { it }
+        val dataMap =
+            mapOf(
+                Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
+                Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
+                Key.PERSONER to personer.toJson(personMapSerializer),
+            ).mapValuesNotNull { it }
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to dataMap.toJson(),
-            *dataMap.toList().toTypedArray()
+            *dataMap.toList().toTypedArray(),
         )
     }
 
-    override fun Melding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement> {
-        val fail = Fail(
-            feilmelding = "Klarte ikke hente personer fra PDL.",
-            event = eventName,
-            transaksjonId = transaksjonId,
-            forespoerselId = json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer),
-            utloesendeMelding = json.toJson()
-        )
+    override fun Melding.haandterFeil(
+        json: Map<Key, JsonElement>,
+        error: Throwable,
+    ): Map<Key, JsonElement> {
+        val fail =
+            Fail(
+                feilmelding = "Klarte ikke hente personer fra PDL.",
+                event = eventName,
+                transaksjonId = transaksjonId,
+                forespoerselId = json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer),
+                utloesendeMelding = json.toJson(),
+            )
 
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
-        return fail.tilMelding()
+        return fail
+            .tilMelding()
             .plus(Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID])
             .mapValuesNotNull { it }
     }
@@ -101,22 +105,22 @@ class HentPersonerRiver(
             Log.klasse(this@HentPersonerRiver),
             Log.event(eventName),
             Log.behov(behovType),
-            Log.transaksjonId(transaksjonId)
+            Log.transaksjonId(transaksjonId),
         )
 
     private fun hentPersoner(fnrListe: List<Fnr>): List<Person> =
-        Metrics.pdlRequest.recordTime(pdlClient::personBolk) {
-            pdlClient.personBolk(
-                fnrListe.map(Fnr::verdi)
-            )
-        }
-            .orEmpty()
+        Metrics.pdlRequest
+            .recordTime(pdlClient::personBolk) {
+                pdlClient.personBolk(
+                    fnrListe.map(Fnr::verdi),
+                )
+            }.orEmpty()
             .mapNotNull { person ->
                 person.ident?.let { fnr ->
                     Person(
                         fnr = Fnr(fnr),
                         navn = person.navn.fulltNavn(),
-                        foedselsdato = person.foedselsdato
+                        foedselsdato = person.foedselsdato,
                     )
                 }
             }

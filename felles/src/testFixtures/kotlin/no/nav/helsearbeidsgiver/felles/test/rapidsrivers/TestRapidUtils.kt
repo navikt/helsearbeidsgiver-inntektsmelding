@@ -11,16 +11,17 @@ fun <K : IKey> TestRapid.sendJson(vararg messageFields: Pair<K, JsonElement>) {
 }
 
 fun <K : IKey> TestRapid.sendJson(messageFields: Map<K, JsonElement>) {
-    messageFields.mapKeys { (key, _) -> key.toString() }
+    messageFields
+        .mapKeys { (key, _) -> key.toString() }
         .toJson()
         .toString()
         .let(this::sendTestMessage)
 }
 
-fun TestRapid.firstMessage(): JsonElement =
-    message(0)
+fun TestRapid.firstMessage(): JsonElement = message(0)
 
 fun TestRapid.message(index: Int): JsonElement =
-    inspektør.message(index)
+    inspektør
+        .message(index)
         .toString()
         .parseJson()

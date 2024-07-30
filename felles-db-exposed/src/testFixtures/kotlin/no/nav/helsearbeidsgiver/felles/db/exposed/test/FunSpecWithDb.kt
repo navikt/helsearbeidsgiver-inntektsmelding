@@ -12,22 +12,38 @@ import org.jetbrains.exposed.sql.Database as ExposedDatabase
 
 abstract class FunSpecWithDb(
     table: List<Table>,
-    body: FunSpec.(ExposedDatabase) -> Unit
+    body: FunSpec.(ExposedDatabase) -> Unit,
 ) : FunSpec({
-    val db = Database(dbConfig())
-        .configureFlyway()
+        val db =
+            Database(dbConfig())
+                .configureFlyway()
 
-    beforeEach {
-        transaction {
-            table.forEach { it.deleteAll() }
+        beforeEach {
+            transaction {
+                table.forEach { it.deleteAll() }
+            }
         }
+
+        body(db.db)
+    })
+
+fun postgresContainer(): PostgreSQLContainer<Nothing> =
+    PostgreSQLContainer<Nothing>("postgres:14").apply {
+        setCommand("postgres", "-c", "fsync=off", "-c", "log_statement=all", "-c", "wal_level=logical")
     }
 
-    body(db.db)
-})
+private fun PostgreSQLContainer<Nothing>.setupAndStart(): PostgreSQLContainer<Nothing> =
+    apply {
+        withReuse(true)
+        withLabel("app-navn", "test-database")
+        start()
+        println(
+            "🎩 Databasen er startet opp, portnummer: $firstMappedPort, jdbcUrl: jdbc:postgresql://localhost:$firstMappedPort/test, credentials: test og test",
+        )
+    }
 
 private fun dbConfig(): HikariConfig {
-    val postgres = postgres()
+    val postgres = postgresContainer().setupAndStart()
     return HikariConfig().apply {
         jdbcUrl = postgres.jdbcUrl
         username = postgres.username
@@ -41,20 +57,10 @@ private fun dbConfig(): HikariConfig {
     }
 }
 
-private fun postgres(): PostgreSQLContainer<Nothing> =
-    PostgreSQLContainer<Nothing>("postgres:14").apply {
-        withReuse(true)
-        withLabel("app-navn", "test-database")
-        setCommand("postgres", "-c", "fsync=off", "-c", "log_statement=all", "-c", "wal_level=logical")
-        start()
-        println(
-            "🎩 Databasen er startet opp, portnummer: $firstMappedPort, jdbcUrl: jdbc:postgresql://localhost:$firstMappedPort/test, credentials: test og test"
-        )
-    }
-
 private fun Database.configureFlyway(): Database =
     also {
-        Flyway.configure()
+        Flyway
+            .configure()
             .dataSource(it.dataSource)
             .failOnMissingLocations(true)
             .cleanDisabled(false)

@@ -7,10 +7,10 @@ import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database as ExposedDatabase
 
 class Database(
-    private val config: HikariConfig
+    private val config: HikariConfig,
 ) {
     constructor(secretsPrefix: String) : this(
-        dbConfig(Secrets(secretsPrefix))
+        dbConfig(Secrets(secretsPrefix)),
     )
 
     val dataSource by lazy { HikariDataSource(config) }
@@ -20,7 +20,8 @@ class Database(
         migrationConfig(config)
             .let(::HikariDataSource)
             .also { dataSource ->
-                Flyway.configure()
+                Flyway
+                    .configure()
                     .dataSource(dataSource)
                     .lockRetryCount(50)
                     .let {
@@ -29,11 +30,9 @@ class Database(
                         } else {
                             it
                         }
-                    }
-                    .load()
+                    }.load()
                     .migrate()
-            }
-            .close()
+            }.close()
     }
 }
 
@@ -53,13 +52,16 @@ private fun migrationConfig(config: HikariConfig): HikariConfig =
         maximumPoolSize = 3
     }
 
-private class Secrets(prefix: String) {
+private class Secrets(
+    prefix: String,
+) {
     val username = "${prefix}_USERNAME".fromEnv()
     val password = "${prefix}_PASSWORD".fromEnv()
 
-    val url = "jdbc:postgresql://%s:%s/%s".format(
-        "${prefix}_HOST".fromEnv(),
-        "${prefix}_PORT".fromEnv(),
-        "${prefix}_DATABASE".fromEnv()
-    )
+    val url =
+        "jdbc:postgresql://%s:%s/%s".format(
+            "${prefix}_HOST".fromEnv(),
+            "${prefix}_PORT".fromEnv(),
+            "${prefix}_DATABASE".fromEnv(),
+        )
 }

@@ -14,25 +14,28 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import java.util.UUID
 
 class HentSelvbestemtImProducer(
-    private val rapid: RapidsConnection
+    private val rapid: RapidsConnection,
 ) {
     init {
         logger.info("Starter ${HentSelvbestemtImProducer::class.simpleName}...")
     }
 
-    fun publish(transaksjonId: UUID, selvbestemtId: UUID) {
+    fun publish(
+        transaksjonId: UUID,
+        selvbestemtId: UUID,
+    ) {
         MdcUtils.withLogFields(
             Log.event(EventName.SELVBESTEMT_IM_REQUESTED),
             Log.transaksjonId(transaksjonId),
-            Log.selvbestemtId(selvbestemtId)
+            Log.selvbestemtId(selvbestemtId),
         ) {
-            rapid.publish(
-                Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.DATA to "".toJson(),
-                Key.SELVBESTEMT_ID to selvbestemtId.toJson()
-            )
-                .also {
+            rapid
+                .publish(
+                    Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.DATA to "".toJson(),
+                    Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
+                ).also {
                     logger.info("Publiserte til kafka.")
                     sikkerLogger.info("Publiserte til kafka:\n${it.toPretty()}")
                 }

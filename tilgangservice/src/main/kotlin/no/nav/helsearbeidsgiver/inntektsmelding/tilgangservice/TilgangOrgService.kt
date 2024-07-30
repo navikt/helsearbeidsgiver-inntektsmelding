@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice
 
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -11,14 +10,12 @@ import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangResultat
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreDataRedisRiver
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreStartDataRedisRiver
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -26,124 +23,111 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 class TilgangOrgService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore
-) : CompositeEventListener() {
+    override val redisStore: RedisStore,
+) : ServiceMed1Steg<TilgangOrgService.Steg0, TilgangOrgService.Steg1>(),
+    Service.MedRedis {
+    override val logger = logger()
+    override val sikkerLogger = sikkerLogger()
 
-    private val logger = logger()
-    private val sikkerLogger = sikkerLogger()
+    override val eventName = EventName.TILGANG_ORG_REQUESTED
+    override val startKeys =
+        setOf(
+            Key.ORGNRUNDERENHET,
+            Key.FNR,
+        )
+    override val dataKeys =
+        setOf(
+            Key.TILGANG,
+        )
 
-    override val event = EventName.TILGANG_ORG_REQUESTED
-    override val startKeys = setOf(
-        Key.ORGNRUNDERENHET,
-        Key.FNR
+    data class Steg0(
+        val transaksjonId: UUID,
+        val orgnr: Orgnr,
+        val fnr: Fnr,
     )
-    override val dataKeys = setOf(
-        Key.TILGANG
+
+    data class Steg1(
+        val tilgang: Tilgang,
     )
 
-    init {
-        LagreStartDataRedisRiver(event, startKeys, rapid, redisStore, ::onPacket)
-        LagreDataRedisRiver(event, dataKeys, rapid, redisStore, ::onPacket)
-        FailKanal(event, rapid, ::onPacket)
+    override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
+        Steg0(
+            transaksjonId = Key.UUID.les(UuidSerializer, melding),
+            orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding),
+            fnr = Key.FNR.les(Fnr.serializer(), melding),
+        )
+
+    override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
+        Steg1(
+            tilgang = Key.TILGANG.les(Tilgang.serializer(), melding),
+        )
+
+    override fun utfoerSteg0(steg0: Steg0) {
+        rapid
+            .publish(
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
+                Key.UUID to steg0.transaksjonId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
+                        Key.FNR to steg0.fnr.toJson(),
+                    ).toJson(),
+            ).also {
+                MdcUtils.withLogFields(
+                    Log.behov(BehovType.TILGANGSKONTROLL),
+                ) {
+                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
+                }
+            }
     }
 
-    override fun new(melding: Map<Key, JsonElement>) {
-        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), melding)
-        val fnr = Key.FNR.les(String.serializer(), melding)
+    override fun utfoerSteg1(
+        steg0: Steg0,
+        steg1: Steg1,
+    ) {
+        val tilgangJson =
+            TilgangResultat(
+                tilgang = steg1.tilgang,
+            ).toJson(TilgangResultat.serializer())
 
+        redisStore.set(RedisKey.of(steg0.transaksjonId), tilgangJson)
+
+        sikkerLogger.info("$eventName fullført.")
+    }
+
+    override fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    ) {
         MdcUtils.withLogFields(
             Log.klasse(this),
-            Log.event(event),
-            Log.transaksjonId(transaksjonId)
+            Log.event(eventName),
+            Log.transaksjonId(fail.transaksjonId),
         ) {
-            rapid.publish(
-                Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.ORGNRUNDERENHET to orgnr.toJson(),
-                Key.FNR to fnr.toJson()
-            )
-                .also {
-                    MdcUtils.withLogFields(
-                        Log.behov(BehovType.TILGANGSKONTROLL)
-                    ) {
-                        sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
-                    }
-                }
-        }
-    }
-
-    override fun inProgress(melding: Map<Key, JsonElement>) {
-        "Service skal aldri være \"underveis\".".also {
-            logger.error(it)
-            sikkerLogger.error(it)
-        }
-    }
-
-    override fun finalize(melding: Map<Key, JsonElement>) {
-        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-
-        val clientId = RedisKey.of(transaksjonId, event)
-            .read()?.let(UUID::fromString)
-
-        if (clientId == null) {
-            sikkerLogger.error("Kunne ikke lese clientId for $transaksjonId fra Redis")
-        } else {
-            MdcUtils.withLogFields(
-                Log.klasse(this),
-                Log.event(event),
-                Log.clientId(clientId),
-                Log.transaksjonId(transaksjonId)
-            ) {
-                val tilgang = Key.TILGANG.les(Tilgang.serializer(), melding)
-
-                val tilgangJson = TilgangResultat(
-                    tilgang = tilgang
+            val tilgangResultat =
+                TilgangResultat(
+                    feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE,
                 )
-                    .toJson(TilgangResultat.serializer())
-
-                RedisKey.of(clientId).write(tilgangJson)
-                sikkerLogger.info("$event fullført.")
-            }
-        }
-    }
-
-    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
-        val clientId = RedisKey.of(fail.transaksjonId, event)
-            .read()
-            ?.let(UUID::fromString)
-
-        if (clientId == null) {
-            sikkerLogger.error("$event forsøkt terminert, kunne ikke finne ${fail.transaksjonId} i redis!")
-        } else {
-            val tilgangResultat = TilgangResultat(
-                feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
-            )
 
             sikkerLogger.error("Returnerer feilmelding: '${tilgangResultat.feilmelding}'")
 
-            RedisKey.of(clientId).write(tilgangResultat.toJson(TilgangResultat.serializer()))
+            redisStore.set(RedisKey.of(fail.transaksjonId), tilgangResultat.toJson(TilgangResultat.serializer()))
 
-            MdcUtils.withLogFields(
-                Log.klasse(this),
-                Log.event(event),
-                Log.clientId(clientId),
-                Log.transaksjonId(fail.transaksjonId)
-            ) {
-                sikkerLogger.error("$event terminert.")
-            }
+            sikkerLogger.error("$eventName terminert.")
         }
     }
 
-    private fun RedisKey.write(json: JsonElement) {
-        redisStore.set(this, json.toString())
-    }
-
-    private fun RedisKey.read(): String? =
-        redisStore.get(this)
+    override fun Steg0.loggfelt(): Map<String, String> =
+        mapOf(
+            Log.klasse(this@TilgangOrgService),
+            Log.event(eventName),
+            Log.transaksjonId(transaksjonId),
+        )
 }

@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class FjernLedendeSlashTest {
-
     @Test
     fun testFjernLedendeSlash() {
         assertEquals("abc", fjernLedendeSlash("/abc"))

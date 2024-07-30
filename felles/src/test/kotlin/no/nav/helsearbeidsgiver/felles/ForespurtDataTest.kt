@@ -12,13 +12,13 @@ import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.test.resource.readResource
 
-class ForespurtDataTest : FunSpec({
-    listOf(
-        row("forespurtData", ::mockForespurtData),
-        row("forespurtDataMedFastsattInntekt", ::mockForespurtDataMedFastsattInntekt),
-        row("forespurtDataMedForrigeInntekt", ::mockForespurtDataMedForrigeInntekt)
-    )
-        .forEach { (fileName, mockDataFn) ->
+class ForespurtDataTest :
+    FunSpec({
+        listOf(
+            row("forespurtData", ::mockForespurtData),
+            row("forespurtDataMedFastsattInntekt", ::mockForespurtDataMedFastsattInntekt),
+            row("forespurtDataMedForrigeInntekt", ::mockForespurtDataMedForrigeInntekt),
+        ).forEach { (fileName, mockDataFn) ->
             val expectedJson = "json/$fileName.json".readResource().removeJsonWhitespace()
 
             test("Forespurt data serialiseres korrekt") {
@@ -41,4 +41,4 @@ class ForespurtDataTest : FunSpec({
                 }
             }
         }
-})
+    })

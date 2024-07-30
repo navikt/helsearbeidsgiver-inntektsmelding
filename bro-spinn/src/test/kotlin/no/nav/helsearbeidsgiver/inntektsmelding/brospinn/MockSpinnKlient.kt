@@ -12,15 +12,16 @@ import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 
 fun mockSpinnKlient(
     content: String,
-    status: HttpStatusCode
+    status: HttpStatusCode,
 ): SpinnKlient {
-    val mockEngine = MockEngine {
-        respond(
-            content = content,
-            status = status,
-            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-        )
-    }
+    val mockEngine =
+        MockEngine {
+            respond(
+                content = content,
+                status = status,
+                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+            )
+        }
 
     val mockHttpClient = HttpClient(mockEngine) { configure() }
 

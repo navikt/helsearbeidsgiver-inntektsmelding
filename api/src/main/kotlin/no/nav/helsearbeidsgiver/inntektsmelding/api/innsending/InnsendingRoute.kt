@@ -9,9 +9,15 @@ import io.prometheus.client.Summary
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.Tekst
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -20,6 +26,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.lesFnrFraAuthToken
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JsonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ValideringErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respond
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
@@ -35,44 +42,70 @@ import kotlin.system.measureTimeMillis
 fun Route.innsendingRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
-    redisPoller: RedisPoller
+    redisConnection: RedisConnection,
 ) {
     val producer = InnsendingProducer(rapid)
+    val redisPoller = RedisStore(redisConnection, RedisPrefix.Innsending).let(::RedisPoller)
 
-    val requestLatency = Summary.build()
-        .name("simba_innsending_latency_seconds")
-        .help("innsending endpoint latency in seconds")
-        .register()
+    val requestLatency =
+        Summary
+            .build()
+            .name("simba_innsending_latency_seconds")
+            .help("innsending endpoint latency in seconds")
+            .register()
 
     post(Routes.INNSENDING + "/{forespoerselId}") {
-        val clientId = UUID.randomUUID()
+        val transaksjonId = UUID.randomUUID()
 
-        val forespoerselId = call.parameters["forespoerselId"]
-            ?.runCatching(UUID::fromString)
-            ?.getOrNull()
+        val forespoerselId =
+            call.parameters["forespoerselId"]
+                ?.runCatching(UUID::fromString)
+                ?.getOrNull()
 
         if (forespoerselId != null) {
             val requestTimer = requestLatency.startTimer()
             measureTimeMillis {
                 try {
-                    val request = call.receiveText()
-                        .parseJson()
-                        .also { json ->
-                            "Mottok innsending med forespørselId: $forespoerselId".let {
-                                logger.info(it)
-                                sikkerLogger.info("$it og request:\n$json")
+                    val request =
+                        call
+                            .receiveText()
+                            .parseJson()
+                            .also { json ->
+                                "Mottok innsending med forespørselId: $forespoerselId".let {
+                                    logger.info(it)
+                                    sikkerLogger.info("$it og request:\n$json")
+                                }
+                            }.let { json ->
+                                runCatching {
+                                    json
+                                        .fromJson(SkjemaInntektsmelding.serializer())
+                                        .also {
+                                            val valideringsfeil = it.valider()
+                                            if (valideringsfeil.isNotEmpty()) {
+                                                val response = ValideringErrorResponse(valideringsfeil)
+
+                                                respondBadRequest(response, ValideringErrorResponse.serializer())
+                                                return@measureTimeMillis
+                                            }
+                                        }.convert(
+                                            sykmeldingsperioder = emptyList(),
+                                            aarsakInnsending = AarsakInnsending.Ny,
+                                        )
+                                }.getOrElse {
+                                    json
+                                        .fromJson(Innsending.serializer())
+                                        .also {
+                                            it.validate()
+                                        }
+                                }
                             }
-                        }
-                        .fromJson(Innsending.serializer())
 
                     tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
 
-                    request.validate()
                     val innloggerFnr = call.request.lesFnrFraAuthToken()
-                    producer.publish(clientId, forespoerselId, request, innloggerFnr)
-                    logger.info("Publiserte til rapid med forespørselId: $forespoerselId og clientId=$clientId")
+                    producer.publish(transaksjonId, forespoerselId, request, innloggerFnr)
 
-                    val resultatJson = redisPoller.hent(clientId).fromJson(ResultJson.serializer())
+                    val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
                     sikkerLogger.info("Fikk resultat for innsending:\n$resultatJson")
 
                     if (resultatJson.success != null) {

@@ -30,9 +30,8 @@ import java.util.UUID
 class OpprettOppgaveLoeser(
     rapidsConnection: RapidsConnection,
     private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
-    private val linkUrl: String
+    private val linkUrl: String,
 ) : Loeser(rapidsConnection) {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -47,52 +46,56 @@ class OpprettOppgaveLoeser(
         val utloesendeMelding = behov.jsonMessage.toJson().parseJson()
         val json = utloesendeMelding.toMap()
 
-        val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
-            .orDefault {
-                UUID.randomUUID().also {
-                    sikkerLogger.error(
-                        "Mangler transaksjonId i ${simpleName()}. Erstatter med ny, tilfeldig UUID '$it'." +
-                            "\n${utloesendeMelding.toPretty()}"
-                    )
+        val transaksjonId =
+            Key.UUID
+                .lesOrNull(UuidSerializer, json)
+                .orDefault {
+                    UUID.randomUUID().also {
+                        sikkerLogger.error(
+                            "Mangler transaksjonId i ${simpleName()}. Erstatter med ny, tilfeldig UUID '$it'." +
+                                "\n${utloesendeMelding.toPretty()}",
+                        )
+                    }
                 }
-            }
 
         val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), json)
         val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), json)
 
         val forespoerselId = behov.forespoerselId?.let(UUID::fromString)
         if (forespoerselId == null) {
-            val fail = Fail(
-                feilmelding = "Mangler forespørselId",
-                event = behov.event,
-                transaksjonId = transaksjonId,
-                forespoerselId = null,
-                utloesendeMelding = utloesendeMelding
-            )
+            val fail =
+                Fail(
+                    feilmelding = "Mangler forespørselId",
+                    event = behov.event,
+                    transaksjonId = transaksjonId,
+                    forespoerselId = null,
+                    utloesendeMelding = utloesendeMelding,
+                )
             publishFail(fail)
             return
         }
 
         val oppgaveId = opprettOppgave(forespoerselId, orgnr, virksomhetNavn)
         if (oppgaveId.isNullOrBlank()) {
-            val fail = Fail(
-                feilmelding = "Feilet ved opprett oppgave",
-                event = behov.event,
-                transaksjonId = transaksjonId,
-                forespoerselId = forespoerselId,
-                utloesendeMelding = utloesendeMelding
-            )
+            val fail =
+                Fail(
+                    feilmelding = "Feilet ved opprett oppgave",
+                    event = behov.event,
+                    transaksjonId = transaksjonId,
+                    forespoerselId = forespoerselId,
+                    utloesendeMelding = utloesendeMelding,
+                )
             publishFail(fail)
         } else {
-            rapidsConnection.publish(
-                Key.EVENT_NAME to behov.event.toJson(),
-                Key.BEHOV to BehovType.PERSISTER_OPPGAVE_ID.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to orgnr.toJson(),
-                Key.OPPGAVE_ID to oppgaveId.toJson()
-            )
-                .also {
+            rapidsConnection
+                .publish(
+                    Key.EVENT_NAME to behov.event.toJson(),
+                    Key.BEHOV to BehovType.PERSISTER_OPPGAVE_ID.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.ORGNRUNDERENHET to orgnr.toJson(),
+                    Key.OPPGAVE_ID to oppgaveId.toJson(),
+                ).also {
                     logger.info("Publiserte behov for '${behov.event}' med transaksjonId '$transaksjonId'.")
                     sikkerLogger.info("Publiserte behov:\n${it.toPretty()}")
                 }
@@ -104,7 +107,7 @@ class OpprettOppgaveLoeser(
     private fun opprettOppgave(
         forespoerselId: UUID,
         orgnr: String,
-        virksomhetnavn: String
+        virksomhetnavn: String,
     ): String? {
         return try {
             Metrics.agNotifikasjonRequest.recordTime(arbeidsgiverNotifikasjonKlient::opprettNyOppgave) {
@@ -121,7 +124,7 @@ class OpprettOppgaveLoeser(
                     og vi trenger inntektsmelding for å behandle søknaden.
                     Logg inn på Min side – arbeidsgiver hos NAV.
                     Hvis dere sender inntektsmelding via lønnssystem kan dere fortsatt gjøre dette,
-                    og trenger ikke sende inn via Min side – arbeidsgiver."""
+                    og trenger ikke sende inn via Min side – arbeidsgiver.""",
                 )
             }
         } catch (e: OpprettNyOppgaveException) {

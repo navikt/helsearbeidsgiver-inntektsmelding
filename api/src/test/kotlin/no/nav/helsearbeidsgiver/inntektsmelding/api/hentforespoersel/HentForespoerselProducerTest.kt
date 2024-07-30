@@ -14,24 +14,26 @@ import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
-class HentForespoerselProducerTest : FunSpec({
-    val testRapid = TestRapid()
-    val producer = HentForespoerselProducer(testRapid)
+class HentForespoerselProducerTest :
+    FunSpec({
+        val testRapid = TestRapid()
+        val producer = HentForespoerselProducer(testRapid)
 
-    test("publiserer melding på forventet format") {
-        val transaksjonId = UUID.randomUUID()
-        val forespoerselId = UUID.randomUUID()
-        val avsenderFnr = Fnr.genererGyldig()
+        test("publiserer melding på forventet format") {
+            val transaksjonId = UUID.randomUUID()
+            val forespoerselId = UUID.randomUUID()
+            val avsenderFnr = Fnr.genererGyldig()
 
-        producer.publish(transaksjonId, HentForespoerselRequest(forespoerselId), avsenderFnr)
+            producer.publish(transaksjonId, HentForespoerselRequest(forespoerselId), avsenderFnr)
 
-        testRapid.inspektør.size shouldBeExactly 1
-        testRapid.firstMessage().toMap() shouldContainExactly mapOf(
-            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson()
-        )
-    }
-})
+            testRapid.inspektør.size shouldBeExactly 1
+            testRapid.firstMessage().toMap() shouldContainExactly
+                mapOf(
+                    Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.DATA to "".toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
+                )
+        }
+    })

@@ -14,15 +14,16 @@ abstract class MockAuthToken {
     val mockPid = Fnr.genererGyldig()
 
     fun mockAuthToken(): String =
-        mockOAuth2Server.issueToken(
-            issuerId = Auth.ISSUER,
-            subject = "mockSubject",
-            audience = "aud-localhost",
-            claims = mapOf(
-                Auth.CLAIM_PID to mockPid.verdi
-            )
-        )
-            .serialize()
+        mockOAuth2Server
+            .issueToken(
+                issuerId = Auth.ISSUER,
+                subject = "mockSubject",
+                audience = "aud-localhost",
+                claims =
+                    mapOf(
+                        Auth.CLAIM_PID to mockPid.verdi,
+                    ),
+            ).serialize()
 
     @BeforeEach
     fun start() {

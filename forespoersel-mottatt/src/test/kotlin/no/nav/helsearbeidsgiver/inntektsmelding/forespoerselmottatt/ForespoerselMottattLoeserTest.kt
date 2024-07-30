@@ -28,58 +28,60 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import java.util.UUID
 
-class ForespoerselMottattLoeserTest : FunSpec({
-    val testRapid = TestRapid()
-    val mockPriProducer = mockk<PriProducer>(relaxed = true)
+class ForespoerselMottattLoeserTest :
+    FunSpec({
+        val testRapid = TestRapid()
+        val mockPriProducer = mockk<PriProducer>(relaxed = true)
 
-    ForespoerselMottattLoeser(testRapid, mockPriProducer)
+        ForespoerselMottattLoeser(testRapid, mockPriProducer)
 
-    beforeEach {
-        testRapid.reset()
-        clearAllMocks()
-    }
-
-    test("Ved notis om mottatt forespørsel publiseres behov om notifikasjon") {
-        val expected = Published.mock()
-
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns expected.transaksjonId
-
-            testRapid.sendJson(
-                Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
-                Pri.Key.ORGNR to expected.orgnrUnderenhet.toJson(),
-                Pri.Key.FNR to expected.identitetsnummer.toJson(),
-                Pri.Key.FORESPOERSEL_ID to expected.forespoerselId.toJson()
-            )
+        beforeEach {
+            testRapid.reset()
+            clearAllMocks()
         }
 
-        val actual = testRapid.firstMessage().fromJson(Published.serializer())
+        test("Ved notis om mottatt forespørsel publiseres behov om notifikasjon") {
+            val expected = Published.mock()
 
-        testRapid.inspektør.size shouldBeExactly 1
-        actual shouldBe expected
-    }
+            mockStatic(::randomUuid) {
+                every { randomUuid() } returns expected.transaksjonId
 
-    test("Ved feil så republiseres den innkommende meldingen") {
-        val expectedRepublisert = mapOf(
-            Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
-            Pri.Key.ORGNR to "hyper-oval".toJson(),
-            Pri.Key.FNR to "trett-fjell".toJson(),
-            Pri.Key.FORESPOERSEL_ID to "ikke en uuid".toJson()
-        )
+                testRapid.sendJson(
+                    Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
+                    Pri.Key.ORGNR to expected.orgnrUnderenhet.toJson(),
+                    Pri.Key.FNR to expected.identitetsnummer.toJson(),
+                    Pri.Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
+                )
+            }
 
-        testRapid.sendJson(expectedRepublisert)
+            val actual = testRapid.firstMessage().fromJson(Published.serializer())
 
-        testRapid.inspektør.size shouldBeExactly 0
-
-        verifySequence {
-            mockPriProducer.send(
-                withArg<JsonElement> { json ->
-                    json.fromJsonMapFiltered(Pri.Key.serializer()) shouldBe expectedRepublisert
-                }
-            )
+            testRapid.inspektør.size shouldBeExactly 1
+            actual shouldBe expected
         }
-    }
-})
+
+        test("Ved feil så republiseres den innkommende meldingen") {
+            val expectedRepublisert =
+                mapOf(
+                    Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
+                    Pri.Key.ORGNR to "hyper-oval".toJson(),
+                    Pri.Key.FNR to "trett-fjell".toJson(),
+                    Pri.Key.FORESPOERSEL_ID to "ikke en uuid".toJson(),
+                )
+
+            testRapid.sendJson(expectedRepublisert)
+
+            testRapid.inspektør.size shouldBeExactly 0
+
+            verifySequence {
+                mockPriProducer.send(
+                    withArg<JsonElement> { json ->
+                        json.fromJsonMapFiltered(Pri.Key.serializer()) shouldBe expectedRepublisert
+                    },
+                )
+            }
+        }
+    })
 
 @Serializable
 private data class Published(
@@ -91,7 +93,7 @@ private data class Published(
     val identitetsnummer: String,
     val forespoerselId: UUID,
     @SerialName("uuid")
-    val transaksjonId: UUID
+    val transaksjonId: UUID,
 ) {
     companion object {
         fun mock(): Published =
@@ -101,7 +103,7 @@ private data class Published(
                 orgnrUnderenhet = "certainly-stereo-facsimile",
                 identitetsnummer = "resort-cringe-huddle",
                 forespoerselId = UUID.randomUUID(),
-                transaksjonId = UUID.randomUUID()
+                transaksjonId = UUID.randomUUID(),
             )
     }
 }

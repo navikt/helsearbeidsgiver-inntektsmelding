@@ -16,22 +16,19 @@ import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 
 class SlettSakLoeser(
     rapidsConnection: RapidsConnection,
-    private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient
+    private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
 ) : Loeser(rapidsConnection) {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun accept(): River.PacketValidation {
-        return River.PacketValidation {
+    override fun accept(): River.PacketValidation =
+        River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.SLETT_SAK.name)
             it.requireKey(Key.SAK_ID.str)
         }
-    }
-    private fun slettSak(
-        sakId: String
-    ): Boolean {
-        return try {
+
+    private fun slettSak(sakId: String): Boolean =
+        try {
             runBlocking {
                 arbeidsgiverNotifikasjonKlient.hardDeleteSak(sakId)
             }
@@ -40,7 +37,6 @@ class SlettSakLoeser(
             sikkerLogger.error("Feil ved sletting av sak: $sakId", e)
             false
         }
-    }
 
     override fun onBehov(behov: Behov) {
         val sakId = behov[Key.SAK_ID].asText()
@@ -50,7 +46,6 @@ class SlettSakLoeser(
                     logger.info(it)
                     sikkerLogger.info(it)
                 }
-            }
-            .ifFalse { logger.error("Feil ved sletting av sak: $sakId") }
+            }.ifFalse { logger.error("Feil ved sletting av sak: $sakId") }
     }
 }

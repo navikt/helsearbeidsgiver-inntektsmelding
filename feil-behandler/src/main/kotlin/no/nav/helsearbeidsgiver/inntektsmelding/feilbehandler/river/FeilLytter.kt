@@ -19,33 +19,39 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.sql.SQLException
 
-class FeilLytter(rapidsConnection: RapidsConnection, private val repository: BakgrunnsjobbRepository) : River.PacketListener {
-
+class FeilLytter(
+    rapidsConnection: RapidsConnection,
+    private val repository: BakgrunnsjobbRepository,
+) : River.PacketListener {
     private val jobbType = FeilProsessor.JOB_TYPE
 
     private val sikkerLogger = sikkerLogger()
-    val behovSomHaandteres = listOf(
-        BehovType.LAGRE_FORESPOERSEL,
-        BehovType.OPPRETT_OPPGAVE,
-        BehovType.OPPRETT_SAK,
-        BehovType.PERSISTER_OPPGAVE_ID,
-        BehovType.PERSISTER_SAK_ID,
-        BehovType.JOURNALFOER,
-        BehovType.LAGRE_JOURNALPOST_ID,
-        BehovType.NOTIFIKASJON_HENT_ID
-    )
+    val behovSomHaandteres =
+        listOf(
+            BehovType.LAGRE_FORESPOERSEL,
+            BehovType.OPPRETT_OPPGAVE,
+            BehovType.OPPRETT_SAK,
+            BehovType.PERSISTER_OPPGAVE_ID,
+            BehovType.PERSISTER_SAK_ID,
+            BehovType.JOURNALFOER,
+            BehovType.LAGRE_JOURNALPOST_ID,
+            BehovType.NOTIFIKASJON_HENT_ID,
+        )
 
     init {
         sikkerLogger.info("Starter applikasjon - lytter på innkommende feil!")
-        River(rapidsConnection).apply {
-            validate { msg ->
-                msg.demandKey(Key.FAIL.str)
-            }
-        }
-            .register(this)
+        River(rapidsConnection)
+            .apply {
+                validate { msg ->
+                    msg.demandKey(Key.FAIL.str)
+                }
+            }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         sikkerLogger.info("Mottok feil: ${packet.toPretty()}")
         val fail = toFailOrNull(packet.toJson().parseJson().toMap())
         if (fail == null) {
@@ -66,11 +72,12 @@ class FeilLytter(rapidsConnection: RapidsConnection, private val repository: Bak
                 }
             } else {
                 sikkerLogger.info("Lagrer mottatt pakke!")
-                val jobb = Bakgrunnsjobb(
-                    uuid = fail.transaksjonId,
-                    type = jobbType,
-                    data = fail.utloesendeMelding.toString()
-                )
+                val jobb =
+                    Bakgrunnsjobb(
+                        uuid = fail.transaksjonId,
+                        type = jobbType,
+                        data = fail.utloesendeMelding.toString(),
+                    )
                 lagre(jobb)
             }
         }

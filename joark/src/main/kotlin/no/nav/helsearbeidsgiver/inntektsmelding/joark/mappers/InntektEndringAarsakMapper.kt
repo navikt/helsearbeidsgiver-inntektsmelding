@@ -16,8 +16,8 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.VarigLonnsendr
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import org.mapstruct.Mapper
 
-fun InntektEndringAarsak.stringValue(): String {
-    return when (this) {
+fun InntektEndringAarsak.stringValue(): String =
+    when (this) {
         is Nyansatt -> "Nyansatt"
         is Bonus -> "Bonus" // Beløp og dato ikke implementert i frontend
         is Ferie -> "Ferie: ${liste.lesbar()}"
@@ -31,10 +31,8 @@ fun InntektEndringAarsak.stringValue(): String {
         is VarigLonnsendring -> "Varig lønnsendring: fra $gjelderFra"
         is Feilregistrert -> "Mangelfull eller uriktig rapportering til A-ordningen"
     }
-}
 
-private fun List<Periode>.lesbar(): String =
-    joinToString { "fra ${it.fom} til ${it.tom}" }
+private fun List<Periode>.lesbar(): String = joinToString { "fra ${it.fom} til ${it.tom}" }
 
 @Mapper
 abstract class InntektEndringAarsakMapper {

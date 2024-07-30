@@ -2,8 +2,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
-import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
@@ -12,33 +12,19 @@ private const val WAIT_MILLIS_DEFAULT = 500L
 private val WAIT_MILLIS = List(MAX_RETRIES) { 100L * (1 + it) }
 
 // TODO Bruke kotlin.Result istedenfor exceptions?
-class RedisPoller {
+class RedisPoller(
+    private val redisStore: RedisStore,
+) {
     private val sikkerLogger = sikkerLogger()
 
-    private val redis = RedisConnection(Env.Redis.url)
-
     suspend fun hent(key: UUID): JsonElement {
-        val json = hentJsonString(key)
-
-        sikkerLogger.info("Hentet verdi for: '$key' = $json")
-
-        return try {
-            json.parseJson()
-        } catch (e: Exception) {
-            "JSON-parsing feilet.".let {
-                sikkerLogger.error("$it key=$key json=$json", e)
-                throw RedisPollerJsonParseException("$it key='$key'", e)
-            }
-        }
-    }
-
-    private suspend fun hentJsonString(key: UUID): String {
         repeat(MAX_RETRIES) {
             sikkerLogger.debug("Polling redis: $it time(s) for key $key")
 
-            val result = redis.get(key.toString())
+            val result = redisStore.get(RedisKey.of(key))
 
             if (result != null) {
+                sikkerLogger.info("Hentet verdi for: '$key' = $result")
                 return result
             } else {
                 delay(WAIT_MILLIS.getOrNull(it) ?: WAIT_MILLIS_DEFAULT)
@@ -47,19 +33,8 @@ class RedisPoller {
 
         throw RedisPollerTimeoutException(key)
     }
-
-    fun close() {
-        redis.close()
-    }
 }
 
-sealed class RedisPollerException(
-    message: String,
-    cause: Throwable? = null
-) : Exception(message, cause)
-
-class RedisPollerJsonParseException(message: String, cause: Throwable) : RedisPollerException(message, cause)
-
-class RedisPollerTimeoutException(uuid: UUID) : RedisPollerException(
-    "Brukte for lang tid på å svare ($uuid)."
-)
+class RedisPollerTimeoutException(
+    uuid: UUID,
+) : Exception("Brukte for lang tid på å svare ($uuid).")

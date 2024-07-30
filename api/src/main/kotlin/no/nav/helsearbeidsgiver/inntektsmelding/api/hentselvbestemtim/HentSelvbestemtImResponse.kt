@@ -9,10 +9,10 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 
 @Serializable
 data class HentSelvbestemtImResponseSuccess(
-    val selvbestemtInntektsmelding: Inntektsmelding
+    val selvbestemtInntektsmelding: Inntektsmelding,
 )
 
 @Serializable
 data class HentSelvbestemtImResponseFailure(
-    val error: String
+    val error: String,
 )

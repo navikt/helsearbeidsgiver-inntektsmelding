@@ -25,7 +25,6 @@ import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class InntektSelvbestemtIT : EndToEndTest() {
-
     @Test
     fun `skal hente inntekt for selvbestemt inntektsmelding`() {
         coEvery { inntektClient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any()) } returns Mock.inntektPerOrgnrOgMaaned
@@ -36,33 +35,35 @@ class InntektSelvbestemtIT : EndToEndTest() {
             Key.DATA to "".toJson(),
             Key.FNR to Mock.fnr.toJson(),
             Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
-            Key.SKJAERINGSTIDSPUNKT to Mock.inntektsdato.toJson()
+            Key.SKJAERINGSTIDSPUNKT to Mock.inntektsdato.toJson(),
         )
 
-        messages.filter(BehovType.INNTEKT)
+        messages
+            .filter(BehovType.HENT_INNTEKT)
             .firstAsMap()
             .shouldContainExactly(
                 mapOf(
                     Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
-                    Key.BEHOV to BehovType.INNTEKT.toJson(),
+                    Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
                     Key.UUID to Mock.transaksjonId.toJson(),
                     Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
                     Key.FNR to Mock.fnr.toJson(),
-                    Key.SKJAERINGSTIDSPUNKT to Mock.inntektsdato.toJson(LocalDateSerializer)
-                )
+                    Key.SKJAERINGSTIDSPUNKT to Mock.inntektsdato.toJson(LocalDateSerializer),
+                ),
             )
 
         val dataField = Key.INNTEKT to Mock.inntektPerMaaned.toJson(Inntekt.serializer())
 
-        messages.filter(Key.INNTEKT)
+        messages
+            .filter(Key.INNTEKT)
             .firstAsMap()
             .shouldContainExactly(
                 mapOf(
                     Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
                     Key.UUID to Mock.transaksjonId.toJson(),
                     Key.DATA to mapOf(dataField).toJson(),
-                    dataField
-                )
+                    dataField,
+                ),
             )
     }
 
@@ -72,19 +73,21 @@ class InntektSelvbestemtIT : EndToEndTest() {
         val inntektsdato = 15.juli(2019)
         val transaksjonId: UUID = UUID.randomUUID()
 
-        val inntektPerOrgnrOgMaaned = mapOf(
-            orgnr.verdi to
-                mapOf(
-                    april(2019) to 40000.0,
-                    mai(2019) to 42000.0,
-                    juni(2019) to 44000.0
-                )
-        )
+        val inntektPerOrgnrOgMaaned =
+            mapOf(
+                orgnr.verdi to
+                    mapOf(
+                        april(2019) to 40000.0,
+                        mai(2019) to 42000.0,
+                        juni(2019) to 44000.0,
+                    ),
+            )
 
-        val inntektPerMaaned = Inntekt(
-            inntektPerOrgnrOgMaaned[orgnr.verdi]
-                .shouldNotBeNull()
-                .map { InntektPerMaaned(it.key, it.value) }
-        )
+        val inntektPerMaaned =
+            Inntekt(
+                inntektPerOrgnrOgMaaned[orgnr.verdi]
+                    .shouldNotBeNull()
+                    .map { InntektPerMaaned(it.key, it.value) },
+            )
     }
 }

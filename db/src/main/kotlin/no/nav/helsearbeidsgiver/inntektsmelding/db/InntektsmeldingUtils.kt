@@ -8,7 +8,7 @@ fun Inntektsmelding.erDuplikatAv(other: Inntektsmelding): Boolean =
         vedtaksperiodeId = vedtaksperiodeId,
         tidspunkt = tidspunkt,
         årsakInnsending = årsakInnsending,
-        innsenderNavn = innsenderNavn
+        innsenderNavn = innsenderNavn,
     )
 
 fun Inntektsmelding.erDuplikatAv(other: Innsending): Boolean =
@@ -29,5 +29,5 @@ fun Inntektsmelding.erDuplikatAv(other: Innsending): Boolean =
 
 fun Innsending.erDuplikatAv(other: Innsending): Boolean =
     this == other.copy(
-        årsakInnsending = årsakInnsending
+        årsakInnsending = årsakInnsending,
     )

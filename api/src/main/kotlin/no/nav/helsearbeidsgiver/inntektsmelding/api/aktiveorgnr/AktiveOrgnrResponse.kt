@@ -6,11 +6,11 @@ import kotlinx.serialization.Serializable
 data class AktiveOrgnrResponse(
     val fulltNavn: String? = null,
     val avsenderNavn: String,
-    val underenheter: List<GyldigUnderenhet>
+    val underenheter: List<GyldigUnderenhet>,
 )
 
 @Serializable
 data class GyldigUnderenhet(
     val orgnrUnderenhet: String,
-    val virksomhetsnavn: String
+    val virksomhetsnavn: String,
 )

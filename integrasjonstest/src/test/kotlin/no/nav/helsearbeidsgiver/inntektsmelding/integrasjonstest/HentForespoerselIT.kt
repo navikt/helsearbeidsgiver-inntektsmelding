@@ -10,7 +10,7 @@ import no.nav.helsearbeidsgiver.felles.HentForespoerselResultat
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -24,7 +24,6 @@ import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class HentForespoerselIT : EndToEndTest() {
-
     @Test
     fun `Test trengerIM meldingsflyt`() {
         val transaksjonId: UUID = UUID.randomUUID()
@@ -34,7 +33,7 @@ class HentForespoerselIT : EndToEndTest() {
             eventName = EventName.TRENGER_REQUESTED,
             transaksjonId = transaksjonId,
             forespoerselId = forespoerselId,
-            forespoerselSvar = mockForespoerselSvarSuksess()
+            forespoerselSvar = mockForespoerselSvarSuksess(),
         )
 
         publish(
@@ -42,10 +41,11 @@ class HentForespoerselIT : EndToEndTest() {
             Key.UUID to transaksjonId.toJson(UuidSerializer),
             Key.DATA to "".toJson(),
             Key.ARBEIDSGIVER_FNR to Fnr.genererGyldig().toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer)
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer),
         )
 
-        messages.filter(EventName.TRENGER_REQUESTED)
+        messages
+            .filter(EventName.TRENGER_REQUESTED)
             .filter(BehovType.HENT_TRENGER_IM)
             .firstAsMap()
             .let {
@@ -53,15 +53,17 @@ class HentForespoerselIT : EndToEndTest() {
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
-        messages.filter(EventName.TRENGER_REQUESTED)
-            .filter(BehovType.VIRKSOMHET)
+        messages
+            .filter(EventName.TRENGER_REQUESTED)
+            .filter(BehovType.HENT_VIRKSOMHET_NAVN)
             .firstAsMap()
             .let {
                 // Ble lagret i databasen
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
-        messages.filter(EventName.TRENGER_REQUESTED)
+        messages
+            .filter(EventName.TRENGER_REQUESTED)
             .filter(BehovType.HENT_PERSONER)
             .firstAsMap()
             .let {
@@ -69,17 +71,20 @@ class HentForespoerselIT : EndToEndTest() {
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
-        messages.filter(EventName.TRENGER_REQUESTED)
-            .filter(BehovType.INNTEKT)
+        messages
+            .filter(EventName.TRENGER_REQUESTED)
+            .filter(BehovType.HENT_INNTEKT)
             .firstAsMap()
             .let {
                 // Ble lagret i databasen
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
-        val resultJson = redisStore.get(RedisKey.of(transaksjonId))
-            ?.fromJson(ResultJson.serializer())
-            .shouldNotBeNull()
+        val resultJson =
+            redisConnection
+                .get(RedisPrefix.HentForespoersel, transaksjonId)
+                ?.fromJson(ResultJson.serializer())
+                .shouldNotBeNull()
 
         resultJson.failure.shouldBeNull()
 

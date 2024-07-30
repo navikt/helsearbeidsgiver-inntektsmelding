@@ -16,6 +16,9 @@ import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.InnsendtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.Tekst
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -40,22 +43,26 @@ import kotlin.system.measureTimeMillis
 fun Route.kvitteringRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
-    redisPoller: RedisPoller
+    redisConnection: RedisConnection,
 ) {
     val kvitteringProducer = KvitteringProducer(rapid)
+    val redisPoller = RedisStore(redisConnection, RedisPrefix.Kvittering).let(::RedisPoller)
 
-    val requestLatency = Summary.build()
-        .name("simba_kvittering_latency_seconds")
-        .help("kvittering endpoint latency in seconds")
-        .register()
+    val requestLatency =
+        Summary
+            .build()
+            .name("simba_kvittering_latency_seconds")
+            .help("kvittering endpoint latency in seconds")
+            .register()
 
     get(Routes.KVITTERING) {
-        val clientId = UUID.randomUUID()
+        val transaksjonId = UUID.randomUUID()
 
-        val forespoerselId = call.parameters["uuid"]
-            ?.let(::fjernLedendeSlash)
-            ?.runCatching(UUID::fromString)
-            ?.getOrNull()
+        val forespoerselId =
+            call.parameters["uuid"]
+                ?.let(::fjernLedendeSlash)
+                ?.runCatching(UUID::fromString)
+                ?.getOrNull()
 
         if (forespoerselId == null) {
             "Ugyldig parameter: ${call.parameters["uuid"]}".let {
@@ -73,8 +80,8 @@ fun Route.kvitteringRoute(
                         logger.info("Authorize took $it")
                     }
 
-                    kvitteringProducer.publish(clientId, forespoerselId)
-                    val resultatJson = redisPoller.hent(clientId).fromJson(ResultJson.serializer())
+                    kvitteringProducer.publish(transaksjonId, forespoerselId)
+                    val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
 
                     sikkerLogger.info("Resultat for henting av kvittering for $forespoerselId: $resultatJson")
 
@@ -112,7 +119,7 @@ fun Route.kvitteringRoute(
 private fun InnsendtInntektsmelding.tilKvittering(): Kvittering =
     Kvittering(
         kvitteringDokument = dokument?.tilKvitteringSimba(),
-        kvitteringEkstern = eksternInntektsmelding?.tilKvitteringEkstern()
+        kvitteringEkstern = eksternInntektsmelding?.tilKvitteringEkstern(),
     )
 
 private fun Inntektsmelding.tilKvitteringSimba(): KvitteringSimba =
@@ -126,13 +133,14 @@ private fun Inntektsmelding.tilKvitteringSimba(): KvitteringSimba =
         arbeidsgiverperioder = arbeidsgiverperioder,
         bestemmendeFraværsdag = bestemmendeFraværsdag,
         fraværsperioder = fraværsperioder,
-        inntekt = Inntekt(
-            bekreftet = true,
-            // Kan slette nullable inntekt og fallback når IM med gammelt format slettes fra database
-            beregnetInntekt = inntekt?.beregnetInntekt ?: beregnetInntekt,
-            endringÅrsak = inntekt?.endringÅrsak,
-            manueltKorrigert = inntekt?.manueltKorrigert.orDefault(false)
-        ),
+        inntekt =
+            Inntekt(
+                bekreftet = true,
+                // Kan slette nullable inntekt og fallback når IM med gammelt format slettes fra database
+                beregnetInntekt = inntekt?.beregnetInntekt ?: beregnetInntekt,
+                endringÅrsak = inntekt?.endringÅrsak,
+                manueltKorrigert = inntekt?.manueltKorrigert.orDefault(false),
+            ),
         fullLønnIArbeidsgiverPerioden = fullLønnIArbeidsgiverPerioden,
         refusjon = refusjon,
         naturalytelser = naturalytelser,
@@ -141,12 +149,12 @@ private fun Inntektsmelding.tilKvitteringSimba(): KvitteringSimba =
         tidspunkt = tidspunkt,
         forespurtData = forespurtData,
         telefonnummer = telefonnummer,
-        innsenderNavn = innsenderNavn
+        innsenderNavn = innsenderNavn,
     )
 
 private fun EksternInntektsmelding.tilKvitteringEkstern(): KvitteringEkstern =
     KvitteringEkstern(
         avsenderSystemNavn,
         arkivreferanse,
-        tidspunkt.atZone(ZoneId.systemDefault()).toOffsetDateTime()
+        tidspunkt.atZone(ZoneId.systemDefault()).toOffsetDateTime(),
     )

@@ -32,164 +32,183 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.juli
 import java.util.UUID
 
-class LagreSelvbestemtImRiverTest : FunSpec({
-    val testRapid = TestRapid()
-    val mockSelvbestemtImRepo = mockk<SelvbestemtImRepo>()
+class LagreSelvbestemtImRiverTest :
+    FunSpec({
+        val testRapid = TestRapid()
+        val mockSelvbestemtImRepo = mockk<SelvbestemtImRepo>()
 
-    LagreSelvbestemtImRiver(mockSelvbestemtImRepo).connect(testRapid)
+        LagreSelvbestemtImRiver(mockSelvbestemtImRepo).connect(testRapid)
 
-    beforeTest {
-        testRapid.reset()
-        clearAllMocks()
-    }
+        beforeTest {
+            testRapid.reset()
+            clearAllMocks()
+        }
 
-    context("selvbestemt inntektsmelding lagres") {
-        val inntektsmeldingId = UUID.randomUUID()
+        context("selvbestemt inntektsmelding lagres") {
+            val inntektsmeldingId = UUID.randomUUID()
 
-        withData(
-            mapOf(
-                "hvis ingen andre inntektsmeldinger er mottatt" to null,
-                "hvis ikke duplikat av tidligere inntektsmeldinger" to mockInntektsmeldingV1().copy(
-                    id = inntektsmeldingId,
-                    sykmeldingsperioder = listOf(13.juli til 31.juli)
+            withData(
+                mapOf(
+                    "hvis ingen andre inntektsmeldinger er mottatt" to null,
+                    "hvis ikke duplikat av tidligere inntektsmeldinger" to
+                        mockInntektsmeldingV1().copy(
+                            id = inntektsmeldingId,
+                            sykmeldingsperioder = listOf(13.juli til 31.juli),
+                        ),
+                ),
+            ) { eksisterendeIm ->
+                every { mockSelvbestemtImRepo.hentNyesteIm(any()) } returns eksisterendeIm
+                every { mockSelvbestemtImRepo.lagreIm(any()) } just Runs
+
+                val nyInntektsmelding = mockInntektsmeldingV1().copy(id = inntektsmeldingId)
+
+                val innkommendeMelding =
+                    innkommendeMelding().copy(
+                        selvbestemtInntektsmelding = nyInntektsmelding,
+                    )
+
+                testRapid.sendJson(innkommendeMelding.toMap())
+
+                testRapid.inspektør.size shouldBeExactly 1
+
+                val dataFields =
+                    arrayOf(
+                        Key.SELVBESTEMT_INNTEKTSMELDING to nyInntektsmelding.toJson(Inntektsmelding.serializer()),
+                        Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
+                    )
+
+                testRapid.firstMessage().toMap() shouldContainExactly
+                    mapOf(
+                        Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
+                        Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.DATA to dataFields.toMap().toJson(),
+                        *dataFields,
+                    )
+
+                verifySequence {
+                    mockSelvbestemtImRepo.hentNyesteIm(nyInntektsmelding.type.id)
+                    mockSelvbestemtImRepo.lagreIm(nyInntektsmelding)
+                }
+            }
+        }
+
+        test("duplikat lagres ikke, men svarer OK") {
+            val nyInntektsmelding = mockInntektsmeldingV1()
+
+            val duplikatIm =
+                nyInntektsmelding.copy(
+                    id = UUID.randomUUID(),
+                    avsender =
+                        nyInntektsmelding.avsender.copy(
+                            navn = "Intens Delfia",
+                            tlf = "35350404",
+                        ),
+                    aarsakInnsending = AarsakInnsending.Ny,
+                    mottatt = nyInntektsmelding.mottatt.minusDays(14),
                 )
-            )
-        ) { eksisterendeIm ->
-            every { mockSelvbestemtImRepo.hentNyesteIm(any()) } returns eksisterendeIm
+
+            every { mockSelvbestemtImRepo.hentNyesteIm(any()) } returns duplikatIm
             every { mockSelvbestemtImRepo.lagreIm(any()) } just Runs
 
-            val nyInntektsmelding = mockInntektsmeldingV1().copy(id = inntektsmeldingId)
-
-            val innkommendeMelding = innkommendeMelding().copy(
-                selvbestemtInntektsmelding = nyInntektsmelding
-            )
+            val innkommendeMelding =
+                innkommendeMelding().copy(
+                    selvbestemtInntektsmelding = nyInntektsmelding,
+                )
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            val dataFields = arrayOf(
-                Key.SELVBESTEMT_INNTEKTSMELDING to nyInntektsmelding.toJson(Inntektsmelding.serializer()),
-                Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer())
-            )
+            val dataFields =
+                arrayOf(
+                    Key.SELVBESTEMT_INNTEKTSMELDING to nyInntektsmelding.toJson(Inntektsmelding.serializer()),
+                    Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
+                )
 
-            testRapid.firstMessage().toMap() shouldContainExactly mapOf(
-                Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                Key.DATA to dataFields.toMap().toJson(),
-                *dataFields
-            )
+            testRapid.firstMessage().toMap() shouldContainExactly
+                mapOf(
+                    Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
+                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.DATA to dataFields.toMap().toJson(),
+                    *dataFields,
+                )
 
             verifySequence {
                 mockSelvbestemtImRepo.hentNyesteIm(nyInntektsmelding.type.id)
+            }
+            verify(exactly = 0) {
                 mockSelvbestemtImRepo.lagreIm(nyInntektsmelding)
             }
         }
-    }
 
-    test("duplikat lagres ikke, men svarer OK") {
-        val nyInntektsmelding = mockInntektsmeldingV1()
-
-        val duplikatIm = nyInntektsmelding.copy(
-            avsender = nyInntektsmelding.avsender.copy(
-                navn = "Intens Delfia",
-                tlf = "35350404"
-            ),
-            aarsakInnsending = AarsakInnsending.Ny,
-            mottatt = nyInntektsmelding.mottatt.minusDays(14)
-        )
-
-        every { mockSelvbestemtImRepo.hentNyesteIm(any()) } returns duplikatIm
-        every { mockSelvbestemtImRepo.lagreIm(any()) } just Runs
-
-        val innkommendeMelding = innkommendeMelding().copy(
-            selvbestemtInntektsmelding = nyInntektsmelding
-        )
-
-        testRapid.sendJson(innkommendeMelding.toMap())
-
-        testRapid.inspektør.size shouldBeExactly 1
-
-        val dataFields = arrayOf(
-            Key.SELVBESTEMT_INNTEKTSMELDING to nyInntektsmelding.toJson(Inntektsmelding.serializer()),
-            Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer())
-        )
-
-        testRapid.firstMessage().toMap() shouldContainExactly mapOf(
-            Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-            Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-            Key.DATA to dataFields.toMap().toJson(),
-            *dataFields
-        )
-
-        verifySequence {
-            mockSelvbestemtImRepo.hentNyesteIm(nyInntektsmelding.type.id)
-        }
-        verify(exactly = 0) {
-            mockSelvbestemtImRepo.lagreIm(nyInntektsmelding)
-        }
-    }
-
-    test("håndterer at repo feiler") {
-        every {
-            mockSelvbestemtImRepo.hentNyesteIm(any())
-        } throws RuntimeException("fy fasiken, den svei")
-
-        val innkommendeMelding = innkommendeMelding()
-
-        val forventetFail = Fail(
-            feilmelding = "Klarte ikke lagre selvbestemt inntektsmelding.",
-            event = innkommendeMelding.eventName,
-            transaksjonId = innkommendeMelding.transaksjonId,
-            forespoerselId = null,
-            utloesendeMelding = innkommendeMelding.toMap().toJson()
-        )
-
-        testRapid.sendJson(innkommendeMelding.toMap())
-
-        testRapid.inspektør.size shouldBeExactly 1
-
-        testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
-            .minus(Key.FORESPOERSEL_ID)
-            .plus(Key.SELVBESTEMT_ID to innkommendeMelding.selvbestemtInntektsmelding.type.id.toJson())
-
-        verifySequence {
-            mockSelvbestemtImRepo.hentNyesteIm(any())
-        }
-        verify(exactly = 0) {
-            mockSelvbestemtImRepo.lagreIm(any())
-        }
-    }
-
-    context("ignorerer melding") {
-        withData(
-            mapOf(
-                "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.VIRKSOMHET.toJson()),
-                "melding med data" to Pair(Key.DATA, "".toJson()),
-                "melding med fail" to Pair(Key.FAIL, mockFail.toJson(Fail.serializer()))
-            )
-        ) { uoensketKeyMedVerdi ->
-            testRapid.sendJson(
-                innkommendeMelding().toMap()
-                    .plus(uoensketKeyMedVerdi)
-            )
-
-            testRapid.inspektør.size shouldBeExactly 0
-
-            verify(exactly = 0) {
+        test("håndterer at repo feiler") {
+            every {
                 mockSelvbestemtImRepo.hentNyesteIm(any())
+            } throws RuntimeException("fy fasiken, den svei")
+
+            val innkommendeMelding = innkommendeMelding()
+
+            val forventetFail =
+                Fail(
+                    feilmelding = "Klarte ikke lagre selvbestemt inntektsmelding.",
+                    event = innkommendeMelding.eventName,
+                    transaksjonId = innkommendeMelding.transaksjonId,
+                    forespoerselId = null,
+                    utloesendeMelding = innkommendeMelding.toMap().toJson(),
+                )
+
+            testRapid.sendJson(innkommendeMelding.toMap())
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            testRapid.firstMessage().toMap() shouldContainExactly
+                forventetFail
+                    .tilMelding()
+                    .minus(Key.FORESPOERSEL_ID)
+                    .plus(
+                        Key.SELVBESTEMT_ID to
+                            innkommendeMelding.selvbestemtInntektsmelding.type.id
+                                .toJson(),
+                    )
+
+            verifySequence {
+                mockSelvbestemtImRepo.hentNyesteIm(any())
+            }
+            verify(exactly = 0) {
                 mockSelvbestemtImRepo.lagreIm(any())
             }
         }
-    }
-})
+
+        context("ignorerer melding") {
+            withData(
+                mapOf(
+                    "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.HENT_VIRKSOMHET_NAVN.toJson()),
+                    "melding med data" to Pair(Key.DATA, "".toJson()),
+                    "melding med fail" to Pair(Key.FAIL, mockFail.toJson(Fail.serializer())),
+                ),
+            ) { uoensketKeyMedVerdi ->
+                testRapid.sendJson(
+                    innkommendeMelding()
+                        .toMap()
+                        .plus(uoensketKeyMedVerdi),
+                )
+
+                testRapid.inspektør.size shouldBeExactly 0
+
+                verify(exactly = 0) {
+                    mockSelvbestemtImRepo.hentNyesteIm(any())
+                    mockSelvbestemtImRepo.lagreIm(any())
+                }
+            }
+        }
+    })
 
 private fun innkommendeMelding(): LagreSelvbestemtImMelding =
     LagreSelvbestemtImMelding(
         eventName = EventName.SELVBESTEMT_IM_MOTTATT,
         behovType = BehovType.LAGRE_SELVBESTEMT_IM,
         transaksjonId = UUID.randomUUID(),
-        selvbestemtInntektsmelding = mockInntektsmeldingV1()
+        selvbestemtInntektsmelding = mockInntektsmeldingV1(),
     )
 
 private fun LagreSelvbestemtImMelding.toMap(): Map<Key, JsonElement> =
@@ -197,13 +216,14 @@ private fun LagreSelvbestemtImMelding.toMap(): Map<Key, JsonElement> =
         Key.EVENT_NAME to eventName.toJson(),
         Key.BEHOV to behovType.toJson(),
         Key.UUID to transaksjonId.toJson(),
-        Key.SELVBESTEMT_INNTEKTSMELDING to selvbestemtInntektsmelding.toJson(Inntektsmelding.serializer())
+        Key.SELVBESTEMT_INNTEKTSMELDING to selvbestemtInntektsmelding.toJson(Inntektsmelding.serializer()),
     )
 
-private val mockFail = Fail(
-    feilmelding = "Vi har et KJEMPEPROBLEM!",
-    event = EventName.SELVBESTEMT_IM_MOTTATT,
-    transaksjonId = UUID.randomUUID(),
-    forespoerselId = null,
-    utloesendeMelding = JsonNull
-)
+private val mockFail =
+    Fail(
+        feilmelding = "Vi har et KJEMPEPROBLEM!",
+        event = EventName.SELVBESTEMT_IM_MOTTATT,
+        transaksjonId = UUID.randomUUID(),
+        forespoerselId = null,
+        utloesendeMelding = JsonNull,
+    )

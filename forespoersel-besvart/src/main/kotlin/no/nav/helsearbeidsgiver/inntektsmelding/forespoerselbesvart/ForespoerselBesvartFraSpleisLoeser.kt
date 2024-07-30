@@ -17,28 +17,30 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 
 class ForespoerselBesvartFraSpleisLoeser(
     rapid: RapidsConnection,
-    private val priProducer: PriProducer
+    private val priProducer: PriProducer,
 ) : ForespoerselBesvartLoeser() {
-
-    override val forespoerselBesvartCounter: Counter = Counter.build()
-        .name("simba_forespoersel_besvart_fra_spleis_total")
-        .help("Antall foresporsler besvart fra Spleis (pri-topic)")
-        .register()
+    override val forespoerselBesvartCounter: Counter =
+        Counter
+            .build()
+            .name("simba_forespoersel_besvart_fra_spleis_total")
+            .help("Antall foresporsler besvart fra Spleis (pri-topic)")
+            .register()
 
     init {
-        River(rapid).apply {
-            validate {
-                it.demandValues(
-                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.name
-                )
-                it.requireKeys(
-                    Pri.Key.FORESPOERSEL_ID
-                )
-                it.interestedIn(
-                    Pri.Key.SPINN_INNTEKTSMELDING_ID
-                )
-            }
-        }.register(this)
+        River(rapid)
+            .apply {
+                validate {
+                    it.demandValues(
+                        Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.name,
+                    )
+                    it.requireKeys(
+                        Pri.Key.FORESPOERSEL_ID,
+                    )
+                    it.interestedIn(
+                        Pri.Key.SPINN_INNTEKTSMELDING_ID,
+                    )
+                }
+            }.register(this)
     }
 
     override fun JsonElement.lesMelding(): Melding {
@@ -47,7 +49,7 @@ class ForespoerselBesvartFraSpleisLoeser(
             event = Pri.NotisType.FORESPOERSEL_BESVART.name,
             forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, json),
             transaksjonId = randomUuid(),
-            spinnInntektsmeldingId = Pri.Key.SPINN_INNTEKTSMELDING_ID.lesOrNull(UuidSerializer, json)
+            spinnInntektsmeldingId = Pri.Key.SPINN_INNTEKTSMELDING_ID.lesOrNull(UuidSerializer, json),
         )
     }
 

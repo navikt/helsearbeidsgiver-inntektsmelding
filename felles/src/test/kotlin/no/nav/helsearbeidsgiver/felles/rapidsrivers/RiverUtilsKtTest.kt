@@ -16,69 +16,72 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class RiverUtilsKtTest : FunSpec({
+class RiverUtilsKtTest :
+    FunSpec({
 
-    val testRapid = spyk(TestRapid())
+        val testRapid = spyk(TestRapid())
 
-    beforeTest {
-        clearAllMocks()
-    }
-
-    context("publish") {
-
-        test("vararg pairs") {
-            val melding = arrayOf(
-                Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
-                Key.INNTEKTSMELDING to mockInntektsmeldingV1().toJson(Inntektsmelding.serializer()),
-                Key.FNR_LISTE to listOf("111", "333", "555").toJson(String.serializer())
-            )
-
-            testRapid.publish(*melding)
-
-            verifySequence {
-                testRapid.publish(
-                    withArg<String> {
-                        it.parseJson().toMap() shouldContainExactly melding.toMap()
-                    }
-                )
-            }
+        beforeTest {
+            clearAllMocks()
         }
 
-        test("map") {
-            val melding = mapOf(
-                Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
-                Key.INNTEKTSMELDING to mockInntektsmeldingV1().toJson(Inntektsmelding.serializer()),
-                Key.ORGNRUNDERENHETER to listOf("222", "444", "666").toJson(String.serializer())
-            )
+        context("publish") {
 
-            testRapid.publish(melding)
+            test("vararg pairs") {
+                val melding =
+                    arrayOf(
+                        Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
+                        Key.INNTEKTSMELDING to mockInntektsmeldingV1().toJson(Inntektsmelding.serializer()),
+                        Key.FNR_LISTE to listOf("111", "333", "555").toJson(String.serializer()),
+                    )
 
-            verifySequence {
+                testRapid.publish(*melding)
+
+                verifySequence {
+                    testRapid.publish(
+                        withArg<String> {
+                            it.parseJson().toMap() shouldContainExactly melding.toMap()
+                        },
+                    )
+                }
+            }
+
+            test("map") {
+                val melding =
+                    mapOf(
+                        Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
+                        Key.INNTEKTSMELDING to mockInntektsmeldingV1().toJson(Inntektsmelding.serializer()),
+                        Key.ORGNR_UNDERENHETER to listOf("222", "444", "666").toJson(String.serializer()),
+                    )
+
+                testRapid.publish(melding)
+
+                verifySequence {
+                    testRapid.publish(
+                        withArg<String> {
+                            it.parseJson().toMap() shouldContainExactly melding
+                        },
+                    )
+                }
+            }
+
+            test("filtrerer ut JsonNull") {
+                val selvbestemtId = UUID.randomUUID()
+
                 testRapid.publish(
-                    withArg<String> {
-                        it.parseJson().toMap() shouldContainExactly melding
-                    }
+                    mapOf(
+                        Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
+                        Key.FORESPOERSEL_SVAR to JsonNull,
+                    ),
                 )
+
+                verifySequence {
+                    testRapid.publish(
+                        withArg<String> {
+                            it.parseJson().toMap() shouldContainExactly mapOf(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
+                        },
+                    )
+                }
             }
         }
-
-        test("filtrerer ut JsonNull") {
-            val selvbestemtId = UUID.randomUUID()
-
-            testRapid.publish(
-                mapOf(
-                    Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
-                    Key.FORESPOERSEL_SVAR to JsonNull
-                )
-            )
-
-            verifySequence {
-                testRapid.publish(
-                    withArg<String> {
-                        it.parseJson().toMap() shouldContainExactly mapOf(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
-                    }
-                )
-            }
-        }
-    }
-})
+    })

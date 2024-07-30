@@ -2,8 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.tokenprovider.oauth2ClientCredentialsTokenGetter
 import no.nav.helsearbeidsgiver.utils.log.logger
 
@@ -12,33 +11,28 @@ private val logger = "im-bro-spinn".logger()
 fun main() {
     logger.info("Jeg er oppe og kjører!")
 
-    val redisStore = RedisStore(Env.redisUrl)
+    val tokenGetter = oauth2ClientCredentialsTokenGetter(Env.oauth2Environment)
+    val spinnKlient = SpinnKlient(Env.spinnUrl, tokenGetter)
 
     RapidApplication
         .create(System.getenv())
-        .createEksternInntektsmeldingLoeser(createSpinnKlient())
-        .createSpinnService(redisStore)
-        .registerShutdownLifecycle {
-            redisStore.shutdown()
-        }
+        .createSpinnService()
+        .createHentEksternImRiver(spinnKlient)
         .start()
 
     logger.info("Bye bye, baby, bye bye!")
 }
 
-fun RapidsConnection.createEksternInntektsmeldingLoeser(spinnKlient: SpinnKlient): RapidsConnection =
-    also {
-        logger.info("Starter ${EksternInntektsmeldingLoeser::class.simpleName}...")
-        EksternInntektsmeldingLoeser(this, spinnKlient)
-    }
-
-fun RapidsConnection.createSpinnService(redisStore: RedisStore): RapidsConnection =
+fun RapidsConnection.createSpinnService(): RapidsConnection =
     also {
         logger.info("Starter ${SpinnService::class.simpleName}...")
-        SpinnService(this, redisStore)
+        ServiceRiverStateless(
+            SpinnService(this),
+        ).connect(this)
     }
 
-fun createSpinnKlient(): SpinnKlient {
-    val tokenGetter = oauth2ClientCredentialsTokenGetter(Env.oauth2Environment)
-    return SpinnKlient(Env.spinnUrl, tokenGetter)
-}
+fun RapidsConnection.createHentEksternImRiver(spinnKlient: SpinnKlient): RapidsConnection =
+    also {
+        logger.info("Starter ${HentEksternImRiver::class.simpleName}...")
+        HentEksternImRiver(spinnKlient).connect(this)
+    }

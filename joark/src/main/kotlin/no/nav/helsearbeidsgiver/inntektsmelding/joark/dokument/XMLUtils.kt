@@ -15,16 +15,17 @@ import javax.xml.bind.JAXBContext
 
 val CONTEXT: JAXBContext = JAXBContext.newInstance(ObjectFactory::class.java)
 
-fun xmlMapper(): ObjectMapper = XmlMapper().apply {
-    this.registerModule(JaxbAnnotationModule())
-    this.registerModule(JavaTimeModule())
-    this.configure(FromXmlParser.Feature.EMPTY_ELEMENT_AS_NULL, true)
-    this.enable(SerializationFeature.INDENT_OUTPUT)
-}
+fun xmlMapper(): ObjectMapper =
+    XmlMapper().apply {
+        this.registerModule(JaxbAnnotationModule())
+        this.registerModule(JavaTimeModule())
+        this.configure(FromXmlParser.Feature.EMPTY_ELEMENT_AS_NULL, true)
+        this.enable(SerializationFeature.INDENT_OUTPUT)
+    }
 
 fun transformToXML(inntektsmeldingDokument: Inntektsmelding): String {
     val mapper = Mappers.getMapper(InntektDokumentTilSkjemainnholdMapper::class.java)
-    val inntektM = mapper.InntektDokumentTilInntekstmeldingM(inntektsmeldingDokument)
+    val inntektM = mapper.inntektDokumentTilInntekstmeldingM(inntektsmeldingDokument)
     val writer = StringWriter()
     CONTEXT.createMarshaller().marshal(ObjectFactory().createMelding(inntektM), writer)
     return writer.toString()

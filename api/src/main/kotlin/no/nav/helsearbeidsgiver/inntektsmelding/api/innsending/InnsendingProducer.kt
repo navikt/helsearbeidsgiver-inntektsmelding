@@ -14,25 +14,30 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class InnsendingProducer(
-    private val rapid: RapidsConnection
+    private val rapid: RapidsConnection,
 ) {
     init {
         logger.info("Starter ${InnsendingProducer::class.simpleName}...")
     }
 
-    fun publish(clientId: UUID, forespoerselId: UUID, request: Innsending, arbeidsgiverFnr: Fnr) {
-        rapid.publish(
-            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.CLIENT_ID to clientId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.ORGNRUNDERENHET to request.orgnrUnderenhet.toJson(),
-            Key.IDENTITETSNUMMER to request.identitetsnummer.toJson(),
-            Key.ARBEIDSGIVER_ID to arbeidsgiverFnr.toJson(),
-            Key.SKJEMA_INNTEKTSMELDING to request.toJson(Innsending.serializer())
-        )
-            .also {
-                logger.info("Publiserte til kafka forespørselId: $forespoerselId og clientId=$clientId")
+    fun publish(
+        transaksjonId: UUID,
+        forespoerselId: UUID,
+        request: Innsending,
+        arbeidsgiverFnr: Fnr,
+    ) {
+        rapid
+            .publish(
+                Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.DATA to "".toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.ORGNRUNDERENHET to request.orgnrUnderenhet.toJson(),
+                Key.IDENTITETSNUMMER to request.identitetsnummer.toJson(),
+                Key.ARBEIDSGIVER_ID to arbeidsgiverFnr.toJson(),
+                Key.SKJEMA_INNTEKTSMELDING to request.toJson(Innsending.serializer()),
+            ).also {
+                logger.info("Publiserte til kafka forespørselId: $forespoerselId og transaksjonId=$transaksjonId")
                 sikkerLogger.info("Publiserte til kafka forespørselId: $forespoerselId json=${it.toPretty()}")
             }
     }

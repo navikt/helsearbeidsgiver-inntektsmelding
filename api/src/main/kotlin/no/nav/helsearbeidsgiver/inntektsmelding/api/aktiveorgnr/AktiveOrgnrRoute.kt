@@ -11,6 +11,9 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.AktiveArbeidsgivere
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.Tekst
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -25,19 +28,21 @@ import java.util.UUID
 
 fun Route.aktiveOrgnrRoute(
     connection: RapidsConnection,
-    redis: RedisPoller
+    redisConnection: RedisConnection,
 ) {
     val aktiveOrgnrProducer = AktiveOrgnrProducer(connection)
+    val redisPoller = RedisStore(redisConnection, RedisPrefix.AktiveOrgnr).let(::RedisPoller)
+
     post(Routes.AKTIVEORGNR) {
-        val clientId = UUID.randomUUID()
+        val transaksjonId = UUID.randomUUID()
 
         try {
             val request = call.receive<AktiveOrgnrRequest>()
             val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
 
-            aktiveOrgnrProducer.publish(clientId, arbeidsgiverFnr = arbeidsgiverFnr, arbeidstagerFnr = request.identitetsnummer)
+            aktiveOrgnrProducer.publish(transaksjonId, arbeidsgiverFnr = arbeidsgiverFnr, arbeidstagerFnr = request.identitetsnummer)
 
-            val resultatJson = redis.hent(clientId).fromJson(ResultJson.serializer())
+            val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
 
             val resultat = resultatJson.success?.fromJson(AktiveArbeidsgivere.serializer())
             if (resultat != null) {
@@ -65,10 +70,11 @@ private fun AktiveArbeidsgivere.toResponse(): AktiveOrgnrResponse =
     AktiveOrgnrResponse(
         fulltNavn = fulltNavn,
         avsenderNavn = avsenderNavn,
-        underenheter = underenheter.map {
-            GyldigUnderenhet(
-                orgnrUnderenhet = it.orgnrUnderenhet,
-                virksomhetsnavn = it.virksomhetsnavn
-            )
-        }
+        underenheter =
+            underenheter.map {
+                GyldigUnderenhet(
+                    orgnrUnderenhet = it.orgnrUnderenhet,
+                    virksomhetsnavn = it.virksomhetsnavn,
+                )
+            },
     )

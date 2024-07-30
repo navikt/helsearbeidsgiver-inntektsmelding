@@ -13,22 +13,22 @@ import java.time.LocalDateTime
 data class Arbeidsforhold(
     val arbeidsgiver: Arbeidsgiver,
     val ansettelsesperiode: Ansettelsesperiode,
-    val registrert: LocalDateTime
+    val registrert: LocalDateTime,
 )
 
 @Serializable
 data class Ansettelsesperiode(
-    val periode: PeriodeNullable
+    val periode: PeriodeNullable,
 )
 
 @Serializable
 data class Arbeidsgiver(
     val type: String,
-    val organisasjonsnummer: String?
+    val organisasjonsnummer: String?,
 )
 
 @Serializable
 data class PeriodeNullable(
     val fom: LocalDate?,
-    val tom: LocalDate? = null
+    val tom: LocalDate? = null,
 )

@@ -13,21 +13,25 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class HentForespoerselProducer(
-    private val rapid: RapidsConnection
+    private val rapid: RapidsConnection,
 ) {
     init {
         logger.info("Starter ${HentForespoerselProducer::class.simpleName}...")
     }
 
-    fun publish(transaksjonId: UUID, request: HentForespoerselRequest, arbeidsgiverFnr: Fnr) {
-        rapid.publish(
-            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
-            Key.UUID to transaksjonId.toString().toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to request.uuid.toJson(),
-            Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson()
-        )
-            .also {
+    fun publish(
+        transaksjonId: UUID,
+        request: HentForespoerselRequest,
+        arbeidsgiverFnr: Fnr,
+    ) {
+        rapid
+            .publish(
+                Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
+                Key.UUID to transaksjonId.toString().toJson(),
+                Key.DATA to "".toJson(),
+                Key.FORESPOERSEL_ID to request.uuid.toJson(),
+                Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
+            ).also {
                 logger.info("Publiserte trenger behov med transaksjonId=$transaksjonId")
                 sikkerLogger.info("Publiserte trenger behov med transaksjonId=$transaksjonId json=${it.toPretty()}")
             }

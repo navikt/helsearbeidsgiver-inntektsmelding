@@ -9,35 +9,46 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.metrics.recordTime
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 data class Melding(
     val eventName: EventName,
     val behovType: BehovType,
     val transaksjonId: UUID,
-    val identitetsnummer: String
+    val data: Map<Key, JsonElement>,
+    val fnr: Fnr,
 )
 
 class AltinnRiver(
-    private val altinnClient: AltinnClient
+    private val altinnClient: AltinnClient,
 ) : ObjectRiver<Melding>() {
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): Melding? =
-        if (setOf(Key.DATA, Key.FAIL).any(json::containsKey)) {
+        if (Key.FAIL in json) {
             null
         } else {
+            val data = json[Key.DATA]?.toMap().orEmpty()
+
             Melding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.ARBEIDSGIVERE, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
-                identitetsnummer = Key.IDENTITETSNUMMER.les(String.serializer(), json)
+                data = data,
+                fnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), data),
             )
         }
 
@@ -45,19 +56,39 @@ class AltinnRiver(
         val rettigheterForenklet =
             Metrics.altinnRequest.recordTime(altinnClient::hentRettighetOrganisasjoner) {
                 altinnClient
-                    .hentRettighetOrganisasjoner(identitetsnummer)
+                    .hentRettighetOrganisasjoner(fnr.verdi)
                     .mapNotNull { it.orgnr }
                     .toSet()
             }
 
-        val dataField = Key.ORG_RETTIGHETER to rettigheterForenklet.toJson(String.serializer().set())
-
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to mapOf(dataField).toJson(),
-            dataField
+            Key.DATA to
+                data
+                    .plus(
+                        Key.ORG_RETTIGHETER to rettigheterForenklet.toJson(String.serializer().set()),
+                    ).toJson(),
         )
+    }
+
+    override fun Melding.haandterFeil(
+        json: Map<Key, JsonElement>,
+        error: Throwable,
+    ): Map<Key, JsonElement> {
+        val fail =
+            Fail(
+                feilmelding = "Klarte ikke hente organisasjonsrettigheter fra Altinn.",
+                event = eventName,
+                transaksjonId = transaksjonId,
+                forespoerselId = null,
+                utloesendeMelding = json.toJson(),
+            )
+
+        logger.error(fail.feilmelding)
+        sikkerLogger.error(fail.feilmelding, error)
+
+        return fail.tilMelding()
     }
 
     override fun Melding.loggfelt(): Map<String, String> =
@@ -65,6 +96,6 @@ class AltinnRiver(
             Log.klasse(this@AltinnRiver),
             Log.event(eventName),
             Log.behov(behovType),
-            Log.transaksjonId(transaksjonId)
+            Log.transaksjonId(transaksjonId),
         )
 }

@@ -7,5 +7,4 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 
-fun JsonElement.readFail(): Fail =
-    toMap()[Key.FAIL].shouldNotBeNull().fromJson(Fail.serializer())
+fun JsonElement.readFail(): Fail = toMap()[Key.FAIL].shouldNotBeNull().fromJson(Fail.serializer())

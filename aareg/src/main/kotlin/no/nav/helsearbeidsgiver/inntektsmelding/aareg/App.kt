@@ -11,17 +11,20 @@ private val logger = "im-aareg".logger()
 fun main() {
     RapidApplication
         .create(System.getenv())
-        .createAareg(buildClient(setUpEnvironment()))
+        .createAaregRiver(buildClient())
         .start()
 }
 
-fun RapidsConnection.createAareg(aaregClient: AaregClient): RapidsConnection =
+fun RapidsConnection.createAaregRiver(aaregClient: AaregClient): RapidsConnection =
     also {
         logger.info("Starter ${ArbeidsforholdLoeser::class.simpleName}...")
         ArbeidsforholdLoeser(this, aaregClient)
+
+        logger.info("Starter ${HentArbeidsforholdRiver::class.simpleName}...")
+        HentArbeidsforholdRiver(aaregClient).connect(this)
     }
 
-fun buildClient(environment: Environment): AaregClient {
-    val tokenGetter = oauth2ClientCredentialsTokenGetter(environment.oauth2Environment)
-    return AaregClient(url = environment.aaregUrl, getAccessToken = tokenGetter)
+private fun buildClient(): AaregClient {
+    val tokenGetter = oauth2ClientCredentialsTokenGetter(Env.oauth2Environment)
+    return AaregClient(url = Env.aaregUrl, getAccessToken = tokenGetter)
 }

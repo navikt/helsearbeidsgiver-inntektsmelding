@@ -12,8 +12,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -26,7 +25,7 @@ import java.util.UUID
 
 class OpprettOppgaveService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStoreClassSpecific,
+    override val redisStore: RedisStore,
 ) : ServiceMed1Steg<OpprettOppgaveService.Steg0, OpprettOppgaveService.Steg1>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
@@ -68,7 +67,7 @@ class OpprettOppgaveService(
     override fun utfoerSteg0(steg0: Steg0) {
         rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+            Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
             Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
@@ -99,16 +98,10 @@ class OpprettOppgaveService(
             Log.transaksjonId(fail.transaksjonId),
         ) {
             val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
-            if (utloesendeBehov == BehovType.VIRKSOMHET) {
-                val defaultVirksomhetNavnJson = "Arbeidsgiver".toJson()
-
-                redisStore.set(RedisKey.of(fail.transaksjonId, Key.VIRKSOMHET), defaultVirksomhetNavnJson)
-
-                val meldingMedDefault = mapOf(Key.VIRKSOMHET to defaultVirksomhetNavnJson).plus(melding)
-
-                return onData(meldingMedDefault)
-            } else {
-                redisStore.set(RedisKey.of(fail.transaksjonId), fail.feilmelding.toJson())
+            if (utloesendeBehov == BehovType.HENT_VIRKSOMHET_NAVN) {
+                // TODO må bruke Key.VIRKSOMHETER
+                val meldingMedDefault = mapOf(Key.VIRKSOMHET to "Arbeidsgiver".toJson()).plus(melding)
+                onData(meldingMedDefault)
             }
         }
     }

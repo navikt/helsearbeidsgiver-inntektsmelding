@@ -8,19 +8,23 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 private val logger = "im-brreg".logger()
 
 fun main() {
-    val environment = setUpEnvironment()
-    val isDevelopmentMode = environment.brregUrl.contains("localhost")
+    val brregClient = BrregClient(Env.brregUrl)
+    val isDevelopmentMode = Env.brregUrl.contains("localhost")
+
     RapidApplication
         .create(System.getenv())
-        .createBrreg(BrregClient(environment.brregUrl), isDevelopmentMode)
+        .createBrregRiver(brregClient, isDevelopmentMode)
         .start()
 }
 
-fun RapidsConnection.createBrreg(
+fun RapidsConnection.createBrregRiver(
     brregClient: BrregClient,
     isDevelopmentMode: Boolean,
 ): RapidsConnection =
     also {
         logger.info("Starter ${VirksomhetLoeser::class.simpleName}... developmentMode: $isDevelopmentMode")
         VirksomhetLoeser(this, brregClient, isDevelopmentMode)
+
+        logger.info("Starter ${HentVirksomhetNavnRiver::class.simpleName}... (isDevelopmentMode: $isDevelopmentMode)")
+        HentVirksomhetNavnRiver(brregClient, isDevelopmentMode).connect(this)
     }

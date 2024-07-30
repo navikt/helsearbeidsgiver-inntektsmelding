@@ -83,7 +83,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             }
 
         aktiveOrgnrMeldinger
-            .filter(BehovType.ARBEIDSFORHOLD)
+            .filter(BehovType.HENT_ARBEIDSFORHOLD)
             .firstAsMap()[Key.IDENTITETSNUMMER]
             ?.fromJson(Fnr.serializer()) shouldBe Mock.fnr
 
@@ -106,8 +106,8 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             ?.fromJson(Arbeidsforhold.serializer().list()) shouldContainExactly Mock.arbeidsforholdListe.map { it.tilArbeidsforhold() }
 
         aktiveOrgnrMeldinger
-            .filter(BehovType.VIRKSOMHET)
-            .firstAsMap()[Key.ORGNRUNDERENHETER]
+            .filter(BehovType.HENT_VIRKSOMHET_NAVN)
+            .firstAsMap()[Key.ORGNR_UNDERENHETER]
             ?.fromJson(String.serializer().list()) shouldContainExactly Mock.underenheter
 
         aktiveOrgnrMeldinger
@@ -148,7 +148,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             }
 
         aktiveOrgnrMeldinger
-            .filter(BehovType.ARBEIDSFORHOLD)
+            .filter(BehovType.HENT_ARBEIDSFORHOLD)
             .firstAsMap()[Key.IDENTITETSNUMMER]
             ?.fromJson(Fnr.serializer()) shouldBe Mock.fnr
 

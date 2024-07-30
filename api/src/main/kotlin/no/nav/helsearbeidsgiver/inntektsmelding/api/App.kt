@@ -17,6 +17,7 @@ import io.ktor.server.routing.routing
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr.aktiveOrgnrRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
@@ -58,29 +59,29 @@ fun main() {
 
 fun startServer(env: Map<String, String> = System.getenv()) {
     val rapid = RapidApplication.create(env)
-    val redisPoller = RedisPoller()
+    val redisConnection = RedisConnection(Env.Redis.url)
 
     embeddedServer(
         factory = Netty,
         port = 8080,
-        module = { apiModule(rapid, redisPoller) },
+        module = { apiModule(rapid, redisConnection) },
     ).start(wait = true)
 
     rapid
         .registerShutdownLifecycle {
-            redisPoller.close()
+            redisConnection.close()
         }.start()
 }
 
 fun Application.apiModule(
     rapid: RapidsConnection,
-    redisPoller: RedisPoller,
+    redisConnection: RedisConnection,
 ) {
     val tilgangskontroll =
         Tilgangskontroll(
             TilgangProducer(rapid),
             LocalCache(60.minutes, 1000),
-            redisPoller,
+            redisConnection,
         )
 
     customAuthentication()
@@ -112,14 +113,14 @@ fun Application.apiModule(
 
         authenticate {
             route(Routes.PREFIX) {
-                hentForespoerselRoute(rapid, tilgangskontroll, redisPoller)
-                inntektRoute(rapid, tilgangskontroll, redisPoller)
-                inntektSelvbestemtRoute(rapid, tilgangskontroll, redisPoller)
-                innsendingRoute(rapid, tilgangskontroll, redisPoller)
-                kvitteringRoute(rapid, tilgangskontroll, redisPoller)
-                lagreSelvbestemtImRoute(rapid, tilgangskontroll, redisPoller)
-                hentSelvbestemtImRoute(rapid, tilgangskontroll, redisPoller)
-                aktiveOrgnrRoute(rapid, redisPoller)
+                hentForespoerselRoute(rapid, tilgangskontroll, redisConnection)
+                inntektRoute(rapid, tilgangskontroll, redisConnection)
+                inntektSelvbestemtRoute(rapid, tilgangskontroll, redisConnection)
+                innsendingRoute(rapid, tilgangskontroll, redisConnection)
+                kvitteringRoute(rapid, tilgangskontroll, redisConnection)
+                lagreSelvbestemtImRoute(rapid, tilgangskontroll, redisConnection)
+                hentSelvbestemtImRoute(rapid, tilgangskontroll, redisConnection)
+                aktiveOrgnrRoute(rapid, redisConnection)
             }
         }
     }

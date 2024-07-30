@@ -6,7 +6,7 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.felles.db.exposed.Database
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
@@ -57,7 +57,7 @@ fun RapidsConnection.createNotifikasjonServices(redisConnection: RedisConnection
         ServiceRiver(
             OpprettSakService(
                 rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.OpprettSakService),
+                redisStore = RedisStore(redisConnection, RedisPrefix.OpprettSak),
             ),
         ).connect(this)
 
@@ -65,7 +65,7 @@ fun RapidsConnection.createNotifikasjonServices(redisConnection: RedisConnection
         ServiceRiver(
             OpprettOppgaveService(
                 rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.OpprettOppgaveService),
+                redisStore = RedisStore(redisConnection, RedisPrefix.OpprettOppgave),
             ),
         ).connect(this)
 
@@ -73,7 +73,7 @@ fun RapidsConnection.createNotifikasjonServices(redisConnection: RedisConnection
         ServiceRiver(
             ManuellOpprettSakService(
                 rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.ManuellOpprettSakService),
+                redisStore = RedisStore(redisConnection, RedisPrefix.ManuellOpprettSak),
             ),
         ).connect(this)
     }

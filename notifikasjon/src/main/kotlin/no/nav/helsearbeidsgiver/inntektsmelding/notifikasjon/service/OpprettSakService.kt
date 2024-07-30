@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed3Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -28,7 +28,7 @@ import java.util.UUID
 
 class OpprettSakService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStoreClassSpecific,
+    override val redisStore: RedisStore,
 ) : ServiceMed3Steg<
         OpprettSakService.Steg0,
         OpprettSakService.Steg1,
@@ -165,8 +165,6 @@ class OpprettSakService(
                 val meldingMedDefault = mapOf(Key.ARBEIDSTAKER_INFORMASJON to ukjentPersonJson).plus(melding)
 
                 onData(meldingMedDefault)
-            } else {
-                redisStore.set(RedisKey.of(fail.transaksjonId), fail.feilmelding.toJson())
             }
         }
     }

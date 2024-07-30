@@ -21,7 +21,7 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -59,7 +59,7 @@ sealed class Steg2 {
 
 class HentForespoerselService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStoreClassSpecific,
+    override val redisStore: RedisStore,
 ) : ServiceMed2Steg<Steg0, Steg1, Steg2>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
@@ -132,11 +132,11 @@ class HentForespoerselService(
         rapid
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+                Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
                 Key.ORGNRUNDERENHET to steg1.forespoersel.orgnr.toJson(),
-            ).also { loggBehovPublisert(BehovType.VIRKSOMHET, it) }
+            ).also { loggBehovPublisert(BehovType.HENT_VIRKSOMHET_NAVN, it) }
 
         rapid
             .publish(
@@ -199,7 +199,7 @@ class HentForespoerselService(
 
         val overkommeligFeil =
             when (utloesendeBehov) {
-                BehovType.VIRKSOMHET ->
+                BehovType.HENT_VIRKSOMHET_NAVN ->
                     Datafeil(
                         Key.VIRKSOMHET,
                         "Vi klarte ikke å hente navn på virksomhet.",

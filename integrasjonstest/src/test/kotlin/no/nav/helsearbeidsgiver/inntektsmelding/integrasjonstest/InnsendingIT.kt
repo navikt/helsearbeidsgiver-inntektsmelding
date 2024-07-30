@@ -28,8 +28,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.maxMekker
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -72,8 +70,6 @@ class InnsendingIT : EndToEndTest() {
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.ORGNRUNDERENHET to Mock.skjema.orgnrUnderenhet.toJson(),
-            Key.IDENTITETSNUMMER to Mock.skjema.identitetsnummer.toJson(),
             Key.ARBEIDSGIVER_ID to Mock.skjema.identitetsnummer.toJson(),
             Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
         )
@@ -169,8 +165,6 @@ class InnsendingIT : EndToEndTest() {
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.ORGNRUNDERENHET to Mock.skjema.orgnrUnderenhet.toJson(),
-            Key.IDENTITETSNUMMER to bjarneBetjent.ident!!.toJson(),
             Key.ARBEIDSGIVER_ID to maxMekker.ident!!.toJson(),
             Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
         )
@@ -249,7 +243,7 @@ class InnsendingIT : EndToEndTest() {
         const val OPPGAVE_ID = "neglisjert-sommer"
 
         val forespoerselId: UUID = UUID.randomUUID()
-        val skjema = mockInnsending().copy(identitetsnummer = Fnr.genererGyldig().verdi)
+        val skjema = mockInnsending().copy(identitetsnummer = bjarneBetjent.ident!!)
 
         private val forespoersel = skjema.tilForespoersel(UUID.randomUUID())
 

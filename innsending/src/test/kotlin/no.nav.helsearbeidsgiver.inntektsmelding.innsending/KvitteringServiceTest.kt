@@ -23,7 +23,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
@@ -34,7 +34,7 @@ import java.util.UUID
 class KvitteringServiceTest :
     FunSpec({
         val testRapid = TestRapid()
-        val mockRedis = MockRedisClassSpecific(RedisPrefix.KvitteringService)
+        val mockRedis = MockRedis(RedisPrefix.Kvittering)
 
         ServiceRiver(
             KvitteringService(testRapid, mockRedis.store),

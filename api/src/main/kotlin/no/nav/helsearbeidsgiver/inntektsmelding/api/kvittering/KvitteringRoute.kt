@@ -16,6 +16,9 @@ import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.InnsendtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.Tekst
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -40,9 +43,10 @@ import kotlin.system.measureTimeMillis
 fun Route.kvitteringRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
-    redisPoller: RedisPoller,
+    redisConnection: RedisConnection,
 ) {
     val kvitteringProducer = KvitteringProducer(rapid)
+    val redisPoller = RedisStore(redisConnection, RedisPrefix.Kvittering).let(::RedisPoller)
 
     val requestLatency =
         Summary

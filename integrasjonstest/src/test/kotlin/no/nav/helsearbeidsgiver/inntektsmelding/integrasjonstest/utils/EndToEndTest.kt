@@ -26,14 +26,14 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
-import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
+import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAaregRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createHentEksternImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createSpinnService
-import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
+import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrregRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
@@ -206,9 +206,9 @@ abstract class EndToEndTest : ContainerTest() {
             createHentForespoerselService(redisConnection)
 
             // Rivers
-            createAareg(aaregClient)
+            createAaregRiver(aaregClient)
             createAltinn(altinnClient)
-            createBrreg(brregClient, false)
+            createBrregRiver(brregClient, false)
             createDbRivers(imRepository, selvbestemtImRepo, forespoerselRepository)
             createDistribusjonRiver(mockk(relaxed = true))
             createForespoerselBesvartFraSimba()

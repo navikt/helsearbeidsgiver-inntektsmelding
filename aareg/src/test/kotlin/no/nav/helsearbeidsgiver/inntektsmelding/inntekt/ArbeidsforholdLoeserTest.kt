@@ -29,6 +29,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.aareg.tilArbeidsforhold
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class ArbeidsforholdLoeserTest :
@@ -46,6 +48,7 @@ class ArbeidsforholdLoeserTest :
 
         test("ved innkommende behov så hentes og publiseres arbeidsforhold fra aareg") {
             val expectedUuid = UUID.randomUUID()
+            val fnr = Fnr.genererGyldig().verdi
 
             val expectedArbeidsforhold =
                 mockKlientArbeidsforhold()
@@ -57,14 +60,14 @@ class ArbeidsforholdLoeserTest :
 
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-                Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
-                Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
+                Key.BEHOV to BehovType.HENT_ARBEIDSFORHOLD.toJson(),
+                Key.IDENTITETSNUMMER to fnr.toJson(),
                 Key.UUID to expectedUuid.toJson(),
             )
 
             val actual = testRapid.firstMessage().toMap()
 
-            coVerifySequence { mockAaregClient.hentArbeidsforhold(Mock.FNR, expectedUuid.toString()) }
+            coVerifySequence { mockAaregClient.hentArbeidsforhold(fnr, expectedUuid.toString()) }
             testRapid.inspektør.size shouldBeExactly 1
 
             actual[Key.UUID]?.fromJson(UuidSerializer) shouldBe expectedUuid
@@ -76,12 +79,13 @@ class ArbeidsforholdLoeserTest :
             val event = EventName.TRENGER_REQUESTED
             val transaksjonId = UUID.randomUUID()
             val forespoerselId = UUID.randomUUID()
+            val fnr = Fnr.genererGyldig().verdi
 
             val innkommendeMelding =
                 mapOf(
                     Key.EVENT_NAME to event.toJson(),
-                    Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
-                    Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
+                    Key.BEHOV to BehovType.HENT_ARBEIDSFORHOLD.toJson(),
+                    Key.IDENTITETSNUMMER to fnr.toJson(),
                     Key.UUID to transaksjonId.toJson(),
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 )
@@ -99,7 +103,7 @@ class ArbeidsforholdLoeserTest :
 
             testRapid.sendJson(innkommendeMelding)
 
-            coVerifySequence { mockAaregClient.hentArbeidsforhold(Mock.FNR, expected.transaksjonId.toString()) }
+            coVerifySequence { mockAaregClient.hentArbeidsforhold(fnr, expected.transaksjonId.toString()) }
 
             testRapid.inspektør.size shouldBeExactly 1
 
@@ -109,7 +113,3 @@ class ArbeidsforholdLoeserTest :
             fail.utloesendeMelding.toMap() shouldContainAll innkommendeMelding
         }
     })
-
-private object Mock {
-    const val FNR = "12121200012"
-}

@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class BehovType {
     // Hente data
-    ARBEIDSFORHOLD,
+    HENT_ARBEIDSFORHOLD,
     ARBEIDSGIVERE,
     FULLT_NAVN,
     HENT_EKSTERN_INNTEKTSMELDING,
@@ -14,9 +14,9 @@ enum class BehovType {
     HENT_PERSONER,
     HENT_SELVBESTEMT_IM,
     HENT_TRENGER_IM, // TODO: SPLEIS_FORESPOERSEL eller SPLEIS_FORESPOERSEL_DETALJER??
+    HENT_VIRKSOMHET_NAVN,
     NOTIFIKASJON_HENT_ID,
     TILGANGSKONTROLL,
-    VIRKSOMHET,
 
     // Synkrone endringer
     LAGRE_SELVBESTEMT_IM,

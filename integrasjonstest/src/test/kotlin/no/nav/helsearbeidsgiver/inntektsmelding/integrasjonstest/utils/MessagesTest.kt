@@ -33,7 +33,7 @@ class MessagesTest :
         }
 
         context("finner korrekt melding for behov") {
-            val expectedBehovType = BehovType.VIRKSOMHET
+            val expectedBehovType = BehovType.HENT_VIRKSOMHET_NAVN
 
             val funnetMelding = Mock.meldinger.filter(expectedBehovType).firstAsMap()
 
@@ -72,7 +72,7 @@ private object Mock {
     val meldinger =
         mapOf(
             Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
-            Key.BEHOV.str to BehovType.VIRKSOMHET.toJson(BehovType.serializer()),
+            Key.BEHOV.str to BehovType.HENT_VIRKSOMHET_NAVN.toJson(BehovType.serializer()),
             Key.DATA.str to "".toJson(),
             Key.VIRKSOMHET.str to ORGNR.toJson(),
         ).toJson()

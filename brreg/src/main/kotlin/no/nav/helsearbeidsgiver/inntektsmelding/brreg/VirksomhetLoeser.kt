@@ -42,7 +42,7 @@ class VirksomhetLoeser(
             "810007982" to "ANSTENDIG PIGGSVIN SYKEHJEM",
         )
 
-    private val behov = BehovType.VIRKSOMHET
+    private val behov = BehovType.HENT_VIRKSOMHET_NAVN
     private val requestLatency =
         Summary
             .build()
@@ -77,7 +77,7 @@ class VirksomhetLoeser(
             )
             it.interestedIn(
                 Key.ORGNRUNDERENHET,
-                Key.ORGNRUNDERENHETER,
+                Key.ORGNR_UNDERENHETER,
             )
         }
 
@@ -90,13 +90,13 @@ class VirksomhetLoeser(
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
         val orgnr: List<String> =
-            if (behov[Key.ORGNRUNDERENHETER].isEmpty) {
+            if (behov[Key.ORGNR_UNDERENHETER].isEmpty) {
                 listOf(
                     behov[Key.ORGNRUNDERENHET]
                         .asText(),
                 )
             } else {
-                behov[Key.ORGNRUNDERENHETER]
+                behov[Key.ORGNR_UNDERENHETER]
                     .map { it.asText() }
             }
 

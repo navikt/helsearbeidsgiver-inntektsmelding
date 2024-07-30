@@ -26,6 +26,7 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.tilArbeidsforhold
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
@@ -70,7 +71,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
         )
 
-        redisConnection.get(transaksjonId) shouldBe Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE
+        redisConnection.get(RedisPrefix.AktiveOrgnr, transaksjonId) shouldBe Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE
 
         val aktiveOrgnrMeldinger = messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
 
@@ -83,14 +84,17 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             }
 
         aktiveOrgnrMeldinger
-            .filter(BehovType.ARBEIDSFORHOLD)
+            .filter(BehovType.HENT_ARBEIDSFORHOLD)
             .firstAsMap()[Key.IDENTITETSNUMMER]
             ?.fromJson(Fnr.serializer()) shouldBe Mock.fnr
 
         aktiveOrgnrMeldinger
             .filter(BehovType.HENT_PERSONER)
-            .firstAsMap()[Key.FNR_LISTE]
-            ?.fromJson(Fnr.serializer().list()) shouldBe listOf(Mock.fnr, Mock.fnrAg)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.FNR_LISTE.les(Fnr.serializer().list(), data) shouldBe listOf(Mock.fnr, Mock.fnrAg)
+            }
 
         aktiveOrgnrMeldinger
             .filter(Key.ORG_RETTIGHETER, nestedData = true)
@@ -106,8 +110,8 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             ?.fromJson(Arbeidsforhold.serializer().list()) shouldContainExactly Mock.arbeidsforholdListe.map { it.tilArbeidsforhold() }
 
         aktiveOrgnrMeldinger
-            .filter(BehovType.VIRKSOMHET)
-            .firstAsMap()[Key.ORGNRUNDERENHETER]
+            .filter(BehovType.HENT_VIRKSOMHET_NAVN)
+            .firstAsMap()[Key.ORGNR_UNDERENHETER]
             ?.fromJson(String.serializer().list()) shouldContainExactly Mock.underenheter
 
         aktiveOrgnrMeldinger
@@ -135,7 +139,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
         )
 
-        redisConnection.get(transaksjonId)?.parseJson() shouldBe Mock.resultatIngenArbeidsforholdJson
+        redisConnection.get(RedisPrefix.AktiveOrgnr, transaksjonId)?.parseJson() shouldBe Mock.resultatIngenArbeidsforholdJson
 
         val aktiveOrgnrMeldinger = messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
 
@@ -148,14 +152,17 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             }
 
         aktiveOrgnrMeldinger
-            .filter(BehovType.ARBEIDSFORHOLD)
+            .filter(BehovType.HENT_ARBEIDSFORHOLD)
             .firstAsMap()[Key.IDENTITETSNUMMER]
             ?.fromJson(Fnr.serializer()) shouldBe Mock.fnr
 
         aktiveOrgnrMeldinger
             .filter(BehovType.HENT_PERSONER)
-            .firstAsMap()[Key.FNR_LISTE]
-            ?.fromJson(Fnr.serializer().list()) shouldBe listOf(Mock.fnr, Mock.fnrAg)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.FNR_LISTE.les(Fnr.serializer().list(), data) shouldBe listOf(Mock.fnr, Mock.fnrAg)
+            }
 
         aktiveOrgnrMeldinger
             .filter(Key.ORG_RETTIGHETER, nestedData = true)
@@ -191,12 +198,15 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                     mapOf(
                         Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
                         Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
-                        Key.FNR_LISTE to
-                            listOf(
-                                Mock.fnr,
-                                Mock.fnrAg,
-                            ).toJson(Fnr.serializer()),
                         Key.UUID to transaksjonId.toJson(),
+                        Key.DATA to
+                            mapOf(
+                                Key.FNR_LISTE to
+                                    listOf(
+                                        Mock.fnr,
+                                        Mock.fnrAg,
+                                    ).toJson(Fnr.serializer()),
+                            ).toJson(),
                     ).toJson(),
             )
 
@@ -210,7 +220,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         val response =
             redisConnection
-                .get(transaksjonId)
+                .get(RedisPrefix.AktiveOrgnr, transaksjonId)
                 ?.fromJson(ResultJson.serializer())
                 .shouldNotBeNull()
 

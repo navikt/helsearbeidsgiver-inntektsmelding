@@ -27,6 +27,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.pdl.Mock.toMap
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -49,6 +50,15 @@ class HentPersonerRiverTest :
 
         test("finner én person") {
             val olaFnr = Fnr.genererGyldig()
+            val personer =
+                mapOf(
+                    olaFnr to
+                        Person(
+                            fnr = olaFnr,
+                            navn = "Ola Normann",
+                            foedselsdato = 13.juni(1956),
+                        ),
+                )
 
             val innkommendeMelding = Mock.innkommendeMelding(listOf(olaFnr))
 
@@ -56,25 +66,17 @@ class HentPersonerRiverTest :
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
-            val dataField =
-                Key.PERSONER to
-                    mapOf(
-                        olaFnr to
-                            Person(
-                                fnr = olaFnr,
-                                navn = "Ola Normann",
-                                foedselsdato = 13.juni(1956),
-                            ),
-                    ).toJson(personMapSerializer)
-
             testRapid.inspektør.size shouldBeExactly 1
 
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
                     Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                    Key.DATA to mapOf(dataField).toJson(),
-                    dataField,
+                    Key.DATA to
+                        mapOf(
+                            Key.FNR_LISTE to listOf(olaFnr).toJson(Fnr.serializer()),
+                            Key.PERSONER to personer.toJson(personMapSerializer),
+                        ).toJson(),
                 )
 
             coVerifySequence {
@@ -85,6 +87,21 @@ class HentPersonerRiverTest :
         test("finner flere personer") {
             val olaFnr = Fnr.genererGyldig()
             val kariFnr = Fnr.genererGyldig(somDnr = true)
+            val personer =
+                mapOf(
+                    olaFnr to
+                        Person(
+                            fnr = olaFnr,
+                            navn = "Ola Normann",
+                            foedselsdato = 13.juni(1956),
+                        ),
+                    kariFnr to
+                        Person(
+                            fnr = kariFnr,
+                            navn = "Kari Normann",
+                            foedselsdato = 13.juni(1956),
+                        ),
+                )
 
             val innkommendeMelding = Mock.innkommendeMelding(listOf(olaFnr, kariFnr))
 
@@ -98,31 +115,17 @@ class HentPersonerRiverTest :
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
-            val dataField =
-                Key.PERSONER to
-                    mapOf(
-                        olaFnr to
-                            Person(
-                                fnr = olaFnr,
-                                navn = "Ola Normann",
-                                foedselsdato = 13.juni(1956),
-                            ),
-                        kariFnr to
-                            Person(
-                                fnr = kariFnr,
-                                navn = "Kari Normann",
-                                foedselsdato = 13.juni(1956),
-                            ),
-                    ).toJson(personMapSerializer)
-
             testRapid.inspektør.size shouldBeExactly 1
 
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
                     Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                    Key.DATA to mapOf(dataField).toJson(),
-                    dataField,
+                    Key.DATA to
+                        mapOf(
+                            Key.FNR_LISTE to listOf(olaFnr, kariFnr).toJson(Fnr.serializer()),
+                            Key.PERSONER to personer.toJson(personMapSerializer),
+                        ).toJson(),
                 )
 
             coVerifySequence {
@@ -133,6 +136,15 @@ class HentPersonerRiverTest :
         test("returnerer kun personer som blir funnet") {
             val olaFnr = Fnr.genererGyldig()
             val kariFnr = Fnr.genererGyldig()
+            val personer =
+                mapOf(
+                    kariFnr to
+                        Person(
+                            fnr = kariFnr,
+                            navn = "Kari Normann",
+                            foedselsdato = 13.juni(1956),
+                        ),
+                )
 
             val innkommendeMelding = Mock.innkommendeMelding(listOf(olaFnr, kariFnr))
 
@@ -140,25 +152,17 @@ class HentPersonerRiverTest :
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
-            val dataField =
-                Key.PERSONER to
-                    mapOf(
-                        kariFnr to
-                            Person(
-                                fnr = kariFnr,
-                                navn = "Kari Normann",
-                                foedselsdato = 13.juni(1956),
-                            ),
-                    ).toJson(personMapSerializer)
-
             testRapid.inspektør.size shouldBeExactly 1
 
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
                     Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                    Key.DATA to mapOf(dataField).toJson(),
-                    dataField,
+                    Key.DATA to
+                        mapOf(
+                            Key.FNR_LISTE to listOf(olaFnr, kariFnr).toJson(Fnr.serializer()),
+                            Key.PERSONER to personer.toJson(personMapSerializer),
+                        ).toJson(),
                 )
 
             coVerifySequence {
@@ -169,30 +173,21 @@ class HentPersonerRiverTest :
         test("sender med forespoerselId dersom det finnes i utløsende melding") {
             val forespoerselId = UUID.randomUUID()
             val olaFnr = Fnr.genererGyldig()
+            val personer =
+                mapOf(
+                    olaFnr to
+                        Person(
+                            fnr = olaFnr,
+                            navn = "Ola Normann",
+                            foedselsdato = 13.juni(1956),
+                        ),
+                )
 
-            val innkommendeMelding = Mock.innkommendeMelding(listOf(olaFnr))
+            val innkommendeMelding = Mock.innkommendeMelding(listOf(olaFnr), forespoerselId)
 
             coEvery { mockPdlClient.personBolk(any()) } returns listOf(Mock.fullPerson("Ola", olaFnr))
 
-            testRapid.sendJson(
-                innkommendeMelding
-                    .toMap()
-                    .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson()),
-            )
-
-            val dataFields =
-                arrayOf(
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.PERSONER to
-                        mapOf(
-                            olaFnr to
-                                Person(
-                                    fnr = olaFnr,
-                                    navn = "Ola Normann",
-                                    foedselsdato = 13.juni(1956),
-                                ),
-                        ).toJson(personMapSerializer),
-                )
+            testRapid.sendJson(innkommendeMelding.toMap())
 
             testRapid.inspektør.size shouldBeExactly 1
 
@@ -200,47 +195,12 @@ class HentPersonerRiverTest :
                 mapOf(
                     Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
                     Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                    Key.DATA to dataFields.toMap().toJson(),
-                    *dataFields,
-                )
-        }
-
-        test("sender med selvbestemtId dersom det finnes i utløsende melding") {
-            val selvbestemtId = UUID.randomUUID()
-            val olaFnr = Fnr.genererGyldig()
-
-            val innkommendeMelding = Mock.innkommendeMelding(listOf(olaFnr))
-
-            coEvery { mockPdlClient.personBolk(any()) } returns listOf(Mock.fullPerson("Ola", olaFnr))
-
-            testRapid.sendJson(
-                innkommendeMelding
-                    .toMap()
-                    .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson()),
-            )
-
-            val dataFields =
-                arrayOf(
-                    Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
-                    Key.PERSONER to
+                    Key.DATA to
                         mapOf(
-                            olaFnr to
-                                Person(
-                                    fnr = olaFnr,
-                                    navn = "Ola Normann",
-                                    foedselsdato = 13.juni(1956),
-                                ),
-                        ).toJson(personMapSerializer),
-                )
-
-            testRapid.inspektør.size shouldBeExactly 1
-
-            testRapid.firstMessage().toMap() shouldContainExactly
-                mapOf(
-                    Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                    Key.DATA to dataFields.toMap().toJson(),
-                    *dataFields,
+                            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                            Key.FNR_LISTE to listOf(olaFnr).toJson(Fnr.serializer()),
+                            Key.PERSONER to personer.toJson(personMapSerializer),
+                        ).toJson(),
                 )
         }
 
@@ -286,8 +246,8 @@ class HentPersonerRiverTest :
         context("ignorerer melding") {
             withData(
                 mapOf(
-                    "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.VIRKSOMHET.toJson()),
-                    "melding med data" to Pair(Key.DATA, "".toJson()),
+                    "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.HENT_VIRKSOMHET_NAVN.toJson()),
+                    "melding med data som flagg" to Pair(Key.DATA, "".toJson()),
                     "melding med fail" to Pair(Key.FAIL, Mock.fail.toJson(Fail.serializer())),
                 ),
             ) { uoensketKeyMedVerdi ->
@@ -310,20 +270,19 @@ class HentPersonerRiverTest :
     })
 
 private object Mock {
-    val fail =
-        Fail(
-            feilmelding = "They have a cave troll.",
-            event = EventName.TRENGER_REQUESTED,
-            transaksjonId = UUID.randomUUID(),
-            forespoerselId = null,
-            utloesendeMelding = JsonNull,
-        )
-
-    fun innkommendeMelding(fnrListe: List<Fnr>): Melding =
+    fun innkommendeMelding(
+        fnrListe: List<Fnr>,
+        forespoerselId: UUID? = null,
+    ): Melding =
         Melding(
             eventName = EventName.TRENGER_REQUESTED,
             behovType = BehovType.HENT_PERSONER,
             transaksjonId = UUID.randomUUID(),
+            data =
+                mapOf(
+                    Key.FORESPOERSEL_ID to forespoerselId?.toJson(),
+                    Key.FNR_LISTE to fnrListe.toJson(Fnr.serializer()),
+                ).mapValuesNotNull { it },
             fnrListe = fnrListe,
         )
 
@@ -332,7 +291,16 @@ private object Mock {
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to behovType.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.FNR_LISTE to fnrListe.toJson(Fnr.serializer()),
+            Key.DATA to data.toJson(),
+        )
+
+    val fail =
+        Fail(
+            feilmelding = "They have a cave troll.",
+            event = EventName.TRENGER_REQUESTED,
+            transaksjonId = UUID.randomUUID(),
+            forespoerselId = null,
+            utloesendeMelding = JsonNull,
         )
 
     fun fullPerson(

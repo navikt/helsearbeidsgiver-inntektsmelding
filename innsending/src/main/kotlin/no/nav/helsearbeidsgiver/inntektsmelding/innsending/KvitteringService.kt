@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -29,7 +30,8 @@ import java.util.UUID
 class KvitteringService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore,
-) : ServiceMed1Steg<KvitteringService.Steg0, KvitteringService.Steg1>() {
+) : ServiceMed1Steg<KvitteringService.Steg0, KvitteringService.Steg1>(),
+    Service.MedRedis {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 

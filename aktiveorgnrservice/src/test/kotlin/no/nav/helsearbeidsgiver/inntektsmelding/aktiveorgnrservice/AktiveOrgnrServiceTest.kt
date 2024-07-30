@@ -24,7 +24,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
@@ -43,7 +43,7 @@ class AktiveOrgnrServiceTest :
         val testRapid = TestRapid()
         val mockRedis = MockRedis(RedisPrefix.AktiveOrgnr)
 
-        ServiceRiver(
+        ServiceRiverStateful(
             AktiveOrgnrService(testRapid, mockRedis.store),
         ).connect(testRapid)
 
@@ -64,7 +64,7 @@ class AktiveOrgnrServiceTest :
 
             testRapid.inspektør.size shouldBeExactly 3
             testRapid.message(0).lesBehov() shouldBe BehovType.ARBEIDSGIVERE
-            testRapid.message(1).lesBehov() shouldBe BehovType.ARBEIDSFORHOLD
+            testRapid.message(1).lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
             testRapid.message(2).lesBehov() shouldBe BehovType.HENT_PERSONER
 
             testRapid.sendJson(
@@ -72,7 +72,7 @@ class AktiveOrgnrServiceTest :
             )
 
             testRapid.inspektør.size shouldBeExactly 4
-            testRapid.message(3).lesBehov() shouldBe BehovType.VIRKSOMHET
+            testRapid.message(3).lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
 
             testRapid.sendJson(
                 Mock.steg2Data(transaksjonId, orgnr),

@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed3Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -34,7 +35,8 @@ class OpprettSakService(
         OpprettSakService.Steg1,
         OpprettSakService.Steg2,
         OpprettSakService.Steg3,
-    >() {
+    >(),
+    Service.MedRedis {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
@@ -165,8 +167,6 @@ class OpprettSakService(
                 val meldingMedDefault = mapOf(Key.ARBEIDSTAKER_INFORMASJON to ukjentPersonJson).plus(melding)
 
                 onData(meldingMedDefault)
-            } else {
-                redisStore.set(RedisKey.of(fail.transaksjonId), fail.feilmelding.toJson())
             }
         }
     }

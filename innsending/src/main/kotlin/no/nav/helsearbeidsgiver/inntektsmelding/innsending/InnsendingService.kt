@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed3Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -64,7 +65,8 @@ data class Steg3(
 class InnsendingService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore,
-) : ServiceMed3Steg<Steg0, Steg1, Steg2, Steg3>() {
+) : ServiceMed3Steg<Steg0, Steg1, Steg2, Steg3>(),
+    Service.MedRedis {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
@@ -164,11 +166,11 @@ class InnsendingService(
         rapid
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+                Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
                 Key.ORGNRUNDERENHET to steg1.forespoersel.orgnr.toJson(),
-            ).also { loggBehovPublisert(BehovType.VIRKSOMHET, it) }
+            ).also { loggBehovPublisert(BehovType.HENT_VIRKSOMHET_NAVN, it) }
 
         rapid
             .publish(
@@ -265,7 +267,7 @@ class InnsendingService(
 
         val datafeil =
             when (utloesendeBehov) {
-                BehovType.VIRKSOMHET -> {
+                BehovType.HENT_VIRKSOMHET_NAVN -> {
                     listOf(
                         Key.VIRKSOMHET to "Ukjent virksomhet".toJson(),
                     )

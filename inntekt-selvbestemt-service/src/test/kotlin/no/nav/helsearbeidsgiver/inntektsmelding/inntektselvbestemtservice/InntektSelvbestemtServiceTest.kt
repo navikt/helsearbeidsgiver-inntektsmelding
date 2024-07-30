@@ -18,7 +18,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
@@ -37,7 +37,7 @@ class InntektSelvbestemtServiceTest :
         val testRapid = TestRapid()
         val mockRedis = MockRedis(RedisPrefix.InntektSelvbestemt)
 
-        ServiceRiver(
+        ServiceRiverStateful(
             InntektSelvbestemtService(testRapid, mockRedis.store),
         ).connect(testRapid)
 
@@ -55,7 +55,7 @@ class InntektSelvbestemtServiceTest :
             )
 
             testRapid.inspektør.size shouldBeExactly 1
-            testRapid.firstMessage().lesBehov() shouldBe BehovType.INNTEKT
+            testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_INNTEKT
 
             testRapid.sendJson(
                 mockDataMelding(transaksjonId),
@@ -90,14 +90,14 @@ class InntektSelvbestemtServiceTest :
                     utloesendeMelding =
                         JsonObject(
                             mapOf(
-                                Key.BEHOV.toString() to BehovType.INNTEKT.toJson(),
+                                Key.BEHOV.toString() to BehovType.HENT_INNTEKT.toJson(),
                             ),
                         ),
                 ).tilMelding(),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
-            testRapid.firstMessage().lesBehov() shouldBe BehovType.INNTEKT
+            testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_INNTEKT
 
             verify {
                 mockRedis.store.set(

@@ -69,7 +69,7 @@ class OpprettOppgaveService(
     override fun utfoerSteg0(steg0: Steg0) {
         rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+            Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
             Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
@@ -100,7 +100,8 @@ class OpprettOppgaveService(
             Log.transaksjonId(fail.transaksjonId),
         ) {
             val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
-            if (utloesendeBehov == BehovType.VIRKSOMHET) {
+            if (utloesendeBehov == BehovType.HENT_VIRKSOMHET_NAVN) {
+                // TODO må bruke Key.VIRKSOMHETER
                 val meldingMedDefault = mapOf(Key.VIRKSOMHET to "Arbeidsgiver".toJson()).plus(melding)
                 onData(meldingMedDefault)
             }

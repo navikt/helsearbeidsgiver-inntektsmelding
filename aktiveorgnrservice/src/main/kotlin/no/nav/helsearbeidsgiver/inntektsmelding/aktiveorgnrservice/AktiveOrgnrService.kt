@@ -148,9 +148,9 @@ class AktiveOrgnrService(
             } else {
                 rapid.publish(
                     Key.EVENT_NAME to eventName.toJson(),
-                    Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+                    Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                     Key.UUID to steg0.transaksjonId.toJson(),
-                    Key.ORGNRUNDERENHETER to arbeidsgivere.toJson(String.serializer()),
+                    Key.ORGNR_UNDERENHETER to arbeidsgivere.toJson(String.serializer()),
                 )
             }
         }

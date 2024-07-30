@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.HentForespoerselResultat
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -54,7 +55,7 @@ class HentForespoerselIT : EndToEndTest() {
 
         messages
             .filter(EventName.TRENGER_REQUESTED)
-            .filter(BehovType.VIRKSOMHET)
+            .filter(BehovType.HENT_VIRKSOMHET_NAVN)
             .firstAsMap()
             .let {
                 // Ble lagret i databasen
@@ -72,7 +73,7 @@ class HentForespoerselIT : EndToEndTest() {
 
         messages
             .filter(EventName.TRENGER_REQUESTED)
-            .filter(BehovType.INNTEKT)
+            .filter(BehovType.HENT_INNTEKT)
             .firstAsMap()
             .let {
                 // Ble lagret i databasen
@@ -81,7 +82,7 @@ class HentForespoerselIT : EndToEndTest() {
 
         val resultJson =
             redisConnection
-                .get(transaksjonId)
+                .get(RedisPrefix.HentForespoersel, transaksjonId)
                 ?.fromJson(ResultJson.serializer())
                 .shouldNotBeNull()
 

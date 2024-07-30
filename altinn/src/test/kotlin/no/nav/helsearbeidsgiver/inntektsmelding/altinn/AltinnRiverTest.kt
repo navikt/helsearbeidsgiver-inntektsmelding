@@ -96,7 +96,7 @@ class AltinnRiverTest :
         context("ignorerer melding") {
             withData(
                 mapOf(
-                    "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.VIRKSOMHET.toJson()),
+                    "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.HENT_VIRKSOMHET_NAVN.toJson()),
                     "melding med data som flagg" to Pair(Key.DATA, "".toJson()),
                     "melding med fail" to Pair(Key.FAIL, Mock.fail.toJson(Fail.serializer())),
                 ),

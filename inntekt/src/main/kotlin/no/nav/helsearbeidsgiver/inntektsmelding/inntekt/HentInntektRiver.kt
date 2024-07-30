@@ -28,7 +28,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
 
-data class HentInntektMelding(
+data class Melding(
     val eventName: EventName,
     val behovType: BehovType,
     val transaksjonId: UUID,
@@ -40,17 +40,17 @@ data class HentInntektMelding(
 
 class HentInntektRiver(
     private val inntektKlient: InntektKlient,
-) : ObjectRiver<HentInntektMelding>() {
+) : ObjectRiver<Melding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun les(json: Map<Key, JsonElement>): HentInntektMelding? =
+    override fun les(json: Map<Key, JsonElement>): Melding? =
         if (Key.FAIL in json) {
             null
         } else {
             val data = json[Key.DATA]?.toMap().orEmpty()
 
-            HentInntektMelding(
+            Melding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.HENT_INNTEKT, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
@@ -61,7 +61,7 @@ class HentInntektRiver(
             )
         }
 
-    override fun HentInntektMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
+    override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val fom = inntektsdato.minusMaaneder(3)
         val middle = inntektsdato.minusMaaneder(2)
         val tom = inntektsdato.minusMaaneder(1)
@@ -87,7 +87,7 @@ class HentInntektRiver(
         )
     }
 
-    override fun HentInntektMelding.haandterFeil(
+    override fun Melding.haandterFeil(
         json: Map<Key, JsonElement>,
         error: Throwable,
     ): Map<Key, JsonElement> {
@@ -106,7 +106,7 @@ class HentInntektRiver(
         return fail.tilMelding()
     }
 
-    override fun HentInntektMelding.loggfelt(): Map<String, String> =
+    override fun Melding.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this@HentInntektRiver),
             Log.event(eventName),

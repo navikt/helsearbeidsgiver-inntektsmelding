@@ -165,11 +165,11 @@ class HentInntektRiverTest :
     })
 
 private object Mock {
-    fun innkommendeMelding(inntektsdato: LocalDate): HentInntektMelding {
+    fun innkommendeMelding(inntektsdato: LocalDate): Melding {
         val orgnr = Orgnr.genererGyldig()
         val fnr = Fnr.genererGyldig()
 
-        return HentInntektMelding(
+        return Melding(
             eventName = EventName.TRENGER_REQUESTED,
             behovType = BehovType.HENT_INNTEKT,
             transaksjonId = UUID.randomUUID(),
@@ -185,7 +185,7 @@ private object Mock {
         )
     }
 
-    fun HentInntektMelding.toMap(): Map<Key, JsonElement> =
+    fun Melding.toMap(): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to behovType.toJson(),

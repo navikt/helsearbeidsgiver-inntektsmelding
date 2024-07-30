@@ -72,8 +72,11 @@ class TilgangOrgService(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
-                Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
-                Key.FNR to steg0.fnr.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
+                        Key.FNR to steg0.fnr.toJson(),
+                    ).toJson(),
             ).also {
                 MdcUtils.withLogFields(
                     Log.behov(BehovType.TILGANGSKONTROLL),

@@ -41,7 +41,7 @@ class HentPersonerRiver(
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): Melding? =
-        if (setOf(Key.FAIL).any(json::containsKey)) {
+        if (Key.FAIL in json) {
             null
         } else {
             val data = json[Key.DATA]?.toMap().orEmpty()

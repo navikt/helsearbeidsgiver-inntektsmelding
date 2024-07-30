@@ -132,11 +132,11 @@ class HentForespoerselService(
         rapid
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+                Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
                 Key.ORGNRUNDERENHET to steg1.forespoersel.orgnr.toJson(),
-            ).also { loggBehovPublisert(BehovType.VIRKSOMHET, it) }
+            ).also { loggBehovPublisert(BehovType.HENT_VIRKSOMHET_NAVN, it) }
 
         rapid
             .publish(
@@ -199,7 +199,7 @@ class HentForespoerselService(
 
         val overkommeligFeil =
             when (utloesendeBehov) {
-                BehovType.VIRKSOMHET ->
+                BehovType.HENT_VIRKSOMHET_NAVN ->
                     Datafeil(
                         Key.VIRKSOMHET,
                         "Vi klarte ikke å hente navn på virksomhet.",

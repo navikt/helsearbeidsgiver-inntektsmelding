@@ -94,7 +94,7 @@ class LagreSelvbestemtImServiceTest :
             )
 
             testRapid.inspektør.size shouldBeExactly 3
-            testRapid.message(0).lesBehov() shouldBe BehovType.VIRKSOMHET
+            testRapid.message(0).lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
             testRapid.message(1).lesBehov() shouldBe BehovType.HENT_PERSONER
             testRapid.message(2).lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
 
@@ -161,7 +161,7 @@ class LagreSelvbestemtImServiceTest :
             )
 
             testRapid.inspektør.size shouldBeExactly 3
-            testRapid.message(0).lesBehov() shouldBe BehovType.VIRKSOMHET
+            testRapid.message(0).lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
             testRapid.message(1).lesBehov() shouldBe BehovType.HENT_PERSONER
             testRapid.message(2).lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
 
@@ -282,7 +282,7 @@ class LagreSelvbestemtImServiceTest :
                     utloesendeMelding =
                         JsonObject(
                             mapOf(
-                                Key.BEHOV.toString() to BehovType.VIRKSOMHET.toJson(),
+                                Key.BEHOV.toString() to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                             ),
                         ),
                 ).tilMelding(),

@@ -43,7 +43,7 @@ enum class Key(
     PERSISTERT_SAK_ID("persistert_sak_id"),
     OPPGAVE_ID("oppgave_id"),
     ORGNRUNDERENHET("orgnrUnderenhet"),
-    ORGNRUNDERENHETER("orgnrUnderenheter"),
+    ORGNR_UNDERENHETER("orgnr_underenheter"),
     ORG_RETTIGHETER("org_rettigheter"),
     FORESPOERSEL_SVAR("forespoersel-svar"),
     INNTEKT("inntekt"),

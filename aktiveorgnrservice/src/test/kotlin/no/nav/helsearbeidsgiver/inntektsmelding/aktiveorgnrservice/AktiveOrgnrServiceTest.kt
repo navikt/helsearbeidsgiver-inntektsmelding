@@ -72,7 +72,7 @@ class AktiveOrgnrServiceTest :
             )
 
             testRapid.inspektør.size shouldBeExactly 4
-            testRapid.message(3).lesBehov() shouldBe BehovType.VIRKSOMHET
+            testRapid.message(3).lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
 
             testRapid.sendJson(
                 Mock.steg2Data(transaksjonId, orgnr),

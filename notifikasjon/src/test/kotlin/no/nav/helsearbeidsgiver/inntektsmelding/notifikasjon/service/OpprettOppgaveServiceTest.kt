@@ -84,7 +84,7 @@ class OpprettOppgaveServiceTest {
             Key.VIRKSOMHET to "TestBedrift A/S".toJson(),
         )
         val behov = rapid.inspektør.message(0)
-        assertEquals(BehovType.VIRKSOMHET.name, behov.path(Key.BEHOV.str).asText())
+        assertEquals(BehovType.HENT_VIRKSOMHET_NAVN.name, behov.path(Key.BEHOV.str).asText())
         val behov2 = rapid.inspektør.message(1)
         assertEquals(BehovType.OPPRETT_OPPGAVE.name, behov2[Key.BEHOV.str].asText())
     }
@@ -111,7 +111,7 @@ class OpprettOppgaveServiceTest {
                 forespoerselId = forespoerselId,
                 utloesendeMelding =
                     mapOf(
-                        Key.BEHOV.toString() to BehovType.VIRKSOMHET.toJson(),
+                        Key.BEHOV.toString() to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                         Key.ORGNRUNDERENHET.toString() to orgnr.toJson(),
                     ).toJson(),
             )
@@ -124,7 +124,7 @@ class OpprettOppgaveServiceTest {
         )
 
         val behov = rapid.inspektør.message(0)
-        assertEquals(BehovType.VIRKSOMHET.name, behov.path(Key.BEHOV.str).asText())
+        assertEquals(BehovType.HENT_VIRKSOMHET_NAVN.name, behov.path(Key.BEHOV.str).asText())
         val behov2 = rapid.inspektør.message(1)
         assertEquals(BehovType.OPPRETT_OPPGAVE.name, behov2[Key.BEHOV.str].asText())
         assertEquals("Arbeidsgiver", behov2[Key.VIRKSOMHET.str].asText())

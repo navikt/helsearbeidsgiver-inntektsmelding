@@ -54,7 +54,7 @@ class HentForespoerselIT : EndToEndTest() {
 
         messages
             .filter(EventName.TRENGER_REQUESTED)
-            .filter(BehovType.VIRKSOMHET)
+            .filter(BehovType.HENT_VIRKSOMHET_NAVN)
             .firstAsMap()
             .let {
                 // Ble lagret i databasen

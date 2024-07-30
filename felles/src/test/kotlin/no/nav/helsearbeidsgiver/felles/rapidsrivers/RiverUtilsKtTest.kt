@@ -51,7 +51,7 @@ class RiverUtilsKtTest :
                     mapOf(
                         Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
                         Key.INNTEKTSMELDING to mockInntektsmeldingV1().toJson(Inntektsmelding.serializer()),
-                        Key.ORGNRUNDERENHETER to listOf("222", "444", "666").toJson(String.serializer()),
+                        Key.ORGNR_UNDERENHETER to listOf("222", "444", "666").toJson(String.serializer()),
                     )
 
                 testRapid.publish(melding)

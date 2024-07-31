@@ -17,9 +17,6 @@ fun main() {
 
 fun RapidsConnection.createAaregRiver(aaregClient: AaregClient): RapidsConnection =
     also {
-        logger.info("Starter ${ArbeidsforholdLoeser::class.simpleName}...")
-        ArbeidsforholdLoeser(this, aaregClient)
-
         logger.info("Starter ${HentArbeidsforholdRiver::class.simpleName}...")
         HentArbeidsforholdRiver(aaregClient).connect(this)
     }

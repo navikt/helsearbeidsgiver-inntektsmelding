@@ -161,10 +161,13 @@ class HentForespoerselService(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to steg1.forespoersel.orgnr.toJson(),
-                Key.FNR to steg1.forespoersel.fnr.toJson(),
-                Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                        Key.ORGNRUNDERENHET to steg1.forespoersel.orgnr.toJson(),
+                        Key.FNR to steg1.forespoersel.fnr.toJson(),
+                        Key.INNTEKTSDATO to inntektsdato.toJson(),
+                    ).toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_INNTEKT, it) }
     }
 

@@ -10,7 +10,6 @@ import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
-import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.juli
@@ -46,23 +45,29 @@ class InntektSelvbestemtIT : EndToEndTest() {
                     Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
                     Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
                     Key.UUID to Mock.transaksjonId.toJson(),
-                    Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
-                    Key.FNR to Mock.fnr.toJson(),
-                    Key.SKJAERINGSTIDSPUNKT to Mock.inntektsdato.toJson(LocalDateSerializer),
+                    Key.DATA to
+                        mapOf(
+                            Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
+                            Key.FNR to Mock.fnr.toJson(),
+                            Key.INNTEKTSDATO to Mock.inntektsdato.toJson(),
+                        ).toJson(),
                 ),
             )
 
-        val dataField = Key.INNTEKT to Mock.inntektPerMaaned.toJson(Inntekt.serializer())
-
         messages
-            .filter(Key.INNTEKT)
+            .filter(Key.INNTEKT, nestedData = true)
             .firstAsMap()
             .shouldContainExactly(
                 mapOf(
                     Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
                     Key.UUID to Mock.transaksjonId.toJson(),
-                    Key.DATA to mapOf(dataField).toJson(),
-                    dataField,
+                    Key.DATA to
+                        mapOf(
+                            Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
+                            Key.FNR to Mock.fnr.toJson(),
+                            Key.INNTEKTSDATO to Mock.inntektsdato.toJson(),
+                            Key.INNTEKT to Mock.inntektPerMaaned.toJson(Inntekt.serializer()),
+                        ).toJson(),
                 ),
             )
     }

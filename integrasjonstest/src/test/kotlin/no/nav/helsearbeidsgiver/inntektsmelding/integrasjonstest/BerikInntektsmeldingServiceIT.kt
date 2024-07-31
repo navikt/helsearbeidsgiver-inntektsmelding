@@ -70,8 +70,6 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                 Key.UUID to Mock.transaksjonId.toJson(),
                 Key.DATA to "".toJson(),
                 Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to Mock.orgnr.toJson(Orgnr.serializer()),
-                Key.IDENTITETSNUMMER to Mock.fnr.toJson(Fnr.serializer()),
                 Key.ARBEIDSGIVER_ID to Mock.fnr.toJson(Fnr.serializer()),
                 Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
             )

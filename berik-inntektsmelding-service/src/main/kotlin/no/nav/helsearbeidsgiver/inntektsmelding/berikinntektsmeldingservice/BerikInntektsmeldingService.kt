@@ -70,7 +70,7 @@ class BerikInntektsmeldingService(
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val eventName = EventName.INSENDING_STARTED
+    override val eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET
     override val startKeys =
         setOf(
             Key.FORESPOERSEL_ID,

@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.maps.shouldContainKey
@@ -31,6 +32,7 @@ import no.nav.helsearbeidsgiver.felles.Person
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
@@ -104,20 +106,23 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         // Data hentet
         serviceMessages
-            .filter(Key.PERSONER)
-            .firstAsMap()[Key.PERSONER]
-            .shouldNotBeNull()
-            .fromJson(personMapSerializer)
-            .map { it.key.verdi to it.value.navn }
-            .shouldBe(Mock.personer.map { it.ident to it.navn.fulltNavn() })
+            .filter(Key.PERSONER, nestedData = true)
+            .firstAsMap()
+            .also { melding ->
+                val data = melding[Key.DATA].shouldNotBeNull().toMap()
+                val personer = Key.PERSONER.les(personMapSerializer, data).map { it.key.verdi to it.value.navn }
+
+                personer shouldBe Mock.personer.map { it.ident to it.navn.fulltNavn() }
+            }
 
         // Data hentet
         serviceMessages
-            .filter(Key.ARBEIDSFORHOLD)
-            .firstAsMap()[Key.ARBEIDSFORHOLD]
-            .shouldNotBeNull()
-            .fromJson(Arbeidsforhold.serializer().list())
-            .shouldBe(Mock.arbeidsforhold.map { it.tilArbeidsforhold() })
+            .filter(Key.ARBEIDSFORHOLD, nestedData = true)
+            .firstAsMap()
+            .also { melding ->
+                val data = melding[Key.DATA].shouldNotBeNull().toMap()
+                Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), data) shouldContainExactly Mock.arbeidsforhold.map { it.tilArbeidsforhold() }
+            }
 
         // Lagring forespurt
         serviceMessages

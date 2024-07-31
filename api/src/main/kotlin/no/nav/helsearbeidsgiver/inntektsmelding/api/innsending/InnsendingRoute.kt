@@ -91,7 +91,9 @@ fun Route.innsendingRoute(
                                             sykmeldingsperioder = emptyList(),
                                             aarsakInnsending = AarsakInnsending.Ny,
                                         )
-                                }.getOrElse {
+                                }.getOrElse { error ->
+                                    sikkerLogger.debug("Noe gikk galt med nytt skjema.", error)
+
                                     json
                                         .fromJson(Innsending.serializer())
                                         .also {

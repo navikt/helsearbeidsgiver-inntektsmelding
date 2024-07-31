@@ -85,13 +85,19 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         aktiveOrgnrMeldinger
             .filter(BehovType.HENT_ARBEIDSFORHOLD)
-            .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(Fnr.serializer()) shouldBe Mock.fnr
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.FNR.les(Fnr.serializer(), data) shouldBe Mock.fnr
+            }
 
         aktiveOrgnrMeldinger
             .filter(BehovType.HENT_PERSONER)
-            .firstAsMap()[Key.FNR_LISTE]
-            ?.fromJson(Fnr.serializer().list()) shouldBe listOf(Mock.fnr, Mock.fnrAg)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.FNR_LISTE.les(Fnr.serializer().list(), data) shouldBe listOf(Mock.fnr, Mock.fnrAg)
+            }
 
         aktiveOrgnrMeldinger
             .filter(Key.ORG_RETTIGHETER, nestedData = true)
@@ -102,9 +108,12 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             }
 
         aktiveOrgnrMeldinger
-            .filter(Key.ARBEIDSFORHOLD)
-            .firstAsMap()[Key.ARBEIDSFORHOLD]
-            ?.fromJson(Arbeidsforhold.serializer().list()) shouldContainExactly Mock.arbeidsforholdListe.map { it.tilArbeidsforhold() }
+            .filter(Key.ARBEIDSFORHOLD, nestedData = true)
+            .firstAsMap()
+            .also { melding ->
+                val data = melding[Key.DATA].shouldNotBeNull().toMap()
+                Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), data) shouldContainExactly Mock.arbeidsforholdListe.map { it.tilArbeidsforhold() }
+            }
 
         aktiveOrgnrMeldinger
             .filter(BehovType.HENT_VIRKSOMHET_NAVN)
@@ -150,13 +159,19 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         aktiveOrgnrMeldinger
             .filter(BehovType.HENT_ARBEIDSFORHOLD)
-            .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(Fnr.serializer()) shouldBe Mock.fnr
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.FNR.les(Fnr.serializer(), data) shouldBe Mock.fnr
+            }
 
         aktiveOrgnrMeldinger
             .filter(BehovType.HENT_PERSONER)
-            .firstAsMap()[Key.FNR_LISTE]
-            ?.fromJson(Fnr.serializer().list()) shouldBe listOf(Mock.fnr, Mock.fnrAg)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.FNR_LISTE.les(Fnr.serializer().list(), data) shouldBe listOf(Mock.fnr, Mock.fnrAg)
+            }
 
         aktiveOrgnrMeldinger
             .filter(Key.ORG_RETTIGHETER, nestedData = true)
@@ -167,9 +182,12 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             }
 
         aktiveOrgnrMeldinger
-            .filter(Key.ARBEIDSFORHOLD)
-            .firstAsMap()[Key.ARBEIDSFORHOLD]
-            ?.fromJson(Arbeidsforhold.serializer().list()) shouldBe emptyList()
+            .filter(Key.ARBEIDSFORHOLD, nestedData = true)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), data) shouldBe emptyList()
+            }
     }
 
     @Test
@@ -192,12 +210,15 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                     mapOf(
                         Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
                         Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
-                        Key.FNR_LISTE to
-                            listOf(
-                                Mock.fnr,
-                                Mock.fnrAg,
-                            ).toJson(Fnr.serializer()),
                         Key.UUID to transaksjonId.toJson(),
+                        Key.DATA to
+                            mapOf(
+                                Key.FNR_LISTE to
+                                    listOf(
+                                        Mock.fnr,
+                                        Mock.fnrAg,
+                                    ).toJson(Fnr.serializer()),
+                            ).toJson(),
                     ).toJson(),
             )
 

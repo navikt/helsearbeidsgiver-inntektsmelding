@@ -119,18 +119,24 @@ class AktiveOrgnrService(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_ARBEIDSFORHOLD.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),
-            Key.IDENTITETSNUMMER to steg0.sykmeldtFnr.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FNR to steg0.sykmeldtFnr.toJson(),
+                ).toJson(),
         )
 
         rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),
-            Key.FNR_LISTE to
-                listOf(
-                    steg0.sykmeldtFnr,
-                    steg0.avsenderFnr,
-                ).toJson(Fnr.serializer()),
+            Key.DATA to
+                mapOf(
+                    Key.FNR_LISTE to
+                        listOf(
+                            steg0.sykmeldtFnr,
+                            steg0.avsenderFnr,
+                        ).toJson(Fnr.serializer()),
+                ).toJson(),
         )
     }
 

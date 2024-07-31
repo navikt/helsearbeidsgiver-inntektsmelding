@@ -79,9 +79,12 @@ class InntektSelvbestemtService(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
-                Key.FNR to steg0.fnr.toJson(),
-                Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
-                Key.SKJAERINGSTIDSPUNKT to steg0.inntektsdato.toJson(LocalDateSerializer),
+                Key.DATA to
+                    mapOf(
+                        Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
+                        Key.FNR to steg0.fnr.toJson(),
+                        Key.INNTEKTSDATO to steg0.inntektsdato.toJson(),
+                    ).toJson(),
             )
 
         MdcUtils.withLogFields(

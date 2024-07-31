@@ -38,6 +38,7 @@ class InntektSelvbestemtProducerTest :
                     Key.FNR to sykmeldtFnr.toJson(),
                     Key.ORGNRUNDERENHET to orgnr.toJson(),
                     Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson(),
+                    Key.INNTEKTSDATO to inntektsdato.toJson(),
                 )
         }
     })

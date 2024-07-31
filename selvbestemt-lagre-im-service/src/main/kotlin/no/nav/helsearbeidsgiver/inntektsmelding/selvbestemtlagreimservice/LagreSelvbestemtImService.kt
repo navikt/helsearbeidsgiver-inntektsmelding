@@ -149,7 +149,7 @@ class LagreSelvbestemtImService(
                     .toJson(),
         )
 
-        rapid.publishNotNull(
+        rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),
@@ -165,14 +165,18 @@ class LagreSelvbestemtImService(
                     .toJson(),
         )
 
-        rapid.publishNotNull(
+        rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_ARBEIDSFORHOLD.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),
-            Key.IDENTITETSNUMMER to
-                steg0.skjema.sykmeldtFnr.verdi
+            Key.DATA to
+                mapOf(
+                    Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
+                    Key.FNR to
+                        steg0.skjema.sykmeldtFnr.verdi
+                            .toJson(),
+                ).mapValuesNotNull { it }
                     .toJson(),
-            Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
         )
     }
 

@@ -11,15 +11,12 @@ private val logger = "helsearbeidsgiver-im-inntekt".logger()
 fun main() {
     RapidApplication
         .create(System.getenv())
-        .createInntekt(createInntektKlient())
+        .createHentInntektRiver(createInntektKlient())
         .start()
 }
 
-fun RapidsConnection.createInntekt(inntektKlient: InntektKlient): RapidsConnection =
+fun RapidsConnection.createHentInntektRiver(inntektKlient: InntektKlient): RapidsConnection =
     also {
-        logger.info("Starter ${InntektLoeser::class.simpleName}...")
-        InntektLoeser(this, inntektKlient)
-
         logger.info("Starter ${HentInntektRiver::class.simpleName}...")
         HentInntektRiver(inntektKlient).connect(this)
     }

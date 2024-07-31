@@ -249,7 +249,6 @@ class LagreSelvbestemtImServiceTest :
         test("bruk defaultverdier ved håndterbare feil under henting av data") {
             val transaksjonId = UUID.randomUUID()
 
-            val virksomhetDefault = "Ukjent virksomhet"
             val inntektsmeldingMedDefaults =
                 Mock.inntektsmelding.let {
                     it.copy(
@@ -259,7 +258,7 @@ class LagreSelvbestemtImServiceTest :
                             ),
                         avsender =
                             it.avsender.copy(
-                                orgNavn = virksomhetDefault,
+                                orgNavn = "Ukjent virksomhet",
                                 navn = "",
                             ),
                         aarsakInnsending = AarsakInnsending.Endring,
@@ -270,7 +269,7 @@ class LagreSelvbestemtImServiceTest :
                 Mock.steg0(transaksjonId),
             )
             testRapid.sendJson(
-                Mock.steg1(transaksjonId).minus(Key.VIRKSOMHET).minus(Key.PERSONER),
+                Mock.steg1(transaksjonId).minus(Key.VIRKSOMHETER).minus(Key.PERSONER),
             )
 
             testRapid.sendJson(
@@ -326,8 +325,8 @@ class LagreSelvbestemtImServiceTest :
 
             verify {
                 mockRedis.store.set(
-                    RedisKey.of(transaksjonId, Key.VIRKSOMHET),
-                    virksomhetDefault.toJson(),
+                    RedisKey.of(transaksjonId, Key.VIRKSOMHETER),
+                    emptyMap<String, String>().toJson(),
                 )
 
                 mockRedis.store.set(
@@ -534,7 +533,7 @@ private object Mock {
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
-            Key.VIRKSOMHET to ORG_NAVN.toJson(),
+            Key.VIRKSOMHETER to mapOf(skjema.avsender.orgnr.verdi to ORG_NAVN).toJson(),
             Key.PERSONER to
                 mapOf(
                     sykmeldt.fnr to sykmeldt,

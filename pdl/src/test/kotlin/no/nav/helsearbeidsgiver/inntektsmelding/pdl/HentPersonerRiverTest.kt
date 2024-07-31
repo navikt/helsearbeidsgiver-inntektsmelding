@@ -60,7 +60,7 @@ class HentPersonerRiverTest :
                         ),
                 )
 
-            val innkommendeMelding = Mock.innkommendeMelding(listOf(olaFnr))
+            val innkommendeMelding = Mock.innkommendeMelding(setOf(olaFnr))
 
             coEvery { mockPdlClient.personBolk(any()) } returns listOf(Mock.fullPerson("Ola", olaFnr))
 
@@ -103,7 +103,7 @@ class HentPersonerRiverTest :
                         ),
                 )
 
-            val innkommendeMelding = Mock.innkommendeMelding(listOf(olaFnr, kariFnr))
+            val innkommendeMelding = Mock.innkommendeMelding(setOf(olaFnr, kariFnr))
 
             coEvery {
                 mockPdlClient.personBolk(any())
@@ -123,7 +123,7 @@ class HentPersonerRiverTest :
                     Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
-                            Key.FNR_LISTE to listOf(olaFnr, kariFnr).toJson(Fnr.serializer()),
+                            Key.FNR_LISTE to setOf(olaFnr, kariFnr).toJson(Fnr.serializer()),
                             Key.PERSONER to personer.toJson(personMapSerializer),
                         ).toJson(),
                 )
@@ -146,7 +146,7 @@ class HentPersonerRiverTest :
                         ),
                 )
 
-            val innkommendeMelding = Mock.innkommendeMelding(listOf(olaFnr, kariFnr))
+            val innkommendeMelding = Mock.innkommendeMelding(setOf(olaFnr, kariFnr))
 
             coEvery { mockPdlClient.personBolk(any()) } returns listOf(Mock.fullPerson("Kari", kariFnr))
 
@@ -160,7 +160,7 @@ class HentPersonerRiverTest :
                     Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
-                            Key.FNR_LISTE to listOf(olaFnr, kariFnr).toJson(Fnr.serializer()),
+                            Key.FNR_LISTE to setOf(olaFnr, kariFnr).toJson(Fnr.serializer()),
                             Key.PERSONER to personer.toJson(personMapSerializer),
                         ).toJson(),
                 )
@@ -183,7 +183,7 @@ class HentPersonerRiverTest :
                         ),
                 )
 
-            val innkommendeMelding = Mock.innkommendeMelding(listOf(olaFnr), forespoerselId)
+            val innkommendeMelding = Mock.innkommendeMelding(setOf(olaFnr), forespoerselId)
 
             coEvery { mockPdlClient.personBolk(any()) } returns listOf(Mock.fullPerson("Ola", olaFnr))
 
@@ -198,7 +198,7 @@ class HentPersonerRiverTest :
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                            Key.FNR_LISTE to listOf(olaFnr).toJson(Fnr.serializer()),
+                            Key.FNR_LISTE to setOf(olaFnr).toJson(Fnr.serializer()),
                             Key.PERSONER to personer.toJson(personMapSerializer),
                         ).toJson(),
                 )
@@ -209,7 +209,7 @@ class HentPersonerRiverTest :
             val selvbestemtId = UUID.randomUUID()
             val randomFnr = Fnr.genererGyldig()
 
-            val innkommendeMelding = Mock.innkommendeMelding(listOf(randomFnr))
+            val innkommendeMelding = Mock.innkommendeMelding(setOf(randomFnr))
 
             val innkommendeJsonMap =
                 innkommendeMelding
@@ -251,7 +251,7 @@ class HentPersonerRiverTest :
                     "melding med fail" to Pair(Key.FAIL, Mock.fail.toJson(Fail.serializer())),
                 ),
             ) { uoensketKeyMedVerdi ->
-                val fnrListe = listOf(Fnr.genererGyldig())
+                val fnrListe = setOf(Fnr.genererGyldig())
 
                 testRapid.sendJson(
                     Mock
@@ -271,7 +271,7 @@ class HentPersonerRiverTest :
 
 private object Mock {
     fun innkommendeMelding(
-        fnrListe: List<Fnr>,
+        fnrListe: Set<Fnr>,
         forespoerselId: UUID? = null,
     ): Melding =
         Melding(

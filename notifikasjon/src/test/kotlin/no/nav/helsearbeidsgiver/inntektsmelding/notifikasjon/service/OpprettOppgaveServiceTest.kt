@@ -5,6 +5,7 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
@@ -67,21 +68,27 @@ class OpprettOppgaveServiceTest {
     fun `skal publisere to behov`() {
         val transaksjonId = UUID.randomUUID()
         val forespoerselId = UUID.randomUUID()
+        val orgnr = Orgnr.genererGyldig()
 
         rapid.sendJson(
             Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.ORGNRUNDERENHET to Orgnr.genererGyldig().toJson(),
+            Key.ORGNRUNDERENHET to orgnr.toJson(),
         )
 
         rapid.sendJson(
             Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.VIRKSOMHET to "TestBedrift A/S".toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.VIRKSOMHETER to
+                        mapOf(
+                            orgnr to "TestBedrift A/S",
+                        ).toJson(orgMapSerializer),
+                ).toJson(),
         )
         val behov = rapid.inspektør.message(0)
         assertEquals(BehovType.HENT_VIRKSOMHET_NAVN.name, behov.path(Key.BEHOV.str).asText())
@@ -112,7 +119,10 @@ class OpprettOppgaveServiceTest {
                 utloesendeMelding =
                     mapOf(
                         Key.BEHOV.toString() to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
-                        Key.ORGNRUNDERENHET.toString() to orgnr.toJson(),
+                        Key.DATA.toString() to
+                            mapOf(
+                                Key.ORGNR_UNDERENHETER.toString() to orgnr.toJson(),
+                            ).toJson(),
                     ).toJson(),
             )
 

@@ -10,6 +10,7 @@ import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.utils.json.parseJson
@@ -32,7 +33,7 @@ class RiverUtilsKtTest :
                     arrayOf(
                         Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
                         Key.INNTEKTSMELDING to mockInntektsmeldingV1().toJson(Inntektsmelding.serializer()),
-                        Key.FNR_LISTE to listOf("111", "333", "555").toJson(String.serializer()),
+                        Key.FNR_LISTE to setOf("111", "333", "555").toJson(String.serializer()),
                     )
 
                 testRapid.publish(*melding)
@@ -51,7 +52,7 @@ class RiverUtilsKtTest :
                     mapOf(
                         Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
                         Key.INNTEKTSMELDING to mockInntektsmeldingV1().toJson(Inntektsmelding.serializer()),
-                        Key.ORGNR_UNDERENHETER to listOf("222", "444", "666").toJson(String.serializer()),
+                        Key.ORGNR_UNDERENHETER to setOf("222", "444", "666").toJson(String.serializer()),
                     )
 
                 testRapid.publish(melding)

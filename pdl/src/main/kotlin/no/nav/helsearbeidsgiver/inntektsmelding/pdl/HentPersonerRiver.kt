@@ -19,7 +19,7 @@ import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
-import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -31,7 +31,7 @@ data class Melding(
     val behovType: BehovType,
     val transaksjonId: UUID,
     val data: Map<Key, JsonElement>,
-    val fnrListe: List<Fnr>,
+    val fnrListe: Set<Fnr>,
 )
 
 class HentPersonerRiver(
@@ -51,7 +51,7 @@ class HentPersonerRiver(
                 behovType = Key.BEHOV.krev(BehovType.HENT_PERSONER, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
                 data = data,
-                fnrListe = Key.FNR_LISTE.les(Fnr.serializer().list(), data),
+                fnrListe = Key.FNR_LISTE.les(Fnr.serializer().set(), data),
             )
         }
 
@@ -111,7 +111,7 @@ class HentPersonerRiver(
             Log.transaksjonId(transaksjonId),
         )
 
-    private fun hentPersoner(fnrListe: List<Fnr>): List<Person> =
+    private fun hentPersoner(fnrListe: Set<Fnr>): List<Person> =
         Metrics.pdlRequest
             .recordTime(pdlClient::personBolk) {
                 pdlClient.personBolk(

@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -33,6 +34,7 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 data class Steg0(
@@ -49,7 +51,7 @@ data class Steg1(
 sealed class Steg2 {
     data class Komplett(
         val aarsakInnsending: AarsakInnsending,
-        val orgNavn: String,
+        val orgnrMedNavn: Map<Orgnr, String>,
         val sykmeldt: PersonDato,
         val avsender: PersonDato,
     ) : Steg2()
@@ -79,7 +81,7 @@ class InnsendingService(
         )
     override val dataKeys =
         setOf(
-            Key.VIRKSOMHET,
+            Key.VIRKSOMHETER,
             Key.ARBEIDSGIVER_INFORMASJON,
             Key.ARBEIDSTAKER_INFORMASJON,
             Key.INNTEKTSMELDING_DOKUMENT,
@@ -105,11 +107,11 @@ class InnsendingService(
     override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 {
         val tidligereInntektsmelding = runCatching { Key.LAGRET_INNTEKTSMELDING.les(ResultJson.serializer(), melding) }
         val tidligereEksternInntektsmelding = runCatching { Key.EKSTERN_INNTEKTSMELDING.les(ResultJson.serializer(), melding) }
-        val orgNavn = runCatching { Key.VIRKSOMHET.les(String.serializer(), melding) }
+        val orgnrMedNavn = runCatching { Key.VIRKSOMHETER.les(orgMapSerializer, melding) }
         val sykmeldt = runCatching { Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding) }
         val avsender = runCatching { Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding) }
 
-        val results = listOf(tidligereInntektsmelding, tidligereEksternInntektsmelding, orgNavn, sykmeldt, avsender)
+        val results = listOf(tidligereInntektsmelding, tidligereEksternInntektsmelding, orgnrMedNavn, sykmeldt, avsender)
 
         return if (results.all { it.isSuccess }) {
             val aarsakInnsending =
@@ -121,7 +123,7 @@ class InnsendingService(
 
             Steg2.Komplett(
                 aarsakInnsending = aarsakInnsending,
-                orgNavn = orgNavn.getOrThrow(),
+                orgnrMedNavn = orgnrMedNavn.getOrThrow(),
                 sykmeldt = sykmeldt.getOrThrow(),
                 avsender = avsender.getOrThrow(),
             )
@@ -168,8 +170,11 @@ class InnsendingService(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to steg1.forespoersel.orgnr.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                        Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(String.serializer()),
+                    ).toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_VIRKSOMHET_NAVN, it) }
 
         rapid
@@ -201,12 +206,14 @@ class InnsendingService(
                     steg0.skjema.fromJson(Innsending.serializer())
                 }
 
+            val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr.let(::Orgnr)] ?: "Ukjent virksomhet"
+
             val inntektsmelding =
                 mapInntektsmelding(
                     forespoersel = steg1.forespoersel,
                     skjema = skjema,
                     fulltnavnArbeidstaker = steg2.sykmeldt.navn,
-                    virksomhetNavn = steg2.orgNavn,
+                    virksomhetNavn = orgNavn,
                     innsenderNavn = steg2.avsender.navn,
                 )
 
@@ -269,7 +276,7 @@ class InnsendingService(
             when (utloesendeBehov) {
                 BehovType.HENT_VIRKSOMHET_NAVN -> {
                     listOf(
-                        Key.VIRKSOMHET to "Ukjent virksomhet".toJson(),
+                        Key.VIRKSOMHETER to emptyMap<String, String>().toJson(),
                     )
                 }
 

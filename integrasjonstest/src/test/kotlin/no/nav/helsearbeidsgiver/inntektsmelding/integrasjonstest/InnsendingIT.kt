@@ -84,7 +84,6 @@ class InnsendingIT : EndToEndTest() {
             every { randomUuid() } returns transaksjonId
             publish(
                 Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-                Key.CLIENT_ID to UUID.randomUUID().toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.DATA to "".toJson(),
                 Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
@@ -186,7 +185,6 @@ class InnsendingIT : EndToEndTest() {
             every { randomUuid() } returns transaksjonId
             publish(
                 Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-                Key.CLIENT_ID to UUID.randomUUID().toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.DATA to "".toJson(),
                 Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),

@@ -5,18 +5,22 @@ import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.every
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Forespoersel
+import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.gyldigInnsendingRequest
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
@@ -78,19 +82,19 @@ class InnsendingServiceIT : EndToEndTest() {
             every { randomUuid() } returns Mock.transaksjonId
             publish(
                 Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-                Key.CLIENT_ID to Mock.clientId.toJson(),
                 Key.UUID to Mock.transaksjonId.toJson(),
                 Key.DATA to "".toJson(),
                 Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                 Key.ORGNRUNDERENHET to Mock.ORGNR.toString().toJson(),
                 Key.IDENTITETSNUMMER to Mock.FNR.toString().toJson(),
                 Key.ARBEIDSGIVER_ID to Mock.FNR_AG.toString().toJson(),
-                Key.SKJEMA_INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer())
+                Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
             )
         }
 
         // Inntektsmelding lagret
-        messages.filter(EventName.INSENDING_STARTED)
+        messages
+            .filter(EventName.INSENDING_STARTED)
             .filter(Key.PERSISTERT_SKJEMA_INNTEKTSMELDING)
 
         // Forespørsel hentet
@@ -161,8 +165,7 @@ class InnsendingServiceIT : EndToEndTest() {
         messages
             .filter(EventName.INSENDING_STARTED)
             .filter(Key.INNTEKTSMELDING_DOKUMENT)
-
-        .filter(Key.ER_DUPLIKAT_IM)
+            .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
             .verifiserForespoerselId()
@@ -183,8 +186,7 @@ class InnsendingServiceIT : EndToEndTest() {
         // Siste melding fra service
         messages
             .filter(EventName.INNTEKTSMELDING_MOTTATT)
-
-        .firstAsMap()
+            .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
             .verifiserForespoerselId()
             .also {
@@ -197,16 +199,20 @@ class InnsendingServiceIT : EndToEndTest() {
                         .shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
-                    it[Key.ORGNRUNDERENHET].shouldNotBeNull()
+                    it[Key.ORGNRUNDERENHET]
+                        .shouldNotBeNull()
                         .fromJson(Orgnr.serializer())
 
-                    it[Key.IDENTITETSNUMMER].shouldNotBeNull()
+                    it[Key.IDENTITETSNUMMER]
+                        .shouldNotBeNull()
                         .fromJson(Fnr.serializer())
 
-                    it[Key.ARBEIDSGIVER_ID].shouldNotBeNull()
+                    it[Key.ARBEIDSGIVER_ID]
+                        .shouldNotBeNull()
                         .fromJson(Fnr.serializer())
 
-                    it[Key.SKJEMA_INNTEKTSMELDING].shouldNotBeNull()
+                    it[Key.SKJEMA_INNTEKTSMELDING]
+                        .shouldNotBeNull()
                         .fromJson(Innsending.serializer())
 
                     it[Key.INNTEKTSMELDING_DOKUMENT]
@@ -267,15 +273,14 @@ class InnsendingServiceIT : EndToEndTest() {
                 sykmeldingsperioder = gyldigInnsendingRequest.fraværsperioder,
                 skjaeringstidspunkt = gyldigInnsendingRequest.bestemmendeFraværsdag,
                 bestemmendeFravaersdager =
-                gyldigInnsendingRequest.fraværsperioder
-                    .lastOrNull()
-                    ?.let { mapOf(gyldigInnsendingRequest.orgnrUnderenhet to it.fom) }
-                    .orEmpty(),
+                    gyldigInnsendingRequest.fraværsperioder
+                        .lastOrNull()
+                        ?.let { mapOf(gyldigInnsendingRequest.orgnrUnderenhet to it.fom) }
+                        .orEmpty(),
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
             )
 
         val forespoersel = forespoerselSvar.toForespoersel()
-
     }
 }

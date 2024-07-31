@@ -18,7 +18,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
+import no.nav.helsearbeidsgiver.felles.test.mock.gyldigInnsendingRequest
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
@@ -52,14 +52,14 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                 journalpostId = "journalpost-id-sukkerspinn",
                 journalpostFerdigstilt = true,
                 melding = "Ha en brillefin dag!",
-                dokumenter = emptyList()
+                dokumenter = emptyList(),
             )
 
         mockForespoerselSvarFraHelsebro(
             eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
             transaksjonId = Mock.transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoerselSvar = Mock.forespoerselSvar
+            forespoerselSvar = Mock.forespoerselSvar,
         )
 
         mockStatic(::randomUuid) {
@@ -73,7 +73,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                 Key.ORGNRUNDERENHET to Mock.orgnr.toJson(Orgnr.serializer()),
                 Key.IDENTITETSNUMMER to Mock.fnr.toJson(Fnr.serializer()),
                 Key.ARBEIDSGIVER_ID to Mock.fnr.toJson(Fnr.serializer()),
-                Key.SKJEMA_INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer())
+                Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
             )
         }
 
@@ -172,19 +172,19 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         val forespoerselSvar =
             ForespoerselSvar.Suksess(
                 type = ForespoerselType.KOMPLETT,
-                orgnr = GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet,
-                fnr = GYLDIG_INNSENDING_REQUEST.identitetsnummer,
+                orgnr = gyldigInnsendingRequest.orgnrUnderenhet,
+                fnr = gyldigInnsendingRequest.identitetsnummer,
                 vedtaksperiodeId = vedtaksperiodeId,
-                egenmeldingsperioder = GYLDIG_INNSENDING_REQUEST.egenmeldingsperioder,
-                sykmeldingsperioder = GYLDIG_INNSENDING_REQUEST.fraværsperioder,
-                skjaeringstidspunkt = GYLDIG_INNSENDING_REQUEST.bestemmendeFraværsdag,
+                egenmeldingsperioder = gyldigInnsendingRequest.egenmeldingsperioder,
+                sykmeldingsperioder = gyldigInnsendingRequest.fraværsperioder,
+                skjaeringstidspunkt = gyldigInnsendingRequest.bestemmendeFraværsdag,
                 bestemmendeFravaersdager =
-                GYLDIG_INNSENDING_REQUEST.fraværsperioder
-                    .lastOrNull()
-                    ?.let { mapOf(GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet to it.fom) }
-                    .orEmpty(),
+                    gyldigInnsendingRequest.fraværsperioder
+                        .lastOrNull()
+                        ?.let { mapOf(gyldigInnsendingRequest.orgnrUnderenhet to it.fom) }
+                        .orEmpty(),
                 forespurtData = mockForespurtData(),
-                erBesvart = false
+                erBesvart = false,
             )
 
         val forespoersel = forespoerselSvar.toForespoersel()

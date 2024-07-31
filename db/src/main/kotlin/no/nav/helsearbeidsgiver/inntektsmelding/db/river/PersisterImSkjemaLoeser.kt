@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
@@ -25,7 +24,7 @@ import java.util.UUID
 
 class PersisterImSkjemaLoeser(
     rapidsConnection: RapidsConnection,
-    private val repository: InntektsmeldingRepository
+    private val repository: InntektsmeldingRepository,
 ) : Loeser(rapidsConnection) {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -33,11 +32,11 @@ class PersisterImSkjemaLoeser(
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
             it.demandValues(
-                Key.BEHOV to BehovType.PERSISTER_IM_SKJEMA.name
+                Key.BEHOV to BehovType.PERSISTER_IM_SKJEMA.name,
             )
             it.interestedIn(
                 Key.FORESPOERSEL_ID,
-                Key.SKJEMA_INNTEKTSMELDING
+                Key.SKJEMA_INNTEKTSMELDING,
             )
         }
 
@@ -53,7 +52,7 @@ class PersisterImSkjemaLoeser(
                     .parseJson()
                     .toMap()
 
-            val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
+            val transaksjonId = Key.UUID.les(UuidSerializer, json)
             val inntektsmeldingSkjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), json)
 
             // TODO: Trenger vi egentlig noen duplikatsjekk her, eller skal vi bare lagre ned alt?
@@ -83,7 +82,7 @@ class PersisterImSkjemaLoeser(
                 forespoerselId = forespoerselId,
                 Key.PERSISTERT_SKJEMA_INNTEKTSMELDING to inntektsmeldingSkjema.toJson(Innsending.serializer()),
                 Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer()),
-                *bumerangdata
+                *bumerangdata,
             )
         } catch (ex: Exception) {
             "Klarte ikke persistere skjema: $forespoerselId".also {

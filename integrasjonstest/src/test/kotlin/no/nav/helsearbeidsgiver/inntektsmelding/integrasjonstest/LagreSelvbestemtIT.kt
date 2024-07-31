@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.maps.shouldContainKey
@@ -116,11 +117,12 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         // Data hentet
         serviceMessages
-            .filter(Key.ARBEIDSFORHOLD)
-            .firstAsMap()[Key.ARBEIDSFORHOLD]
-            .shouldNotBeNull()
-            .fromJson(Arbeidsforhold.serializer().list())
-            .shouldBe(Mock.arbeidsforhold.map { it.tilArbeidsforhold() })
+            .filter(Key.ARBEIDSFORHOLD, nestedData = true)
+            .firstAsMap()
+            .also { melding ->
+                val data = melding[Key.DATA].shouldNotBeNull().toMap()
+                Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), data) shouldContainExactly Mock.arbeidsforhold.map { it.tilArbeidsforhold() }
+            }
 
         // Lagring forespurt
         serviceMessages

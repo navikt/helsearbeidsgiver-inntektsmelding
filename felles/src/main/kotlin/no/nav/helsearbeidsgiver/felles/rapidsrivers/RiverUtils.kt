@@ -22,11 +22,6 @@ fun JsonMessage.demandValues(vararg keyAndValuePairs: Pair<IKey, String>) {
     }
 }
 
-fun JsonMessage.demand(vararg keyAndParserPairs: Pair<IKey, (JsonElement) -> Any>) {
-    val keyStringAndParserPairs = keyAndParserPairs.map { it.mapFirst(IKey::str) }
-    validate(JsonMessage::demand, keyStringAndParserPairs)
-}
-
 fun JsonMessage.rejectKeys(vararg keys: IKey) {
     val keysAsStr = keys.map(IKey::str).toTypedArray()
     rejectKey(*keysAsStr)

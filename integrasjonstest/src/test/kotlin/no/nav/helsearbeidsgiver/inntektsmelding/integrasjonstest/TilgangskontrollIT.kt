@@ -41,8 +41,6 @@ class TilgangskontrollIT : EndToEndTest() {
         val transaksjonId: UUID = UUID.randomUUID()
 
         mockForespoerselSvarFraHelsebro(
-            eventName = EventName.TILGANG_FORESPOERSEL_REQUESTED,
-            transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar =
                 mockForespoerselSvarSuksess().copy(
@@ -58,7 +56,9 @@ class TilgangskontrollIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
-                Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe Mock.forespoerselId
+
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data) shouldBe Mock.forespoerselId
             }
 
         val result =
@@ -79,11 +79,7 @@ class TilgangskontrollIT : EndToEndTest() {
 
     @Test
     fun `forespoersel - skal bli nektet tilgang`() {
-        val transaksjonId: UUID = UUID.randomUUID()
-
         mockForespoerselSvarFraHelsebro(
-            eventName = EventName.TILGANG_FORESPOERSEL_REQUESTED,
-            transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar =
                 mockForespoerselSvarSuksess().copy(
@@ -91,7 +87,7 @@ class TilgangskontrollIT : EndToEndTest() {
                 ),
         )
 
-        tilgangProducer.publishForespoerselId(transaksjonId, Mock.innloggetFnr, Mock.forespoerselId)
+        tilgangProducer.publishForespoerselId(UUID.randomUUID(), Mock.innloggetFnr, Mock.forespoerselId)
 
         val result =
             messages

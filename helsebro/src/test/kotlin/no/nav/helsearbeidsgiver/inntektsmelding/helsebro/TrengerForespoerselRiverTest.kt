@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.ints.shouldBeExactly
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifySequence
@@ -14,30 +15,37 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import java.util.UUID
 
-class TrengerForespoerselLoeserTest :
+class TrengerForespoerselRiverTest :
     FunSpec({
         val testRapid = TestRapid()
         val mockPriProducer = mockk<PriProducer>()
 
-        TrengerForespoerselLoeser(testRapid, mockPriProducer)
+        TrengerForespoerselRiver(mockPriProducer).connect(testRapid)
 
         test("Ved behov om forespørsel på rapid-topic publiseres behov om forespørsel på pri-topic") {
             // Må bare returnere en Result med gyldig JSON
             every { mockPriProducer.send(*anyVararg<Pair<Pri.Key, JsonElement>>()) } returns Result.success(JsonNull)
 
             val expectedEvent = EventName.INNTEKT_REQUESTED
-            val expectedTransaksjonId = randomUuid()
-            val expectedForespoerselId = randomUuid()
+            val expectedTransaksjonId = UUID.randomUUID()
+            val expectedForespoerselId = UUID.randomUUID()
+            val journalpostId = "denne skal i boomerangen"
 
             testRapid.sendJson(
                 Key.EVENT_NAME to expectedEvent.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
                 Key.UUID to expectedTransaksjonId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
+                        Key.JOURNALPOST_ID to journalpostId.toJson(),
+                    ).toJson(),
             )
+
+            testRapid.inspektør.size shouldBeExactly 0
 
             verifySequence {
                 mockPriProducer.send(
@@ -47,6 +55,11 @@ class TrengerForespoerselLoeserTest :
                         mapOf(
                             Key.EVENT_NAME to expectedEvent.toJson(),
                             Key.UUID to expectedTransaksjonId.toJson(),
+                            Key.DATA to
+                                mapOf(
+                                    Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
+                                    Key.JOURNALPOST_ID to journalpostId.toJson(),
+                                ).toJson(),
                         ).toJson(),
                 )
             }

@@ -41,6 +41,7 @@ import java.util.UUID
 class InnsendingServiceIT : EndToEndTest() {
     @Test
     fun `Test at innsending er mottatt`() {
+        val transaksjonId: UUID = UUID.randomUUID()
         val tidligereInntektsmelding = mockInntektsmelding()
 
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.orgnr.verdi)
@@ -48,11 +49,7 @@ class InnsendingServiceIT : EndToEndTest() {
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
         imRepository.lagreInntektsmelding(Mock.forespoerselId.toString(), tidligereInntektsmelding)
 
-        val transaksjonId: UUID = UUID.randomUUID()
-
         mockForespoerselSvarFraHelsebro(
-            eventName = EventName.INSENDING_STARTED,
-            transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar = Mock.forespoerselSvar,
         )
@@ -79,13 +76,13 @@ class InnsendingServiceIT : EndToEndTest() {
         // Forespørsel hentet
         messages
             .filter(EventName.INSENDING_STARTED)
-            .filter(Key.FORESPOERSEL_SVAR)
+            .filter(Key.FORESPOERSEL_SVAR, nestedData = true)
             .firstAsMap()
             .verifiserTransaksjonId(transaksjonId)
             .verifiserForespoerselId()
             .also {
-                it shouldContainKey Key.DATA
-                it[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel
             }
 
         // Tidligere inntektsmelding hentet
@@ -97,8 +94,6 @@ class InnsendingServiceIT : EndToEndTest() {
             .verifiserTransaksjonId(transaksjonId)
             .verifiserForespoerselId()
             .also {
-                it shouldContainKey Key.DATA
-
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
                 val tidligereInntektsmeldingResult = ResultJson(success = tidligereInntektsmelding.toJson(Inntektsmelding.serializer()))
 

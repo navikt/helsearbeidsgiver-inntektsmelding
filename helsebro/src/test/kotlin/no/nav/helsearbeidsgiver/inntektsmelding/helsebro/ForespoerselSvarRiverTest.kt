@@ -31,11 +31,11 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class ForespoerselSvarLoeserTest :
+class ForespoerselSvarRiverTest :
     FunSpec({
         val testRapid = TestRapid()
 
-        ForespoerselSvarLoeser(testRapid)
+        ForespoerselSvarRiver().connect(testRapid)
 
         beforeTest {
             testRapid.reset()
@@ -50,13 +50,14 @@ class ForespoerselSvarLoeserTest :
             val expected = PublishedData.mock(expectedIncoming)
 
             testRapid.sendJson(
-                Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
+                Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
                 Pri.Key.LØSNING to expectedIncoming.toJson(ForespoerselSvar.serializer()),
             )
 
             val actual = testRapid.firstMessage().fromJson(PublishedData.serializer())
 
             testRapid.inspektør.size shouldBeExactly 1
+
             actual shouldBe expected
         }
 
@@ -66,7 +67,7 @@ class ForespoerselSvarLoeserTest :
             val expected = mockFail(expectedIncoming)
 
             testRapid.sendJson(
-                Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
+                Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
                 Pri.Key.LØSNING to expectedIncoming.toJson(ForespoerselSvar.serializer()),
             )
 
@@ -85,29 +86,29 @@ private data class PublishedData(
     val eventName: EventName,
     val uuid: UUID,
     val data: Map<Key, JsonElement>,
-    @JsonNames("forespoersel-svar")
-    val forespoerselSvar: Forespoersel,
 ) {
     companion object {
         fun mock(forespoerselSvar: ForespoerselSvar): PublishedData {
             val boomerangMap = forespoerselSvar.boomerang.toMap()
 
-            val initiateEvent = Key.EVENT_NAME.les(EventName.serializer(), boomerangMap)
+            val eventName = Key.EVENT_NAME.les(EventName.serializer(), boomerangMap)
             val transaksjonId = Key.UUID.les(UuidSerializer, boomerangMap)
+            val data = boomerangMap[Key.DATA]?.toMap().orEmpty()
 
             return PublishedData(
-                eventName = initiateEvent,
+                eventName = eventName,
                 uuid = transaksjonId,
                 data =
-                    mapOf(
-                        Key.FORESPOERSEL_ID to forespoerselSvar.forespoerselId.toJson(),
-                        Key.FORESPOERSEL_SVAR to
-                            forespoerselSvar.resultat
-                                ?.toForespoersel()
-                                .shouldNotBeNull()
-                                .toJson(Forespoersel.serializer()),
+                    data.plus(
+                        mapOf(
+                            Key.FORESPOERSEL_ID to forespoerselSvar.forespoerselId.toJson(),
+                            Key.FORESPOERSEL_SVAR to
+                                forespoerselSvar.resultat
+                                    .shouldNotBeNull()
+                                    .toForespoersel()
+                                    .toJson(Forespoersel.serializer()),
+                        ),
                     ),
-                forespoerselSvar = forespoerselSvar.resultat?.toForespoersel().shouldNotBeNull(),
             )
         }
     }
@@ -118,20 +119,21 @@ fun mockFail(forespoerselSvar: ForespoerselSvar): Fail {
 
     val boomerangMap = forespoerselSvar.boomerang.toMap()
 
-    val initiateEvent = Key.EVENT_NAME.les(EventName.serializer(), boomerangMap)
+    val eventName = Key.EVENT_NAME.les(EventName.serializer(), boomerangMap)
     val transaksjonId = Key.UUID.les(UuidSerializer, boomerangMap)
+    val data = boomerangMap[Key.DATA]?.toMap().orEmpty()
 
     return Fail(
         feilmelding = feilmelding,
-        event = initiateEvent,
+        event = eventName,
         transaksjonId = transaksjonId,
         forespoerselId = forespoerselSvar.forespoerselId,
         utloesendeMelding =
             mapOf(
-                Key.EVENT_NAME to initiateEvent.toJson(),
+                Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                 Key.UUID to transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselSvar.forespoerselId.toJson(),
+                Key.DATA to data.toJson(),
             ).toJson(),
     )
 }

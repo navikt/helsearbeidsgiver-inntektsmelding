@@ -49,7 +49,10 @@ class InntektsmeldingRepository(
         }
     }
 
-    fun lagreInntektsmeldingSkjema(forespoerselId: String, inntektsmeldingSkjema: Innsending) {
+    fun lagreInntektsmeldingSkjema(
+        forespoerselId: String,
+        inntektsmeldingSkjema: Innsending,
+    ) {
         val requestTimer = requestLatency.labels("lagreInntektsmeldingSkjema").startTimer()
         transaction(db) {
             InntektsmeldingEntitet.insert {

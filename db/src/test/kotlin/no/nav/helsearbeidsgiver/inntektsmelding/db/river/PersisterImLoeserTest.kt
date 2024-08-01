@@ -78,9 +78,10 @@ class PersisterImLoeserTest {
 
     @Test
     fun `ikke lagre ved duplikat`() {
-        coEvery { repository.hentNyesteInntektsmelding(any()) } returns mockInntektsmelding.copy(
-            tidspunkt = ZonedDateTime.now().minusHours(1).toOffsetDateTime()
-        )
+        coEvery { repository.hentNyesteInntektsmelding(any()) } returns
+            mockInntektsmelding.copy(
+                tidspunkt = ZonedDateTime.now().minusHours(1).toOffsetDateTime(),
+            )
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),

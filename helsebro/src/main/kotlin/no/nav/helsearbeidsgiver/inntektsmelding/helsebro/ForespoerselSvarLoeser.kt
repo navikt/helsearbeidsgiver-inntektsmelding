@@ -101,18 +101,23 @@ class ForespoerselSvarLoeser(
         }
     }
 
-    private fun MessageContext.publishSuksess(forespoersel: Forespoersel, melding: Melding) {
+    private fun MessageContext.publishSuksess(
+        forespoersel: Forespoersel,
+        melding: Melding,
+    ) {
         val bumerangdata =
-            melding.forespoerselSvar.boomerang.toMap()
+            melding.forespoerselSvar.boomerang
+                .toMap()
                 .minus(listOf(Key.BEHOV, Key.EVENT_NAME, Key.FORESPOERSEL_ID, Key.UUID))
                 .toList()
                 .toTypedArray()
 
-        val dataFields = arrayOf(
-            Key.FORESPOERSEL_ID to melding.forespoerselSvar.forespoerselId.toJson(),
-            Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
-            *bumerangdata,
-        )
+        val dataFields =
+            arrayOf(
+                Key.FORESPOERSEL_ID to melding.forespoerselSvar.forespoerselId.toJson(),
+                Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
+                *bumerangdata,
+            )
 
         publish(
             Key.EVENT_NAME to melding.initiateEvent.toJson(),

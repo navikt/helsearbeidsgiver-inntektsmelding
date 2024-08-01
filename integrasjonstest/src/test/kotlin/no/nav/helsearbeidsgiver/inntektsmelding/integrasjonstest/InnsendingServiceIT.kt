@@ -67,7 +67,7 @@ class InnsendingServiceIT : EndToEndTest() {
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.ARBEIDSGIVER_ID to Mock.fnrAg.toJson(),
+            Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
             Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
         )
 
@@ -93,93 +93,6 @@ class InnsendingServiceIT : EndToEndTest() {
                 }
             }
 
-        // Bør flyttes til InnsendingIT
-//        // Forespørsel hentet
-//        messages
-//            .filter(EventName.INSENDING_STARTED)
-//            .filter(Key.FORESPOERSEL_SVAR)
-//            .firstAsMap()
-//            .verifiserTransaksjonId(transaksjonId)
-//            .verifiserForespoerselId()
-//            .also {
-//                it shouldContainKey Key.DATA
-//                it[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel
-//            }
-//
-//        // Tidligere inntektsmelding hentet
-//        messages
-//            .filter(EventName.INSENDING_STARTED)
-//            .filter(Key.LAGRET_INNTEKTSMELDING, nestedData = true)
-//            .filter(Key.EKSTERN_INNTEKTSMELDING, nestedData = true)
-//            .firstAsMap()
-//            .verifiserTransaksjonId(transaksjonId)
-//            .verifiserForespoerselId()
-//            .also {
-//                it shouldContainKey Key.DATA
-//
-//                val data = it[Key.DATA]?.toMap().orEmpty()
-//                val tidligereInntektsmeldingResult = ResultJson(success = tidligereInntektsmelding.toJson(Inntektsmelding.serializer()))
-//
-//                data[Key.LAGRET_INNTEKTSMELDING]?.fromJson(ResultJson.serializer()) shouldBe tidligereInntektsmeldingResult
-//                data[Key.EKSTERN_INNTEKTSMELDING]?.fromJson(ResultJson.serializer()) shouldBe ResultJson(success = null)
-//            }
-//
-//        // Virksomhetsnavn hentet
-//        messages
-//            .filter(EventName.INSENDING_STARTED)
-//            .filter(Key.VIRKSOMHET)
-//            .firstAsMap()
-//            .verifiserTransaksjonId(transaksjonId)
-//            .verifiserForespoerselId()
-//            .also {
-//                it shouldContainKey Key.DATA
-//                it[Key.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe "Bedrift A/S"
-//            }
-//
-//        // Sykmeldt og innsender hentet
-//        messages
-//            .filter(EventName.INSENDING_STARTED)
-//            .filter(Key.ARBEIDSTAKER_INFORMASJON)
-//            .filter(Key.ARBEIDSGIVER_INFORMASJON)
-//            .firstAsMap()
-//            .verifiserTransaksjonId(transaksjonId)
-//            .verifiserForespoerselId()
-//            .also {
-//                it shouldContainKey Key.DATA
-//
-//                shouldNotThrowAny {
-//                    it[Key.ARBEIDSTAKER_INFORMASJON]
-//                        .shouldNotBeNull()
-//                        .fromJson(PersonDato.serializer())
-//
-//                    it[Key.ARBEIDSGIVER_INFORMASJON]
-//                        .shouldNotBeNull()
-//                        .fromJson(PersonDato.serializer())
-//                }
-//            }
-//
-//        // Inntektsmelding lagret
-//        messages
-//            .filter(EventName.INSENDING_STARTED)
-//            .filter(Key.INNTEKTSMELDING_DOKUMENT)
-//            .filter(Key.ER_DUPLIKAT_IM)
-//            .firstAsMap()
-//            .verifiserTransaksjonId(transaksjonId)
-//            .verifiserForespoerselId()
-//            .also {
-//                it shouldContainKey Key.DATA
-//
-//                shouldNotThrowAny {
-//                    it[Key.PERSISTERT_SKJEMA_INNTEKTSMELDING]
-//                        .shouldNotBeNull()
-//                        .fromJson(Innsending.serializer())
-//
-//                    it[Key.ER_DUPLIKAT_IM]
-//                        .shouldNotBeNull()
-//                        .fromJson(Boolean.serializer())
-//                }
-//            }
-
         // Siste melding fra service
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
@@ -196,7 +109,7 @@ class InnsendingServiceIT : EndToEndTest() {
                         .shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
-                    it[Key.ARBEIDSGIVER_ID]
+                    it[Key.ARBEIDSGIVER_FNR]
                         .shouldNotBeNull()
                         .fromJson(Fnr.serializer())
 

@@ -15,11 +15,14 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.mock.gyldigInnsendingRequest
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.toForespoersel
@@ -41,9 +44,12 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
     @Ignore
     @Test
     fun `skal berike og lagre inntektsmeldinger`() {
+        val tidligereInntektsmelding = mockInntektsmelding()
+
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.orgnr.toString())
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
+        imRepository.lagreInntektsmelding(Mock.forespoerselId.toString(), tidligereInntektsmelding)
 
         coEvery {
             dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
@@ -70,7 +76,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                 Key.UUID to Mock.transaksjonId.toJson(),
                 Key.DATA to "".toJson(),
                 Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                Key.ARBEIDSGIVER_ID to Mock.fnr.toJson(Fnr.serializer()),
+                Key.ARBEIDSGIVER_FNR to Mock.fnr.toJson(Fnr.serializer()),
                 Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
             )
         }
@@ -87,6 +93,24 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                 it[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel
             }
 
+        // Tidligere inntektsmelding hentet
+        messages
+            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+            .filter(Key.LAGRET_INNTEKTSMELDING, nestedData = true)
+            .filter(Key.EKSTERN_INNTEKTSMELDING, nestedData = true)
+            .firstAsMap()
+            .verifiserTransaksjonId(Mock.transaksjonId)
+            .verifiserForespoerselId()
+            .also {
+                it shouldContainKey Key.DATA
+
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                val tidligereInntektsmeldingResult = ResultJson(success = tidligereInntektsmelding.toJson(Inntektsmelding.serializer()))
+
+                data[Key.LAGRET_INNTEKTSMELDING]?.fromJson(ResultJson.serializer()) shouldBe tidligereInntektsmeldingResult
+                data[Key.EKSTERN_INNTEKTSMELDING]?.fromJson(ResultJson.serializer()) shouldBe ResultJson(success = null)
+            }
+
         // Virksomhetsnavn hentet
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
@@ -99,25 +123,40 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                 it[Key.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe "Bedrift A/S"
             }
 
-        // Sykmeldt og innsender hentet
+        // Inntektsmelding lagret
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.ARBEIDSTAKER_INFORMASJON)
-            .filter(Key.ARBEIDSGIVER_INFORMASJON)
+            .filter(Key.INNTEKTSMELDING_DOKUMENT)
+            .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
             .verifiserForespoerselId()
             .also {
                 it shouldContainKey Key.DATA
+                shouldNotThrowAny {
+                    it[Key.INNTEKTSMELDING_DOKUMENT]
+                        .shouldNotBeNull()
+                        .fromJson(Inntektsmelding.serializer())
+                    it[Key.ER_DUPLIKAT_IM]
+                        .shouldNotBeNull()
+                        .fromJson(Boolean.serializer())
+                }
+            }
+
+        // Sykmeldt og innsender hentet
+        messages
+            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+            .filter(Key.PERSONER, nestedData = true)
+            .firstAsMap()
+            .verifiserTransaksjonId(Mock.transaksjonId)
+            .verifiserForespoerselId()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
 
                 shouldNotThrowAny {
-                    it[Key.ARBEIDSTAKER_INFORMASJON]
+                    data[Key.PERSONER]
                         .shouldNotBeNull()
-                        .fromJson(PersonDato.serializer())
-
-                    it[Key.ARBEIDSGIVER_INFORMASJON]
-                        .shouldNotBeNull()
-                        .fromJson(PersonDato.serializer())
+                        .fromJson(personMapSerializer)
                 }
             }
 
@@ -154,7 +193,13 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
     private fun Map<Key, JsonElement>.verifiserForespoerselId(): Map<Key, JsonElement> =
         also {
-            Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe Mock.forespoerselId
+            val data =
+                it[Key.DATA]
+                    .takeUnless { dataJsonElement -> dataJsonElement == "".toJson() }
+                    ?.toMap()
+                    .orEmpty()
+            val forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) ?: Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data)
+            forespoerselId shouldBe Mock.forespoerselId
         }
 
     private object Mock {

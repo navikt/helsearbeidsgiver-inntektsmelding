@@ -29,7 +29,6 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -73,7 +72,7 @@ class InnsendingIT : EndToEndTest() {
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.ARBEIDSGIVER_ID to Mock.skjema.identitetsnummer.toJson(),
+            Key.ARBEIDSGIVER_FNR to Mock.skjema.identitetsnummer.toJson(),
             Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
         )
 
@@ -169,7 +168,7 @@ class InnsendingIT : EndToEndTest() {
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.ARBEIDSGIVER_ID to maxMekker.ident!!.toJson(),
+            Key.ARBEIDSGIVER_FNR to maxMekker.ident!!.toJson(),
             Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
         )
 

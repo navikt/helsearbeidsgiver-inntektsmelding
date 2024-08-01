@@ -38,7 +38,7 @@ class InnsendingProducerTest :
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.ORGNRUNDERENHET to gyldigInnsendingRequest.orgnrUnderenhet.toJson(),
                     Key.IDENTITETSNUMMER to gyldigInnsendingRequest.identitetsnummer.toJson(),
-                    Key.ARBEIDSGIVER_ID to avsenderFnr.toJson(),
+                    Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
                 )
         }

@@ -12,10 +12,11 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.Person
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -35,6 +36,8 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
+private const val UKJENT_NAVN = "Ukjent navn"
+
 data class Steg0(
     val transaksjonId: UUID,
     val forespoerselId: UUID,
@@ -50,8 +53,7 @@ sealed class Steg2 {
     data class Komplett(
         val aarsakInnsending: AarsakInnsending,
         val orgNavn: String,
-        val sykmeldt: PersonDato,
-        val avsender: PersonDato,
+        val personer: Map<Fnr, Person>,
     ) : Steg2()
 
     data object Delvis : Steg2()
@@ -74,14 +76,13 @@ class BerikInntektsmeldingService(
     override val startKeys =
         setOf(
             Key.FORESPOERSEL_ID,
-            Key.ARBEIDSGIVER_ID,
+            Key.ARBEIDSGIVER_FNR,
             Key.SKJEMA_INNTEKTSMELDING,
         )
     override val dataKeys =
         setOf(
             Key.VIRKSOMHET,
-            Key.ARBEIDSGIVER_INFORMASJON,
-            Key.ARBEIDSTAKER_INFORMASJON,
+            Key.PERSONER,
             Key.INNTEKTSMELDING_DOKUMENT,
             Key.ER_DUPLIKAT_IM,
             Key.FORESPOERSEL_SVAR,
@@ -93,7 +94,7 @@ class BerikInntektsmeldingService(
         Steg0(
             transaksjonId = Key.UUID.les(UuidSerializer, melding),
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
-            avsenderFnr = Key.ARBEIDSGIVER_ID.les(Fnr.serializer(), melding),
+            avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
             skjema = Key.SKJEMA_INNTEKTSMELDING.les(JsonElement.serializer(), melding),
         )
 
@@ -106,10 +107,9 @@ class BerikInntektsmeldingService(
         val tidligereInntektsmelding = runCatching { Key.LAGRET_INNTEKTSMELDING.les(ResultJson.serializer(), melding) }
         val tidligereEksternInntektsmelding = runCatching { Key.EKSTERN_INNTEKTSMELDING.les(ResultJson.serializer(), melding) }
         val orgNavn = runCatching { Key.VIRKSOMHET.les(String.serializer(), melding) }
-        val sykmeldt = runCatching { Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding) }
-        val avsender = runCatching { Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding) }
+        val personer = runCatching { Key.PERSONER.les(personMapSerializer, melding) }
 
-        val results = listOf(tidligereInntektsmelding, tidligereEksternInntektsmelding, orgNavn, sykmeldt, avsender)
+        val results = listOf(tidligereInntektsmelding, tidligereEksternInntektsmelding, orgNavn, personer)
 
         return if (results.all { it.isSuccess }) {
             val aarsakInnsending =
@@ -122,8 +122,7 @@ class BerikInntektsmeldingService(
             Steg2.Komplett(
                 aarsakInnsending = aarsakInnsending,
                 orgNavn = orgNavn.getOrThrow(),
-                sykmeldt = sykmeldt.getOrThrow(),
-                avsender = avsender.getOrThrow(),
+                personer = personer.getOrThrow(),
             )
         } else if (results.any { it.isSuccess }) {
             Steg2.Delvis
@@ -175,12 +174,18 @@ class BerikInntektsmeldingService(
         rapid
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
+                Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                Key.IDENTITETSNUMMER to steg1.forespoersel.fnr.toJson(),
-                Key.ARBEIDSGIVER_ID to steg0.avsenderFnr.toJson(),
-            ).also { loggBehovPublisert(BehovType.FULLT_NAVN, it) }
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                        Key.FNR_LISTE to
+                            listOf(
+                                steg1.forespoersel.fnr.let(::Fnr),
+                                steg0.avsenderFnr,
+                            ).toJson(Fnr.serializer()),
+                    ).toJson(),
+            ).also { loggBehovPublisert(BehovType.HENT_PERSONER, it) }
     }
 
     override fun utfoerSteg2(
@@ -201,13 +206,16 @@ class BerikInntektsmeldingService(
                     steg0.skjema.fromJson(Innsending.serializer())
                 }
 
+            val sykmeldtNavn = steg2.personer[steg1.forespoersel.fnr.let(::Fnr)]?.navn ?: UKJENT_NAVN
+            val avsenderNavn = steg2.personer[steg0.avsenderFnr]?.navn ?: UKJENT_NAVN
+
             val inntektsmelding =
                 mapInntektsmelding(
                     forespoersel = steg1.forespoersel,
                     skjema = skjema,
-                    fulltnavnArbeidstaker = steg2.sykmeldt.navn,
+                    fulltnavnArbeidstaker = sykmeldtNavn,
                     virksomhetNavn = steg2.orgNavn,
-                    innsenderNavn = steg2.avsender.navn,
+                    innsenderNavn = avsenderNavn,
                 )
 
             if (inntektsmelding.bestemmendeFraværsdag.isBefore(inntektsmelding.inntektsdato)) {
@@ -267,33 +275,14 @@ class BerikInntektsmeldingService(
 
         val datafeil =
             when (utloesendeBehov) {
-                BehovType.HENT_VIRKSOMHET_NAVN -> {
-                    listOf(
-                        Key.VIRKSOMHET to "Ukjent virksomhet".toJson(),
-                    )
-                }
-
-                BehovType.FULLT_NAVN -> {
-                    val sykmeldtFnr = Key.IDENTITETSNUMMER.les(String.serializer(), melding)
-                    val avsenderFnr = Key.ARBEIDSGIVER_ID.les(String.serializer(), melding)
-
-                    listOf(
-                        Key.ARBEIDSTAKER_INFORMASJON to tomPerson(sykmeldtFnr).toJson(PersonDato.serializer()),
-                        Key.ARBEIDSGIVER_INFORMASJON to tomPerson(avsenderFnr).toJson(PersonDato.serializer()),
-                    )
-                }
-
-                else -> {
-                    emptyList()
-                }
+                BehovType.HENT_VIRKSOMHET_NAVN -> Key.VIRKSOMHETER to emptyMap<String, String>().toJson()
+                BehovType.HENT_PERSONER -> Key.PERSONER to emptyMap<String, String>().toJson()
+                else -> null
             }
 
-        if (datafeil.isNotEmpty()) {
-            datafeil.onEach { (key, defaultVerdi) ->
-                redisStore.set(RedisKey.of(fail.transaksjonId, key), defaultVerdi)
-            }
-
-            val meldingMedDefault = datafeil.toMap().plus(melding)
+        if (datafeil != null) {
+            redisStore.set(RedisKey.of(fail.transaksjonId, datafeil.first), datafeil.second)
+            val meldingMedDefault = mapOf(datafeil).plus(melding)
 
             onData(meldingMedDefault)
         } else {
@@ -325,10 +314,3 @@ class BerikInntektsmeldingService(
         }
     }
 }
-
-private fun tomPerson(fnr: String): PersonDato =
-    PersonDato(
-        navn = "",
-        fødselsdato = null,
-        ident = fnr,
-    )

@@ -48,7 +48,7 @@ class InnsendingService(
     override val startKeys =
         setOf(
             Key.FORESPOERSEL_ID,
-            Key.ARBEIDSGIVER_ID,
+            Key.ARBEIDSGIVER_FNR,
             Key.SKJEMA_INNTEKTSMELDING,
         )
     override val dataKeys =
@@ -61,7 +61,7 @@ class InnsendingService(
         Steg0(
             transaksjonId = Key.UUID.les(UuidSerializer, melding),
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
-            avsenderFnr = Key.ARBEIDSGIVER_ID.les(Fnr.serializer(), melding),
+            avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
             skjema = Key.SKJEMA_INNTEKTSMELDING.les(JsonElement.serializer(), melding),
         )
 
@@ -96,7 +96,7 @@ class InnsendingService(
                         Key.UUID to steg0.transaksjonId.toJson(),
                         Key.DATA to "".toJson(),
                         Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                        Key.ARBEIDSGIVER_ID to steg0.avsenderFnr.toJson(),
+                        Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
                         Key.SKJEMA_INNTEKTSMELDING to steg0.skjema,
                     )
 

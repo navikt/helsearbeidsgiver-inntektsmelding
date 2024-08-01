@@ -7,7 +7,6 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
@@ -65,7 +64,7 @@ class OpprettSakServiceTest {
                     utloesendeMelding =
                         JsonObject(
                             mapOf(
-                                Key.BEHOV.str to BehovType.FULLT_NAVN.toJson(),
+                                Key.BEHOV.str to BehovType.HENT_PERSONER.toJson(),
                             ),
                         ),
                 ).toJson(Fail.serializer()),
@@ -75,10 +74,7 @@ class OpprettSakServiceTest {
         )
 
         verify {
-            mockRedis.store.set(
-                RedisKey.of(transaksjonId, Key.ARBEIDSTAKER_INFORMASJON),
-                PersonDato("Ukjent person", null, fnr.verdi).toJson(PersonDato.serializer()),
-            )
+            mockRedis.store.set(RedisKey.of(transaksjonId, Key.PERSONER), emptyMap<String, String>().toJson())
         }
     }
 }

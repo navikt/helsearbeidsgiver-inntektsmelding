@@ -7,7 +7,6 @@ enum class BehovType {
     // Hente data
     HENT_ARBEIDSFORHOLD,
     ARBEIDSGIVERE,
-    FULLT_NAVN,
     HENT_EKSTERN_INNTEKTSMELDING,
     HENT_INNTEKT,
     HENT_LAGRET_IM,

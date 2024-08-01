@@ -59,7 +59,7 @@ class MarkerForespoerselBesvartRiverTest :
                 Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
                 Key.UUID to randomUuid().toJson(),
                 Key.FORESPOERSEL_ID to randomUuid().toJson(),
-                Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
+                Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
             )
 
             testRapid.inspektør.size shouldBeExactly 0

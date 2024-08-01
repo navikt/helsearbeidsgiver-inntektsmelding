@@ -34,7 +34,7 @@ class InnsendingProducer(
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.ORGNRUNDERENHET to request.orgnrUnderenhet.toJson(),
                 Key.IDENTITETSNUMMER to request.identitetsnummer.toJson(),
-                Key.ARBEIDSGIVER_ID to arbeidsgiverFnr.toJson(),
+                Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
                 Key.SKJEMA_INNTEKTSMELDING to request.toJson(Innsending.serializer()),
             ).also {
                 logger.info("Publiserte til kafka forespørselId: $forespoerselId og transaksjonId=$transaksjonId")

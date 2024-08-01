@@ -70,7 +70,7 @@ class InnsendingIT : EndToEndTest() {
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.ARBEIDSGIVER_ID to Mock.skjema.identitetsnummer.toJson(),
+            Key.ARBEIDSGIVER_FNR to Mock.skjema.identitetsnummer.toJson(),
             Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
         )
 
@@ -165,7 +165,7 @@ class InnsendingIT : EndToEndTest() {
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.ARBEIDSGIVER_ID to maxMekker.ident!!.toJson(),
+            Key.ARBEIDSGIVER_FNR to maxMekker.ident!!.toJson(),
             Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
         )
 

@@ -14,10 +14,10 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
+import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
@@ -72,7 +72,7 @@ class InnsendingServiceIT : EndToEndTest() {
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.ARBEIDSGIVER_ID to Mock.fnrAg.toJson(),
+            Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
             Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
         )
 
@@ -99,7 +99,7 @@ class InnsendingServiceIT : EndToEndTest() {
             .also {
                 it shouldContainKey Key.DATA
 
-                val data = it[Key.DATA]?.toMap().orEmpty()
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
                 val tidligereInntektsmeldingResult = ResultJson(success = tidligereInntektsmelding.toJson(Inntektsmelding.serializer()))
 
                 data[Key.LAGRET_INNTEKTSMELDING]?.fromJson(ResultJson.serializer()) shouldBe tidligereInntektsmeldingResult
@@ -121,22 +121,17 @@ class InnsendingServiceIT : EndToEndTest() {
         // Sykmeldt og innsender hentet
         messages
             .filter(EventName.INSENDING_STARTED)
-            .filter(Key.ARBEIDSTAKER_INFORMASJON)
-            .filter(Key.ARBEIDSGIVER_INFORMASJON)
+            .filter(Key.PERSONER, nestedData = true)
             .firstAsMap()
             .verifiserTransaksjonId(transaksjonId)
             .verifiserForespoerselId()
             .also {
-                it shouldContainKey Key.DATA
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
 
                 shouldNotThrowAny {
-                    it[Key.ARBEIDSTAKER_INFORMASJON]
+                    data[Key.PERSONER]
                         .shouldNotBeNull()
-                        .fromJson(PersonDato.serializer())
-
-                    it[Key.ARBEIDSGIVER_INFORMASJON]
-                        .shouldNotBeNull()
-                        .fromJson(PersonDato.serializer())
+                        .fromJson(personMapSerializer)
                 }
             }
 

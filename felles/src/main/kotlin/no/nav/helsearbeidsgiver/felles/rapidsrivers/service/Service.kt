@@ -170,6 +170,38 @@ abstract class ServiceMed4Steg<S0, S1, S2, S3, S4> : ServiceMed3Steg<S0, S1, S2,
     }
 }
 
+abstract class ServiceMed5Steg<S0, S1, S2, S3, S4, S5> : ServiceMed4Steg<S0, S1, S2, S3, S4>() {
+    protected abstract fun lesSteg5(melding: Map<Key, JsonElement>): S5
+
+    protected abstract fun utfoerSteg5(
+        steg0: S0,
+        steg1: S1,
+        steg2: S2,
+        steg3: S3,
+        steg4: S4,
+        steg5: S5,
+    )
+
+    override fun onData(melding: Map<Key, JsonElement>) {
+        runCatching {
+            Sextuple(
+                first = lesSteg0(melding),
+                second = lesSteg1(melding),
+                third = lesSteg2(melding),
+                fourth = lesSteg3(melding),
+                fifth = lesSteg4(melding),
+                sixth = lesSteg5(melding),
+            )
+        }.onSuccess {
+            medLoggfelt(it.first) {
+                utfoerSteg5(it.first, it.second, it.third, it.fourth, it.fifth, it.sixth)
+            }
+        }.onFailure {
+            super.onData(melding)
+        }
+    }
+}
+
 private class Quadruple<S0, S1, S2, S3>(
     val first: S0,
     val second: S1,
@@ -183,4 +215,13 @@ private class Quintuple<S0, S1, S2, S3, S4>(
     val third: S2,
     val fourth: S3,
     val fifth: S4,
+)
+
+private class Sextuple<S0, S1, S2, S3, S4, S5>(
+    val first: S0,
+    val second: S1,
+    val third: S2,
+    val fourth: S3,
+    val fifth: S4,
+    val sixth: S5,
 )

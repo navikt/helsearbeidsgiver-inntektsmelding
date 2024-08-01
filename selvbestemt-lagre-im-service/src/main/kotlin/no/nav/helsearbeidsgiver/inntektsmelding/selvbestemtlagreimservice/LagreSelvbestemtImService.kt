@@ -16,12 +16,12 @@ import no.nav.helsearbeidsgiver.felles.Person
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publishNotNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
@@ -37,6 +37,7 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -49,7 +50,7 @@ data class Steg0(
 
 sealed class Steg1 {
     data class Komplett(
-        val orgNavn: String,
+        val orgnrMedNavn: Map<Orgnr, String>,
         val personer: Map<Fnr, Person>,
         val arbeidsforhold: List<Arbeidsforhold>,
     ) : Steg1()
@@ -83,7 +84,7 @@ class LagreSelvbestemtImService(
         )
     override val dataKeys =
         setOf(
-            Key.VIRKSOMHET,
+            Key.VIRKSOMHETER,
             Key.PERSONER,
             Key.ARBEIDSFORHOLD,
             Key.SELVBESTEMT_INNTEKTSMELDING,
@@ -101,7 +102,7 @@ class LagreSelvbestemtImService(
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 {
         val steg0 = lesSteg0(melding)
 
-        val orgNavn = runCatching { Key.VIRKSOMHET.les(String.serializer(), melding) }
+        val orgnrMedNavn = runCatching { Key.VIRKSOMHETER.les(orgMapSerializer, melding) }
         val personer = runCatching { Key.PERSONER.les(personMapSerializer, melding) }
         val arbeidsforhold =
             runCatching {
@@ -110,11 +111,11 @@ class LagreSelvbestemtImService(
                     .filter { it.arbeidsgiver.organisasjonsnummer == steg0.skjema.avsender.orgnr.verdi }
             }
 
-        val results = listOf(orgNavn, personer, arbeidsforhold)
+        val results = listOf(orgnrMedNavn, personer, arbeidsforhold)
 
         return if (results.all { it.isSuccess }) {
             Steg1.Komplett(
-                orgNavn = orgNavn.getOrThrow(),
+                orgnrMedNavn = orgnrMedNavn.getOrThrow(),
                 personer = personer.getOrThrow(),
                 arbeidsforhold = arbeidsforhold.getOrThrow(),
             )
@@ -139,13 +140,15 @@ class LagreSelvbestemtImService(
     override fun utfoerSteg0(steg0: Steg0) {
         kontrollerSkjema(steg0.skjema)
 
-        rapid.publishNotNull(
+        rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),
-            Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
-            Key.ORGNRUNDERENHET to
-                steg0.skjema.avsender.orgnr
+            Key.DATA to
+                mapOf(
+                    Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
+                    Key.ORGNR_UNDERENHETER to setOf(steg0.skjema.avsender.orgnr).toJson(Orgnr.serializer()),
+                ).mapValuesNotNull { it }
                     .toJson(),
         )
 
@@ -157,7 +160,7 @@ class LagreSelvbestemtImService(
                 mapOf(
                     Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
                     Key.FNR_LISTE to
-                        listOf(
+                        setOf(
                             steg0.skjema.sykmeldtFnr,
                             steg0.avsenderFnr,
                         ).toJson(Fnr.serializer()),
@@ -187,11 +190,12 @@ class LagreSelvbestemtImService(
         if (steg1 is Steg1.Komplett) {
             val sykmeldtNavn = steg1.personer[steg0.skjema.sykmeldtFnr]?.navn.orEmpty()
             val avsenderNavn = steg1.personer[steg0.avsenderFnr]?.navn.orEmpty()
+            val orgNavn = steg1.orgnrMedNavn[steg0.skjema.avsender.orgnr] ?: "Ukjent virksomhet"
 
             val inntektsmelding =
                 tilInntektsmelding(
                     skjema = steg0.skjema,
-                    orgNavn = steg1.orgNavn,
+                    orgNavn = orgNavn,
                     sykmeldtNavn = sykmeldtNavn,
                     avsenderNavn = avsenderNavn,
                 )
@@ -300,7 +304,7 @@ class LagreSelvbestemtImService(
             val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
             val datafeil =
                 when (utloesendeBehov) {
-                    BehovType.HENT_VIRKSOMHET_NAVN -> Key.VIRKSOMHET to "Ukjent virksomhet".toJson()
+                    BehovType.HENT_VIRKSOMHET_NAVN -> Key.VIRKSOMHETER to emptyMap<String, String>().toJson()
 
                     // Lesing av personer bruker allerede defaults, så trenger bare map-struktur her
                     BehovType.HENT_PERSONER -> Key.PERSONER to emptyMap<Fnr, Person>().toJson(personMapSerializer)

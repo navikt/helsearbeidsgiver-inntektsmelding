@@ -8,7 +8,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndT
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -43,20 +44,22 @@ class NotifikasjonIT : EndToEndTest() {
 
         messages
             .filter(EventName.SAK_OPPRETT_REQUESTED)
-            .filter(BehovType.FULLT_NAVN)
+            .filter(BehovType.HENT_PERSONER)
             .firstAsMap()
             .also {
-                it[Key.IDENTITETSNUMMER]?.fromJson(Fnr.serializer()) shouldBe Mock.fnr
-                it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
+                data[Key.FNR_LISTE]?.fromJson(Fnr.serializer().set()) shouldBe setOf(Mock.fnr)
             }
 
         messages
             .filter(EventName.SAK_OPPRETT_REQUESTED)
-            .filter(Key.ARBEIDSTAKER_INFORMASJON)
+            .filter(Key.PERSONER, nestedData = true)
             .firstAsMap()
             .also {
-                it[Key.ARBEIDSTAKER_INFORMASJON]
-                    ?.fromJson(PersonDato.serializer())
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.PERSONER]
+                    ?.fromJson(personMapSerializer)
                     .shouldNotBeNull()
             }
 
@@ -174,20 +177,22 @@ class NotifikasjonIT : EndToEndTest() {
 
         messages
             .filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
-            .filter(BehovType.FULLT_NAVN)
+            .filter(BehovType.HENT_PERSONER)
             .firstAsMap()
             .also {
-                it[Key.IDENTITETSNUMMER]?.fromJson(Fnr.serializer()) shouldBe Mock.fnr
-                it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
+                data[Key.FNR_LISTE]?.fromJson(Fnr.serializer().set()) shouldBe setOf(Mock.fnr)
             }
 
         messages
             .filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
-            .filter(Key.ARBEIDSTAKER_INFORMASJON)
+            .filter(Key.PERSONER, nestedData = true)
             .firstAsMap()
             .also {
-                it[Key.ARBEIDSTAKER_INFORMASJON]
-                    ?.fromJson(PersonDato.serializer())
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.PERSONER]
+                    ?.fromJson(personMapSerializer)
                     .shouldNotBeNull()
             }
 

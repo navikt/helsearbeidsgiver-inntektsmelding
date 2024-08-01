@@ -11,6 +11,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
 import io.mockk.coEvery
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.aareg.Ansettelsesperiode
@@ -98,11 +99,13 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         // Data hentet
         serviceMessages
-            .filter(Key.VIRKSOMHET)
-            .firstAsMap()[Key.VIRKSOMHET]
-            .shouldNotBeNull()
-            .fromJson(String.serializer())
-            .shouldBe(Mock.virksomhet.navn)
+            .filter(Key.VIRKSOMHETER, nestedData = true)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.VIRKSOMHETER.les(MapSerializer(String.serializer(), String.serializer()), data) shouldBe
+                    mapOf(Mock.virksomhet.organisasjonsnummer to Mock.virksomhet.navn)
+            }
 
         // Data hentet
         serviceMessages

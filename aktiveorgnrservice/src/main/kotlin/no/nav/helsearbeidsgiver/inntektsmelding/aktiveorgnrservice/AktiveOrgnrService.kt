@@ -132,7 +132,7 @@ class AktiveOrgnrService(
             Key.DATA to
                 mapOf(
                     Key.FNR_LISTE to
-                        listOf(
+                        setOf(
                             steg0.sykmeldtFnr,
                             steg0.avsenderFnr,
                         ).toJson(Fnr.serializer()),
@@ -156,7 +156,10 @@ class AktiveOrgnrService(
                     Key.EVENT_NAME to eventName.toJson(),
                     Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                     Key.UUID to steg0.transaksjonId.toJson(),
-                    Key.ORGNR_UNDERENHETER to arbeidsgivere.toJson(String.serializer()),
+                    Key.DATA to
+                        mapOf(
+                            Key.ORGNR_UNDERENHETER to arbeidsgivere.toJson(String.serializer()),
+                        ).toJson(),
                 )
             }
         }

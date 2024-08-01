@@ -37,6 +37,7 @@ import java.util.UUID
 
 private const val UNDEFINED_FELT = "{}"
 private const val UKJENT_NAVN = "Ukjent navn"
+private const val UKJENT_VIRKSOMHET = "Ukjent virksomhet"
 
 data class Steg0(
     val transaksjonId: UUID,
@@ -50,7 +51,7 @@ data class Steg1(
 
 sealed class Steg2 {
     data class Komplett(
-        val orgNavn: String,
+        val orgnrMedNavn: Map<String, String>,
         val personer: Map<Fnr, Person>,
         val inntekt: Inntekt?,
     ) : Steg2()
@@ -75,7 +76,7 @@ class HentForespoerselService(
     override val dataKeys =
         setOf(
             Key.FORESPOERSEL_SVAR,
-            Key.VIRKSOMHET,
+            Key.VIRKSOMHETER,
             Key.PERSONER,
             Key.INNTEKT,
         )
@@ -93,18 +94,18 @@ class HentForespoerselService(
         )
 
     override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 {
-        val orgNavn = runCatching { Key.VIRKSOMHET.les(String.serializer(), melding) }
+        val orgnrMedNavn = runCatching { Key.VIRKSOMHETER.les(MapSerializer(String.serializer(), String.serializer()), melding) }
         val personer = runCatching { Key.PERSONER.les(personMapSerializer, melding) }
         val inntekt =
             runCatching {
                 melding[Key.INNTEKT].toString().takeIf { it != "\"$UNDEFINED_FELT\"" }?.fromJson(Inntekt.serializer())
             }
 
-        val results = listOf(orgNavn, personer, inntekt)
+        val results = listOf(orgnrMedNavn, personer, inntekt)
 
         return if (results.all { it.isSuccess }) {
             Steg2.Komplett(
-                orgNavn = orgNavn.getOrThrow(),
+                orgnrMedNavn = orgnrMedNavn.getOrThrow(),
                 personer = personer.getOrThrow(),
                 inntekt = inntekt.getOrThrow(),
             )
@@ -136,8 +137,11 @@ class HentForespoerselService(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to steg1.forespoersel.orgnr.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                        Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(String.serializer()),
+                    ).toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_VIRKSOMHET_NAVN, it) }
 
         rapid
@@ -149,7 +153,7 @@ class HentForespoerselService(
                     mapOf(
                         Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
                         Key.FNR_LISTE to
-                            listOf(
+                            setOf(
                                 steg1.forespoersel.fnr.let(::Fnr),
                                 steg0.avsenderFnr,
                             ).toJson(Fnr.serializer()),
@@ -179,6 +183,7 @@ class HentForespoerselService(
         if (steg2 is Steg2.Komplett) {
             val sykmeldtNavn = steg2.personer[steg1.forespoersel.fnr.let(::Fnr)]?.navn ?: UKJENT_NAVN
             val avsenderNavn = steg2.personer[steg0.avsenderFnr]?.navn ?: UKJENT_NAVN
+            val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr] ?: UKJENT_VIRKSOMHET
 
             val feil = redisStore.get(RedisKey.feilmelding(steg0.transaksjonId))?.fromJson(feilMapSerializer)
 
@@ -188,7 +193,7 @@ class HentForespoerselService(
                         HentForespoerselResultat(
                             sykmeldtNavn = sykmeldtNavn,
                             avsenderNavn = avsenderNavn,
-                            orgNavn = steg2.orgNavn,
+                            orgNavn = orgNavn,
                             inntekt = steg2.inntekt,
                             forespoersel = steg1.forespoersel,
                             feil = feil.orEmpty(),
@@ -209,9 +214,10 @@ class HentForespoerselService(
             when (utloesendeBehov) {
                 BehovType.HENT_VIRKSOMHET_NAVN ->
                     Datafeil(
-                        Key.VIRKSOMHET,
+                        Key.VIRKSOMHETER,
                         "Vi klarte ikke å hente navn på virksomhet.",
-                        "Ukjent virksomhet".toJson(),
+                        // Lesing av virksomhetsnavn bruker allerede defaults, så trenger bare map-struktur her
+                        emptyMap<String, String>().toJson(),
                     )
 
                 BehovType.HENT_PERSONER ->

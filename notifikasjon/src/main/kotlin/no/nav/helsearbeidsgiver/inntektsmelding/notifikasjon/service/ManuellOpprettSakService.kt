@@ -7,8 +7,10 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.Person
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -20,6 +22,8 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class ManuellOpprettSakService(
@@ -45,7 +49,7 @@ class ManuellOpprettSakService(
     override val dataKeys =
         setOf(
             Key.FORESPOERSEL_SVAR,
-            Key.ARBEIDSTAKER_INFORMASJON,
+            Key.PERSONER,
             Key.SAK_ID,
             Key.PERSISTERT_SAK_ID,
         )
@@ -60,7 +64,7 @@ class ManuellOpprettSakService(
     )
 
     data class Steg2(
-        val sykmeldt: PersonDato,
+        val personer: Map<Fnr, Person>,
     )
 
     data class Steg3(
@@ -84,7 +88,7 @@ class ManuellOpprettSakService(
 
     override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 =
         Steg2(
-            sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding),
+            personer = Key.PERSONER.les(personMapSerializer, melding),
         )
 
     override fun lesSteg3(melding: Map<Key, JsonElement>): Steg3 =
@@ -112,10 +116,13 @@ class ManuellOpprettSakService(
     ) {
         rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
+            Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-            Key.IDENTITETSNUMMER to steg1.forespoersel.fnr.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                    Key.FNR_LISTE to setOf(steg1.forespoersel.fnr).toJson(String.serializer()),
+                ).toJson(),
         )
     }
 
@@ -124,13 +131,23 @@ class ManuellOpprettSakService(
         steg1: Steg1,
         steg2: Steg2,
     ) {
+        val sykmeldt =
+            steg2.personer[steg1.forespoersel.fnr.let(::Fnr)]
+                ?.let {
+                    PersonDato(
+                        it.navn,
+                        it.foedselsdato,
+                        it.fnr.verdi,
+                    )
+                }.orDefault(PersonDato("Ukjent person", null, steg1.forespoersel.fnr))
+
         rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.OPPRETT_SAK.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
             Key.ORGNRUNDERENHET to steg1.forespoersel.orgnr.toJson(),
-            Key.ARBEIDSTAKER_INFORMASJON to steg2.sykmeldt.toJson(PersonDato.serializer()),
+            Key.ARBEIDSTAKER_INFORMASJON to sykmeldt.toJson(PersonDato.serializer()),
         )
     }
 

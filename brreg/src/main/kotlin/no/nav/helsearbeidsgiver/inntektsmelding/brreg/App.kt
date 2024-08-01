@@ -22,9 +22,6 @@ fun RapidsConnection.createBrregRiver(
     isDevelopmentMode: Boolean,
 ): RapidsConnection =
     also {
-        logger.info("Starter ${VirksomhetLoeser::class.simpleName}... developmentMode: $isDevelopmentMode")
-        VirksomhetLoeser(this, brregClient, isDevelopmentMode)
-
         logger.info("Starter ${HentVirksomhetNavnRiver::class.simpleName}... (isDevelopmentMode: $isDevelopmentMode)")
         HentVirksomhetNavnRiver(brregClient, isDevelopmentMode).connect(this)
     }

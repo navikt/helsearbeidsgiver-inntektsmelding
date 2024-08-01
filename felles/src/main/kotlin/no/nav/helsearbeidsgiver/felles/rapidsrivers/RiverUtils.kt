@@ -47,18 +47,21 @@ fun JsonMessage.interestedIn(vararg keys: IKey) {
     interestedIn(*keysAsStr)
 }
 
-fun MessageContext.publishNotNull(vararg messageFields: Pair<Key, JsonElement?>): JsonElement = publishNotNull(messageFields.toMap())
-
 fun MessageContext.publish(vararg messageFields: Pair<Key, JsonElement>): JsonElement = publish(messageFields.toMap())
-
-fun MessageContext.publishNotNull(messageFields: Map<Key, JsonElement?>): JsonElement =
-    messageFields
-        .mapValuesNotNull { it }
-        .let(::publish)
 
 fun MessageContext.publish(messageFields: Map<Key, JsonElement>): JsonElement =
     messageFields
-        .mapKeys { (key, _) -> key.toString() }
+        // TODO slett etter overgangsperiode: kopierer Key.SKJAERINGSTIDSPUNKT til Key.INNTEKTSDATO
+        .let { fields ->
+            if (Key.SKJAERINGSTIDSPUNKT in fields) {
+                fields
+                    .plus(
+                        Key.INNTEKTSDATO to fields[Key.SKJAERINGSTIDSPUNKT],
+                    ).mapValuesNotNull { it }
+            } else {
+                fields
+            }
+        }.mapKeys { (key, _) -> key.toString() }
         .filterValues { it !is JsonNull }
         .toJson()
         .toString()

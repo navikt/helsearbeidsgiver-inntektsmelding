@@ -11,7 +11,7 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -40,7 +40,7 @@ open class MockService : ServiceMed1Steg<MockService.Steg0, MockService.Steg1>()
         )
 
     data class Steg0(
-        val fnrListe: List<Fnr>,
+        val fnrListe: Set<Fnr>,
         val erDuplikatIm: Boolean,
     )
 
@@ -51,7 +51,7 @@ open class MockService : ServiceMed1Steg<MockService.Steg0, MockService.Steg1>()
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            Key.FNR_LISTE.les(Fnr.serializer().list(), melding),
+            Key.FNR_LISTE.les(Fnr.serializer().set(), melding),
             Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
         )
 

@@ -18,6 +18,12 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 
+val orgMapSerializer =
+    MapSerializer(
+        Orgnr.serializer(),
+        String.serializer(),
+    )
+
 val personMapSerializer =
     MapSerializer(
         Fnr.serializer(),

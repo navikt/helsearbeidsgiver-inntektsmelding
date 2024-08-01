@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -41,7 +42,7 @@ class OpprettOppgaveService(
         )
     override val dataKeys =
         setOf(
-            Key.VIRKSOMHET,
+            Key.VIRKSOMHETER,
         )
 
     data class Steg0(
@@ -51,7 +52,7 @@ class OpprettOppgaveService(
     )
 
     data class Steg1(
-        val orgNavn: String,
+        val orgnrMedNavn: Map<Orgnr, String>,
     )
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
@@ -63,7 +64,7 @@ class OpprettOppgaveService(
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
         Steg1(
-            orgNavn = Key.VIRKSOMHET.les(String.serializer(), melding),
+            orgnrMedNavn = Key.VIRKSOMHETER.les(orgMapSerializer, melding),
         )
 
     override fun utfoerSteg0(steg0: Steg0) {
@@ -71,8 +72,11 @@ class OpprettOppgaveService(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-            Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                    Key.ORGNR_UNDERENHETER to setOf(steg0.orgnr).toJson(Orgnr.serializer()),
+                ).toJson(),
         )
     }
 
@@ -80,13 +84,15 @@ class OpprettOppgaveService(
         steg0: Steg0,
         steg1: Steg1,
     ) {
+        val orgNavn = steg1.orgnrMedNavn[steg0.orgnr] ?: "Arbeidsgiver"
+
         rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.OPPRETT_OPPGAVE.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
             Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
-            Key.VIRKSOMHET to steg1.orgNavn.toJson(),
+            Key.VIRKSOMHET to orgNavn.toJson(),
         )
     }
 
@@ -101,8 +107,7 @@ class OpprettOppgaveService(
         ) {
             val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
             if (utloesendeBehov == BehovType.HENT_VIRKSOMHET_NAVN) {
-                // TODO må bruke Key.VIRKSOMHETER
-                val meldingMedDefault = mapOf(Key.VIRKSOMHET to "Arbeidsgiver".toJson()).plus(melding)
+                val meldingMedDefault = mapOf(Key.VIRKSOMHETER to emptyMap<String, String>().toJson()).plus(melding)
                 onData(meldingMedDefault)
             }
         }

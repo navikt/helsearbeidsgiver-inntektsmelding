@@ -96,7 +96,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-                Key.FNR_LISTE.les(Fnr.serializer().list(), data) shouldBe listOf(Mock.fnr, Mock.fnrAg)
+                Key.FNR_LISTE.les(Fnr.serializer().set(), data) shouldBe setOf(Mock.fnr, Mock.fnrAg)
             }
 
         aktiveOrgnrMeldinger
@@ -117,15 +117,20 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         aktiveOrgnrMeldinger
             .filter(BehovType.HENT_VIRKSOMHET_NAVN)
-            .firstAsMap()[Key.ORGNR_UNDERENHETER]
-            ?.fromJson(String.serializer().list()) shouldContainExactly Mock.underenheter
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.ORGNR_UNDERENHETER.les(String.serializer().set(), data) shouldBe Mock.underenheter
+            }
 
         aktiveOrgnrMeldinger
-            .filter(Key.VIRKSOMHETER)
-            .firstAsMap()[Key.VIRKSOMHETER]
-            ?.fromJson(
-                MapSerializer(String.serializer(), String.serializer()),
-            ) shouldBe mapOf("810007842" to "ANSTENDIG PIGGSVIN BARNEHAGE")
+            .filter(Key.VIRKSOMHETER, nestedData = true)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.VIRKSOMHETER.les(MapSerializer(String.serializer(), String.serializer()), data) shouldBe
+                    mapOf("810007842" to "ANSTENDIG PIGGSVIN BARNEHAGE")
+            }
     }
 
     @Test
@@ -170,7 +175,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-                Key.FNR_LISTE.les(Fnr.serializer().list(), data) shouldBe listOf(Mock.fnr, Mock.fnrAg)
+                Key.FNR_LISTE.les(Fnr.serializer().set(), data) shouldBe setOf(Mock.fnr, Mock.fnrAg)
             }
 
         aktiveOrgnrMeldinger
@@ -329,7 +334,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                 ),
             )
 
-        val underenheter = listOf("810007842")
+        val underenheter = setOf("810007842")
 
         val personer =
             listOf(

@@ -63,6 +63,13 @@ class HentVirksomhetNavnRiver(
                 }
             }.associate { it.organisasjonsnummer to it.navn }
 
+        if (orgnr.size != orgnrMedNavn.size) {
+            "Ba om ${orgnr.size} virksomhetsnavn fra Brreg og mottok ${orgnrMedNavn.size}.".also {
+                logger.info(it)
+                sikkerLogger.info(it)
+            }
+        }
+
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),

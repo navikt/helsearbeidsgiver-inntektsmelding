@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.Person
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
@@ -34,6 +35,7 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 private const val UKJENT_NAVN = "Ukjent navn"
@@ -54,7 +56,7 @@ data class Steg2(
 )
 
 data class Steg3(
-    val orgNavn: String,
+    val orgnrMedNavn: Map<Orgnr, String>,
 )
 
 data class Steg4(
@@ -83,7 +85,7 @@ class BerikInntektsmeldingService(
         )
     override val dataKeys =
         setOf(
-            Key.VIRKSOMHET,
+            Key.VIRKSOMHETER,
             Key.PERSONER,
             Key.INNTEKTSMELDING_DOKUMENT,
             Key.ER_DUPLIKAT_IM,
@@ -123,7 +125,7 @@ class BerikInntektsmeldingService(
 
     override fun lesSteg3(melding: Map<Key, JsonElement>): Steg3 =
         Steg3(
-            orgNavn = Key.VIRKSOMHET.les(String.serializer(), melding),
+            orgnrMedNavn = Key.VIRKSOMHETER.les(orgMapSerializer, melding),
         )
 
     override fun lesSteg4(melding: Map<Key, JsonElement>): Steg4 =
@@ -173,8 +175,11 @@ class BerikInntektsmeldingService(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to steg1.forespoersel.orgnr.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                        Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(String.serializer()),
+                    ).toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_VIRKSOMHET_NAVN, it) }
     }
 
@@ -223,12 +228,14 @@ class BerikInntektsmeldingService(
         val sykmeldtNavn = steg4.personer[steg1.forespoersel.fnr.let(::Fnr)]?.navn ?: UKJENT_NAVN
         val avsenderNavn = steg4.personer[steg0.avsenderFnr]?.navn ?: UKJENT_NAVN
 
+        val orgNavn = steg3.orgnrMedNavn[steg1.forespoersel.orgnr.let(::Orgnr)] ?: "Ukjent virksomhet"
+
         val inntektsmelding =
             mapInntektsmelding(
                 forespoersel = steg1.forespoersel,
                 skjema = skjema,
                 fulltnavnArbeidstaker = sykmeldtNavn,
-                virksomhetNavn = steg3.orgNavn,
+                virksomhetNavn = orgNavn,
                 innsenderNavn = avsenderNavn,
             )
 

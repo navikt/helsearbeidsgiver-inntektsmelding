@@ -58,7 +58,17 @@ fun MessageContext.publishNotNull(messageFields: Map<Key, JsonElement?>): JsonEl
 
 fun MessageContext.publish(messageFields: Map<Key, JsonElement>): JsonElement =
     messageFields
-        .mapKeys { (key, _) -> key.toString() }
+        // TODO slett etter overgangsperiode: kopierer Key.SKJAERINGSTIDSPUNKT til Key.INNTEKTSDATO
+        .let { fields ->
+            if (Key.SKJAERINGSTIDSPUNKT in fields) {
+                fields
+                    .plus(
+                        Key.INNTEKTSDATO to fields[Key.SKJAERINGSTIDSPUNKT],
+                    ).mapValuesNotNull { it }
+            } else {
+                fields
+            }
+        }.mapKeys { (key, _) -> key.toString() }
         .filterValues { it !is JsonNull }
         .toJson()
         .toString()

@@ -64,10 +64,12 @@ class InnsendingIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.ARBEIDSGIVER_FNR to Mock.skjema.identitetsnummer.toJson(),
-            Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                    Key.ARBEIDSGIVER_FNR to Mock.skjema.identitetsnummer.toJson(),
+                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
+                ).toJson(),
         )
 
         messages
@@ -155,10 +157,12 @@ class InnsendingIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.ARBEIDSGIVER_FNR to maxMekker.ident!!.toJson(),
-            Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                    Key.ARBEIDSGIVER_FNR to maxMekker.ident!!.toJson(),
+                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
+                ).toJson(),
         )
 
         messages

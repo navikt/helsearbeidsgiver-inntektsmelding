@@ -31,9 +31,11 @@ class HentForespoerselProducerTest :
                 mapOf(
                     Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.DATA to "".toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                            Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
+                        ).toJson(),
                 )
         }
     })

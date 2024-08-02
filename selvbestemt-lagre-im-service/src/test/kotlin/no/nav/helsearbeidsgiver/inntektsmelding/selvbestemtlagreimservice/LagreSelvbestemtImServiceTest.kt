@@ -524,23 +524,27 @@ private object Mock {
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
-            Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+                    Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
+                ).toJson(),
         )
 
     fun steg1(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.VIRKSOMHETER to mapOf(skjema.avsender.orgnr.verdi to ORG_NAVN).toJson(),
-            Key.PERSONER to
+            Key.DATA to
                 mapOf(
-                    sykmeldt.fnr to sykmeldt,
-                    avsender.fnr to avsender,
-                ).toJson(personMapSerializer),
-            Key.ARBEIDSFORHOLD to lagArbeidsforhold(orgnr = skjema.avsender.orgnr.verdi).toJson(Arbeidsforhold.serializer()),
+                    Key.VIRKSOMHETER to mapOf(skjema.avsender.orgnr.verdi to ORG_NAVN).toJson(),
+                    Key.PERSONER to
+                        mapOf(
+                            sykmeldt.fnr to sykmeldt,
+                            avsender.fnr to avsender,
+                        ).toJson(personMapSerializer),
+                    Key.ARBEIDSFORHOLD to lagArbeidsforhold(orgnr = skjema.avsender.orgnr.verdi).toJson(Arbeidsforhold.serializer()),
+                ).toJson(),
         )
 
     fun steg2(

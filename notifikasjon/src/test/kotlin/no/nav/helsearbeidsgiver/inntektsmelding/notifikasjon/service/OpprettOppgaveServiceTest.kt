@@ -73,9 +73,11 @@ class OpprettOppgaveServiceTest {
         rapid.sendJson(
             Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.ORGNRUNDERENHET to orgnr.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.ORGNRUNDERENHET to orgnr.toJson(),
+                ).toJson(),
         )
 
         rapid.sendJson(
@@ -105,9 +107,11 @@ class OpprettOppgaveServiceTest {
         rapid.sendJson(
             Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.ORGNRUNDERENHET to orgnr.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.ORGNRUNDERENHET to orgnr.toJson(),
+                ).toJson(),
         )
 
         val fail =

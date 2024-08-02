@@ -34,8 +34,10 @@ class KvitteringProducer(
                 .publish(
                     Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.DATA to "".toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                        ).toJson(),
                 ).also { json ->
                     "Publiserte request om kvittering.".let {
                         logger.info(it)

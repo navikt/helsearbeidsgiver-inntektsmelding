@@ -34,12 +34,12 @@ class InnsendingProducerTest :
                 mapOf(
                     Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.DATA to "".toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.ORGNRUNDERENHET to gyldigInnsendingRequest.orgnrUnderenhet.toJson(),
-                    Key.IDENTITETSNUMMER to gyldigInnsendingRequest.identitetsnummer.toJson(),
-                    Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
-                    Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
+                    Key.DATA to
+                        mapOf(
+                            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                            Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
+                            Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
+                        ).toJson(),
                 )
         }
     })

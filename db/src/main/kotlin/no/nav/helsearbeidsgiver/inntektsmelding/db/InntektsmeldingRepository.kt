@@ -50,13 +50,13 @@ class InntektsmeldingRepository(
     }
 
     fun lagreInntektsmeldingSkjema(
-        forespoerselId: String,
+        forespoerselId: UUID,
         inntektsmeldingSkjema: Innsending,
     ) {
         val requestTimer = requestLatency.labels("lagreInntektsmeldingSkjema").startTimer()
         transaction(db) {
             InntektsmeldingEntitet.insert {
-                it[this.forespoerselId] = forespoerselId
+                it[this.forespoerselId] = forespoerselId.toString()
                 it[skjema] = inntektsmeldingSkjema
                 it[innsendt] = LocalDateTime.now()
             }

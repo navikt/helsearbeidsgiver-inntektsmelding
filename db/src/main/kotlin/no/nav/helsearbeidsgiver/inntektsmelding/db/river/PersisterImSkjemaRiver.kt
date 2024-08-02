@@ -52,7 +52,7 @@ class PersisterImSkjemaRiver(
         }
 
     override fun PersisterImSkjemaMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        val sisteIm = repository.hentNyesteInntektsmeldingSkjema(forespoerselId)
+        val sisteIm = repository.hentNyesteInntektsmelding(forespoerselId)
         val sisteImSkjema = repository.hentNyesteInntektsmeldingSkjema(forespoerselId)
 
         val erDuplikat =
@@ -62,7 +62,7 @@ class PersisterImSkjemaRiver(
         if (erDuplikat) {
             sikkerLogger.warn("Fant duplikat av inntektsmelding for forespoerselId: $forespoerselId")
         } else {
-            repository.lagreInntektsmeldingSkjema(forespoerselId.toString(), inntektsmeldingSkjema)
+            repository.lagreInntektsmeldingSkjema(forespoerselId, inntektsmeldingSkjema)
             sikkerLogger.info("Lagret inntektsmeldingskjema for forespoerselId: $forespoerselId")
         }
         return mapOf(

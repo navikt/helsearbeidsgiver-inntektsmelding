@@ -150,7 +150,7 @@ class LagreSelvbestemtImRiverTest :
 
             val forventetFail =
                 Fail(
-                    feilmelding = "Klarte ikke lagre selvbestemt inntektsmelding.",
+                    feilmelding = "Klarte ikke lagre selvbestemt inntektsmelding i database.",
                     event = innkommendeMelding.eventName,
                     transaksjonId = innkommendeMelding.transaksjonId,
                     forespoerselId = null,

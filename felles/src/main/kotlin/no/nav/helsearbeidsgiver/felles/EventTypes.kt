@@ -18,6 +18,7 @@ enum class BehovType {
     TILGANGSKONTROLL,
 
     // Synkrone endringer
+    LAGRE_IM,
     LAGRE_SELVBESTEMT_IM,
     OPPRETT_SELVBESTEMT_SAK,
     PERSISTER_IM,

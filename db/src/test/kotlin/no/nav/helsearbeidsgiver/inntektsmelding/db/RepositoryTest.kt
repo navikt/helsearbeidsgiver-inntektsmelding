@@ -84,7 +84,7 @@ class RepositoryTest :
             val dok1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = OffsetDateTime.now())
 
             foresporselRepo.lagreForespoersel(forespoerselId.toString(), orgnr)
-            inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), dok1)
+            inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, dok1)
 
             transaction {
                 InntektsmeldingEntitet
@@ -95,17 +95,17 @@ class RepositoryTest :
                     }.single()
             }
             // lagre varianter:
-            inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT_MED_TOM_FORESPURT_DATA)
+            inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, INNTEKTSMELDING_DOKUMENT_MED_TOM_FORESPURT_DATA)
             val im = inntektsmeldingRepo.hentNyesteInntektsmelding(forespoerselId)
             im shouldBe INNTEKTSMELDING_DOKUMENT_MED_TOM_FORESPURT_DATA
 
-            inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA)
+            inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA)
             val im2 = inntektsmeldingRepo.hentNyesteInntektsmelding(forespoerselId)
             im2?.forespurtData shouldNotBe (null)
             im2?.forespurtData shouldBe INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA.forespurtData
 
             inntektsmeldingRepo.lagreInntektsmelding(
-                forespoerselId.toString(),
+                forespoerselId,
                 INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA.copy(fullLønnIArbeidsgiverPerioden = null),
             )
             val im3 = inntektsmeldingRepo.hentNyesteInntektsmelding(forespoerselId)
@@ -120,17 +120,17 @@ class RepositoryTest :
                 ForespoerselEntitet.selectAll().toList()
             }.shouldBeEmpty()
 
-            val forespoerselId = "abc-1234"
+            val forespoerselId = UUID.randomUUID()
             val dok1 = INNTEKTSMELDING_DOKUMENT_GAMMELT_INNTEKTFORMAT
 
-            foresporselRepo.lagreForespoersel(forespoerselId, orgnr)
+            foresporselRepo.lagreForespoersel(forespoerselId.toString(), orgnr)
             inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, dok1)
 
             transaction {
                 InntektsmeldingEntitet
                     .selectAll()
                     .where {
-                        (InntektsmeldingEntitet.forespoerselId eq forespoerselId) and
+                        (InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()) and
                             (InntektsmeldingEntitet.dokument eq dok1)
                     }.single()
             }
@@ -146,7 +146,7 @@ class RepositoryTest :
             val journalpost1 = "jp-1"
 
             foresporselRepo.lagreForespoersel(forespoerselId.toString(), orgnr)
-            inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), dok1)
+            inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, dok1)
             inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, journalpost1)
             val record = testRepo.hentRecordFraInntektsmelding(forespoerselId)
             record.shouldNotBeNull()
@@ -159,8 +159,8 @@ class RepositoryTest :
             val journalpostId = "jp-mollefonken-kjele"
 
             foresporselRepo.lagreForespoersel(forespoerselId.toString(), orgnr)
-            inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT)
-            inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT)
+            inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, INNTEKTSMELDING_DOKUMENT)
+            inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, INNTEKTSMELDING_DOKUMENT)
 
             // Skal kun oppdatere siste
             inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, journalpostId)
@@ -192,8 +192,8 @@ class RepositoryTest :
             val nyJournalpostId = "jp-gallant-badehette"
 
             foresporselRepo.lagreForespoersel(forespoerselId.toString(), orgnr)
-            inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT)
-            inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT)
+            inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, INNTEKTSMELDING_DOKUMENT)
+            inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, INNTEKTSMELDING_DOKUMENT)
             inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, gammelJournalpostId)
 
             val resultatFoerNyJournalpostId =
@@ -245,7 +245,7 @@ class RepositoryTest :
             val journalpostId = "jp-slem-fryser"
 
             foresporselRepo.lagreForespoersel(forespoerselId.toString(), orgnr)
-            inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT)
+            inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, INNTEKTSMELDING_DOKUMENT)
             inntektsmeldingRepo.lagreEksternInntektsmelding(forespoerselId.toString(), mockEksternInntektsmelding())
 
             inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, journalpostId)

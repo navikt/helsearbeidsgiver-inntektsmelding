@@ -106,7 +106,10 @@ class ManuellOpprettSakService(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                ).toJson(),
         )
     }
 

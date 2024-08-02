@@ -14,17 +14,17 @@ fun main() {
 
     RapidApplication
         .create(System.getenv())
-        .createHelsebro(priProducer)
+        .createHelsebroRivers(priProducer)
         .start()
 
     logger.info("Nå dør jeg :(")
 }
 
-fun RapidsConnection.createHelsebro(priProducer: PriProducer): RapidsConnection =
+fun RapidsConnection.createHelsebroRivers(priProducer: PriProducer): RapidsConnection =
     also {
-        logger.info("Starter ${TrengerForespoerselLoeser::class.simpleName}...")
-        TrengerForespoerselLoeser(this, priProducer)
+        logger.info("Starter ${TrengerForespoerselRiver::class.simpleName}...")
+        TrengerForespoerselRiver(priProducer).connect(this)
 
-        logger.info("Starter ${ForespoerselSvarLoeser::class.simpleName}...")
-        ForespoerselSvarLoeser(this)
+        logger.info("Starter ${ForespoerselSvarRiver::class.simpleName}...")
+        ForespoerselSvarRiver().connect(this)
     }

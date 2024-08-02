@@ -1,8 +1,10 @@
-package no.nav.helsearbeidsgiver.felles.loeser
+package no.nav.helsearbeidsgiver.felles.rapidsrivers.river
 
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -76,7 +78,7 @@ abstract class ObjectRiver<Melding : Any> {
 
     /** __Viktig!__: Denne må kalles ved instansiering av implementerende klasse. */
     fun connect(rapid: RapidsConnection) {
-        OpenRiver(rapid, this)
+        OpenRiver(rapid, this::lesOgHaandter)
     }
 
     /**
@@ -124,8 +126,10 @@ abstract class ObjectRiver<Melding : Any> {
     protected abstract fun Melding.loggfelt(): Map<String, String>
 
     /** Brukes av [OpenRiver]. */
-    internal fun lesOgHaandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
-        val innkommende = runCatching { les(json) }.getOrNull()
+    private fun lesOgHaandter(json: JsonElement): Map<Key, JsonElement>? {
+        val jsonMap = json.toMap().filterValues { it !is JsonNull }
+
+        val innkommende = runCatching { les(jsonMap) }.getOrNull()
 
         val loggfelt =
             innkommende
@@ -144,9 +148,9 @@ abstract class ObjectRiver<Melding : Any> {
             val utgaaende =
                 innkommende?.let {
                     runCatching {
-                        it.haandter(json)
+                        it.haandter(jsonMap)
                     }.getOrElse { e ->
-                        it.haandterFeil(json, e)
+                        it.haandterFeil(jsonMap, e)
                     }
                 }
 

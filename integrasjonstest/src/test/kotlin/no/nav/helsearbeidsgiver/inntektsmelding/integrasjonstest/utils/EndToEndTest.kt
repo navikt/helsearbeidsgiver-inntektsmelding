@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
@@ -17,10 +18,8 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
-import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.db.exposed.Database
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -44,7 +43,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForesp
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSpleis
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createMarkerForespoerselBesvart
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebroRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createHentInntektRiver
@@ -215,7 +214,7 @@ abstract class EndToEndTest : ContainerTest() {
             createForespoerselBesvartFraSimba()
             createForespoerselBesvartFraSpleis(mockPriProducer)
             createForespoerselMottatt(mockPriProducer)
-            createHelsebro(mockPriProducer)
+            createHelsebroRivers(mockPriProducer)
             createHentEksternImRiver(spinnKlient)
             createHentInntektRiver(inntektClient)
             createJournalfoerImRiver(dokarkivClient)
@@ -255,16 +254,22 @@ abstract class EndToEndTest : ContainerTest() {
     }
 
     fun mockForespoerselSvarFraHelsebro(
-        eventName: EventName,
-        transaksjonId: UUID,
         forespoerselId: UUID,
         forespoerselSvar: ForespoerselSvar.Suksess,
     ) {
+        var boomerang: JsonElement? = null
+
         every {
             mockPriProducer.send(
-                *varargAny { (key, value) ->
-                    key == Pri.Key.BEHOV &&
-                        runCatching { value.fromJson(Pri.BehovType.serializer()) }.getOrNull() == Pri.BehovType.TRENGER_FORESPØRSEL
+                *varargAll { (key, value) ->
+                    if (key == Pri.Key.BOOMERANG) {
+                        boomerang = value
+                    }
+
+                    val erKorrektBehov = runCatching { value.fromJson(Pri.BehovType.serializer()) }.getOrNull() == Pri.BehovType.TRENGER_FORESPØRSEL
+
+                    (key == Pri.Key.BEHOV && erKorrektBehov) ||
+                        key in setOf(Pri.Key.FORESPOERSEL_ID, Pri.Key.BOOMERANG)
                 },
             )
         } answers {
@@ -274,13 +279,11 @@ abstract class EndToEndTest : ContainerTest() {
                     ForespoerselSvar(
                         forespoerselId = forespoerselId,
                         resultat = forespoerselSvar,
-                        boomerang =
-                            mapOf(
-                                Key.EVENT_NAME to eventName.toJson(),
-                                Key.UUID to transaksjonId.toJson(),
-                            ).toJson(),
+                        boomerang = boomerang.shouldNotBeNull(),
                     ).toJson(ForespoerselSvar.serializer()),
             )
+
+            boomerang = null
 
             Result.success(JsonObject(emptyMap()))
         }

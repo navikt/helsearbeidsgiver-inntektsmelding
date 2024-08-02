@@ -47,7 +47,7 @@ class InnsendingServiceIT : EndToEndTest() {
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.orgnr.verdi)
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
-        imRepository.lagreInntektsmelding(Mock.forespoerselId.toString(), tidligereInntektsmelding)
+        imRepository.lagreInntektsmelding(Mock.forespoerselId, tidligereInntektsmelding)
 
         mockForespoerselSvarFraHelsebro(
             forespoerselId = Mock.forespoerselId,

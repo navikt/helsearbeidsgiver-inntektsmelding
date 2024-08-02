@@ -133,7 +133,7 @@ class InnsendingIT : EndToEndTest() {
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.skjema.orgnrUnderenhet)
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
-        imRepository.lagreInntektsmelding(Mock.forespoerselId.toString(), Mock.innsendtInntektsmelding)
+        imRepository.lagreInntektsmelding(Mock.forespoerselId, Mock.innsendtInntektsmelding)
 
         mockForespoerselSvarFraHelsebro(
             forespoerselId = Mock.forespoerselId,

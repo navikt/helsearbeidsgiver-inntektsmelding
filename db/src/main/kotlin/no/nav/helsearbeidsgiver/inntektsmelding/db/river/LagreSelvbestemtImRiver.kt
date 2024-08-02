@@ -91,7 +91,7 @@ class LagreSelvbestemtImRiver(
     ): Map<Key, JsonElement> {
         val fail =
             Fail(
-                feilmelding = "Klarte ikke lagre selvbestemt inntektsmelding.",
+                feilmelding = "Klarte ikke lagre selvbestemt inntektsmelding i database.",
                 event = eventName,
                 transaksjonId = transaksjonId,
                 forespoerselId = null,

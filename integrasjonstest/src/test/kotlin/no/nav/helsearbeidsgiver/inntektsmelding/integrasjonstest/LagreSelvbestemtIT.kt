@@ -146,18 +146,20 @@ class LagreSelvbestemtIT : EndToEndTest() {
         // Opprettelse av sak forespurt
         serviceMessages
             .filter(BehovType.OPPRETT_SELVBESTEMT_SAK)
-            .firstAsMap()[Key.SELVBESTEMT_INNTEKTSMELDING]
-            .shouldNotBeNull()
-            .fromJson(InntektsmeldingV1.serializer())
-            .shouldBeEqualToInntektsmelding(nyInntektsmelding)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.SELVBESTEMT_INNTEKTSMELDING.les(InntektsmeldingV1.serializer(), data).shouldBeEqualToInntektsmelding(nyInntektsmelding)
+            }
 
         // Opprettelse av sak utført
         serviceMessages
-            .filter(Key.SAK_ID)
-            .firstAsMap()[Key.SAK_ID]
-            .shouldNotBeNull()
-            .fromJson(String.serializer())
-            .shouldBe(Mock.sakId)
+            .filter(Key.SAK_ID, nestedData = true)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.SAK_ID.les(String.serializer(), data) shouldBe Mock.sakId
+            }
 
         // Service ferdig
         messages
@@ -225,7 +227,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         // Opprettelse av sak _ikke_ utført
         serviceMessages
-            .filter(Key.SAK_ID)
+            .filter(Key.SAK_ID, nestedData = true)
             .all()
             .shouldBeEmpty()
 
@@ -297,7 +299,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         // Opprettelse av sak _ikke_ utført
         serviceMessages
-            .filter(Key.SAK_ID)
+            .filter(Key.SAK_ID, nestedData = true)
             .all()
             .shouldBeEmpty()
 

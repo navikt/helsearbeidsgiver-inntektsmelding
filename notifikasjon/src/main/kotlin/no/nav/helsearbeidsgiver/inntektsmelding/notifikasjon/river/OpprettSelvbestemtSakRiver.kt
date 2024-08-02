@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -26,6 +27,7 @@ data class OpprettSelvbestemtSakMelding(
     val eventName: EventName,
     val behovType: BehovType,
     val transaksjonId: UUID,
+    val data: Map<Key, JsonElement>,
     val inntektsmelding: Inntektsmelding,
 )
 
@@ -38,14 +40,17 @@ class OpprettSelvbestemtSakRiver(
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): OpprettSelvbestemtSakMelding? =
-        if (setOf(Key.DATA, Key.FAIL).any(json::containsKey)) {
+        if (Key.FAIL in json) {
             null
         } else {
+            val data = json[Key.DATA]?.toMap().orEmpty()
+
             OpprettSelvbestemtSakMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.OPPRETT_SELVBESTEMT_SAK, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
-                inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), json),
+                data = data,
+                inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
             )
         }
 
@@ -67,13 +72,14 @@ class OpprettSelvbestemtSakRiver(
         ) {
             selvbestemtRepo.lagreSakId(inntektsmelding.type.id, sakId)
 
-            val dataField = Key.SAK_ID to sakId.toJson()
-
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.UUID to transaksjonId.toJson(),
-                Key.DATA to mapOf(dataField).toJson(),
-                dataField,
+                Key.DATA to
+                    data
+                        .plus(
+                            Key.SAK_ID to sakId.toJson(),
+                        ).toJson(),
             )
         }
     }

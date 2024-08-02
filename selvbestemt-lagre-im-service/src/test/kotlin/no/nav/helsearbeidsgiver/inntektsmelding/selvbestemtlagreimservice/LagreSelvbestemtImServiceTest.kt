@@ -558,8 +558,10 @@ private object Mock {
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.SAK_ID to "folkelig-lurendreier-sak-id".toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.SAK_ID to "folkelig-lurendreier-sak-id".toJson(),
+                ).toJson(),
         )
 
     fun lagArbeidsforhold(orgnr: String) =

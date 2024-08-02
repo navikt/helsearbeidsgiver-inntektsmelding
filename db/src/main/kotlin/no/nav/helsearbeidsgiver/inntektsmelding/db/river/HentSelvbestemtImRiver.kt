@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -22,6 +23,7 @@ data class HentSelvbestemtImMelding(
     val eventName: EventName,
     val behovType: BehovType,
     val transaksjonId: UUID,
+    val data: Map<Key, JsonElement>,
     val selvbestemtId: UUID,
 )
 
@@ -32,14 +34,17 @@ class HentSelvbestemtImRiver(
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): HentSelvbestemtImMelding? =
-        if (setOf(Key.DATA, Key.FAIL).any(json::containsKey)) {
+        if (Key.FAIL in json) {
             null
         } else {
+            val data = json[Key.DATA]?.toMap().orEmpty()
+
             HentSelvbestemtImMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.HENT_SELVBESTEMT_IM, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
-                selvbestemtId = Key.SELVBESTEMT_ID.les(UuidSerializer, json),
+                data = data,
+                selvbestemtId = Key.SELVBESTEMT_ID.les(UuidSerializer, data),
             )
         }
 
@@ -57,17 +62,14 @@ class HentSelvbestemtImRiver(
                 sikkerLogger.info(it)
             }
 
-            val dataFields =
-                arrayOf(
-                    Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
-                    Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                )
-
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.UUID to transaksjonId.toJson(),
-                Key.DATA to dataFields.toMap().toJson(),
-                *dataFields,
+                Key.DATA to
+                    data
+                        .plus(
+                            Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                        ).toJson(),
             )
         } else {
             haandterFeil("Fant ikke selvbestemt inntektsmelding.", json)

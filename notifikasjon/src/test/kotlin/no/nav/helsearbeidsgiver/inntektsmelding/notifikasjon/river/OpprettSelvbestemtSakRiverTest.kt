@@ -56,14 +56,15 @@ class OpprettSelvbestemtSakRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            val dataField = Key.SAK_ID to sakId.toJson()
-
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
                     Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                    Key.DATA to mapOf(dataField).toJson(),
-                    dataField,
+                    Key.DATA to
+                        mapOf(
+                            Key.SELVBESTEMT_INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                            Key.SAK_ID to sakId.toJson(),
+                        ).toJson(),
                 )
 
             coVerifySequence {
@@ -148,7 +149,7 @@ class OpprettSelvbestemtSakRiverTest :
             withData(
                 mapOf(
                     "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.HENT_VIRKSOMHET_NAVN.toJson()),
-                    "melding med data" to Pair(Key.DATA, "".toJson()),
+                    "melding med data som flagg" to Pair(Key.DATA, "".toJson()),
                     "melding med fail" to Pair(Key.FAIL, mockFail.toJson(Fail.serializer())),
                 ),
             ) { uoensketKeyMedVerdi ->
@@ -168,20 +169,27 @@ class OpprettSelvbestemtSakRiverTest :
         }
     })
 
-private fun innkommendeMelding(): OpprettSelvbestemtSakMelding =
-    OpprettSelvbestemtSakMelding(
+private fun innkommendeMelding(): OpprettSelvbestemtSakMelding {
+    val inntektsmelding = mockInntektsmeldingV1()
+
+    return OpprettSelvbestemtSakMelding(
         eventName = EventName.SELVBESTEMT_IM_MOTTATT,
         behovType = BehovType.OPPRETT_SELVBESTEMT_SAK,
         transaksjonId = UUID.randomUUID(),
-        inntektsmelding = mockInntektsmeldingV1(),
+        data =
+            mapOf(
+                Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+            ),
+        inntektsmelding = inntektsmelding,
     )
+}
 
 private fun OpprettSelvbestemtSakMelding.toMap(): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
         Key.BEHOV to behovType.toJson(),
         Key.UUID to transaksjonId.toJson(),
-        Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+        Key.DATA to data.toJson(),
     )
 
 private fun OpprettSelvbestemtSakMelding.toFail(): Fail =

@@ -36,7 +36,7 @@ class InntektSelvbestemtProducer(
                     Key.DATA to "".toJson(),
                     Key.FNR to request.sykmeldtFnr.toJson(),
                     Key.ORGNRUNDERENHET to request.orgnr.toJson(),
-                    Key.SKJAERINGSTIDSPUNKT to request.inntektsdato.toJson(),
+                    Key.INNTEKTSDATO to request.inntektsdato.toJson(),
                 ).also { json ->
                     "Publiserte request om inntekt selvbestemt.".let {
                         logger.info(it)

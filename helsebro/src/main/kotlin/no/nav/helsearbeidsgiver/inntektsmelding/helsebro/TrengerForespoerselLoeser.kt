@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
-import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -57,12 +56,6 @@ class TrengerForespoerselLoeser(
                     .parseJson()
                     .toMap()
 
-            val bumerangdata =
-                json
-                    .minus(listOf(Key.BEHOV, Key.EVENT_NAME, Key.FORESPOERSEL_ID, Key.UUID))
-                    .toList()
-                    .toTypedArray()
-
             val transaksjonId = Key.UUID.les(UuidSerializer, json)
             val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json)
 
@@ -71,7 +64,7 @@ class TrengerForespoerselLoeser(
                 Log.transaksjonId(transaksjonId),
                 Log.forespoerselId(forespoerselId),
             ) {
-                spoerrEtterForespoersel(behov.event, transaksjonId, forespoerselId, bumerangdata)
+                spoerrEtterForespoersel(behov.event, transaksjonId, forespoerselId)
             }
         }
     }
@@ -80,7 +73,6 @@ class TrengerForespoerselLoeser(
         event: EventName,
         transaksjonId: UUID,
         forespoerselId: UUID,
-        bumerangdata: Array<Pair<Key, JsonElement>>,
     ) {
         priProducer
             .send(
@@ -90,7 +82,6 @@ class TrengerForespoerselLoeser(
                     mapOf(
                         Key.EVENT_NAME to event.toJson(),
                         Key.UUID to transaksjonId.toJson(),
-                        *bumerangdata,
                     ).toJson(),
             ).onSuccess {
                 logger.info("Publiserte melding på pri-topic om ${Pri.BehovType.TRENGER_FORESPØRSEL}.")

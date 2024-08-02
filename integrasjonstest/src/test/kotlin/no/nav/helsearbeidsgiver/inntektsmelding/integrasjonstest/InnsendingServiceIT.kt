@@ -36,6 +36,7 @@ import java.util.UUID
 class InnsendingServiceIT : EndToEndTest() {
     @Test
     fun `Test at innsending er mottatt`() {
+        val transaksjonId: UUID = UUID.randomUUID()
         val tidligereInntektsmelding = mockInntektsmelding()
 
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.orgnr.verdi)
@@ -43,11 +44,7 @@ class InnsendingServiceIT : EndToEndTest() {
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
         imRepository.lagreInntektsmelding(Mock.forespoerselId.toString(), tidligereInntektsmelding)
 
-        val transaksjonId: UUID = UUID.randomUUID()
-
         mockForespoerselSvarFraHelsebro(
-            eventName = EventName.INSENDING_STARTED,
-            transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar = Mock.forespoerselSvar,
         )

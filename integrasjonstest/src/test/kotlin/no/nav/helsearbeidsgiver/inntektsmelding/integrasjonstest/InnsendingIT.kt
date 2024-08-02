@@ -48,11 +48,7 @@ class InnsendingIT : EndToEndTest() {
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
 
-        val transaksjonId: UUID = UUID.randomUUID()
-
         mockForespoerselSvarFraHelsebro(
-            eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
-            transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar = Mock.forespoerselSvar,
         )
@@ -69,7 +65,7 @@ class InnsendingIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.UUID to UUID.randomUUID().toJson(),
             Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
             Key.ARBEIDSGIVER_FNR to Mock.skjema.identitetsnummer.toJson(),
@@ -142,11 +138,7 @@ class InnsendingIT : EndToEndTest() {
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
         imRepository.lagreInntektsmelding(Mock.forespoerselId.toString(), Mock.innsendtInntektsmelding)
 
-        val transaksjonId: UUID = UUID.randomUUID()
-
         mockForespoerselSvarFraHelsebro(
-            eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
-            transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar = Mock.forespoerselSvar,
         )
@@ -165,7 +157,7 @@ class InnsendingIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.UUID to UUID.randomUUID().toJson(),
             Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
             Key.ARBEIDSGIVER_FNR to maxMekker.ident!!.toJson(),

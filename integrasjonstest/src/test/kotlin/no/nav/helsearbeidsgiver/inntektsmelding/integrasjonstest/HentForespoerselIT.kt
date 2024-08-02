@@ -30,8 +30,6 @@ class HentForespoerselIT : EndToEndTest() {
         val forespoerselId: UUID = UUID.randomUUID()
 
         mockForespoerselSvarFraHelsebro(
-            eventName = EventName.TRENGER_REQUESTED,
-            transaksjonId = transaksjonId,
             forespoerselId = forespoerselId,
             forespoerselSvar = mockForespoerselSvarSuksess(),
         )

@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
-import io.mockk.Call
-import io.mockk.InternalPlatformDsl.toArray
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
@@ -19,10 +18,8 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
-import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.db.exposed.Database
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -47,7 +44,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForesp
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSpleis
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createMarkerForespoerselBesvart
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebroRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createHentInntektRiver
@@ -57,7 +54,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJournalfoerImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonServices
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
-import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
+import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdlRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice.createLagreSelvbestemtImService
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.createTilgangService
 import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createHentForespoerselService
@@ -219,13 +216,13 @@ abstract class EndToEndTest : ContainerTest() {
             createForespoerselBesvartFraSimba()
             createForespoerselBesvartFraSpleis(mockPriProducer)
             createForespoerselMottatt(mockPriProducer)
-            createHelsebro(mockPriProducer)
+            createHelsebroRivers(mockPriProducer)
             createHentEksternImRiver(spinnKlient)
             createHentInntektRiver(inntektClient)
             createJournalfoerImRiver(dokarkivClient)
             createMarkerForespoerselBesvart(mockPriProducer)
             createNotifikasjonRivers(NOTIFIKASJON_LINK, selvbestemtRepo, arbeidsgiverNotifikasjonKlient)
-            createPdl(pdlKlient)
+            createPdlRiver(pdlKlient)
         }
     }
 
@@ -259,16 +256,22 @@ abstract class EndToEndTest : ContainerTest() {
     }
 
     fun mockForespoerselSvarFraHelsebro(
-        eventName: EventName,
-        transaksjonId: UUID,
         forespoerselId: UUID,
         forespoerselSvar: ForespoerselSvar.Suksess,
     ) {
+        var boomerang: JsonElement? = null
+
         every {
             mockPriProducer.send(
-                *varargAny { (key, value) ->
-                    key == Pri.Key.BEHOV &&
-                        runCatching { value.fromJson(Pri.BehovType.serializer()) }.getOrNull() == Pri.BehovType.TRENGER_FORESPØRSEL
+                *varargAll { (key, value) ->
+                    if (key == Pri.Key.BOOMERANG) {
+                        boomerang = value
+                    }
+
+                    val erKorrektBehov = runCatching { value.fromJson(Pri.BehovType.serializer()) }.getOrNull() == Pri.BehovType.TRENGER_FORESPØRSEL
+
+                    (key == Pri.Key.BEHOV && erKorrektBehov) ||
+                        key in setOf(Pri.Key.FORESPOERSEL_ID, Pri.Key.BOOMERANG)
                 },
             )
         } answers {
@@ -278,9 +281,11 @@ abstract class EndToEndTest : ContainerTest() {
                     ForespoerselSvar(
                         forespoerselId = forespoerselId,
                         resultat = forespoerselSvar,
-                        boomerang = getBoomerangData(it, eventName, transaksjonId),
+                        boomerang = boomerang.shouldNotBeNull(),
                     ).toJson(ForespoerselSvar.serializer()),
             )
+
+            boomerang = null
 
             Result.success(JsonObject(emptyMap()))
         }
@@ -299,29 +304,6 @@ abstract class EndToEndTest : ContainerTest() {
             exec("SELECT truncate_tables()")
         }
     }
-
-    private fun getBoomerangData(
-        call: Call,
-        eventName: EventName,
-        transaksjonId: UUID,
-    ): JsonElement = getBoomerangDataFromInvocationCall(call) ?: mockBoomerangData(eventName, transaksjonId)
-
-    private fun getBoomerangDataFromInvocationCall(call: Call): JsonElement? =
-        call.invocation.args
-            .firstOrNull()
-            ?.toArray()
-            ?.map { it as Pair<Pri.Key, JsonElement> }
-            ?.firstOrNull { it.first == Pri.Key.BOOMERANG }
-            ?.second
-
-    private fun mockBoomerangData(
-        eventName: EventName,
-        transaksjonId: UUID,
-    ): JsonElement =
-        mapOf(
-            Key.EVENT_NAME to eventName.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-        ).toJson()
 }
 
 private fun Database.createTruncateFunction() =

@@ -63,8 +63,6 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             )
 
         mockForespoerselSvarFraHelsebro(
-            eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
-            transaksjonId = Mock.transaksjonId,
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar = Mock.forespoerselSvar,
         )
@@ -85,13 +83,13 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         // Forespørsel hentet
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.FORESPOERSEL_SVAR)
+            .filter(Key.FORESPOERSEL_SVAR, nestedData = true)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
             .verifiserForespoerselId()
             .also {
-                it shouldContainKey Key.DATA
-                it[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel
             }
 
         // Tidligere inntektsmelding hentet

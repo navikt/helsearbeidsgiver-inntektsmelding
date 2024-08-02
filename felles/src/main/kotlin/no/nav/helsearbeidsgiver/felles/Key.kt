@@ -18,9 +18,6 @@ enum class Key(
     // Egendefinerte
     SELVBESTEMT_ID("selvbestemt_id"),
     IDENTITETSNUMMER("identitetsnummer"),
-
-    @Deprecated("Bruk 'Key.ARBEIDSGIVER_FNR'.")
-    ARBEIDSGIVER_ID("arbeidsgiverId"),
     ARBEIDSGIVER_FNR("arbeidsgiver_fnr"),
     UUID("uuid"),
     FORESPOERSEL_ID("forespoerselId"),
@@ -36,7 +33,6 @@ enum class Key(
     VIRKSOMHET("virksomhet"),
     VIRKSOMHETER("virksomheter"),
     ARBEIDSTAKER_INFORMASJON("arbeidstakerInformasjon"),
-    ARBEIDSGIVER_INFORMASJON("arbeidsgiverInformasjon"),
     INNTEKTSMELDING_DOKUMENT("inntektsmelding_dokument"),
     ARBEIDSFORHOLD("arbeidsforhold"),
     SAK_ID("sak_id"),

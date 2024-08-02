@@ -54,7 +54,6 @@ class InnsendingService(
     override val dataKeys =
         setOf(
             Key.ER_DUPLIKAT_IM,
-            Key.PERSISTERT_SKJEMA_INNTEKTSMELDING,
         )
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
@@ -76,8 +75,11 @@ class InnsendingService(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.PERSISTER_IM_SKJEMA.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                Key.SKJEMA_INNTEKTSMELDING to steg0.skjema,
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                        Key.SKJEMA_INNTEKTSMELDING to steg0.skjema,
+                    ).toJson(),
             ).also { loggBehovPublisert(BehovType.PERSISTER_IM_SKJEMA, it) }
     }
 

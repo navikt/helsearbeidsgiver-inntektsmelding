@@ -37,7 +37,6 @@ enum class Key(
     ARBEIDSFORHOLD("arbeidsforhold"),
     SAK_ID("sak_id"),
     PERSISTERT_SAK_ID("persistert_sak_id"),
-    PERSISTERT_SKJEMA_INNTEKTSMELDING("persistert_skjema_inntektsmelding"),
     OPPGAVE_ID("oppgave_id"),
     ORGNRUNDERENHET("orgnrUnderenhet"),
     ORGNR_UNDERENHETER("orgnr_underenheter"),

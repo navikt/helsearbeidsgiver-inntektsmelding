@@ -26,6 +26,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
+import no.nav.helsearbeidsgiver.felles.test.json.plusData
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -97,7 +98,7 @@ class AktiveOrgnrServiceTest :
             testRapid.sendJson(
                 Mock
                     .steg1Data(transaksjonId, orgnr)
-                    .plus(Key.ARBEIDSFORHOLD to emptyList<Arbeidsforhold>().toJson(Arbeidsforhold.serializer())),
+                    .plusData(Key.ARBEIDSFORHOLD to emptyList<Arbeidsforhold>().toJson(Arbeidsforhold.serializer())),
             )
 
             // Virksomheter hentes ikke
@@ -122,7 +123,7 @@ class AktiveOrgnrServiceTest :
             testRapid.sendJson(
                 Mock
                     .steg1Data(transaksjonId, orgnr)
-                    .plus(Key.ORG_RETTIGHETER to setOf(Orgnr.genererGyldig().verdi).toJson(String.serializer())),
+                    .plusData(Key.ORG_RETTIGHETER to setOf(Orgnr.genererGyldig().verdi).toJson(String.serializer())),
             )
 
             // Orgnavn hentes ikke
@@ -148,7 +149,7 @@ class AktiveOrgnrServiceTest :
             testRapid.sendJson(
                 Mock
                     .steg1Data(transaksjonId, orgnr)
-                    .plus(Key.ORG_RETTIGHETER to emptySet<String>().toJson(String.serializer())),
+                    .plusData(Key.ORG_RETTIGHETER to emptySet<String>().toJson(String.serializer())),
             )
 
             // Orgnavn hentes ikke

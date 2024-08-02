@@ -130,18 +130,20 @@ class LagreSelvbestemtIT : EndToEndTest() {
         // Lagring forespurt
         serviceMessages
             .filter(BehovType.LAGRE_SELVBESTEMT_IM)
-            .firstAsMap()[Key.SELVBESTEMT_INNTEKTSMELDING]
-            .shouldNotBeNull()
-            .fromJson(InntektsmeldingV1.serializer())
-            .shouldBeEqualToInntektsmelding(nyInntektsmelding)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.SELVBESTEMT_INNTEKTSMELDING.les(InntektsmeldingV1.serializer(), data).shouldBeEqualToInntektsmelding(nyInntektsmelding)
+            }
 
         // Lagring utført, uten duplikat
         serviceMessages
-            .filter(Key.ER_DUPLIKAT_IM)
-            .firstAsMap()[Key.ER_DUPLIKAT_IM]
-            .shouldNotBeNull()
-            .fromJson(Boolean.serializer())
-            .shouldBeFalse()
+            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), data).shouldBeFalse()
+            }
 
         // Opprettelse av sak forespurt
         serviceMessages
@@ -213,11 +215,12 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         // Lagring utført, uten duplikat
         serviceMessages
-            .filter(Key.ER_DUPLIKAT_IM)
-            .firstAsMap()[Key.ER_DUPLIKAT_IM]
-            .shouldNotBeNull()
-            .fromJson(Boolean.serializer())
-            .shouldBeFalse()
+            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), data).shouldBeFalse()
+            }
 
         // Opprettelse av sak _ikke_ forespurt
         serviceMessages
@@ -278,18 +281,20 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         // Lagring utført, med duplikat
         serviceMessages
-            .filter(Key.ER_DUPLIKAT_IM)
-            .firstAsMap()[Key.SELVBESTEMT_INNTEKTSMELDING]
-            .shouldNotBeNull()
-            .fromJson(InntektsmeldingV1.serializer())
-            .shouldBeEqualToInntektsmelding(Mock.inntektsmelding)
+            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.SELVBESTEMT_INNTEKTSMELDING.les(InntektsmeldingV1.serializer(), data).shouldBeEqualToInntektsmelding(Mock.inntektsmelding)
+            }
 
         serviceMessages
-            .filter(Key.ER_DUPLIKAT_IM)
-            .firstAsMap()[Key.ER_DUPLIKAT_IM]
-            .shouldNotBeNull()
-            .fromJson(Boolean.serializer())
-            .shouldBeTrue()
+            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), data).shouldBeTrue()
+            }
 
         // Opprettelse av sak _ikke_ forespurt
         serviceMessages

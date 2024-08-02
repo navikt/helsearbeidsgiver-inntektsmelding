@@ -121,8 +121,10 @@ private object Mock {
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
-            Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+            Key.DATA to
+                mapOf(
+                    Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
+                    Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                ).toJson(),
         )
 }

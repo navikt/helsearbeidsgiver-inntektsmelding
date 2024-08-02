@@ -54,7 +54,7 @@ class InntektService(
     override val startKeys =
         setOf(
             Key.FORESPOERSEL_ID,
-            Key.SKJAERINGSTIDSPUNKT,
+            Key.INNTEKTSDATO,
         )
     override val dataKeys =
         setOf(
@@ -66,7 +66,7 @@ class InntektService(
         Steg0(
             transaksjonId = Key.UUID.les(UuidSerializer, melding),
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
-            skjaeringstidspunkt = Key.SKJAERINGSTIDSPUNKT.les(LocalDateSerializer, melding),
+            skjaeringstidspunkt = Key.INNTEKTSDATO.les(LocalDateSerializer, melding),
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =

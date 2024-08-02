@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -24,6 +25,7 @@ data class LagreSelvbestemtImMelding(
     val eventName: EventName,
     val behovType: BehovType,
     val transaksjonId: UUID,
+    val data: Map<Key, JsonElement>,
     val selvbestemtInntektsmelding: Inntektsmelding,
 )
 
@@ -34,14 +36,17 @@ class LagreSelvbestemtImRiver(
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): LagreSelvbestemtImMelding? =
-        if (setOf(Key.DATA, Key.FAIL).any(json::containsKey)) {
+        if (Key.FAIL in json) {
             null
         } else {
+            val data = json[Key.DATA]?.toMap().orEmpty()
+
             LagreSelvbestemtImMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.LAGRE_SELVBESTEMT_IM, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
-                selvbestemtInntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), json),
+                data = data,
+                selvbestemtInntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
             )
         }
 
@@ -69,17 +74,14 @@ class LagreSelvbestemtImRiver(
             }
         }
 
-        val dataFields =
-            arrayOf(
-                Key.SELVBESTEMT_INNTEKTSMELDING to selvbestemtInntektsmelding.toJson(Inntektsmelding.serializer()),
-                Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer()),
-            )
-
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to dataFields.toMap().toJson(),
-            *dataFields,
+            Key.DATA to
+                data
+                    .plus(
+                        Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer()),
+                    ).toJson(),
         )
     }
 

@@ -31,7 +31,6 @@ class InntektProducerTest :
                     Key.UUID to transaksjonId.toJson(),
                     Key.DATA to "".toJson(),
                     Key.FORESPOERSEL_ID to request.forespoerselId.toJson(),
-                    Key.SKJAERINGSTIDSPUNKT to request.skjaeringstidspunkt.toJson(),
                     Key.INNTEKTSDATO to request.skjaeringstidspunkt.toJson(),
                 )
         }

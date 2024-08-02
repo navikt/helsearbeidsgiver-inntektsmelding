@@ -117,7 +117,7 @@ fun mockStartMelding(transaksjonId: UUID): Map<Key, JsonElement> =
         Key.DATA to "".toJson(),
         Key.FNR to Fnr.genererGyldig().toJson(),
         Key.ORGNRUNDERENHET to Orgnr.genererGyldig().toJson(),
-        Key.SKJAERINGSTIDSPUNKT to 14.april.toJson(),
+        Key.INNTEKTSDATO to 14.april.toJson(),
     )
 
 fun mockDataMelding(transaksjonId: UUID): Map<Key, JsonElement> =

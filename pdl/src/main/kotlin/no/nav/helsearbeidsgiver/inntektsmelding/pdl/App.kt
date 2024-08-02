@@ -12,20 +12,17 @@ private val logger = "im-pdl".logger()
 fun main() {
     RapidApplication
         .create(System.getenv())
-        .createPdl(buildClient(setUpEnvironment()))
+        .createPdlRiver(buildClient())
         .start()
 }
 
-fun RapidsConnection.createPdl(pdlClient: PdlClient): RapidsConnection =
+fun RapidsConnection.createPdlRiver(pdlClient: PdlClient): RapidsConnection =
     also {
-        logger.info("Starter ${FulltNavnLoeser::class.simpleName}...")
-        FulltNavnLoeser(this, pdlClient)
-
         logger.info("Starter ${HentPersonerRiver::class.simpleName}...")
         HentPersonerRiver(pdlClient).connect(this)
     }
 
-fun buildClient(environment: Environment): PdlClient {
-    val tokenGetter = oauth2ClientCredentialsTokenGetter(environment.oauth2Environment)
-    return PdlClient(environment.pdlUrl, Behandlingsgrunnlag.INNTEKTSMELDING, tokenGetter)
+fun buildClient(): PdlClient {
+    val tokenGetter = oauth2ClientCredentialsTokenGetter(Env.oauth2Environment)
+    return PdlClient(Env.pdlUrl, Behandlingsgrunnlag.INNTEKTSMELDING, tokenGetter)
 }

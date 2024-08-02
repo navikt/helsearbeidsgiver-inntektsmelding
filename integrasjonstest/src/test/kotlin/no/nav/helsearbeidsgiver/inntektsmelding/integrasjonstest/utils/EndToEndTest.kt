@@ -54,7 +54,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJournalfoerImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonServices
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
-import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
+import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdlRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice.createLagreSelvbestemtImService
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.createTilgangService
 import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createHentForespoerselService
@@ -221,7 +221,7 @@ abstract class EndToEndTest : ContainerTest() {
             createJournalfoerImRiver(dokarkivClient)
             createMarkerForespoerselBesvart(mockPriProducer)
             createNotifikasjonRivers(NOTIFIKASJON_LINK, selvbestemtRepo, arbeidsgiverNotifikasjonKlient)
-            createPdl(pdlKlient)
+            createPdlRiver(pdlKlient)
         }
     }
 

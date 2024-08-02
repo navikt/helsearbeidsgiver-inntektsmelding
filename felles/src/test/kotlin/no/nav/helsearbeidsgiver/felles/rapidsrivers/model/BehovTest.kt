@@ -82,7 +82,7 @@ class BehovTest :
 
 private object Mock {
     val event = EventName.FORESPØRSEL_LAGRET
-    val behovType = BehovType.FULLT_NAVN
+    val behovType = BehovType.HENT_PERSONER
     val transaksjonId: UUID = UUID.randomUUID()
     val forespoerselId: UUID = UUID.randomUUID()
     const val FEILMELDING = "feilmelding"

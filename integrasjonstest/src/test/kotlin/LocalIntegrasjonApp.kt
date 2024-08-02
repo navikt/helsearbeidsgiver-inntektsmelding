@@ -15,7 +15,6 @@ import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PeriodeNullable
-import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.app.LocalApp
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
@@ -28,7 +27,6 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.test.date.januar
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -47,7 +45,7 @@ fun main() {
 //    DummyLoeser(rapid, BehovType.INNTEKT)
 //    DummyLoeser(rapid, BehovType.ARBEIDSFORHOLD)
 //    DummyLoeser(rapid, BehovType.VIRKSOMHET)
-    DummyLoeser(rapid, BehovType.FULLT_NAVN)
+    DummyLoeser(rapid, BehovType.HENT_INNTEKT)
     // Hvis ønskelig kan man kjøre opp "ekte" løsere med eller uten mocking parallellt, sammen med DummyLøser:
     val priProducer = mockk<PriProducer>(relaxed = true)
     TrengerForespoerselLoeser(rapid, priProducer)
@@ -107,25 +105,6 @@ class DummyLoeser(
             BehovType.HENT_VIRKSOMHET_NAVN ->
                 mapOf(
                     Key.VIRKSOMHET to "Din Bedrift A/S".toJson(),
-                )
-            BehovType.FULLT_NAVN ->
-                mapOf(
-                    Key.ARBEIDSTAKER_INFORMASJON to
-                        PersonDato(
-                            "Navn navnesen",
-                            LocalDate.now(),
-                            "123456",
-                        ).toJson(
-                            PersonDato.serializer(),
-                        ),
-                    Key.ARBEIDSGIVER_INFORMASJON to
-                        PersonDato(
-                            "Arbeidsgiver",
-                            LocalDate.now(),
-                            "654321",
-                        ).toJson(
-                            PersonDato.serializer(),
-                        ),
                 )
             BehovType.HENT_INNTEKT ->
                 mapOf(

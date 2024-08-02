@@ -21,7 +21,7 @@ enum class BehovType {
     LAGRE_SELVBESTEMT_IM,
     OPPRETT_SELVBESTEMT_SAK,
     PERSISTER_IM,
-    PERSISTER_IM_SKJEMA,
+    LAGRE_IM_SKJEMA,
     SLETT_SAK, // kun brukt ved manuell kjøring
 
     // Asynkrone endringer

@@ -21,7 +21,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-data class PersisterImSkjemaMelding(
+data class LagreImSkjemaMelding(
     val eventName: EventName,
     val behovType: BehovType,
     val transaksjonId: UUID,
@@ -30,20 +30,20 @@ data class PersisterImSkjemaMelding(
     val inntektsmeldingSkjema: Innsending,
 )
 
-class PersisterImSkjemaRiver(
+class LagreImSkjemaRiver(
     private val repository: InntektsmeldingRepository,
-) : ObjectRiver<PersisterImSkjemaMelding>() {
+) : ObjectRiver<LagreImSkjemaMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun les(json: Map<Key, JsonElement>): PersisterImSkjemaMelding? =
+    override fun les(json: Map<Key, JsonElement>): LagreImSkjemaMelding? =
         if (Key.FAIL in json) {
             null
         } else {
             val data = json[Key.DATA]?.toMap().orEmpty()
-            PersisterImSkjemaMelding(
+            LagreImSkjemaMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
-                behovType = Key.BEHOV.krev(BehovType.PERSISTER_IM_SKJEMA, BehovType.serializer(), json),
+                behovType = Key.BEHOV.krev(BehovType.LAGRE_IM_SKJEMA, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
                 data = data,
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
@@ -51,7 +51,7 @@ class PersisterImSkjemaRiver(
             )
         }
 
-    override fun PersisterImSkjemaMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
+    override fun LagreImSkjemaMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val sisteIm = repository.hentNyesteInntektsmelding(forespoerselId)
         val sisteImSkjema = repository.hentNyesteInntektsmeldingSkjema(forespoerselId)
 
@@ -76,13 +76,13 @@ class PersisterImSkjemaRiver(
         )
     }
 
-    override fun PersisterImSkjemaMelding.haandterFeil(
+    override fun LagreImSkjemaMelding.haandterFeil(
         json: Map<Key, JsonElement>,
         error: Throwable,
     ): Map<Key, JsonElement> {
         val fail =
             Fail(
-                feilmelding = "Klarte ikke lagre inntektsmeldingskjema.",
+                feilmelding = "Klarte ikke lagre inntektsmeldingskjema i database.",
                 event = eventName,
                 transaksjonId = transaksjonId,
                 forespoerselId = forespoerselId,
@@ -95,9 +95,9 @@ class PersisterImSkjemaRiver(
         return fail.tilMelding()
     }
 
-    override fun PersisterImSkjemaMelding.loggfelt(): Map<String, String> =
+    override fun LagreImSkjemaMelding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this@PersisterImSkjemaRiver),
+            Log.klasse(this@LagreImSkjemaRiver),
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),

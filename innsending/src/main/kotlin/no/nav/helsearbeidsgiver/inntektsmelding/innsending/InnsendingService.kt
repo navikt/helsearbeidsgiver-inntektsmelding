@@ -73,14 +73,14 @@ class InnsendingService(
         rapid
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.PERSISTER_IM_SKJEMA.toJson(),
+                Key.BEHOV to BehovType.LAGRE_IM_SKJEMA.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
                         Key.SKJEMA_INNTEKTSMELDING to steg0.skjema,
                     ).toJson(),
-            ).also { loggBehovPublisert(BehovType.PERSISTER_IM_SKJEMA, it) }
+            ).also { loggBehovPublisert(BehovType.LAGRE_IM_SKJEMA, it) }
     }
 
     override fun utfoerSteg1(

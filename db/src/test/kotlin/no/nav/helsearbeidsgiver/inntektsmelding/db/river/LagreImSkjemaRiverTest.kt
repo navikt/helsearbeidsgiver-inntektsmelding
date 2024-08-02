@@ -32,11 +32,11 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.juli
 import java.util.UUID
 
-class PersisterImSkjemaRiverTest :
+class LagreImSkjemaRiverTest :
     FunSpec({
         val testRapid = TestRapid()
         val mockInntektsmeldingRepo = mockk<InntektsmeldingRepository>()
-        PersisterImSkjemaRiver(mockInntektsmeldingRepo).connect(testRapid)
+        LagreImSkjemaRiver(mockInntektsmeldingRepo).connect(testRapid)
         beforeTest {
             testRapid.reset()
             clearAllMocks()
@@ -170,12 +170,12 @@ class PersisterImSkjemaRiverTest :
         }
     })
 
-private fun innkommendeMelding(inntektsmeldingSkjema: Innsending = mockInnsending()): PersisterImSkjemaMelding {
+private fun innkommendeMelding(inntektsmeldingSkjema: Innsending = mockInnsending()): LagreImSkjemaMelding {
     val forespoerselId = UUID.randomUUID()
 
-    return PersisterImSkjemaMelding(
+    return LagreImSkjemaMelding(
         eventName = EventName.INSENDING_STARTED,
-        behovType = BehovType.PERSISTER_IM_SKJEMA,
+        behovType = BehovType.LAGRE_IM_SKJEMA,
         transaksjonId = UUID.randomUUID(),
         data =
             mapOf(
@@ -187,7 +187,7 @@ private fun innkommendeMelding(inntektsmeldingSkjema: Innsending = mockInnsendin
     )
 }
 
-private fun PersisterImSkjemaMelding.toMap(): Map<Key, JsonElement> =
+private fun LagreImSkjemaMelding.toMap(): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
         Key.BEHOV to behovType.toJson(),
@@ -197,9 +197,9 @@ private fun PersisterImSkjemaMelding.toMap(): Map<Key, JsonElement> =
 
 private val mockFail =
     Fail(
-        feilmelding = "Vi har et KJEMPEPROBLEM!",
-        event = EventName.SELVBESTEMT_IM_MOTTATT,
+        feilmelding = "Aiaiai, sokksee for min spanske åpning!",
+        event = EventName.INSENDING_STARTED,
         transaksjonId = UUID.randomUUID(),
-        forespoerselId = null,
+        forespoerselId = UUID.randomUUID(),
         utloesendeMelding = JsonNull,
     )

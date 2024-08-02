@@ -28,8 +28,8 @@ class InnsendingProducerTest :
             val avsenderFnr = Fnr.genererGyldig()
 
             producer.publish(transaksjonId, forespoerselId, gyldigInnsendingRequest, avsenderFnr)
-            testRapid.inspektør.size shouldBeExactly 1
 
+            testRapid.inspektør.size shouldBeExactly 1
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),

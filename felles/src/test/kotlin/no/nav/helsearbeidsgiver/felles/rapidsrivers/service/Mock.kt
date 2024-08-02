@@ -28,16 +28,20 @@ open class MockService : ServiceMed1Steg<MockService.Steg0, MockService.Steg1>()
     override val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.MANUELL_OPPRETT_SAK_REQUESTED
-    override val startKeys =
+
+    fun mockSteg0Data(): Map<Key, JsonElement> =
         setOf(
             Key.FNR_LISTE,
             Key.ER_DUPLIKAT_IM,
-        )
-    override val dataKeys =
+        ).mockValues()
+
+    fun mockSteg1Data(): Map<Key, JsonElement> =
         setOf(
             Key.PERSONER,
             Key.VIRKSOMHETER,
-        )
+        ).mockValues()
+
+    private fun Set<Key>.mockValues(): Map<Key, JsonElement> = associateWith { "mock $it".toJson() }
 
     data class Steg0(
         val fnrListe: Set<Fnr>,
@@ -64,14 +68,16 @@ open class MockService : ServiceMed1Steg<MockService.Steg0, MockService.Steg1>()
     override fun utfoerSteg1(
         steg0: Steg0,
         steg1: Steg1,
-    ) {}
+    ) {
+    }
 
     override fun utfoerSteg0(steg0: Steg0) {}
 
     override fun onError(
         melding: Map<Key, JsonElement>,
         fail: Fail,
-    ) {}
+    ) {
+    }
 
     override fun Steg0.loggfelt(): Map<String, String> = emptyMap()
 }
@@ -85,6 +91,4 @@ object Mock {
             forespoerselId = UUID.randomUUID(),
             utloesendeMelding = JsonNull,
         )
-
-    fun values(keys: Set<Key>): Map<Key, JsonElement> = keys.associateWith { "mock $it".toJson() }
 }

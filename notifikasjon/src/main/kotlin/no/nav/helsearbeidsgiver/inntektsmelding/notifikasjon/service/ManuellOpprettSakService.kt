@@ -41,18 +41,6 @@ class ManuellOpprettSakService(
     override val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.MANUELL_OPPRETT_SAK_REQUESTED
-    override val startKeys =
-        setOf(
-            Key.FORESPOERSEL_ID,
-            Key.UUID,
-        )
-    override val dataKeys =
-        setOf(
-            Key.FORESPOERSEL_SVAR,
-            Key.PERSONER,
-            Key.SAK_ID,
-            Key.PERSISTERT_SAK_ID,
-        )
 
     data class Steg0(
         val transaksjonId: UUID,

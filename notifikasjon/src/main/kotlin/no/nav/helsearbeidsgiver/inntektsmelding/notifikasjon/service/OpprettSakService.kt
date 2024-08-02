@@ -44,19 +44,6 @@ class OpprettSakService(
     override val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.SAK_OPPRETT_REQUESTED
-    override val startKeys =
-        setOf(
-            Key.UUID,
-            Key.FORESPOERSEL_ID,
-            Key.ORGNRUNDERENHET,
-            Key.IDENTITETSNUMMER,
-        )
-    override val dataKeys =
-        setOf(
-            Key.PERSONER,
-            Key.SAK_ID,
-            Key.PERSISTERT_SAK_ID,
-        )
 
     data class Steg0(
         val transaksjonId: UUID,

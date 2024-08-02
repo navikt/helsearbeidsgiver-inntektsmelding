@@ -7,7 +7,6 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify
-import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -34,33 +33,12 @@ class ServiceRiverStatelessTest :
         context("fail-melding har presedens") {
             withData(
                 mapOf(
-                    "over start" to
-                        mapOf(
-                            Key.EVENT_NAME to mockService.eventName.toJson(),
-                            Key.UUID to UUID.randomUUID().toJson(),
-                            Key.FAIL to Mock.fail.toJson(Fail.serializer()),
-                            Key.DATA to "".toJson(),
-                        ).plus(Mock.values(mockService.startKeys)),
                     "over data" to
                         mapOf(
                             Key.EVENT_NAME to mockService.eventName.toJson(),
                             Key.UUID to UUID.randomUUID().toJson(),
                             Key.FAIL to Mock.fail.toJson(Fail.serializer()),
-                            Key.DATA to "".toJson(),
-                        ).plus(Mock.values(mockService.dataKeys)),
-                    "over start med nested data" to
-                        mapOf(
-                            Key.EVENT_NAME to mockService.eventName.toJson(),
-                            Key.UUID to UUID.randomUUID().toJson(),
-                            Key.FAIL to Mock.fail.toJson(Fail.serializer()),
-                            Key.DATA to Mock.values(mockService.startKeys).toJson(),
-                        ),
-                    "over nested data" to
-                        mapOf(
-                            Key.EVENT_NAME to mockService.eventName.toJson(),
-                            Key.UUID to UUID.randomUUID().toJson(),
-                            Key.FAIL to Mock.fail.toJson(Fail.serializer()),
-                            Key.DATA to Mock.values(mockService.dataKeys).toJson(),
+                            Key.DATA to mockService.mockSteg1Data().toJson(),
                         ),
                     "over behov (som skal ignoreres)" to
                         mapOf(
@@ -83,64 +61,7 @@ class ServiceRiverStatelessTest :
             }
         }
 
-        test("datamelding med startdata håndteres korrekt") {
-            val innkommendeMelding =
-                mapOf(
-                    Key.EVENT_NAME to mockService.eventName.toJson(),
-                    Key.UUID to UUID.randomUUID().toJson(),
-                    Key.DATA to "".toJson(),
-                ).plus(Mock.values(mockService.startKeys))
-
-            testRapid.sendJson(innkommendeMelding)
-
-            verify {
-                mockService.onData(innkommendeMelding)
-            }
-            verify(exactly = 0) {
-                mockService.onError(any(), any())
-            }
-        }
-
-        test("datamelding med nested startdata håndteres korrekt") {
-            val data = Mock.values(mockService.startKeys)
-
-            val innkommendeMelding =
-                mapOf(
-                    Key.EVENT_NAME to mockService.eventName.toJson(),
-                    Key.UUID to UUID.randomUUID().toJson(),
-                    Key.DATA to data.toJson(),
-                )
-
-            testRapid.sendJson(innkommendeMelding)
-
-            verify {
-                mockService.onData(data + innkommendeMelding)
-            }
-            verify(exactly = 0) {
-                mockService.onError(any(), any())
-            }
-        }
-
         test("datamelding håndteres korrekt") {
-            val innkommendeMelding =
-                mapOf(
-                    Key.EVENT_NAME to mockService.eventName.toJson(),
-                    Key.UUID to UUID.randomUUID().toJson(),
-                    Key.DATA to "".toJson(),
-                    Key.VIRKSOMHETER to "Fredrikssons Fabrikk".toJson(),
-                )
-
-            testRapid.sendJson(innkommendeMelding)
-
-            verify {
-                mockService.onData(innkommendeMelding)
-            }
-            verify(exactly = 0) {
-                mockService.onError(any(), any())
-            }
-        }
-
-        test("datamelding med nested data håndteres korrekt") {
             val data =
                 mapOf(
                     Key.VIRKSOMHETER to "Fredrikssons Fabrikk".toJson(),
@@ -182,29 +103,6 @@ class ServiceRiverStatelessTest :
         }
 
         test("ved feil så publiseres ingenting") {
-            every { mockService.onData(any()) } throws NullPointerException()
-
-            val innkommendeMelding =
-                mapOf(
-                    Key.EVENT_NAME to mockService.eventName.toJson(),
-                    Key.UUID to UUID.randomUUID().toJson(),
-                    Key.DATA to "".toJson(),
-                    Key.VIRKSOMHETER to "Barry Eagles Language Course".toJson(),
-                )
-
-            testRapid.sendJson(innkommendeMelding)
-
-            testRapid.inspektør.size shouldBeExactly 0
-
-            verify {
-                mockService.onData(any())
-            }
-            verify(exactly = 0) {
-                mockService.onError(any(), any())
-            }
-        }
-
-        test("ved feil så publiseres ingenting (nested data)") {
             every { mockService.onData(any()) } throws NullPointerException()
 
             val innkommendeMelding =
@@ -264,57 +162,21 @@ class ServiceRiverStatelessTest :
                                 Key.EVENT_NAME to mockService.eventName.toJson(),
                                 Key.UUID to UUID.randomUUID().toJson(),
                                 Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
-                                Key.DATA to "".toJson(),
-                                *Mock.values(mockService.startKeys).toList().toTypedArray(),
-                                Key.PERSONER to "mock personer".toJson(),
+                                Key.DATA to
+                                    mockService
+                                        .mockSteg0Data()
+                                        .plus(Key.PERSONER to "mock personer".toJson())
+                                        .toJson(),
                             ),
-                        "med behov (nested data)" to
+                        "med data som flagg" to
                             mapOf(
                                 Key.EVENT_NAME to mockService.eventName.toJson(),
                                 Key.UUID to UUID.randomUUID().toJson(),
                                 Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
-                                Key.DATA to
-                                    Mock
-                                        .values(mockService.startKeys)
-                                        .plus(Key.PERSONER to "mock personer".toJson())
-                                        .toJson(),
-                            ),
-                        "uten alle startdataverdier" to
-                            mapOf(
-                                Key.EVENT_NAME to mockService.eventName.toJson(),
-                                Key.UUID to UUID.randomUUID().toJson(),
-                                Key.DATA to "".toJson(),
-                                Key.FNR_LISTE to "mock fnr_liste".toJson(),
-                            ),
-                        "uten alle startdataverdier (nested data)" to
-                            mapOf(
-                                Key.EVENT_NAME to mockService.eventName.toJson(),
-                                Key.UUID to UUID.randomUUID().toJson(),
-                                Key.DATA to
-                                    mapOf(
-                                        Key.FNR_LISTE to "mock fnr_liste".toJson(),
-                                    ).toJson(),
-                            ),
-                        "uten noen dataverdier" to
-                            mapOf(
-                                Key.EVENT_NAME to mockService.eventName.toJson(),
-                                Key.UUID to UUID.randomUUID().toJson(),
-                                Key.DATA to "".toJson(),
-                            ),
-                        "uten noen dataverdier (nested data)" to
-                            mapOf(
-                                Key.EVENT_NAME to mockService.eventName.toJson(),
-                                Key.UUID to UUID.randomUUID().toJson(),
-                                Key.DATA to emptyMap<Key, JsonElement>().toJson(),
-                            ),
-                        "med uønsket event" to
-                            mapOf(
-                                Key.EVENT_NAME to EventName.MANUELL_SLETT_SAK_REQUESTED.toJson(),
-                                Key.UUID to UUID.randomUUID().toJson(),
                                 Key.DATA to "".toJson(),
                                 Key.PERSONER to "mock personer".toJson(),
                             ),
-                        "med uønsket event (nested data)" to
+                        "med uønsket event" to
                             mapOf(
                                 Key.EVENT_NAME to EventName.MANUELL_SLETT_SAK_REQUESTED.toJson(),
                                 Key.UUID to UUID.randomUUID().toJson(),

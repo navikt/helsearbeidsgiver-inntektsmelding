@@ -55,18 +55,15 @@ class HentSelvbestemtImRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            val dataFields =
-                arrayOf(
-                    Key.SELVBESTEMT_ID to innkommendeMelding.selvbestemtId.toJson(),
-                    Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                )
-
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
                     Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                    Key.DATA to dataFields.toMap().toJson(),
-                    *dataFields,
+                    Key.DATA to
+                        mapOf(
+                            Key.SELVBESTEMT_ID to innkommendeMelding.selvbestemtId.toJson(),
+                            Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                        ).toJson(),
                 )
 
             verifySequence {
@@ -120,7 +117,7 @@ class HentSelvbestemtImRiverTest :
             withData(
                 mapOf(
                     "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.HENT_VIRKSOMHET_NAVN.toJson()),
-                    "melding med data" to Pair(Key.DATA, "".toJson()),
+                    "melding med data som flagg" to Pair(Key.DATA, "".toJson()),
                     "melding med fail" to Pair(Key.FAIL, mockFail.toJson(Fail.serializer())),
                 ),
             ) { uoensketKeyMedVerdi ->
@@ -139,20 +136,27 @@ class HentSelvbestemtImRiverTest :
         }
     })
 
-private fun innkommendeMelding(): HentSelvbestemtImMelding =
-    HentSelvbestemtImMelding(
+private fun innkommendeMelding(): HentSelvbestemtImMelding {
+    val selvbestemtId = UUID.randomUUID()
+
+    return HentSelvbestemtImMelding(
         eventName = EventName.SELVBESTEMT_IM_REQUESTED,
         behovType = BehovType.HENT_SELVBESTEMT_IM,
         transaksjonId = UUID.randomUUID(),
-        selvbestemtId = UUID.randomUUID(),
+        data =
+            mapOf(
+                Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
+            ),
+        selvbestemtId = selvbestemtId,
     )
+}
 
 private fun HentSelvbestemtImMelding.toMap(): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
         Key.BEHOV to behovType.toJson(),
         Key.UUID to transaksjonId.toJson(),
-        Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
+        Key.DATA to data.toJson(),
     )
 
 private fun HentSelvbestemtImMelding.toFail(feilmelding: String): Fail =

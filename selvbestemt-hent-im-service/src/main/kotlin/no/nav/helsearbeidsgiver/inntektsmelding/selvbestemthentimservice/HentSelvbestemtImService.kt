@@ -68,7 +68,10 @@ class HentSelvbestemtImService(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_SELVBESTEMT_IM.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
-                Key.SELVBESTEMT_ID to steg0.selvbestemtId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.SELVBESTEMT_ID to steg0.selvbestemtId.toJson(),
+                    ).toJson(),
             )
 
         MdcUtils.withLogFields(

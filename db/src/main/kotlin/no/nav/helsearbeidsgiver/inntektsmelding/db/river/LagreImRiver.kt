@@ -53,7 +53,7 @@ class LagreImRiver(
         }
 
     override fun LagreImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        val sisteIm = imRepo.hentNyeste(forespoerselId)
+        val sisteIm = imRepo.hentNyesteInntektsmelding(forespoerselId)
         val erDuplikat = sisteIm?.erDuplikatAv(inntektsmelding) ?: false
 
         if (erDuplikat) {

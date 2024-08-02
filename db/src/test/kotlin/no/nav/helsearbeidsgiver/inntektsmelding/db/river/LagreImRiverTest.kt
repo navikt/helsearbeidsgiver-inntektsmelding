@@ -54,7 +54,7 @@ class LagreImRiverTest :
                         ),
                 ),
             ) { eksisterendeIm ->
-                every { mockImRepo.hentNyeste(any()) } returns eksisterendeIm
+                every { mockImRepo.hentNyesteInntektsmelding(any()) } returns eksisterendeIm
                 every { mockImRepo.lagreInntektsmelding(any(), any()) } just Runs
 
                 val nyInntektsmelding = mockInntektsmelding()
@@ -78,7 +78,7 @@ class LagreImRiverTest :
                     )
 
                 verifySequence {
-                    mockImRepo.hentNyeste(innkommendeMelding.forespoerselId)
+                    mockImRepo.hentNyesteInntektsmelding(innkommendeMelding.forespoerselId)
                     mockImRepo.lagreInntektsmelding(innkommendeMelding.forespoerselId, nyInntektsmelding)
                 }
             }
@@ -95,7 +95,7 @@ class LagreImRiverTest :
                     tidspunkt = nyInntektsmelding.tidspunkt.minusDays(14),
                 )
 
-            every { mockImRepo.hentNyeste(any()) } returns duplikatIm
+            every { mockImRepo.hentNyesteInntektsmelding(any()) } returns duplikatIm
             every { mockImRepo.lagreInntektsmelding(any(), any()) } just Runs
 
             val innkommendeMelding = innkommendeMelding(nyInntektsmelding)
@@ -117,7 +117,7 @@ class LagreImRiverTest :
                 )
 
             verifySequence {
-                mockImRepo.hentNyeste(innkommendeMelding.forespoerselId)
+                mockImRepo.hentNyesteInntektsmelding(innkommendeMelding.forespoerselId)
             }
             verify(exactly = 0) {
                 mockImRepo.lagreInntektsmelding(innkommendeMelding.forespoerselId, nyInntektsmelding)
@@ -126,7 +126,7 @@ class LagreImRiverTest :
 
         test("håndterer at repo feiler") {
             every {
-                mockImRepo.hentNyeste(any())
+                mockImRepo.hentNyesteInntektsmelding(any())
             } throws RuntimeException("thank you, next")
 
             val innkommendeMelding = innkommendeMelding()
@@ -147,7 +147,7 @@ class LagreImRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             verifySequence {
-                mockImRepo.hentNyeste(any())
+                mockImRepo.hentNyesteInntektsmelding(any())
             }
             verify(exactly = 0) {
                 mockImRepo.lagreInntektsmelding(any(), any())
@@ -171,7 +171,7 @@ class LagreImRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 verify(exactly = 0) {
-                    mockImRepo.hentNyeste(any())
+                    mockImRepo.hentNyesteInntektsmelding(any())
                     mockImRepo.lagreInntektsmelding(any(), any())
                 }
             }

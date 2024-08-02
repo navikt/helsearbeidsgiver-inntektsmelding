@@ -50,7 +50,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.orgnr.toString())
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
-        imRepository.lagreInntektsmelding(Mock.forespoerselId.toString(), tidligereInntektsmelding)
+        imRepository.lagreInntektsmelding(Mock.forespoerselId, tidligereInntektsmelding)
 
         coEvery {
             dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
@@ -125,21 +125,13 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         // Inntektsmelding lagret
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.INNTEKTSMELDING_DOKUMENT)
-            .filter(Key.ER_DUPLIKAT_IM)
+            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
             .verifiserForespoerselId()
             .also {
-                it shouldContainKey Key.DATA
-                shouldNotThrowAny {
-                    it[Key.INNTEKTSMELDING_DOKUMENT]
-                        .shouldNotBeNull()
-                        .fromJson(Inntektsmelding.serializer())
-                    it[Key.ER_DUPLIKAT_IM]
-                        .shouldNotBeNull()
-                        .fromJson(Boolean.serializer())
-                }
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.ER_DUPLIKAT_IM]?.fromJson(Boolean.serializer()) shouldBe false
             }
 
         // Sykmeldt og innsender hentet

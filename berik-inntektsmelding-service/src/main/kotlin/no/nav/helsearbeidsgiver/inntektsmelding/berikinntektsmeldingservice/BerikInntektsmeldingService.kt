@@ -87,7 +87,7 @@ class BerikInntektsmeldingService(
         setOf(
             Key.VIRKSOMHETER,
             Key.PERSONER,
-            Key.INNTEKTSMELDING_DOKUMENT,
+            Key.INNTEKTSMELDING,
             Key.ER_DUPLIKAT_IM,
             Key.FORESPOERSEL_SVAR,
             Key.LAGRET_INNTEKTSMELDING,
@@ -135,7 +135,7 @@ class BerikInntektsmeldingService(
 
     override fun lesSteg5(melding: Map<Key, JsonElement>): Steg5 =
         Steg5(
-            inntektsmelding = Key.INNTEKTSMELDING_DOKUMENT.les(Inntektsmelding.serializer(), melding),
+            inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), melding),
             erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
         )
 
@@ -252,10 +252,13 @@ class BerikInntektsmeldingService(
         rapid
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
+                Key.BEHOV to BehovType.LAGRE_IM.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                        Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                    ).toJson(),
             ).also { loggBehovPublisert(BehovType.PERSISTER_IM, it) }
     }
 

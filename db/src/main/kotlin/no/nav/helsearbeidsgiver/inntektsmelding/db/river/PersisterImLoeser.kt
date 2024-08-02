@@ -61,7 +61,7 @@ class PersisterImLoeser(
             if (erDuplikat) {
                 sikkerLogger.warn("Fant duplikat av inntektsmelding for forespoerselId: $forespoerselId")
             } else {
-                repository.lagreInntektsmelding(forespoerselId.toString(), inntektsmelding)
+                repository.lagreInntektsmelding(forespoerselId, inntektsmelding)
                 sikkerLogger.info("Lagret Inntektsmelding for forespoerselId: $forespoerselId")
             }
 

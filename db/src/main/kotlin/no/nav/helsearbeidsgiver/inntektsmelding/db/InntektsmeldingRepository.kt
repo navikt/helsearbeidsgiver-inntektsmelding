@@ -33,13 +33,13 @@ class InntektsmeldingRepository(
             .register()
 
     fun lagreInntektsmelding(
-        forespoerselId: String,
+        forespoerselId: UUID,
         inntektsmeldingDokument: Inntektsmelding,
     ) {
         val requestTimer = requestLatency.labels("lagreInntektsmelding").startTimer()
         transaction(db) {
             InntektsmeldingEntitet.insert {
-                it[this.forespoerselId] = forespoerselId
+                it[this.forespoerselId] = forespoerselId.toString()
                 it[dokument] = inntektsmeldingDokument
                 it[innsendt] = LocalDateTime.now()
             }

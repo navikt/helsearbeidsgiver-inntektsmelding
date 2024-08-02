@@ -35,6 +35,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PeriodeNullable
 import no.nav.helsearbeidsgiver.felles.Person
 import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -109,8 +110,8 @@ class LagreSelvbestemtImServiceTest :
             }
 
             testRapid.inspektør.size shouldBeExactly 4
-            testRapid.message(3).also {
-                it.lesBehov() shouldBe BehovType.LAGRE_SELVBESTEMT_IM
+            testRapid.message(3).toMap().also {
+                Key.BEHOV.lesOrNull(BehovType.serializer(), it) shouldBe BehovType.LAGRE_SELVBESTEMT_IM
                 it.lesInntektsmelding().shouldBeEqualToIgnoringFields(nyInntektsmelding, Inntektsmelding::id, Inntektsmelding::type)
 
                 val type = it.lesInntektsmelding().type
@@ -136,10 +137,10 @@ class LagreSelvbestemtImServiceTest :
             )
 
             testRapid.inspektør.size shouldBeExactly 6
-            testRapid.message(5).also {
-                Key.EVENT_NAME.lesOrNull(EventName.serializer(), it.toMap()) shouldBe EventName.SELVBESTEMT_IM_LAGRET
-                Key.UUID.lesOrNull(UuidSerializer, it.toMap()) shouldBe transaksjonId
-                it.lesInntektsmelding().shouldBeEqualToIgnoringFields(nyInntektsmelding, Inntektsmelding::id)
+            testRapid.message(5).toMap().also {
+                Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.SELVBESTEMT_IM_LAGRET
+                Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), it).shouldBeEqualToIgnoringFields(nyInntektsmelding, Inntektsmelding::id)
             }
 
             verify {
@@ -174,8 +175,8 @@ class LagreSelvbestemtImServiceTest :
             }
 
             testRapid.inspektør.size shouldBeExactly 4
-            testRapid.message(3).also {
-                it.lesBehov() shouldBe BehovType.LAGRE_SELVBESTEMT_IM
+            testRapid.message(3).toMap().also {
+                Key.BEHOV.lesOrNull(BehovType.serializer(), it) shouldBe BehovType.LAGRE_SELVBESTEMT_IM
                 it.lesInntektsmelding().shouldBeEqualToIgnoringFields(endretInntektsmelding, Inntektsmelding::id)
             }
 
@@ -184,10 +185,10 @@ class LagreSelvbestemtImServiceTest :
             )
 
             testRapid.inspektør.size shouldBeExactly 5
-            testRapid.message(4).also {
-                Key.EVENT_NAME.lesOrNull(EventName.serializer(), it.toMap()) shouldBe EventName.SELVBESTEMT_IM_LAGRET
-                Key.UUID.lesOrNull(UuidSerializer, it.toMap()) shouldBe transaksjonId
-                it.lesInntektsmelding().shouldBeEqualToIgnoringFields(endretInntektsmelding, Inntektsmelding::id)
+            testRapid.message(4).toMap().also {
+                Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.SELVBESTEMT_IM_LAGRET
+                Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), it).shouldBeEqualToIgnoringFields(endretInntektsmelding, Inntektsmelding::id)
             }
 
             verify {
@@ -217,17 +218,13 @@ class LagreSelvbestemtImServiceTest :
             }
 
             testRapid.inspektør.size shouldBeExactly 4
-            testRapid.message(3).also {
-                it.lesBehov() shouldBe BehovType.LAGRE_SELVBESTEMT_IM
+            testRapid.message(3).toMap().also {
+                Key.BEHOV.lesOrNull(BehovType.serializer(), it) shouldBe BehovType.LAGRE_SELVBESTEMT_IM
                 it.lesInntektsmelding().shouldBeEqualToIgnoringFields(duplikatInntektsmelding, Inntektsmelding::id)
             }
 
             testRapid.sendJson(
-                Mock
-                    .steg2(transaksjonId, duplikatInntektsmelding)
-                    .plus(
-                        Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
-                    ),
+                Mock.steg2(transaksjonId, duplikatInntektsmelding, erDuplikatIm = true),
             )
 
             testRapid.inspektør.size shouldBeExactly 4
@@ -307,8 +304,8 @@ class LagreSelvbestemtImServiceTest :
             }
 
             testRapid.inspektør.size shouldBeExactly 4
-            testRapid.message(3).also {
-                it.lesBehov() shouldBe BehovType.LAGRE_SELVBESTEMT_IM
+            testRapid.message(3).toMap().also {
+                Key.BEHOV.lesOrNull(BehovType.serializer(), it) shouldBe BehovType.LAGRE_SELVBESTEMT_IM
                 it.lesInntektsmelding().shouldBeEqualToIgnoringFields(inntektsmeldingMedDefaults, Inntektsmelding::id)
             }
 
@@ -317,10 +314,12 @@ class LagreSelvbestemtImServiceTest :
             )
 
             testRapid.inspektør.size shouldBeExactly 5
-            testRapid.message(4).also {
-                Key.EVENT_NAME.lesOrNull(EventName.serializer(), it.toMap()) shouldBe EventName.SELVBESTEMT_IM_LAGRET
-                Key.UUID.lesOrNull(UuidSerializer, it.toMap()) shouldBe transaksjonId
-                it.lesInntektsmelding().shouldBeEqualToIgnoringFields(inntektsmeldingMedDefaults, Inntektsmelding::id)
+            testRapid.message(4).toMap().also {
+                Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.SELVBESTEMT_IM_LAGRET
+                Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.SELVBESTEMT_INNTEKTSMELDING
+                    .les(Inntektsmelding.serializer(), it)
+                    .shouldBeEqualToIgnoringFields(inntektsmeldingMedDefaults, Inntektsmelding::id)
             }
 
             verify {
@@ -377,8 +376,8 @@ class LagreSelvbestemtImServiceTest :
             )
 
             testRapid.inspektør.size shouldBeExactly 4
-            testRapid.message(3).also {
-                it.lesBehov() shouldBe BehovType.LAGRE_SELVBESTEMT_IM
+            testRapid.message(3).toMap().also {
+                Key.BEHOV.lesOrNull(BehovType.serializer(), it) shouldBe BehovType.LAGRE_SELVBESTEMT_IM
                 it.lesInntektsmelding().shouldBeEqualToIgnoringFields(endretInntektsmelding, Inntektsmelding::id)
             }
 
@@ -423,8 +422,10 @@ class LagreSelvbestemtImServiceTest :
         }
     })
 
-private fun JsonElement.lesInntektsmelding(): Inntektsmelding =
-    Key.SELVBESTEMT_INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), this.toMap()).shouldNotBeNull()
+private fun Map<Key, JsonElement>.lesInntektsmelding(): Inntektsmelding {
+    val data = this[Key.DATA].shouldNotBeNull().toMap()
+    return Key.SELVBESTEMT_INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), data).shouldNotBeNull()
+}
 
 private object Mock {
     private const val ORG_NAVN = "Keiser Augustus' Ponniutleie"
@@ -545,13 +546,16 @@ private object Mock {
     fun steg2(
         transaksjonId: UUID,
         inntektsmelding: Inntektsmelding,
+        erDuplikatIm: Boolean = false,
     ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-            Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
+            Key.DATA to
+                mapOf(
+                    Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                    Key.ER_DUPLIKAT_IM to erDuplikatIm.toJson(Boolean.serializer()),
+                ).toJson(),
         )
 
     fun steg3(transaksjonId: UUID): Map<Key, JsonElement> =

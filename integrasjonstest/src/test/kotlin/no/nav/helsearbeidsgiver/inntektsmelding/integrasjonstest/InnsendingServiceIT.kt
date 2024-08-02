@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
-import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -133,20 +132,20 @@ class InnsendingServiceIT : EndToEndTest() {
         // Inntektsmelding lagret
         messages
             .filter(EventName.INSENDING_STARTED)
-            .filter(Key.INNTEKTSMELDING_DOKUMENT)
-            .filter(Key.ER_DUPLIKAT_IM)
+            .filter(Key.INNTEKTSMELDING, nestedData = true)
+            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
             .firstAsMap()
             .verifiserTransaksjonId(transaksjonId)
             .verifiserForespoerselId()
             .also {
-                it shouldContainKey Key.DATA
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
 
                 shouldNotThrowAny {
-                    it[Key.INNTEKTSMELDING_DOKUMENT]
+                    data[Key.INNTEKTSMELDING]
                         .shouldNotBeNull()
                         .fromJson(Inntektsmelding.serializer())
 
-                    it[Key.ER_DUPLIKAT_IM]
+                    data[Key.ER_DUPLIKAT_IM]
                         .shouldNotBeNull()
                         .fromJson(Boolean.serializer())
                 }

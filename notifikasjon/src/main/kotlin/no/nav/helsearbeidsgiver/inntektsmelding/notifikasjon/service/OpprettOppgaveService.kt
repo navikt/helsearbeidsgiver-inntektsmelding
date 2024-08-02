@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service
 
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -36,7 +35,6 @@ class OpprettOppgaveService(
     override val eventName = EventName.OPPGAVE_OPPRETT_REQUESTED
     override val startKeys =
         setOf(
-            Key.UUID,
             Key.FORESPOERSEL_ID,
             Key.ORGNRUNDERENHET,
         )

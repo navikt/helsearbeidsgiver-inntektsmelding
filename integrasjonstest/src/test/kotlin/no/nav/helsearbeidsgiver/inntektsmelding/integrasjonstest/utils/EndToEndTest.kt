@@ -107,26 +107,40 @@ val maxMekker =
 abstract class EndToEndTest : ContainerTest() {
     private val imTestRapid = ImTestRapid()
 
+    // Vent på inntektsmeldingdatabase
     private val inntektsmeldingDatabase by lazy {
         println("Database jdbcUrl for im-db: ${postgresContainerOne.jdbcUrl}")
-        postgresContainerOne
-            .toHikariConfig()
-            .let(::Database)
-            .also {
-                val migrationLocation = Path("../db/src/main/resources/db/migration").absolutePathString()
-                it.migrate(migrationLocation)
-            }.createTruncateFunction()
+        repeat(5) {
+            runCatching {
+                postgresContainerOne
+                    .toHikariConfig()
+                    .let(::Database)
+                    .also {
+                        val migrationLocation = Path("../db/src/main/resources/db/migration").absolutePathString()
+                        it.migrate(migrationLocation)
+                    }.createTruncateFunction()
+            }.onSuccess { return@lazy it }
+                .onFailure { runBlocking { delay(1000) }.also { println("Prøver igjen å sette opp testdatabase.") } }
+        }
+        throw IllegalStateException("Klarte ikke sette opp inntektsmeldingDatabase.")
     }
 
+    // Vent på im-notifikasjon database
     private val notifikasjonDatabase by lazy {
         println("Database jdbcUrl for im-notifikasjon: ${postgresContainerTwo.jdbcUrl}")
-        postgresContainerTwo
-            .toHikariConfig()
-            .let(::Database)
-            .also {
-                val migrationLocation = Path("../notifikasjon/src/main/resources/db/migration").absolutePathString()
-                it.migrate(migrationLocation)
-            }.createTruncateFunction()
+        repeat(5) {
+            runCatching {
+                postgresContainerTwo
+                    .toHikariConfig()
+                    .let(::Database)
+                    .also {
+                        val migrationLocation = Path("../notifikasjon/src/main/resources/db/migration").absolutePathString()
+                        it.migrate(migrationLocation)
+                    }.createTruncateFunction()
+            }.onSuccess { return@lazy it }
+                .onFailure { runBlocking { delay(1000) }.also { println("Prøver igjen å sette opp testdatabase.") } }
+        }
+        throw IllegalStateException("Klarte ikke sette opp notifikasjonDatabase.")
     }
 
     // Vent på rediscontainer

@@ -8,7 +8,6 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -46,17 +45,7 @@ fun MessageContext.publish(vararg messageFields: Pair<Key, JsonElement>): JsonEl
 
 fun MessageContext.publish(messageFields: Map<Key, JsonElement>): JsonElement =
     messageFields
-        // TODO slett etter overgangsperiode: kopierer Key.SKJAERINGSTIDSPUNKT til Key.INNTEKTSDATO
-        .let { fields ->
-            if (Key.SKJAERINGSTIDSPUNKT in fields) {
-                fields
-                    .plus(
-                        Key.INNTEKTSDATO to fields[Key.SKJAERINGSTIDSPUNKT],
-                    ).mapValuesNotNull { it }
-            } else {
-                fields
-            }
-        }.mapKeys { (key, _) -> key.toString() }
+        .mapKeys { (key, _) -> key.toString() }
         .filterValues { it !is JsonNull }
         .toJson()
         .toString()

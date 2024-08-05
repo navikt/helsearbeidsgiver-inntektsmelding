@@ -213,7 +213,10 @@ class LagreSelvbestemtImService(
                         Key.EVENT_NAME to eventName.toJson(),
                         Key.BEHOV to BehovType.LAGRE_SELVBESTEMT_IM.toJson(),
                         Key.UUID to steg0.transaksjonId.toJson(),
-                        Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                        Key.DATA to
+                            mapOf(
+                                Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                            ).toJson(),
                     ).also {
                         logger.info("Publiserte melding med behov '${BehovType.LAGRE_SELVBESTEMT_IM}'.")
                         sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")

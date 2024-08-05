@@ -34,7 +34,7 @@ class InntektSelvbestemtIT : EndToEndTest() {
             Key.DATA to "".toJson(),
             Key.FNR to Mock.fnr.toJson(),
             Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
-            Key.SKJAERINGSTIDSPUNKT to Mock.inntektsdato.toJson(),
+            Key.INNTEKTSDATO to Mock.inntektsdato.toJson(),
         )
 
         messages

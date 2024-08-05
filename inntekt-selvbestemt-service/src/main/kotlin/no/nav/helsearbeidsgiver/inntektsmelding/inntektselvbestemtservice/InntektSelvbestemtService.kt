@@ -53,7 +53,7 @@ class InntektSelvbestemtService(
         setOf(
             Key.FNR,
             Key.ORGNRUNDERENHET,
-            Key.SKJAERINGSTIDSPUNKT,
+            Key.INNTEKTSDATO,
         )
     override val dataKeys =
         setOf(
@@ -65,7 +65,7 @@ class InntektSelvbestemtService(
             transaksjonId = Key.UUID.les(UuidSerializer, melding),
             fnr = Key.FNR.les(Fnr.serializer(), melding),
             orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding),
-            inntektsdato = Key.SKJAERINGSTIDSPUNKT.les(LocalDateSerializer, melding),
+            inntektsdato = Key.INNTEKTSDATO.les(LocalDateSerializer, melding),
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =

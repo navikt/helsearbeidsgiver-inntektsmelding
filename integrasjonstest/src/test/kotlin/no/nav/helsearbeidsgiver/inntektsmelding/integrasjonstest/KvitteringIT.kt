@@ -68,7 +68,7 @@ class KvitteringIT : EndToEndTest() {
         val forespoerselId = UUID.randomUUID()
 
         forespoerselRepository.lagreForespoersel(forespoerselId.toString(), Mock.orgnr)
-        imRepository.lagreEksternInntektsmelding(forespoerselId.toString(), mockEksternInntektsmelding())
+        imRepository.lagreEksternInntektsmelding(forespoerselId, mockEksternInntektsmelding())
 
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),

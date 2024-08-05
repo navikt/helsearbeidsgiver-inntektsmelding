@@ -92,8 +92,11 @@ class SpinnService(
                     Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
                     Key.BEHOV to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson(),
                     Key.UUID to steg0.transaksjonId.toJson(),
-                    Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                    Key.EKSTERN_INNTEKTSMELDING to steg1.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
+                    Key.DATA to
+                        mapOf(
+                            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                            Key.EKSTERN_INNTEKTSMELDING to steg1.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
+                        ).toJson(),
                 )
 
             MdcUtils.withLogFields(

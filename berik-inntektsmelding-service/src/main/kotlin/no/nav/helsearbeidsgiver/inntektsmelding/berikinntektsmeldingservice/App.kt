@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "helsearbeidsgiver-im-berikinntektsmeldingservice".logger()
@@ -25,10 +26,9 @@ fun main() {
 fun RapidsConnection.createBerikInntektsmeldingService(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${BerikInntektsmeldingService::class.simpleName}...")
-        ServiceRiverStateful(
+        ServiceRiverStateless(
             BerikInntektsmeldingService(
                 rapid = this,
-                redisStore = RedisStore(redisConnection, RedisPrefix.BerikInntektsmeldingService),
             ),
         ).connect(this)
     }

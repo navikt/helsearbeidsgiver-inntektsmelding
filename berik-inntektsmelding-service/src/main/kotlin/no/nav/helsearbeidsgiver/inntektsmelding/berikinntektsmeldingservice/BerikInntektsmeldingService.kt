@@ -22,9 +22,6 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed5Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -53,6 +50,8 @@ data class Steg1(
 
 data class Steg2(
     val aarsakInnsending: AarsakInnsending,
+    val tidligereInntektsmelding: ResultJson,
+    val tidligereEksternInntektsmelding: ResultJson,
 )
 
 data class Steg3(
@@ -70,9 +69,7 @@ data class Steg5(
 
 class BerikInntektsmeldingService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore,
-) : ServiceMed5Steg<Steg0, Steg1, Steg2, Steg3, Steg4, Steg5>(),
-    Service.MedRedis {
+) : ServiceMed5Steg<Steg0, Steg1, Steg2, Steg3, Steg4, Steg5>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
@@ -108,11 +105,11 @@ class BerikInntektsmeldingService(
         )
 
     override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 {
-        val tidligereInntektsmelding = runCatching { Key.LAGRET_INNTEKTSMELDING.les(ResultJson.serializer(), melding) }
-        val tidligereEksternInntektsmelding = runCatching { Key.EKSTERN_INNTEKTSMELDING.les(ResultJson.serializer(), melding) }
+        val tidligereInntektsmelding = run { Key.LAGRET_INNTEKTSMELDING.les(ResultJson.serializer(), melding) }
+        val tidligereEksternInntektsmelding = run { Key.EKSTERN_INNTEKTSMELDING.les(ResultJson.serializer(), melding) }
 
         val aarsakInnsending =
-            if (tidligereInntektsmelding.getOrThrow().success == null && tidligereEksternInntektsmelding.getOrThrow().success == null) {
+            if (tidligereInntektsmelding.success == null && tidligereEksternInntektsmelding.success == null) {
                 AarsakInnsending.Ny
             } else {
                 AarsakInnsending.Endring
@@ -120,6 +117,8 @@ class BerikInntektsmeldingService(
 
         return Steg2(
             aarsakInnsending = aarsakInnsending,
+            tidligereInntektsmelding = tidligereInntektsmelding,
+            tidligereEksternInntektsmelding = tidligereEksternInntektsmelding,
         )
     }
 
@@ -147,7 +146,10 @@ class BerikInntektsmeldingService(
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
+                        // Steg 0 data
                         Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                        Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
+                        Key.SKJEMA_INNTEKTSMELDING to steg0.skjema,
                     ).toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_TRENGER_IM, it) }
     }
@@ -163,7 +165,12 @@ class BerikInntektsmeldingService(
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
+                        // Steg 0 data
                         Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                        Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
+                        Key.SKJEMA_INNTEKTSMELDING to steg0.skjema,
+                        // Steg 1 data
+                        Key.FORESPOERSEL_SVAR to steg1.forespoersel.toJson(Forespoersel.serializer()),
                     ).toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_LAGRET_IM, it) }
     }
@@ -180,7 +187,16 @@ class BerikInntektsmeldingService(
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
+                        // Steg 0 data
                         Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                        Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
+                        Key.SKJEMA_INNTEKTSMELDING to steg0.skjema,
+                        // Steg 1 data
+                        Key.FORESPOERSEL_SVAR to steg1.forespoersel.toJson(Forespoersel.serializer()),
+                        // Steg 2 data
+                        Key.LAGRET_INNTEKTSMELDING to steg2.tidligereInntektsmelding.toJson(ResultJson.serializer()),
+                        Key.EKSTERN_INNTEKTSMELDING to steg2.tidligereEksternInntektsmelding.toJson(ResultJson.serializer()),
+                        // Behov data
                         Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(String.serializer()),
                     ).toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_VIRKSOMHET_NAVN, it) }
@@ -199,7 +215,18 @@ class BerikInntektsmeldingService(
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
+                        // Steg 0 data
                         Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                        Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
+                        Key.SKJEMA_INNTEKTSMELDING to steg0.skjema,
+                        // Steg 1 data
+                        Key.FORESPOERSEL_SVAR to steg1.forespoersel.toJson(Forespoersel.serializer()),
+                        // Steg 2 data
+                        Key.LAGRET_INNTEKTSMELDING to steg2.tidligereInntektsmelding.toJson(ResultJson.serializer()),
+                        Key.EKSTERN_INNTEKTSMELDING to steg2.tidligereEksternInntektsmelding.toJson(ResultJson.serializer()),
+                        // Steg 3 data
+                        Key.VIRKSOMHETER to steg3.orgnrMedNavn.toJson(orgMapSerializer),
+                        // Behov data
                         Key.FNR_LISTE to
                             listOf(
                                 steg1.forespoersel.fnr.let(::Fnr),
@@ -256,7 +283,20 @@ class BerikInntektsmeldingService(
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
+                        // Steg 0 data
                         Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                        Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
+                        Key.SKJEMA_INNTEKTSMELDING to steg0.skjema,
+                        // Steg 1 data
+                        Key.FORESPOERSEL_SVAR to steg1.forespoersel.toJson(Forespoersel.serializer()),
+                        // Steg 2 data
+                        Key.LAGRET_INNTEKTSMELDING to steg2.tidligereInntektsmelding.toJson(ResultJson.serializer()),
+                        Key.EKSTERN_INNTEKTSMELDING to steg2.tidligereEksternInntektsmelding.toJson(ResultJson.serializer()),
+                        // Steg 3 data
+                        Key.VIRKSOMHETER to steg3.orgnrMedNavn.toJson(orgMapSerializer),
+                        // Steg 4 data
+                        Key.PERSONER to steg4.personer.toJson(personMapSerializer),
+                        // Behov data
                         Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
                     ).toJson(),
             ).also { loggBehovPublisert(BehovType.PERSISTER_IM, it) }
@@ -270,13 +310,6 @@ class BerikInntektsmeldingService(
         steg4: Steg4,
         steg5: Steg5,
     ) {
-        val resultJson =
-            ResultJson(
-                success = steg5.inntektsmelding.toJson(Inntektsmelding.serializer()),
-            ).toJson(ResultJson.serializer())
-
-        redisStore.set(RedisKey.of(steg0.transaksjonId), resultJson)
-
         if (!steg5.erDuplikat) {
             val publisert =
                 rapid.publish(
@@ -309,14 +342,9 @@ class BerikInntektsmeldingService(
             }
 
         if (datafeil != null) {
-            redisStore.set(RedisKey.of(fail.transaksjonId, datafeil.first), datafeil.second)
             val meldingMedDefault = mapOf(datafeil).plus(melding)
 
             onData(meldingMedDefault)
-        } else {
-            val resultJson = ResultJson(failure = fail.feilmelding.toJson())
-
-            redisStore.set(RedisKey.of(fail.transaksjonId), resultJson.toJson(ResultJson.serializer()))
         }
     }
 

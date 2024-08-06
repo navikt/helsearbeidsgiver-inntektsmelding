@@ -33,15 +33,6 @@ class OpprettOppgaveService(
     override val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.OPPGAVE_OPPRETT_REQUESTED
-    override val startKeys =
-        setOf(
-            Key.FORESPOERSEL_ID,
-            Key.ORGNRUNDERENHET,
-        )
-    override val dataKeys =
-        setOf(
-            Key.VIRKSOMHETER,
-        )
 
     data class Steg0(
         val transaksjonId: UUID,

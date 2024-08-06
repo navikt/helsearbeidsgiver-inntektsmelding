@@ -44,7 +44,6 @@ class ManuellOpprettSakService(
     override val startKeys =
         setOf(
             Key.FORESPOERSEL_ID,
-            Key.UUID,
         )
     override val dataKeys =
         setOf(

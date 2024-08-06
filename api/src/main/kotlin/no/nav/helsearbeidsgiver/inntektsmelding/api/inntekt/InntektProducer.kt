@@ -34,9 +34,11 @@ class InntektProducer(
                 .publish(
                     Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.DATA to "".toJson(),
-                    Key.FORESPOERSEL_ID to request.forespoerselId.toJson(),
-                    Key.INNTEKTSDATO to request.skjaeringstidspunkt.toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.FORESPOERSEL_ID to request.forespoerselId.toJson(),
+                            Key.INNTEKTSDATO to request.skjaeringstidspunkt.toJson(),
+                        ).toJson(),
                 ).also { json ->
                     "Publiserte request om inntekt.".let {
                         logger.info(it)

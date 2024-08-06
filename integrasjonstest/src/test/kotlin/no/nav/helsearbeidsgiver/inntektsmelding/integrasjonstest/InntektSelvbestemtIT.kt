@@ -31,10 +31,12 @@ class InntektSelvbestemtIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
             Key.UUID to Mock.transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FNR to Mock.fnr.toJson(),
-            Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
-            Key.INNTEKTSDATO to Mock.inntektsdato.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FNR to Mock.fnr.toJson(),
+                    Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
+                    Key.INNTEKTSDATO to Mock.inntektsdato.toJson(),
+                ).toJson(),
         )
 
         messages

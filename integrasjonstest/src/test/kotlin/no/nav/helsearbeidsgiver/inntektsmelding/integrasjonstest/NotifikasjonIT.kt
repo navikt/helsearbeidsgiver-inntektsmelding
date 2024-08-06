@@ -37,10 +37,12 @@ class NotifikasjonIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.SAK_OPPRETT_REQUESTED.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
-            Key.DATA to "".toJson(),
-            Key.IDENTITETSNUMMER to Mock.fnr.toJson(),
-            Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                    Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
+                    Key.IDENTITETSNUMMER to Mock.fnr.toJson(),
+                ).toJson(),
         )
 
         messages
@@ -103,9 +105,11 @@ class NotifikasjonIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
-            Key.DATA to "".toJson(),
-            Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                    Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
+                ).toJson(),
         )
 
         messages
@@ -157,8 +161,10 @@ class NotifikasjonIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.MANUELL_OPPRETT_SAK_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                ).toJson(),
         )
 
         messages
@@ -173,8 +179,10 @@ class NotifikasjonIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.MANUELL_OPPRETT_SAK_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_SVAR to mockForespoersel().copy(fnr = Mock.fnr.verdi, orgnr = Mock.orgnr.verdi).toJson(Forespoersel.serializer()),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_SVAR to mockForespoersel().copy(fnr = Mock.fnr.verdi, orgnr = Mock.orgnr.verdi).toJson(Forespoersel.serializer()),
+                ).toJson(),
         )
 
         messages

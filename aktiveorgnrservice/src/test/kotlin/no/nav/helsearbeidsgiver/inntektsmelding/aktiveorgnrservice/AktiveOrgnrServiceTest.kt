@@ -26,6 +26,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
+import no.nav.helsearbeidsgiver.felles.test.json.plusData
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -97,7 +98,7 @@ class AktiveOrgnrServiceTest :
             testRapid.sendJson(
                 Mock
                     .steg1Data(transaksjonId, orgnr)
-                    .plus(Key.ARBEIDSFORHOLD to emptyList<Arbeidsforhold>().toJson(Arbeidsforhold.serializer())),
+                    .plusData(Key.ARBEIDSFORHOLD to emptyList<Arbeidsforhold>().toJson(Arbeidsforhold.serializer())),
             )
 
             // Virksomheter hentes ikke
@@ -122,7 +123,7 @@ class AktiveOrgnrServiceTest :
             testRapid.sendJson(
                 Mock
                     .steg1Data(transaksjonId, orgnr)
-                    .plus(Key.ORG_RETTIGHETER to setOf(Orgnr.genererGyldig().verdi).toJson(String.serializer())),
+                    .plusData(Key.ORG_RETTIGHETER to setOf(Orgnr.genererGyldig().verdi).toJson(String.serializer())),
             )
 
             // Orgnavn hentes ikke
@@ -148,7 +149,7 @@ class AktiveOrgnrServiceTest :
             testRapid.sendJson(
                 Mock
                     .steg1Data(transaksjonId, orgnr)
-                    .plus(Key.ORG_RETTIGHETER to emptySet<String>().toJson(String.serializer())),
+                    .plusData(Key.ORG_RETTIGHETER to emptySet<String>().toJson(String.serializer())),
             )
 
             // Orgnavn hentes ikke
@@ -245,9 +246,11 @@ private object Mock {
         mapOf(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FNR to sykmeldtFnr.toJson(),
-            Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FNR to sykmeldtFnr.toJson(),
+                    Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
+                ).toJson(),
         )
 
     fun steg1Data(
@@ -257,21 +260,23 @@ private object Mock {
         mapOf(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.ARBEIDSFORHOLD to
-                listOf(
-                    Arbeidsforhold(
-                        arbeidsgiver =
-                            Arbeidsgiver(
-                                type = "ORG",
-                                organisasjonsnummer = orgnr.verdi,
+            Key.DATA to
+                mapOf(
+                    Key.ARBEIDSFORHOLD to
+                        listOf(
+                            Arbeidsforhold(
+                                arbeidsgiver =
+                                    Arbeidsgiver(
+                                        type = "ORG",
+                                        organisasjonsnummer = orgnr.verdi,
+                                    ),
+                                ansettelsesperiode = Ansettelsesperiode(PeriodeNullable(12.mars, 13.mars)),
+                                registrert = 12.mars.kl(13, 1, 2, 3),
                             ),
-                        ansettelsesperiode = Ansettelsesperiode(PeriodeNullable(12.mars, 13.mars)),
-                        registrert = 12.mars.kl(13, 1, 2, 3),
-                    ),
-                ).toJson(Arbeidsforhold.serializer()),
-            Key.ORG_RETTIGHETER to setOf(orgnr).toJson(Orgnr.serializer()),
-            Key.PERSONER to personer.toJson(personMapSerializer),
+                        ).toJson(Arbeidsforhold.serializer()),
+                    Key.ORG_RETTIGHETER to setOf(orgnr).toJson(Orgnr.serializer()),
+                    Key.PERSONER to personer.toJson(personMapSerializer),
+                ).toJson(),
         )
 
     fun steg2Data(
@@ -281,10 +286,9 @@ private object Mock {
         mapOf(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.VIRKSOMHETER to
+            Key.DATA to
                 mapOf(
-                    orgnr.verdi to ORG_NAVN,
+                    Key.VIRKSOMHETER to mapOf(orgnr.verdi to ORG_NAVN).toJson(),
                 ).toJson(),
         )
 }

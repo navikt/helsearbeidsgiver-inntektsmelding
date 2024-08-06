@@ -31,9 +31,11 @@ class AktiveOrgnrProducerTest :
                 mapOf(
                     Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.DATA to "".toJson(),
-                    Key.FNR to arbeidstagerFnr.toJson(),
-                    Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.FNR to arbeidstagerFnr.toJson(),
+                            Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
+                        ).toJson(),
                 )
         }
     })

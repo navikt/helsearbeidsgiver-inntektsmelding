@@ -66,9 +66,11 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FNR to Mock.fnr.toJson(),
-            Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FNR to Mock.fnr.toJson(),
+                    Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
+                ).toJson(),
         )
 
         redisConnection.get(RedisPrefix.AktiveOrgnr, transaksjonId) shouldBe Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE
@@ -145,9 +147,11 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FNR to Mock.fnr.toJson(),
-            Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FNR to Mock.fnr.toJson(),
+                    Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
+                ).toJson(),
         )
 
         redisConnection.get(RedisPrefix.AktiveOrgnr, transaksjonId)?.parseJson() shouldBe Mock.resultatIngenArbeidsforholdJson
@@ -230,9 +234,11 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FNR to Mock.fnr.toJson(),
-            Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FNR to Mock.fnr.toJson(),
+                    Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
+                ).toJson(),
         )
 
         val response =

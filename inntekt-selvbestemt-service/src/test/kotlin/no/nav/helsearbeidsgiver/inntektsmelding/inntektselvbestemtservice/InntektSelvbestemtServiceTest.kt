@@ -114,18 +114,22 @@ fun mockStartMelding(transaksjonId: UUID): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
         Key.UUID to transaksjonId.toJson(),
-        Key.DATA to "".toJson(),
-        Key.FNR to Fnr.genererGyldig().toJson(),
-        Key.ORGNRUNDERENHET to Orgnr.genererGyldig().toJson(),
-        Key.INNTEKTSDATO to 14.april.toJson(),
+        Key.DATA to
+            mapOf(
+                Key.FNR to Fnr.genererGyldig().toJson(),
+                Key.ORGNRUNDERENHET to Orgnr.genererGyldig().toJson(),
+                Key.INNTEKTSDATO to 14.april.toJson(),
+            ).toJson(),
     )
 
 fun mockDataMelding(transaksjonId: UUID): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
         Key.UUID to transaksjonId.toJson(),
-        Key.DATA to "".toJson(),
-        Key.INNTEKT to Mock.inntekt.toJson(Inntekt.serializer()),
+        Key.DATA to
+            mapOf(
+                Key.INNTEKT to Mock.inntekt.toJson(Inntekt.serializer()),
+            ).toJson(),
     )
 
 private object Mock {

@@ -38,8 +38,10 @@ class KvitteringIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                ).toJson(),
         )
 
         messages
@@ -73,8 +75,10 @@ class KvitteringIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                ).toJson(),
         )
 
         messages
@@ -101,8 +105,10 @@ class KvitteringIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
+                ).toJson(),
         )
 
         messages

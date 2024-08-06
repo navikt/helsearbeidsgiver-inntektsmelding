@@ -46,7 +46,6 @@ class OpprettSakService(
     override val eventName = EventName.SAK_OPPRETT_REQUESTED
     override val startKeys =
         setOf(
-            Key.UUID,
             Key.FORESPOERSEL_ID,
             Key.ORGNRUNDERENHET,
             Key.IDENTITETSNUMMER,

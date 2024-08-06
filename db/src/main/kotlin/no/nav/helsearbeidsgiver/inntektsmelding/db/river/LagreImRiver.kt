@@ -60,7 +60,7 @@ class LagreImRiver(
             sikkerLogger.warn("Fant duplikat av inntektsmelding.")
         } else {
             imRepo.lagreInntektsmelding(forespoerselId, inntektsmelding)
-            sikkerLogger.info("Lagret Inntektsmelding.")
+            sikkerLogger.info("Lagret inntektsmelding.")
         }
 
         return mapOf(

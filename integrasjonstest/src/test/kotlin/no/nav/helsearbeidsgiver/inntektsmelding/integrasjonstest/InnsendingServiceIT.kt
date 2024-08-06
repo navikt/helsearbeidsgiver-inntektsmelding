@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
-import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -67,10 +66,12 @@ class InnsendingServiceIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
-            Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                    Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
+                    Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
+                ).toJson(),
         )
 
         // Forespørsel hentet
@@ -133,20 +134,20 @@ class InnsendingServiceIT : EndToEndTest() {
         // Inntektsmelding lagret
         messages
             .filter(EventName.INSENDING_STARTED)
-            .filter(Key.INNTEKTSMELDING_DOKUMENT)
-            .filter(Key.ER_DUPLIKAT_IM)
+            .filter(Key.INNTEKTSMELDING, nestedData = true)
+            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
             .firstAsMap()
             .verifiserTransaksjonId(transaksjonId)
             .verifiserForespoerselId()
             .also {
-                it shouldContainKey Key.DATA
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
 
                 shouldNotThrowAny {
-                    it[Key.INNTEKTSMELDING_DOKUMENT]
+                    data[Key.INNTEKTSMELDING]
                         .shouldNotBeNull()
                         .fromJson(Inntektsmelding.serializer())
 
-                    it[Key.ER_DUPLIKAT_IM]
+                    data[Key.ER_DUPLIKAT_IM]
                         .shouldNotBeNull()
                         .fromJson(Boolean.serializer())
                 }

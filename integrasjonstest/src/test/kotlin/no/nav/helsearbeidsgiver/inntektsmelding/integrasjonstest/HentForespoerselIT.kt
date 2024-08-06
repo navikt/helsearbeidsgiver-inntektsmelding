@@ -37,9 +37,11 @@ class HentForespoerselIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(UuidSerializer),
-            Key.DATA to "".toJson(),
-            Key.ARBEIDSGIVER_FNR to Fnr.genererGyldig().toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer),
+                    Key.ARBEIDSGIVER_FNR to Fnr.genererGyldig().toJson(),
+                ).toJson(),
         )
 
         messages

@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service
 
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType

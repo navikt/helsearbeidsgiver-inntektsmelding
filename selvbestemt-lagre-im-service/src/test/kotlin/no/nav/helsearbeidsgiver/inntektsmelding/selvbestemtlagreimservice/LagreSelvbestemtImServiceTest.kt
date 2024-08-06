@@ -45,6 +45,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
+import no.nav.helsearbeidsgiver.felles.test.json.minusData
+import no.nav.helsearbeidsgiver.felles.test.json.plusData
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -84,7 +86,7 @@ class LagreSelvbestemtImServiceTest :
             testRapid.sendJson(
                 Mock
                     .steg0(transaksjonId)
-                    .plus(
+                    .plusData(
                         Pair(
                             Key.SKJEMA_INNTEKTSMELDING,
                             Mock.skjema
@@ -224,7 +226,9 @@ class LagreSelvbestemtImServiceTest :
             }
 
             testRapid.sendJson(
-                Mock.steg2(transaksjonId, duplikatInntektsmelding, erDuplikatIm = true),
+                Mock
+                    .steg2(transaksjonId, duplikatInntektsmelding)
+                    .plusData(Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer())),
             )
 
             testRapid.inspektør.size shouldBeExactly 4
@@ -266,7 +270,7 @@ class LagreSelvbestemtImServiceTest :
                 Mock.steg0(transaksjonId),
             )
             testRapid.sendJson(
-                Mock.steg1(transaksjonId).minus(Key.VIRKSOMHETER).minus(Key.PERSONER),
+                Mock.steg1(transaksjonId).minusData(Key.VIRKSOMHETER, Key.PERSONER),
             )
 
             testRapid.sendJson(
@@ -405,7 +409,7 @@ class LagreSelvbestemtImServiceTest :
                 testRapid.sendJson(
                     Mock
                         .steg1(transaksjonId)
-                        .plus(Key.ARBEIDSFORHOLD to Mock.lagArbeidsforhold("123456789").toJson(Arbeidsforhold.serializer())),
+                        .plusData(Key.ARBEIDSFORHOLD to Mock.lagArbeidsforhold("123456789").toJson(Arbeidsforhold.serializer())),
                 )
             }
 
@@ -524,29 +528,32 @@ private object Mock {
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
-            Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+                    Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
+                ).toJson(),
         )
 
     fun steg1(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.VIRKSOMHETER to mapOf(skjema.avsender.orgnr.verdi to ORG_NAVN).toJson(),
-            Key.PERSONER to
+            Key.DATA to
                 mapOf(
-                    sykmeldt.fnr to sykmeldt,
-                    avsender.fnr to avsender,
-                ).toJson(personMapSerializer),
-            Key.ARBEIDSFORHOLD to lagArbeidsforhold(orgnr = skjema.avsender.orgnr.verdi).toJson(Arbeidsforhold.serializer()),
+                    Key.VIRKSOMHETER to mapOf(skjema.avsender.orgnr.verdi to ORG_NAVN).toJson(),
+                    Key.PERSONER to
+                        mapOf(
+                            sykmeldt.fnr to sykmeldt,
+                            avsender.fnr to avsender,
+                        ).toJson(personMapSerializer),
+                    Key.ARBEIDSFORHOLD to lagArbeidsforhold(orgnr = skjema.avsender.orgnr.verdi).toJson(Arbeidsforhold.serializer()),
+                ).toJson(),
         )
 
     fun steg2(
         transaksjonId: UUID,
         inntektsmelding: Inntektsmelding,
-        erDuplikatIm: Boolean = false,
     ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
@@ -554,7 +561,7 @@ private object Mock {
             Key.DATA to
                 mapOf(
                     Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                    Key.ER_DUPLIKAT_IM to erDuplikatIm.toJson(Boolean.serializer()),
+                    Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
                 ).toJson(),
         )
 

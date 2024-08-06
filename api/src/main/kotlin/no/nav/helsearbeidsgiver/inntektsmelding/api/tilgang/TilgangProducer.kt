@@ -58,8 +58,7 @@ class TilgangProducer(
                 .publish(
                     Key.EVENT_NAME to eventName.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.DATA to "".toJson(),
-                    *messageFields,
+                    Key.DATA to messageFields.toMap().toJson(),
                 ).also { json ->
                     "Publiserte request om tilgang.".let {
                         logger.info(it)

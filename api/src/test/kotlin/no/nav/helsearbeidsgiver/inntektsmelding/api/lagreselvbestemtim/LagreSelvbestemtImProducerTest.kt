@@ -34,9 +34,11 @@ class LagreSelvbestemtImProducerTest :
                 mapOf(
                     Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.DATA to "".toJson(),
-                    Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
-                    Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+                            Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
+                        ).toJson(),
                 )
         }
     })

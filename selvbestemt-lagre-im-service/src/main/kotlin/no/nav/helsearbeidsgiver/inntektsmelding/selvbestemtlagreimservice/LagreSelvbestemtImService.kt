@@ -77,20 +77,6 @@ class LagreSelvbestemtImService(
     override val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.SELVBESTEMT_IM_MOTTATT
-    override val startKeys =
-        setOf(
-            Key.SKJEMA_INNTEKTSMELDING,
-            Key.ARBEIDSGIVER_FNR,
-        )
-    override val dataKeys =
-        setOf(
-            Key.VIRKSOMHETER,
-            Key.PERSONER,
-            Key.ARBEIDSFORHOLD,
-            Key.SELVBESTEMT_INNTEKTSMELDING,
-            Key.ER_DUPLIKAT_IM,
-            Key.SAK_ID,
-        )
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(

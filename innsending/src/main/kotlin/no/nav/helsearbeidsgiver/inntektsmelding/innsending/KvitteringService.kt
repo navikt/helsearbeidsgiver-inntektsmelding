@@ -36,15 +36,6 @@ class KvitteringService(
     override val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.KVITTERING_REQUESTED
-    override val startKeys =
-        setOf(
-            Key.FORESPOERSEL_ID,
-        )
-    override val dataKeys =
-        setOf(
-            Key.LAGRET_INNTEKTSMELDING,
-            Key.EKSTERN_INNTEKTSMELDING,
-        )
 
     data class Steg0(
         val transaksjonId: UUID,

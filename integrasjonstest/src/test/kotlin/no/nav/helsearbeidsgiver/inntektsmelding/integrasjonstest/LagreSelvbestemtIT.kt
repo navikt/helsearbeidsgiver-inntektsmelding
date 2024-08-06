@@ -90,9 +90,11 @@ class LagreSelvbestemtIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.copy(selvbestemtId = null).toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
-            Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.copy(selvbestemtId = null).toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+                    Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
+                ).toJson(),
         )
 
         val serviceMessages = messages.filter(EventName.SELVBESTEMT_IM_MOTTATT)
@@ -206,9 +208,11 @@ class LagreSelvbestemtIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
-            Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+                    Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
+                ).toJson(),
         )
 
         val serviceMessages = messages.filter(EventName.SELVBESTEMT_IM_MOTTATT)
@@ -272,9 +276,11 @@ class LagreSelvbestemtIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
-            Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+                    Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
+                ).toJson(),
         )
 
         val serviceMessages = messages.filter(EventName.SELVBESTEMT_IM_MOTTATT)

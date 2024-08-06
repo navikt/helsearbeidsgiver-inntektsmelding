@@ -68,18 +68,6 @@ class HentForespoerselService(
     override val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.TRENGER_REQUESTED
-    override val startKeys =
-        setOf(
-            Key.FORESPOERSEL_ID,
-            Key.ARBEIDSGIVER_FNR,
-        )
-    override val dataKeys =
-        setOf(
-            Key.FORESPOERSEL_SVAR,
-            Key.VIRKSOMHETER,
-            Key.PERSONER,
-            Key.INNTEKT,
-        )
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(

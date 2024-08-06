@@ -39,15 +39,6 @@ class SpinnService(
     override val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.EKSTERN_INNTEKTSMELDING_REQUESTED
-    override val startKeys =
-        setOf(
-            Key.FORESPOERSEL_ID,
-            Key.SPINN_INNTEKTSMELDING_ID,
-        )
-    override val dataKeys =
-        setOf(
-            Key.EKSTERN_INNTEKTSMELDING,
-        )
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(

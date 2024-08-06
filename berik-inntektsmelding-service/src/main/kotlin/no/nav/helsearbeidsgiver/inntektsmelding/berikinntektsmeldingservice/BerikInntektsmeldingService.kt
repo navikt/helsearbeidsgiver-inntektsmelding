@@ -147,13 +147,7 @@ class BerikInntektsmeldingService(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
-                Key.DATA to
-                    mapOf(
-                        // Steg 0 data
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                        Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
-                        Key.SKJEMA_INNTEKTSMELDING to steg0.skjema,
-                    ).toJson(),
+                Key.DATA to data.toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_TRENGER_IM, it) }
     }
 
@@ -167,15 +161,7 @@ class BerikInntektsmeldingService(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_LAGRET_IM.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
-                Key.DATA to
-                    mapOf(
-                        // Steg 0 data
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                        Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
-                        Key.SKJEMA_INNTEKTSMELDING to steg0.skjema,
-                        // Steg 1 data
-                        Key.FORESPOERSEL_SVAR to steg1.forespoersel.toJson(Forespoersel.serializer()),
-                    ).toJson(),
+                Key.DATA to data.toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_LAGRET_IM, it) }
     }
 
@@ -191,19 +177,9 @@ class BerikInntektsmeldingService(
                 Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
-                    mapOf(
-                        // Steg 0 data
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                        Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
-                        Key.SKJEMA_INNTEKTSMELDING to steg0.skjema,
-                        // Steg 1 data
-                        Key.FORESPOERSEL_SVAR to steg1.forespoersel.toJson(Forespoersel.serializer()),
-                        // Steg 2 data
-                        Key.LAGRET_INNTEKTSMELDING to steg2.tidligereInntektsmelding.toJson(ResultJson.serializer()),
-                        Key.EKSTERN_INNTEKTSMELDING to steg2.tidligereEksternInntektsmelding.toJson(ResultJson.serializer()),
-                        // Behov data
-                        Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(String.serializer()),
-                    ).toJson(),
+                    data
+                        .plus(Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(String.serializer()))
+                        .toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_VIRKSOMHET_NAVN, it) }
     }
 
@@ -220,25 +196,14 @@ class BerikInntektsmeldingService(
                 Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
-                    mapOf(
-                        // Steg 0 data
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                        Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
-                        Key.SKJEMA_INNTEKTSMELDING to steg0.skjema,
-                        // Steg 1 data
-                        Key.FORESPOERSEL_SVAR to steg1.forespoersel.toJson(Forespoersel.serializer()),
-                        // Steg 2 data
-                        Key.LAGRET_INNTEKTSMELDING to steg2.tidligereInntektsmelding.toJson(ResultJson.serializer()),
-                        Key.EKSTERN_INNTEKTSMELDING to steg2.tidligereEksternInntektsmelding.toJson(ResultJson.serializer()),
-                        // Steg 3 data
-                        Key.VIRKSOMHETER to steg3.orgnrMedNavn.toJson(orgMapSerializer),
-                        // Behov data
-                        Key.FNR_LISTE to
-                            listOf(
-                                steg1.forespoersel.fnr.let(::Fnr),
-                                steg0.avsenderFnr,
-                            ).toJson(Fnr.serializer()),
-                    ).toJson(),
+                    data
+                        .plus(
+                            Key.FNR_LISTE to
+                                listOf(
+                                    steg1.forespoersel.fnr.let(::Fnr),
+                                    steg0.avsenderFnr,
+                                ).toJson(Fnr.serializer()),
+                        ).toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_PERSONER, it) }
     }
 
@@ -289,23 +254,9 @@ class BerikInntektsmeldingService(
                 Key.BEHOV to BehovType.LAGRE_IM.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
-                    mapOf(
-                        // Steg 0 data
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                        Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
-                        Key.SKJEMA_INNTEKTSMELDING to steg0.skjema,
-                        // Steg 1 data
-                        Key.FORESPOERSEL_SVAR to steg1.forespoersel.toJson(Forespoersel.serializer()),
-                        // Steg 2 data
-                        Key.LAGRET_INNTEKTSMELDING to steg2.tidligereInntektsmelding.toJson(ResultJson.serializer()),
-                        Key.EKSTERN_INNTEKTSMELDING to steg2.tidligereEksternInntektsmelding.toJson(ResultJson.serializer()),
-                        // Steg 3 data
-                        Key.VIRKSOMHETER to steg3.orgnrMedNavn.toJson(orgMapSerializer),
-                        // Steg 4 data
-                        Key.PERSONER to steg4.personer.toJson(personMapSerializer),
-                        // Behov data
-                        Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                    ).toJson(),
+                    data
+                        .plus(Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()))
+                        .toJson(),
             ).also { loggBehovPublisert(BehovType.LAGRE_IM, it) }
     }
 

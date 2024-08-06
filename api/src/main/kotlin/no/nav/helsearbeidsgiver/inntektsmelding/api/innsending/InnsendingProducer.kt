@@ -30,12 +30,12 @@ class InnsendingProducer(
             .publish(
                 Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
                 Key.UUID to transaksjonId.toJson(),
-                Key.DATA to "".toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to request.orgnrUnderenhet.toJson(),
-                Key.IDENTITETSNUMMER to request.identitetsnummer.toJson(),
-                Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
-                Key.SKJEMA_INNTEKTSMELDING to request.toJson(Innsending.serializer()),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                        Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
+                        Key.SKJEMA_INNTEKTSMELDING to request.toJson(Innsending.serializer()),
+                    ).toJson(),
             ).also {
                 logger.info("Publiserte til kafka forespørselId: $forespoerselId og transaksjonId=$transaksjonId")
                 sikkerLogger.info("Publiserte til kafka forespørselId: $forespoerselId json=${it.toPretty()}")

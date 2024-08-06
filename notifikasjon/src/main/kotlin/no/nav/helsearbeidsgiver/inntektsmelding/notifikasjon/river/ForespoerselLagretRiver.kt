@@ -66,18 +66,22 @@ class ForespoerselLagretRiver(
         context.publish(
             Key.EVENT_NAME to EventName.SAK_OPPRETT_REQUESTED.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.ORGNRUNDERENHET to orgnr.toJson(),
-            Key.IDENTITETSNUMMER to fnr.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.ORGNRUNDERENHET to orgnr.toJson(),
+                    Key.IDENTITETSNUMMER to fnr.toJson(),
+                ).toJson(),
         )
 
         context.publish(
             Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.ORGNRUNDERENHET to orgnr.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.ORGNRUNDERENHET to orgnr.toJson(),
+                ).toJson(),
         )
     }
 }

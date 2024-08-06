@@ -33,8 +33,10 @@ class HentSelvbestemtImProducer(
                 .publish(
                     Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.DATA to "".toJson(),
-                    Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
+                        ).toJson(),
                 ).also {
                     logger.info("Publiserte til kafka.")
                     sikkerLogger.info("Publiserte til kafka:\n${it.toPretty()}")

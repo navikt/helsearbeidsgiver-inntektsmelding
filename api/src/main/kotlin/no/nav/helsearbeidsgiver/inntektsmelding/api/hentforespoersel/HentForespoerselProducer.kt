@@ -28,9 +28,11 @@ class HentForespoerselProducer(
             .publish(
                 Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
                 Key.UUID to transaksjonId.toString().toJson(),
-                Key.DATA to "".toJson(),
-                Key.FORESPOERSEL_ID to request.uuid.toJson(),
-                Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to request.uuid.toJson(),
+                        Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
+                    ).toJson(),
             ).also {
                 logger.info("Publiserte trenger behov med transaksjonId=$transaksjonId")
                 sikkerLogger.info("Publiserte trenger behov med transaksjonId=$transaksjonId json=${it.toPretty()}")

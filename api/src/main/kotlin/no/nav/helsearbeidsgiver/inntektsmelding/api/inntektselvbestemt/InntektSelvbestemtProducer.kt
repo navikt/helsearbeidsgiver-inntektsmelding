@@ -33,10 +33,12 @@ class InntektSelvbestemtProducer(
                 .publish(
                     Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.DATA to "".toJson(),
-                    Key.FNR to request.sykmeldtFnr.toJson(),
-                    Key.ORGNRUNDERENHET to request.orgnr.toJson(),
-                    Key.INNTEKTSDATO to request.inntektsdato.toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.FNR to request.sykmeldtFnr.toJson(),
+                            Key.ORGNRUNDERENHET to request.orgnr.toJson(),
+                            Key.INNTEKTSDATO to request.inntektsdato.toJson(),
+                        ).toJson(),
                 ).also { json ->
                     "Publiserte request om inntekt selvbestemt.".let {
                         logger.info(it)

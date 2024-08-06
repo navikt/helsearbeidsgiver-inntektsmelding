@@ -21,7 +21,6 @@ enum class BehovType {
     LAGRE_IM,
     LAGRE_SELVBESTEMT_IM,
     OPPRETT_SELVBESTEMT_SAK,
-    PERSISTER_IM,
     LAGRE_IM_SKJEMA,
     SLETT_SAK, // kun brukt ved manuell kjøring
 

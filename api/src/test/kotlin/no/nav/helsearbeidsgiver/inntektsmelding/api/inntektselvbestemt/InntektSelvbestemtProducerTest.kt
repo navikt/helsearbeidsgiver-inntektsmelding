@@ -34,10 +34,12 @@ class InntektSelvbestemtProducerTest :
                 mapOf(
                     Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.DATA to "".toJson(),
-                    Key.FNR to sykmeldtFnr.toJson(),
-                    Key.ORGNRUNDERENHET to orgnr.toJson(),
-                    Key.INNTEKTSDATO to inntektsdato.toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.FNR to sykmeldtFnr.toJson(),
+                            Key.ORGNRUNDERENHET to orgnr.toJson(),
+                            Key.INNTEKTSDATO to inntektsdato.toJson(),
+                        ).toJson(),
                 )
         }
     })

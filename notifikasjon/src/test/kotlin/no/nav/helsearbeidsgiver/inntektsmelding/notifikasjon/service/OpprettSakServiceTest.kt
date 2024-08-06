@@ -48,10 +48,12 @@ class OpprettSakServiceTest {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.SAK_OPPRETT_REQUESTED.name.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to foresporselId.toJson(),
-            Key.ORGNRUNDERENHET to Orgnr.genererGyldig().toJson(),
-            Key.IDENTITETSNUMMER to fnr.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to foresporselId.toJson(),
+                    Key.ORGNRUNDERENHET to Orgnr.genererGyldig().toJson(),
+                    Key.IDENTITETSNUMMER to fnr.toJson(),
+                ).toJson(),
         )
 
         testRapid.sendJson(

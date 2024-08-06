@@ -9,11 +9,10 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentSelvbestemtImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreEksternInntektsmeldingLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreForespoerselLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreImRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreImSkjemaRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreJournalpostIdRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreSelvbestemtImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.NotifikasjonHentIdLoeser
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterImLoeser
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreImSkjemaRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterOppgaveLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterSakLoeser
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -48,9 +47,6 @@ fun RapidsConnection.createDbRivers(
     also {
         logger.info("Starter ${LagreForespoerselLoeser::class.simpleName}...")
         LagreForespoerselLoeser(this, forespoerselRepo)
-
-        logger.info("Starter ${PersisterImLoeser::class.simpleName}...")
-        PersisterImLoeser(this, imRepo)
 
         logger.info("Starter ${LagreImSkjemaRiver::class.simpleName}...")
         LagreImSkjemaRiver(imRepo).connect(this)

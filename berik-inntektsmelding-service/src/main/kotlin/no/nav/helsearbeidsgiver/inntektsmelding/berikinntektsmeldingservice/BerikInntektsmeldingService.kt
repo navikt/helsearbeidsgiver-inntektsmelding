@@ -299,7 +299,7 @@ class BerikInntektsmeldingService(
                         // Behov data
                         Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
                     ).toJson(),
-            ).also { loggBehovPublisert(BehovType.PERSISTER_IM, it) }
+            ).also { loggBehovPublisert(BehovType.LAGRE_IM, it) }
     }
 
     override fun utfoerSteg5(

@@ -76,7 +76,10 @@ class KvitteringService(
                     ?.fromJson(EksternInntektsmelding.serializer()),
         )
 
-    override fun utfoerSteg0(steg0: Steg0) {
+    override fun utfoerSteg0(
+        data: Map<Key, JsonElement>,
+        steg0: Steg0,
+    ) {
         val publisert =
             rapid.publish(
                 Key.EVENT_NAME to eventName.toJson(),
@@ -99,6 +102,7 @@ class KvitteringService(
     }
 
     override fun utfoerSteg1(
+        data: Map<Key, JsonElement>,
         steg0: Steg0,
         steg1: Steg1,
     ) {

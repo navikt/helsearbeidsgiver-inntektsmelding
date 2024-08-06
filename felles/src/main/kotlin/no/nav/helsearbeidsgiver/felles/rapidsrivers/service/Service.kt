@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers.service
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
@@ -36,9 +37,13 @@ abstract class ServiceMed1Steg<S0, S1> : Service {
 
     protected abstract fun lesSteg1(melding: Map<Key, JsonElement>): S1
 
-    protected abstract fun utfoerSteg0(steg0: S0)
+    protected abstract fun utfoerSteg0(
+        data: Map<Key, JsonElement>,
+        steg0: S0,
+    )
 
     protected abstract fun utfoerSteg1(
+        data: Map<Key, JsonElement>,
         steg0: S0,
         steg1: S1,
     )
@@ -47,13 +52,14 @@ abstract class ServiceMed1Steg<S0, S1> : Service {
 
     override fun onData(melding: Map<Key, JsonElement>) {
         runCatching {
-            Pair(
-                first = lesSteg0(melding),
-                second = lesSteg1(melding),
+            Triple(
+                first = lesData(melding),
+                second = lesSteg0(melding),
+                third = lesSteg1(melding),
             )
         }.onSuccess {
-            medLoggfelt(it.first) {
-                utfoerSteg1(it.first, it.second)
+            medLoggfelt(it.second) {
+                utfoerSteg1(it.first, it.second, it.third)
             }
         }.onFailure {
             lesOgUtfoerSteg0(melding)
@@ -61,18 +67,24 @@ abstract class ServiceMed1Steg<S0, S1> : Service {
     }
 
     private fun lesOgUtfoerSteg0(melding: Map<Key, JsonElement>) {
-        runCatching { lesSteg0(melding) }
-            .onSuccess {
-                medLoggfelt(it) {
-                    utfoerSteg0(it)
-                }
-            }.onFailure {
-                "Klarte ikke lese startdata for service.".also {
-                    logger.error(it)
-                    sikkerLogger.error(it)
-                }
+        runCatching {
+            Pair(
+                first = lesData(melding),
+                second = lesSteg0(melding),
+            )
+        }.onSuccess {
+            medLoggfelt(it.second) {
+                utfoerSteg0(it.first, it.second)
             }
+        }.onFailure {
+            "Klarte ikke lese startdata for service.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
+        }
     }
+
+    internal fun lesData(melding: Map<Key, JsonElement>): Map<Key, JsonElement> = melding[Key.DATA]?.toMap().orEmpty()
 
     internal fun medLoggfelt(
         steg0: S0,
@@ -90,6 +102,7 @@ abstract class ServiceMed2Steg<S0, S1, S2> : ServiceMed1Steg<S0, S1>() {
     protected abstract fun lesSteg2(melding: Map<Key, JsonElement>): S2
 
     protected abstract fun utfoerSteg2(
+        data: Map<Key, JsonElement>,
         steg0: S0,
         steg1: S1,
         steg2: S2,
@@ -97,14 +110,15 @@ abstract class ServiceMed2Steg<S0, S1, S2> : ServiceMed1Steg<S0, S1>() {
 
     override fun onData(melding: Map<Key, JsonElement>) {
         runCatching {
-            Triple(
-                first = lesSteg0(melding),
-                second = lesSteg1(melding),
-                third = lesSteg2(melding),
+            Quadruple(
+                first = lesData(melding),
+                second = lesSteg0(melding),
+                third = lesSteg1(melding),
+                fourth = lesSteg2(melding),
             )
         }.onSuccess {
-            medLoggfelt(it.first) {
-                utfoerSteg2(it.first, it.second, it.third)
+            medLoggfelt(it.second) {
+                utfoerSteg2(it.first, it.second, it.third, it.fourth)
             }
         }.onFailure {
             super.onData(melding)
@@ -116,6 +130,7 @@ abstract class ServiceMed3Steg<S0, S1, S2, S3> : ServiceMed2Steg<S0, S1, S2>() {
     protected abstract fun lesSteg3(melding: Map<Key, JsonElement>): S3
 
     protected abstract fun utfoerSteg3(
+        data: Map<Key, JsonElement>,
         steg0: S0,
         steg1: S1,
         steg2: S2,
@@ -124,15 +139,16 @@ abstract class ServiceMed3Steg<S0, S1, S2, S3> : ServiceMed2Steg<S0, S1, S2>() {
 
     override fun onData(melding: Map<Key, JsonElement>) {
         runCatching {
-            Quadruple(
-                first = lesSteg0(melding),
-                second = lesSteg1(melding),
-                third = lesSteg2(melding),
-                fourth = lesSteg3(melding),
+            Quintuple(
+                first = lesData(melding),
+                second = lesSteg0(melding),
+                third = lesSteg1(melding),
+                fourth = lesSteg2(melding),
+                fifth = lesSteg3(melding),
             )
         }.onSuccess {
-            medLoggfelt(it.first) {
-                utfoerSteg3(it.first, it.second, it.third, it.fourth)
+            medLoggfelt(it.second) {
+                utfoerSteg3(it.first, it.second, it.third, it.fourth, it.fifth)
             }
         }.onFailure {
             super.onData(melding)
@@ -144,6 +160,7 @@ abstract class ServiceMed4Steg<S0, S1, S2, S3, S4> : ServiceMed3Steg<S0, S1, S2,
     protected abstract fun lesSteg4(melding: Map<Key, JsonElement>): S4
 
     protected abstract fun utfoerSteg4(
+        data: Map<Key, JsonElement>,
         steg0: S0,
         steg1: S1,
         steg2: S2,
@@ -153,16 +170,17 @@ abstract class ServiceMed4Steg<S0, S1, S2, S3, S4> : ServiceMed3Steg<S0, S1, S2,
 
     override fun onData(melding: Map<Key, JsonElement>) {
         runCatching {
-            Quintuple(
-                first = lesSteg0(melding),
-                second = lesSteg1(melding),
-                third = lesSteg2(melding),
-                fourth = lesSteg3(melding),
-                fifth = lesSteg4(melding),
+            Sextuple(
+                first = lesData(melding),
+                second = lesSteg0(melding),
+                third = lesSteg1(melding),
+                fourth = lesSteg2(melding),
+                fifth = lesSteg3(melding),
+                sixth = lesSteg4(melding),
             )
         }.onSuccess {
-            medLoggfelt(it.first) {
-                utfoerSteg4(it.first, it.second, it.third, it.fourth, it.fifth)
+            medLoggfelt(it.second) {
+                utfoerSteg4(it.first, it.second, it.third, it.fourth, it.fifth, it.sixth)
             }
         }.onFailure {
             super.onData(melding)
@@ -183,4 +201,13 @@ private class Quintuple<S0, S1, S2, S3, S4>(
     val third: S2,
     val fourth: S3,
     val fifth: S4,
+)
+
+private class Sextuple<S0, S1, S2, S3, S4, S5>(
+    val first: S0,
+    val second: S1,
+    val third: S2,
+    val fourth: S3,
+    val fifth: S4,
+    val sixth: S5,
 )

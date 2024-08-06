@@ -1,5 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
+import io.kotest.matchers.booleans.shouldBeFalse
+import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -15,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.tilForespoersel
@@ -72,18 +75,14 @@ class InnsendingIT : EndToEndTest() {
 
         messages
             .filter(EventName.INSENDING_STARTED)
-            .filter(Key.INNTEKTSMELDING_DOKUMENT)
+            .filter(Key.INNTEKTSMELDING, nestedData = true)
+            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
             .firstAsMap()
             .also {
                 // Ble lagret i databasen
-                it[Key.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
-            }
-        messages
-            .filter(EventName.INSENDING_STARTED)
-            .filter(Key.ER_DUPLIKAT_IM)
-            .firstAsMap()
-            .also {
-                it[Key.ER_DUPLIKAT_IM]!!.fromJson(Boolean.serializer()) shouldBe false
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.INNTEKTSMELDING].shouldNotBeNull()
+                data[Key.ER_DUPLIKAT_IM].shouldNotBeNull().fromJson(Boolean.serializer()).shouldBeFalse()
             }
 
         messages
@@ -163,10 +162,11 @@ class InnsendingIT : EndToEndTest() {
 
         messages
             .filter(EventName.INSENDING_STARTED)
-            .filter(Key.ER_DUPLIKAT_IM)
+            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
             .firstAsMap()
             .also {
-                it[Key.ER_DUPLIKAT_IM]!!.fromJson(Boolean.serializer()) shouldBe true
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.ER_DUPLIKAT_IM].shouldNotBeNull().fromJson(Boolean.serializer()).shouldBeTrue()
             }
 
         messages.filter(EventName.INNTEKTSMELDING_MOTTATT).all() shouldHaveSize 0

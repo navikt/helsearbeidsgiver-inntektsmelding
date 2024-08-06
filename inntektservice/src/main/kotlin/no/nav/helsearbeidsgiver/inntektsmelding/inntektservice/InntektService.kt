@@ -79,7 +79,10 @@ class InntektService(
             inntekt = Key.INNTEKT.les(Inntekt.serializer(), melding),
         )
 
-    override fun utfoerSteg0(steg0: Steg0) {
+    override fun utfoerSteg0(
+        data: Map<Key, JsonElement>,
+        steg0: Steg0,
+    ) {
         rapid
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
@@ -99,6 +102,7 @@ class InntektService(
     }
 
     override fun utfoerSteg1(
+        data: Map<Key, JsonElement>,
         steg0: Steg0,
         steg1: Steg1,
     ) {
@@ -124,6 +128,7 @@ class InntektService(
     }
 
     override fun utfoerSteg2(
+        data: Map<Key, JsonElement>,
         steg0: Steg0,
         steg1: Steg1,
         steg2: Steg2,

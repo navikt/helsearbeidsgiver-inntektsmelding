@@ -104,7 +104,10 @@ class AktiveOrgnrService(
             virksomheter = Key.VIRKSOMHETER.les(MapSerializer(String.serializer(), String.serializer()), melding),
         )
 
-    override fun utfoerSteg0(steg0: Steg0) {
+    override fun utfoerSteg0(
+        data: Map<Key, JsonElement>,
+        steg0: Steg0,
+    ) {
         rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
@@ -141,6 +144,7 @@ class AktiveOrgnrService(
     }
 
     override fun utfoerSteg1(
+        data: Map<Key, JsonElement>,
         steg0: Steg0,
         steg1: Steg1,
     ) {
@@ -150,7 +154,7 @@ class AktiveOrgnrService(
             if (steg1.orgrettigheter.isEmpty()) {
                 onError(steg0.transaksjonId, "Må ha orgrettigheter for å kunne hente virksomheter.")
             } else if (arbeidsgivere.isEmpty()) {
-                utfoerSteg2(steg0, steg1, Steg2(emptyMap()))
+                utfoerSteg2(data, steg0, steg1, Steg2(emptyMap()))
             } else {
                 rapid.publish(
                     Key.EVENT_NAME to eventName.toJson(),
@@ -166,6 +170,7 @@ class AktiveOrgnrService(
     }
 
     override fun utfoerSteg2(
+        data: Map<Key, JsonElement>,
         steg0: Steg0,
         steg1: Steg1,
         steg2: Steg2,

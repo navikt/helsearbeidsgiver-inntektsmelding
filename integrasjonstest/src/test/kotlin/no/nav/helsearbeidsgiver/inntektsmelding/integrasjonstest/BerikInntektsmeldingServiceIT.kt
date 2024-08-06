@@ -73,10 +73,12 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             publish(
                 Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
                 Key.UUID to Mock.transaksjonId.toJson(),
-                Key.DATA to "".toJson(),
-                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                Key.ARBEIDSGIVER_FNR to Mock.fnr.toJson(Fnr.serializer()),
-                Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                        Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
+                        Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
+                    ).toJson(),
             )
         }
 
@@ -198,7 +200,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         }
 
     private object Mock {
-        val fnr = Fnr.genererGyldig()
+        val fnrAg = Fnr.genererGyldig()
         val orgnr = Orgnr.genererGyldig()
         val transaksjonId: UUID = UUID.randomUUID()
         const val SAK_ID = "tjukk-kalender"

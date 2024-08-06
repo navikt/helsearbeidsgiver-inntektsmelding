@@ -69,7 +69,10 @@ class InnsendingService(
             erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
         )
 
-    override fun utfoerSteg0(steg0: Steg0) {
+    override fun utfoerSteg0(
+        data: Map<Key, JsonElement>,
+        steg0: Steg0,
+    ) {
         rapid
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
@@ -84,6 +87,7 @@ class InnsendingService(
     }
 
     override fun utfoerSteg1(
+        data: Map<Key, JsonElement>,
         steg0: Steg0,
         steg1: Steg1,
     ) {
@@ -96,10 +100,12 @@ class InnsendingService(
                     .publish(
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
                         Key.UUID to steg0.transaksjonId.toJson(),
-                        Key.DATA to "".toJson(),
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                        Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
-                        Key.SKJEMA_INNTEKTSMELDING to steg0.skjema,
+                        Key.DATA to
+                            mapOf(
+                                Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                                Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
+                                Key.SKJEMA_INNTEKTSMELDING to steg0.skjema,
+                            ).toJson(),
                     )
 
             MdcUtils.withLogFields(

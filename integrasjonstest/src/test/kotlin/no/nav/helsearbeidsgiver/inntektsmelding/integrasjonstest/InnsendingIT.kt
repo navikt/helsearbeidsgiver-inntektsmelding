@@ -78,7 +78,7 @@ class InnsendingIT : EndToEndTest() {
         )
 
         messages
-            .filter(EventName.INSENDING_STARTED)
+            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.INNTEKTSMELDING, nestedData = true)
             .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
             .firstAsMap()

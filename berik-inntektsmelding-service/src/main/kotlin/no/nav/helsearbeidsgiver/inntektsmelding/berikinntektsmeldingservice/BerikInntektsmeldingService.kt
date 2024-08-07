@@ -291,17 +291,27 @@ class BerikInntektsmeldingService(
         melding: Map<Key, JsonElement>,
         fail: Fail,
     ) {
-        val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
+        val utloesendeMeldingMap = fail.utloesendeMelding.toMap()
+        val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), utloesendeMeldingMap)
 
-        val datafeil =
+        val overkommeligFeil =
             when (utloesendeBehov) {
                 BehovType.HENT_VIRKSOMHET_NAVN -> Key.VIRKSOMHETER to emptyMap<String, String>().toJson()
                 BehovType.HENT_PERSONER -> Key.PERSONER to emptyMap<String, String>().toJson()
                 else -> null
             }
 
-        if (datafeil != null) {
-            val meldingMedDefault = mapOf(datafeil).plus(melding)
+        if (overkommeligFeil != null) {
+            val dataMedDefault: Map<Key, JsonElement>? =
+                utloesendeMeldingMap[Key.DATA]
+                    ?.toMap()
+                    ?.plus(overkommeligFeil)
+
+            val meldingMedDefault =
+                dataMedDefault
+                    ?.plus(utloesendeMeldingMap)
+                    ?.plus(Key.DATA to dataMedDefault.toJson())
+                    ?: utloesendeMeldingMap
 
             onData(meldingMedDefault)
         }

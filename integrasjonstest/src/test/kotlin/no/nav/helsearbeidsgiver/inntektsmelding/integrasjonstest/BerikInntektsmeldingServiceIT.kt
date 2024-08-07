@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -174,6 +175,106 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
         // Ingen feil
         messages.filterFeil().all().size shouldBe 0
+    }
+
+    @Test
+    fun `skal bruke defaultverdi for virksomhetsnavn dersom kall til brreg og pdl feiler`() {
+        val tidligereInntektsmelding = mockInntektsmelding()
+
+        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.orgnr.toString())
+        forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
+        forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
+        imRepository.lagreInntektsmelding(Mock.forespoerselId, tidligereInntektsmelding)
+
+        coEvery {
+            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
+        } returns
+            OpprettOgFerdigstillResponse(
+                journalpostId = "journalpost-id-sukkerspinn",
+                journalpostFerdigstilt = true,
+                melding = "Ha en brillefin dag!",
+                dokumenter = emptyList(),
+            )
+
+        coEvery { brregClient.hentVirksomheter(any()) } answers {
+            throw RuntimeException("Fy fasan!")
+        }
+
+        coEvery { pdlKlient.personBolk(any()) } answers {
+            throw RuntimeException("Jai ikke gidde tid til å spille mere sjakk med den dumme ape!")
+        }
+
+        mockForespoerselSvarFraHelsebro(
+            forespoerselId = Mock.forespoerselId,
+            forespoerselSvar = Mock.forespoerselSvar,
+        )
+
+        publish(
+            Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
+            Key.UUID to Mock.transaksjonId.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                    Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
+                    Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
+                ).toJson(),
+        )
+
+        // Virksomhetsnavn blir satt default tomt
+        messages
+            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+            .filter(Key.VIRKSOMHETER, nestedData = true)
+            .firstAsMap()
+            .verifiserTransaksjonId(Mock.transaksjonId)
+            .verifiserForespoerselId()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                shouldNotThrowAny {
+                    data[Key.VIRKSOMHETER]
+                        ?.fromJson(orgMapSerializer)
+                        ?.shouldBeEmpty()
+                }
+            }
+
+        // Sykmeldt og innsender blir satt default tomt
+        messages
+            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+            .filter(Key.PERSONER, nestedData = true)
+            .firstAsMap()
+            .verifiserTransaksjonId(Mock.transaksjonId)
+            .verifiserForespoerselId()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+
+                shouldNotThrowAny {
+                    data[Key.PERSONER]
+                        .shouldNotBeNull()
+                        .fromJson(personMapSerializer)
+                        .shouldBeEmpty()
+                }
+            }
+
+        // Siste melding fra service blir sendt
+        messages
+            .filter(EventName.INNTEKTSMELDING_MOTTATT)
+            .firstAsMap()
+            .verifiserTransaksjonId(Mock.transaksjonId)
+            .verifiserForespoerselId()
+            .also {
+                shouldNotThrowAny {
+                    it[Key.UUID]
+                        .shouldNotBeNull()
+                        .fromJson(UuidSerializer)
+
+                    it[Key.FORESPOERSEL_ID]
+                        .shouldNotBeNull()
+                        .fromJson(UuidSerializer)
+
+                    it[Key.INNTEKTSMELDING_DOKUMENT]
+                        .shouldNotBeNull()
+                        .fromJson(Inntektsmelding.serializer())
+                }
+            }
     }
 
     private fun Map<Key, JsonElement>.verifiserTransaksjonId(transaksjonId: UUID): Map<Key, JsonElement> =

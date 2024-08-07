@@ -173,6 +173,7 @@ class LagreImSkjemaRiverTest :
 
                 verify(exactly = 0) {
                     mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any())
+                    mockInntektsmeldingRepo.hentNyesteInntektsmelding(any())
                     mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any())
                 }
             }

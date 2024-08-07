@@ -60,10 +60,10 @@ class LagreImSkjemaRiver(
                 sisteImSkjema?.erDuplikatAv(inntektsmeldingSkjema) ?: false
 
         if (erDuplikat) {
-            sikkerLogger.warn("Fant duplikat av inntektsmelding for forespoerselId: $forespoerselId")
+            sikkerLogger.warn("Fant duplikat av inntektsmeldingskjema.")
         } else {
             repository.lagreInntektsmeldingSkjema(forespoerselId, inntektsmeldingSkjema)
-            sikkerLogger.info("Lagret inntektsmeldingskjema for forespoerselId: $forespoerselId")
+            sikkerLogger.info("Lagret inntektsmeldingskjema.")
         }
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),

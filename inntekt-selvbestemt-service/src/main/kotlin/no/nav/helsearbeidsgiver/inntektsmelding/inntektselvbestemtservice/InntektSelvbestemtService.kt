@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
@@ -42,9 +41,8 @@ data class Steg1(
 
 class InntektSelvbestemtService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore,
-) : ServiceMed1Steg<Steg0, Steg1>(),
-    Service.MedRedis {
+    private val redisStore: RedisStore,
+) : ServiceMed1Steg<Steg0, Steg1>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
@@ -73,11 +71,14 @@ class InntektSelvbestemtService(
                 Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
-                    mapOf(
-                        Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
-                        Key.FNR to steg0.fnr.toJson(),
-                        Key.INNTEKTSDATO to steg0.inntektsdato.toJson(),
-                    ).toJson(),
+                    data
+                        .plus(
+                            mapOf(
+                                Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
+                                Key.FNR to steg0.fnr.toJson(),
+                                Key.INNTEKTSDATO to steg0.inntektsdato.toJson(),
+                            ),
+                        ).toJson(),
             )
 
         MdcUtils.withLogFields(

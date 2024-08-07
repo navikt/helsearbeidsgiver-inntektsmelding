@@ -13,7 +13,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -35,9 +34,8 @@ data class Steg1(
 
 class HentSelvbestemtImService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore,
-) : ServiceMed1Steg<Steg0, Steg1>(),
-    Service.MedRedis {
+    private val redisStore: RedisStore,
+) : ServiceMed1Steg<Steg0, Steg1>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
@@ -64,9 +62,10 @@ class HentSelvbestemtImService(
                 Key.BEHOV to BehovType.HENT_SELVBESTEMT_IM.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
-                    mapOf(
-                        Key.SELVBESTEMT_ID to steg0.selvbestemtId.toJson(),
-                    ).toJson(),
+                    data
+                        .plus(
+                            Key.SELVBESTEMT_ID to steg0.selvbestemtId.toJson(),
+                        ).toJson(),
             )
 
         MdcUtils.withLogFields(

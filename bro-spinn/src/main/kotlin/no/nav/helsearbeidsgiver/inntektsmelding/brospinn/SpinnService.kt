@@ -62,10 +62,13 @@ class SpinnService(
                 Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
-                    mapOf(
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                        Key.SPINN_INNTEKTSMELDING_ID to steg0.spinnImId.toJson(),
-                    ).toJson(),
+                    data
+                        .plus(
+                            mapOf(
+                                Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                                Key.SPINN_INNTEKTSMELDING_ID to steg0.spinnImId.toJson(),
+                            ),
+                        ).toJson(),
             )
 
         MdcUtils.withLogFields(

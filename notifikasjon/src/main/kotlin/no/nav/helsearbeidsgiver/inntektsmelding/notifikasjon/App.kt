@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.ForespoerselLagretRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OppgaveFerdigLoeser
@@ -62,11 +63,8 @@ fun RapidsConnection.createNotifikasjonServices(redisConnection: RedisConnection
         ).connect(this)
 
         logger.info("Starter ${OpprettOppgaveService::class.simpleName}...")
-        ServiceRiverStateful(
-            OpprettOppgaveService(
-                rapid = this,
-                redisStore = RedisStore(redisConnection, RedisPrefix.OpprettOppgave),
-            ),
+        ServiceRiverStateless(
+            OpprettOppgaveService(this),
         ).connect(this)
 
         logger.info("Starter ${ManuellOpprettSakService::class.simpleName}...")

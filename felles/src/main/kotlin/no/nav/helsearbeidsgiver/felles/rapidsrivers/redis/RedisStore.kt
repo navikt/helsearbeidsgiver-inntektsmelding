@@ -72,7 +72,6 @@ enum class RedisPrefix {
     Kvittering,
     LagreSelvbestemtIm,
     ManuellOpprettSak,
-    OpprettOppgave,
     OpprettSak,
     TilgangForespoersel,
     TilgangOrg,

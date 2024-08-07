@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "helsearbeidsgiver-im-innsending".logger()
@@ -33,7 +34,7 @@ fun RapidsConnection.createInnsending(redisConnection: RedisConnection): RapidsC
         ).connect(this)
 
         logger.info("Starter ${KvitteringService::class.simpleName}...")
-        ServiceRiverStateful(
+        ServiceRiverStateless(
             KvitteringService(
                 rapid = this,
                 redisStore = RedisStore(redisConnection, RedisPrefix.Kvittering),

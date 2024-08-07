@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -29,9 +28,8 @@ import java.util.UUID
 
 class TilgangOrgService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore,
-) : ServiceMed1Steg<TilgangOrgService.Steg0, TilgangOrgService.Steg1>(),
-    Service.MedRedis {
+    private val redisStore: RedisStore,
+) : ServiceMed1Steg<TilgangOrgService.Steg0, TilgangOrgService.Steg1>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
@@ -69,10 +67,13 @@ class TilgangOrgService(
                 Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
-                    mapOf(
-                        Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
-                        Key.FNR to steg0.fnr.toJson(),
-                    ).toJson(),
+                    data
+                        .plus(
+                            mapOf(
+                                Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
+                                Key.FNR to steg0.fnr.toJson(),
+                            ),
+                        ).toJson(),
             ).also {
                 MdcUtils.withLogFields(
                     Log.behov(BehovType.TILGANGSKONTROLL),

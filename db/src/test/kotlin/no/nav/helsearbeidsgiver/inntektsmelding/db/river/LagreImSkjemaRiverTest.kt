@@ -36,11 +36,14 @@ class LagreImSkjemaRiverTest :
     FunSpec({
         val testRapid = TestRapid()
         val mockInntektsmeldingRepo = mockk<InntektsmeldingRepository>()
+
         LagreImSkjemaRiver(mockInntektsmeldingRepo).connect(testRapid)
+
         beforeTest {
             testRapid.reset()
             clearAllMocks()
         }
+
         context("inntektsmeldingskjema lagres") {
             withData(
                 mapOf(
@@ -84,10 +87,12 @@ class LagreImSkjemaRiverTest :
         }
         test("duplikat lagres ikke, men svarer OK") {
             val nyInntektsmelding = mockInnsending()
+
             val duplikatIm =
                 nyInntektsmelding.copy(
                     årsakInnsending = AarsakInnsending.NY,
                 )
+
             every { mockInntektsmeldingRepo.hentNyesteInntektsmelding(any()) } returns null
             every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns duplikatIm
             every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } just Runs
@@ -120,18 +125,22 @@ class LagreImSkjemaRiverTest :
         }
         test("håndterer at repo feiler") {
             every { mockInntektsmeldingRepo.hentNyesteInntektsmelding(any()) } returns null
+
             every {
                 mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any())
             } throws RuntimeException("Tråbbel med den Rolls-Royce? Den jo vere garantert!")
+
             val innkommendeMelding = innkommendeMelding()
+
             val forventetFail =
                 Fail(
-                    feilmelding = "Klarte ikke lagre inntektsmeldingskjema.",
+                    feilmelding = "Klarte ikke lagre inntektsmeldingskjema i database.",
                     event = innkommendeMelding.eventName,
                     transaksjonId = innkommendeMelding.transaksjonId,
                     forespoerselId = innkommendeMelding.forespoerselId,
                     utloesendeMelding = innkommendeMelding.toMap().toJson(),
                 )
+
             testRapid.sendJson(innkommendeMelding.toMap())
 
             testRapid.inspektør.size shouldBeExactly 1
@@ -197,7 +206,7 @@ private fun LagreImSkjemaMelding.toMap(): Map<Key, JsonElement> =
 
 private val mockFail =
     Fail(
-        feilmelding = "Aiaiai, sokksee for min spanske åpning!",
+        feilmelding = "Jai mange penga, do raka blak",
         event = EventName.INSENDING_STARTED,
         transaksjonId = UUID.randomUUID(),
         forespoerselId = UUID.randomUUID(),

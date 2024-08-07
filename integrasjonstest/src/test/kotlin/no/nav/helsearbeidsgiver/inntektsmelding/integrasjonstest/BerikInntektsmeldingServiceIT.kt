@@ -5,7 +5,6 @@ import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import io.mockk.every
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
@@ -24,14 +23,12 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.mock.gyldigInnsendingRequest
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.toForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -67,20 +64,16 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             forespoerselSvar = Mock.forespoerselSvar,
         )
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns Mock.transaksjonId
-
-            publish(
-                Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
-                Key.UUID to Mock.transaksjonId.toJson(),
-                Key.DATA to
-                    mapOf(
-                        Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                        Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
-                        Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
-                    ).toJson(),
-            )
-        }
+        publish(
+            Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
+            Key.UUID to Mock.transaksjonId.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                    Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
+                    Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
+                ).toJson(),
+        )
 
         // Forespørsel hentet
         messages
@@ -190,11 +183,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
     private fun Map<Key, JsonElement>.verifiserForespoerselId(): Map<Key, JsonElement> =
         also {
-            val data =
-                it[Key.DATA]
-                    .takeUnless { dataJsonElement -> dataJsonElement == "".toJson() }
-                    ?.toMap()
-                    .orEmpty()
+            val data = it[Key.DATA]?.toMap().orEmpty()
             val forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) ?: Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data)
             forespoerselId shouldBe Mock.forespoerselId
         }

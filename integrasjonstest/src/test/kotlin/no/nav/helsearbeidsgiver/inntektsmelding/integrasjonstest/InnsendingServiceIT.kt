@@ -88,20 +88,22 @@ class InnsendingServiceIT : EndToEndTest() {
             .verifiserTransaksjonId(transaksjonId)
             .verifiserForespoerselId()
             .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+
                 shouldNotThrowAny {
                     it[Key.UUID]
                         .shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
-                    it[Key.FORESPOERSEL_ID]
+                    data[Key.FORESPOERSEL_ID]
                         .shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
-                    it[Key.ARBEIDSGIVER_FNR]
+                    data[Key.ARBEIDSGIVER_FNR]
                         .shouldNotBeNull()
                         .fromJson(Fnr.serializer())
 
-                    it[Key.SKJEMA_INNTEKTSMELDING]
+                    data[Key.SKJEMA_INNTEKTSMELDING]
                         .shouldNotBeNull()
                         .fromJson(Innsending.serializer())
                 }
@@ -129,12 +131,8 @@ class InnsendingServiceIT : EndToEndTest() {
 
     private fun Map<Key, JsonElement>.verifiserForespoerselId(): Map<Key, JsonElement> =
         also {
-            val data =
-                it[Key.DATA]
-                    .takeUnless { dataJsonElement -> dataJsonElement == "".toJson() }
-                    ?.toMap()
-                    .orEmpty()
-            val forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) ?: Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data)
+            val data = it[Key.DATA]?.toMap().orEmpty()
+            val forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data)
             forespoerselId shouldBe Mock.forespoerselId
         }
 

@@ -1,19 +1,20 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import io.kotest.matchers.maps.shouldNotContainKey
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.mockk.every
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
@@ -22,28 +23,25 @@ import java.util.UUID
 class ForespoerselMottattIT : EndToEndTest() {
     @Test
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns Mock.transaksjonId
-
-            publish(
-                Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
-                Pri.Key.ORGNR to Mock.ORGNR.toJson(),
-                Pri.Key.FNR to Mock.FNR.toJson(),
-                Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            )
-        }
+        publish(
+            Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
+            Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+            Pri.Key.ORGNR to Mock.orgnr.toJson(),
+            Pri.Key.FNR to Mock.fnr.toJson(),
+        )
 
         messages
             .filter(EventName.FORESPØRSEL_MOTTATT)
             .filter(BehovType.LAGRE_FORESPOERSEL)
             .firstAsMap()
             .also {
-                it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.FORESPØRSEL_MOTTATT
-                it[Key.BEHOV]?.fromJson(BehovType.serializer()) shouldBe BehovType.LAGRE_FORESPOERSEL
-                it[Key.ORGNRUNDERENHET]?.fromJsonToString() shouldBe Mock.ORGNR
-                it[Key.IDENTITETSNUMMER]?.fromJsonToString() shouldBe Mock.FNR
-                it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-                it[Key.UUID]?.fromJson(UuidSerializer) shouldBe Mock.transaksjonId
+                Key.UUID.lesOrNull(UuidSerializer, it).shouldNotBeNull()
+
+                Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.FORESPØRSEL_MOTTATT
+                Key.BEHOV.lesOrNull(BehovType.serializer(), it) shouldBe BehovType.LAGRE_FORESPOERSEL
+                Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe Mock.forespoerselId
+                Key.ORGNRUNDERENHET.lesOrNull(Orgnr.serializer(), it) shouldBe Mock.orgnr
+                Key.IDENTITETSNUMMER.lesOrNull(Fnr.serializer(), it) shouldBe Mock.fnr
             }
 
         messages
@@ -51,18 +49,17 @@ class ForespoerselMottattIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 it shouldNotContainKey Key.BEHOV
-                it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.FORESPØRSEL_LAGRET
-                it[Key.ORGNRUNDERENHET]?.fromJsonToString() shouldBe Mock.ORGNR
-                it[Key.IDENTITETSNUMMER]?.fromJsonToString() shouldBe Mock.FNR
-                it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
+
+                Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.FORESPØRSEL_LAGRET
+                Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe Mock.forespoerselId
+                Key.ORGNRUNDERENHET.lesOrNull(Orgnr.serializer(), it) shouldBe Mock.orgnr
+                Key.IDENTITETSNUMMER.lesOrNull(Fnr.serializer(), it) shouldBe Mock.fnr
             }
     }
 
     private object Mock {
-        const val FNR = "fnr-rebekka"
-        const val ORGNR = "orgnr-gås"
-
         val forespoerselId: UUID = UUID.randomUUID()
-        val transaksjonId: UUID = UUID.randomUUID()
+        val orgnr = Orgnr.genererGyldig()
+        val fnr = Fnr.genererGyldig()
     }
 }

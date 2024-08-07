@@ -143,7 +143,6 @@ class InnsendingServiceIT : EndToEndTest() {
         val orgnr = Orgnr.genererGyldig()
         val fnrAg = Fnr.genererGyldig()
         val forespoerselId: UUID = UUID.randomUUID()
-
         val vedtaksperiodeId: UUID = UUID.randomUUID()
 
         val forespoerselSvar =

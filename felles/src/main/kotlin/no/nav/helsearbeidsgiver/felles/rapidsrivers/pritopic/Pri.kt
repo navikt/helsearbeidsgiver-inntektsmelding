@@ -1,11 +1,14 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.AsStringSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 
 object Pri {
     const val TOPIC = "helsearbeidsgiver.pri"
@@ -61,3 +64,7 @@ object Pri {
         parse = Key::fromJson,
     )
 }
+
+fun Map<Pri.Key, JsonElement>.toPretty(): String =
+    toJson(MapSerializer(Pri.Key.serializer(), JsonElement.serializer()))
+        .toPretty()

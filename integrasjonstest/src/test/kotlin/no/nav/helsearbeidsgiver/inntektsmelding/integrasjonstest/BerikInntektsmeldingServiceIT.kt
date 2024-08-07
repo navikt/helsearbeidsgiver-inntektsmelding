@@ -33,14 +33,18 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
-import org.junit.Ignore
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BerikInntektsmeldingServiceIT : EndToEndTest() {
-    @Ignore
+    @BeforeEach
+    fun setup() {
+        truncateDatabase()
+    }
+
     @Test
     fun `skal berike og lagre inntektsmeldinger`() {
         val tidligereInntektsmelding = mockInntektsmelding()

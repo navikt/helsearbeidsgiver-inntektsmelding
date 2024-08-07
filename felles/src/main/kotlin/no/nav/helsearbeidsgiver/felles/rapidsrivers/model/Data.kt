@@ -16,6 +16,7 @@ import java.util.UUID
 private val logger = "im-model-data".logger()
 private val sikkerLogger = sikkerLogger()
 
+// TODO slett
 fun MessageContext.publishData(
     eventName: EventName,
     transaksjonId: UUID,

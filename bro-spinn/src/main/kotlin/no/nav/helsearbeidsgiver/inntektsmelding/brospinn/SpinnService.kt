@@ -39,15 +39,6 @@ class SpinnService(
     override val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.EKSTERN_INNTEKTSMELDING_REQUESTED
-    override val startKeys =
-        setOf(
-            Key.FORESPOERSEL_ID,
-            Key.SPINN_INNTEKTSMELDING_ID,
-        )
-    override val dataKeys =
-        setOf(
-            Key.EKSTERN_INNTEKTSMELDING,
-        )
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
@@ -71,10 +62,13 @@ class SpinnService(
                 Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
-                    mapOf(
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                        Key.SPINN_INNTEKTSMELDING_ID to steg0.spinnImId.toJson(),
-                    ).toJson(),
+                    data
+                        .plus(
+                            mapOf(
+                                Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                                Key.SPINN_INNTEKTSMELDING_ID to steg0.spinnImId.toJson(),
+                            ),
+                        ).toJson(),
             )
 
         MdcUtils.withLogFields(
@@ -96,8 +90,11 @@ class SpinnService(
                     Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
                     Key.BEHOV to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson(),
                     Key.UUID to steg0.transaksjonId.toJson(),
-                    Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                    Key.EKSTERN_INNTEKTSMELDING to steg1.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
+                    Key.DATA to
+                        mapOf(
+                            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                            Key.EKSTERN_INNTEKTSMELDING to steg1.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
+                        ).toJson(),
                 )
 
             MdcUtils.withLogFields(

@@ -6,6 +6,7 @@ import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
+import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -20,10 +21,9 @@ import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
@@ -34,16 +34,15 @@ import java.util.UUID
 class KvitteringServiceTest :
     FunSpec({
         val testRapid = TestRapid()
-        val mockRedis = MockRedis(RedisPrefix.Kvittering)
+        val mockRedisStore = mockk<RedisStore>(relaxed = true)
 
-        ServiceRiverStateful(
-            KvitteringService(testRapid, mockRedis.store),
+        ServiceRiverStateless(
+            KvitteringService(testRapid, mockRedisStore),
         ).connect(testRapid)
 
         beforeTest {
             testRapid.reset()
             clearAllMocks()
-            mockRedis.setup()
         }
 
         context("kvittering hentes") {
@@ -72,7 +71,7 @@ class KvitteringServiceTest :
                 testRapid.inspektør.size shouldBeExactly 1
 
                 verify {
-                    mockRedis.store.set(RedisKey.of(transaksjonId), expectedSuccess)
+                    mockRedisStore.set(RedisKey.of(transaksjonId), expectedSuccess)
                 }
             }
         }
@@ -91,7 +90,7 @@ class KvitteringServiceTest :
             testRapid.inspektør.size shouldBeExactly 1
 
             verify {
-                mockRedis.store.set(RedisKey.of(MockKvittering.fail.transaksjonId), expectedFailure)
+                mockRedisStore.set(RedisKey.of(MockKvittering.fail.transaksjonId), expectedFailure)
             }
         }
     })

@@ -45,16 +45,6 @@ class InnsendingService(
     override val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.INSENDING_STARTED
-    override val startKeys =
-        setOf(
-            Key.FORESPOERSEL_ID,
-            Key.ARBEIDSGIVER_FNR,
-            Key.SKJEMA_INNTEKTSMELDING,
-        )
-    override val dataKeys =
-        setOf(
-            Key.ER_DUPLIKAT_IM,
-        )
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(

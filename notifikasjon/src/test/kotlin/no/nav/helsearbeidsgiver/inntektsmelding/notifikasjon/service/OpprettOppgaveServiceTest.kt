@@ -9,9 +9,7 @@ import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -24,11 +22,10 @@ import java.util.UUID
 
 class OpprettOppgaveServiceTest {
     private val rapid = TestRapid()
-    private val mockRedis = MockRedis(RedisPrefix.OpprettOppgave)
 
     init {
-        ServiceRiverStateful(
-            OpprettOppgaveService(rapid, mockRedis.store),
+        ServiceRiverStateless(
+            OpprettOppgaveService(rapid),
         ).connect(rapid)
     }
 
@@ -36,7 +33,6 @@ class OpprettOppgaveServiceTest {
     fun setup() {
         rapid.reset()
         clearAllMocks()
-        mockRedis.setup()
     }
 
     @Test
@@ -86,6 +82,7 @@ class OpprettOppgaveServiceTest {
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.ORGNRUNDERENHET to orgnr.toJson(),
                     Key.VIRKSOMHETER to
                         mapOf(
                             orgnr to "TestBedrift A/S",
@@ -122,10 +119,14 @@ class OpprettOppgaveServiceTest {
                 forespoerselId = forespoerselId,
                 utloesendeMelding =
                     mapOf(
-                        Key.BEHOV.toString() to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
-                        Key.DATA.toString() to
+                        Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
+                        Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
+                        Key.UUID to transaksjonId.toJson(),
+                        Key.DATA to
                             mapOf(
-                                Key.ORGNR_UNDERENHETER.toString() to orgnr.toJson(),
+                                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                                Key.ORGNRUNDERENHET to orgnr.toJson(),
+                                Key.ORGNR_UNDERENHETER to setOf(orgnr).toJson(Orgnr.serializer()),
                             ).toJson(),
                     ).toJson(),
             )

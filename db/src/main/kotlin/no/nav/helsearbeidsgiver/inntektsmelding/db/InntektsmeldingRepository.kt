@@ -133,12 +133,12 @@ class InntektsmeldingRepository(
     }
 
     fun lagreEksternInntektsmelding(
-        forespoerselId: String,
+        forespoerselId: UUID,
         eksternIm: EksternInntektsmelding,
     ) {
         transaction(db) {
             InntektsmeldingEntitet.insert {
-                it[this.forespoerselId] = forespoerselId
+                it[this.forespoerselId] = forespoerselId.toString()
                 it[eksternInntektsmelding] = eksternIm
                 it[innsendt] = LocalDateTime.now()
             }

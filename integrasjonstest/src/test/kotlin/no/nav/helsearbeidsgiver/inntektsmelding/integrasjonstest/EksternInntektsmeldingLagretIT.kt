@@ -59,8 +59,10 @@ class EksternInntektsmeldingLagretIT : EndToEndTest() {
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.EKSTERN_INNTEKTSMELDING_MOTTATT
                 Key.BEHOV.les(BehovType.serializer(), it) shouldBe BehovType.LAGRE_EKSTERN_INNTEKTSMELDING
                 Key.UUID.les(UuidSerializer, it) shouldBe Mock.transaksjonId
-                Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.EKSTERN_INNTEKTSMELDING.les(EksternInntektsmelding.serializer(), it) shouldBe mockEksternInntektsmelding()
+
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.FORESPOERSEL_ID.les(UuidSerializer, data) shouldBe Mock.forespoerselId
+                Key.EKSTERN_INNTEKTSMELDING.les(EksternInntektsmelding.serializer(), data) shouldBe mockEksternInntektsmelding()
             }
 
         messages

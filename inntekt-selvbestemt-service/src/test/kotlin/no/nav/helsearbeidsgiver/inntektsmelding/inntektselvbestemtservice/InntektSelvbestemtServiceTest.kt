@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
+import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -17,10 +18,9 @@ import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -35,36 +35,35 @@ import java.util.UUID
 class InntektSelvbestemtServiceTest :
     FunSpec({
         val testRapid = TestRapid()
-        val mockRedis = MockRedis(RedisPrefix.InntektSelvbestemt)
+        val mockRedisStore = mockk<RedisStore>(relaxed = true)
 
-        ServiceRiverStateful(
-            InntektSelvbestemtService(testRapid, mockRedis.store),
+        ServiceRiverStateless(
+            InntektSelvbestemtService(testRapid, mockRedisStore),
         ).connect(testRapid)
 
         beforeEach {
             testRapid.reset()
             clearAllMocks()
-            mockRedis.setup()
         }
 
         test("hent inntekt") {
             val transaksjonId = UUID.randomUUID()
 
             testRapid.sendJson(
-                mockStartMelding(transaksjonId),
+                Mock.melding(transaksjonId, Mock.steg0Data),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_INNTEKT
 
             testRapid.sendJson(
-                mockDataMelding(transaksjonId),
+                Mock.melding(transaksjonId, Mock.steg1Data),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
 
             verify {
-                mockRedis.store.set(
+                mockRedisStore.set(
                     RedisKey.of(transaksjonId),
                     ResultJson(
                         success = Mock.inntekt.toJson(Inntekt.serializer()),
@@ -78,7 +77,7 @@ class InntektSelvbestemtServiceTest :
             val feilmelding = "Teknisk feil, prøv igjen senere."
 
             testRapid.sendJson(
-                mockStartMelding(transaksjonId),
+                Mock.melding(transaksjonId, Mock.steg0Data),
             )
 
             testRapid.sendJson(
@@ -100,7 +99,7 @@ class InntektSelvbestemtServiceTest :
             testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_INNTEKT
 
             verify {
-                mockRedis.store.set(
+                mockRedisStore.set(
                     RedisKey.of(transaksjonId),
                     ResultJson(
                         failure = feilmelding.toJson(),
@@ -110,28 +109,6 @@ class InntektSelvbestemtServiceTest :
         }
     })
 
-fun mockStartMelding(transaksjonId: UUID): Map<Key, JsonElement> =
-    mapOf(
-        Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
-        Key.UUID to transaksjonId.toJson(),
-        Key.DATA to
-            mapOf(
-                Key.FNR to Fnr.genererGyldig().toJson(),
-                Key.ORGNRUNDERENHET to Orgnr.genererGyldig().toJson(),
-                Key.INNTEKTSDATO to 14.april.toJson(),
-            ).toJson(),
-    )
-
-fun mockDataMelding(transaksjonId: UUID): Map<Key, JsonElement> =
-    mapOf(
-        Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
-        Key.UUID to transaksjonId.toJson(),
-        Key.DATA to
-            mapOf(
-                Key.INNTEKT to Mock.inntekt.toJson(Inntekt.serializer()),
-            ).toJson(),
-    )
-
 private object Mock {
     val inntekt =
         Inntekt(
@@ -140,5 +117,27 @@ private object Mock {
                 InntektPerMaaned(mai(2019), 42000.0),
                 InntektPerMaaned(juni(2019), 44000.0),
             ),
+        )
+
+    val steg0Data =
+        mapOf(
+            Key.ORGNRUNDERENHET to Orgnr.genererGyldig().toJson(),
+            Key.FNR to Fnr.genererGyldig().toJson(),
+            Key.INNTEKTSDATO to 14.april.toJson(),
+        )
+
+    val steg1Data =
+        steg0Data.plus(
+            Key.INNTEKT to inntekt.toJson(Inntekt.serializer()),
+        )
+
+    fun melding(
+        transaksjonId: UUID,
+        data: Map<Key, JsonElement>,
+    ): Map<Key, JsonElement> =
+        mapOf(
+            Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to data.toJson(),
         )
 }

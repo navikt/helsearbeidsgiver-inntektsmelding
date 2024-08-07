@@ -12,8 +12,6 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -26,22 +24,11 @@ import java.util.UUID
 
 class OpprettOppgaveService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore,
-) : ServiceMed1Steg<OpprettOppgaveService.Steg0, OpprettOppgaveService.Steg1>(),
-    Service.MedRedis {
+) : ServiceMed1Steg<OpprettOppgaveService.Steg0, OpprettOppgaveService.Steg1>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.OPPGAVE_OPPRETT_REQUESTED
-    override val startKeys =
-        setOf(
-            Key.FORESPOERSEL_ID,
-            Key.ORGNRUNDERENHET,
-        )
-    override val dataKeys =
-        setOf(
-            Key.VIRKSOMHETER,
-        )
 
     data class Steg0(
         val transaksjonId: UUID,
@@ -74,10 +61,13 @@ class OpprettOppgaveService(
             Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),
             Key.DATA to
-                mapOf(
-                    Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                    Key.ORGNR_UNDERENHETER to setOf(steg0.orgnr).toJson(Orgnr.serializer()),
-                ).toJson(),
+                data
+                    .plus(
+                        mapOf(
+                            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                            Key.ORGNR_UNDERENHETER to setOf(steg0.orgnr).toJson(Orgnr.serializer()),
+                        ),
+                    ).toJson(),
         )
     }
 
@@ -109,7 +99,10 @@ class OpprettOppgaveService(
         ) {
             val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
             if (utloesendeBehov == BehovType.HENT_VIRKSOMHET_NAVN) {
-                val meldingMedDefault = mapOf(Key.VIRKSOMHETER to emptyMap<String, String>().toJson()).plus(melding)
+                val meldingMedDefault =
+                    mapOf(Key.VIRKSOMHETER to emptyMap<String, String>().toJson())
+                        .plus(fail.utloesendeMeldingMedData())
+
                 onData(meldingMedDefault)
             }
         }

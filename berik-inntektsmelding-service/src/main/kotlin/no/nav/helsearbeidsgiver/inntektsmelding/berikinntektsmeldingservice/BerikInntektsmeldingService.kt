@@ -74,22 +74,6 @@ class BerikInntektsmeldingService(
     override val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET
-    override val startKeys =
-        setOf(
-            Key.FORESPOERSEL_ID,
-            Key.ARBEIDSGIVER_FNR,
-            Key.SKJEMA_INNTEKTSMELDING,
-        )
-    override val dataKeys =
-        setOf(
-            Key.VIRKSOMHETER,
-            Key.PERSONER,
-            Key.INNTEKTSMELDING,
-            Key.ER_DUPLIKAT_IM,
-            Key.FORESPOERSEL_SVAR,
-            Key.LAGRET_INNTEKTSMELDING,
-            Key.EKSTERN_INNTEKTSMELDING,
-        )
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(

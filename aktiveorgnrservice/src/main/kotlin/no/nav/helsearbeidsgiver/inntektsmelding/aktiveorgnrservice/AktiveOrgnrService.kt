@@ -59,18 +59,6 @@ class AktiveOrgnrService(
     override val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.AKTIVE_ORGNR_REQUESTED
-    override val startKeys =
-        setOf(
-            Key.FNR,
-            Key.ARBEIDSGIVER_FNR,
-        )
-    override val dataKeys =
-        setOf(
-            Key.ORG_RETTIGHETER,
-            Key.ARBEIDSFORHOLD,
-            Key.PERSONER,
-            Key.VIRKSOMHETER,
-        )
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(

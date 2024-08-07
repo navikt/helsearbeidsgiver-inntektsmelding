@@ -11,7 +11,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
-import no.nav.helsearbeidsgiver.utils.pipe.mapFirst
 
 fun JsonMessage.toPretty(): String = toJson().parseJson().toPretty()
 
@@ -29,11 +28,6 @@ fun JsonMessage.rejectKeys(vararg keys: IKey) {
 fun JsonMessage.requireKeys(vararg keys: IKey) {
     val keysAsStr = keys.map(IKey::str).toTypedArray()
     requireKey(*keysAsStr)
-}
-
-fun JsonMessage.require(vararg keyAndParserPairs: Pair<IKey, (JsonElement) -> Any>) {
-    val keyStringAndParserPairs = keyAndParserPairs.map { it.mapFirst(IKey::str) }
-    validate(JsonMessage::require, keyStringAndParserPairs)
 }
 
 fun JsonMessage.interestedIn(vararg keys: IKey) {

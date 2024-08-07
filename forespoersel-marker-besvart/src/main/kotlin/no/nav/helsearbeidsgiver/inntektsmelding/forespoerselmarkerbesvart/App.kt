@@ -23,5 +23,5 @@ fun main() {
 fun RapidsConnection.createMarkerForespoerselBesvart(priProducer: PriProducer): RapidsConnection =
     also {
         logger.info("Starter ${MarkerForespoerselBesvartRiver::class.simpleName}...")
-        MarkerForespoerselBesvartRiver(this, priProducer)
+        MarkerForespoerselBesvartRiver(priProducer).connect(this)
     }

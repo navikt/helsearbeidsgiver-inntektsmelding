@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
+import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -16,10 +17,9 @@ import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -30,16 +30,15 @@ class HentSelvbestemtImServiceTest :
     FunSpec({
 
         val testRapid = TestRapid()
-        val mockRedis = MockRedis(RedisPrefix.HentSelvbestemtIm)
+        val mockRedisStore = mockk<RedisStore>(relaxed = true)
 
-        ServiceRiverStateful(
-            HentSelvbestemtImService(testRapid, mockRedis.store),
+        ServiceRiverStateless(
+            HentSelvbestemtImService(testRapid, mockRedisStore),
         ).connect(testRapid)
 
         beforeEach {
             testRapid.reset()
             clearAllMocks()
-            mockRedis.setup()
         }
 
         test("hent inntektsmelding") {
@@ -59,7 +58,7 @@ class HentSelvbestemtImServiceTest :
             testRapid.inspektør.size shouldBeExactly 1
 
             verify {
-                mockRedis.store.set(
+                mockRedisStore.set(
                     RedisKey.of(transaksjonId),
                     ResultJson(
                         success = Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
@@ -95,7 +94,7 @@ class HentSelvbestemtImServiceTest :
             testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_SELVBESTEMT_IM
 
             verify {
-                mockRedis.store.set(
+                mockRedisStore.set(
                     RedisKey.of(transaksjonId),
                     ResultJson(
                         failure = feilmelding.toJson(),

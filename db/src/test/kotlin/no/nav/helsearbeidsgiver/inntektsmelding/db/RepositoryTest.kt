@@ -246,7 +246,7 @@ class RepositoryTest :
 
             foresporselRepo.lagreForespoersel(forespoerselId.toString(), orgnr)
             inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, INNTEKTSMELDING_DOKUMENT)
-            inntektsmeldingRepo.lagreEksternInntektsmelding(forespoerselId.toString(), mockEksternInntektsmelding())
+            inntektsmeldingRepo.lagreEksternInntektsmelding(forespoerselId, mockEksternInntektsmelding())
 
             inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, journalpostId)
 

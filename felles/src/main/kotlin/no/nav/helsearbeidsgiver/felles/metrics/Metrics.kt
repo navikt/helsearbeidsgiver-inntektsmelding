@@ -27,8 +27,13 @@ object Metrics {
 fun <T> Summary.recordTime(
     fnToRecord: KFunction<*>,
     block: suspend () -> T,
+): T = recordTime(fnToRecord.name, block)
+
+fun <T> Summary.recordTime(
+    label: String,
+    block: suspend () -> T,
 ): T {
-    val requestTimer: Summary.Timer = labels(fnToRecord.name).startTimer()
+    val requestTimer: Summary.Timer = labels(label).startTimer()
 
     return runBlocking { block() }
         .also {

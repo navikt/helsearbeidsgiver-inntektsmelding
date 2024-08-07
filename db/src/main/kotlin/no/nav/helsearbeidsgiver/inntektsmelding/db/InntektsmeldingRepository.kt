@@ -4,6 +4,7 @@ import io.prometheus.client.Summary
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.metrics.recordTime
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -37,15 +38,14 @@ class InntektsmeldingRepository(
         forespoerselId: UUID,
         inntektsmeldingDokument: Inntektsmelding,
     ) {
-        val requestTimer = requestLatency.labels("lagreInntektsmelding").startTimer()
-        transaction(db) {
-            InntektsmeldingEntitet.insert {
-                it[this.forespoerselId] = forespoerselId.toString()
-                it[dokument] = inntektsmeldingDokument
-                it[innsendt] = LocalDateTime.now()
+        requestLatency.recordTime(label = "lagreInntektsmelding") {
+            transaction(db) {
+                InntektsmeldingEntitet.insert {
+                    it[this.forespoerselId] = forespoerselId.toString()
+                    it[dokument] = inntektsmeldingDokument
+                    it[innsendt] = LocalDateTime.now()
+                }
             }
-        }.also {
-            requestTimer.observeDuration()
         }
     }
 
@@ -53,93 +53,83 @@ class InntektsmeldingRepository(
         forespoerselId: UUID,
         inntektsmeldingSkjema: Innsending,
     ) {
-        val requestTimer = requestLatency.labels("lagreInntektsmeldingSkjema").startTimer()
-        transaction(db) {
-            InntektsmeldingEntitet.insert {
-                it[this.forespoerselId] = forespoerselId.toString()
-                it[skjema] = inntektsmeldingSkjema
-                it[innsendt] = LocalDateTime.now()
+        requestLatency.recordTime(label = "lagreInntektsmeldingSkjema") {
+            transaction(db) {
+                InntektsmeldingEntitet.insert {
+                    it[this.forespoerselId] = forespoerselId.toString()
+                    it[skjema] = inntektsmeldingSkjema
+                    it[innsendt] = LocalDateTime.now()
+                }
             }
-        }.also {
-            requestTimer.observeDuration()
         }
     }
 
-    fun hentNyesteInntektsmelding(forespoerselId: UUID): Inntektsmelding? {
-        val requestTimer = requestLatency.labels("hentNyeste").startTimer()
-        return transaction(db) {
-            hentNyesteImQuery(forespoerselId)
-                .firstOrNull()
-                ?.getOrNull(InntektsmeldingEntitet.dokument)
-        }.also {
-            requestTimer.observeDuration()
-        }
-    }
-
-    fun hentNyesteInntektsmeldingSkjema(forespoerselId: UUID): Innsending? {
-        val requestTimer = requestLatency.labels("hentNyeste").startTimer()
-        return transaction(db) {
-            hentNyesteImSkjemaQuery(forespoerselId)
-                .firstOrNull()
-                ?.getOrNull(InntektsmeldingEntitet.skjema)
-        }.also {
-            requestTimer.observeDuration()
-        }
-    }
-
-    fun hentNyesteEksternEllerInternInntektsmelding(forespoerselId: UUID): Pair<Inntektsmelding?, EksternInntektsmelding?> {
-        val requestTimer = requestLatency.labels("hentNyesteInternEllerEkstern").startTimer()
-        return transaction(db) {
-            InntektsmeldingEntitet
-                .select(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.eksternInntektsmelding)
-                .where { InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString() }
-                .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
-                .limit(1)
-                .map {
-                    Pair(
-                        it[InntektsmeldingEntitet.dokument],
-                        it[InntektsmeldingEntitet.eksternInntektsmelding],
-                    )
-                }.firstOrNull()
-        }.orDefault(Pair(null, null))
-            .also {
-                requestTimer.observeDuration()
+    fun hentNyesteInntektsmelding(forespoerselId: UUID): Inntektsmelding? =
+        requestLatency.recordTime(label = "hentNyesteInntektsmelding") {
+            transaction(db) {
+                hentNyesteImQuery(forespoerselId)
+                    .firstOrNull()
+                    ?.getOrNull(InntektsmeldingEntitet.dokument)
             }
-    }
+        }
+
+    fun hentNyesteInntektsmeldingSkjema(forespoerselId: UUID): Innsending? =
+        requestLatency.recordTime(label = "hentNyesteInntektsmeldingSkjema") {
+            transaction(db) {
+                hentNyesteImSkjemaQuery(forespoerselId)
+                    .firstOrNull()
+                    ?.getOrNull(InntektsmeldingEntitet.skjema)
+            }
+        }
+
+    fun hentNyesteEksternEllerInternInntektsmelding(forespoerselId: UUID): Pair<Inntektsmelding?, EksternInntektsmelding?> =
+        requestLatency.recordTime(label = "hentNyesteInternEllerEkstern") {
+            transaction(db) {
+                InntektsmeldingEntitet
+                    .select(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.eksternInntektsmelding)
+                    .where { InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString() }
+                    .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
+                    .limit(1)
+                    .map {
+                        Pair(
+                            it[InntektsmeldingEntitet.dokument],
+                            it[InntektsmeldingEntitet.eksternInntektsmelding],
+                        )
+                    }.firstOrNull()
+            }.orDefault(Pair(null, null))
+        }
 
     fun oppdaterJournalpostId(
         forespoerselId: UUID,
         journalpostId: String,
     ) {
-        val requestTimer = requestLatency.labels("oppdaterJournalpostId").startTimer()
+        requestLatency.recordTime(label = "oppdaterJournalpostId") {
+            val antallOppdatert =
+                transaction(db) {
+                    InntektsmeldingEntitet.update(
+                        where = {
+                            val nyesteImIdQuery = hentNyesteImQuery(forespoerselId).adjustSelect { select(InntektsmeldingEntitet.id) }
 
-        val antallOppdatert =
-            transaction(db) {
-                InntektsmeldingEntitet.update(
-                    where = {
-                        val nyesteImIdQuery = hentNyesteImQuery(forespoerselId).adjustSelect { select(InntektsmeldingEntitet.id) }
+                            (InntektsmeldingEntitet.id eqSubQuery nyesteImIdQuery) and
+                                InntektsmeldingEntitet.journalpostId.isNull()
+                        },
+                    ) {
+                        it[InntektsmeldingEntitet.journalpostId] = journalpostId
+                    }
+                }
 
-                        (InntektsmeldingEntitet.id eqSubQuery nyesteImIdQuery) and
-                            InntektsmeldingEntitet.journalpostId.isNull()
-                    },
-                ) {
-                    it[InntektsmeldingEntitet.journalpostId] = journalpostId
+            if (antallOppdatert == 1) {
+                "Lagret journalpost-ID '$journalpostId' i database.".also {
+                    logger.info(it)
+                    sikkerLogger.info(it)
+                }
+            } else {
+                "Oppdaterte uventet antall ($antallOppdatert) rader med journalpost-ID '$journalpostId'.".also {
+                    logger.error(it)
+                    sikkerLogger.error(it)
                 }
             }
-
-        if (antallOppdatert == 1) {
-            "Lagret journalpost-ID '$journalpostId' i database.".also {
-                logger.info(it)
-                sikkerLogger.info(it)
-            }
-        } else {
-            "Oppdaterte uventet antall ($antallOppdatert) rader med journalpost-ID '$journalpostId'.".also {
-                logger.error(it)
-                sikkerLogger.error(it)
-            }
         }
-
-        requestTimer.observeDuration()
     }
 
     fun lagreEksternInntektsmelding(

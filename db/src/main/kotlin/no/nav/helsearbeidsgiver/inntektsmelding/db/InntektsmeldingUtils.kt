@@ -10,6 +10,7 @@ fun Inntektsmelding.erDuplikatAv(other: Inntektsmelding): Boolean =
             tidspunkt = tidspunkt,
             årsakInnsending = årsakInnsending,
             innsenderNavn = innsenderNavn,
+            telefonnummer = telefonnummer,
         )
 
 fun Inntektsmelding.erDuplikatAv(other: Innsending): Boolean =
@@ -25,11 +26,11 @@ fun Inntektsmelding.erDuplikatAv(other: Innsending): Boolean =
         this.refusjon == other.refusjon &&
         this.naturalytelser == other.naturalytelser &&
         this.årsakInnsending == other.årsakInnsending &&
-        this.telefonnummer == other.telefonnummer &&
         this.forespurtData == other.forespurtData
 
 fun Innsending.erDuplikatAv(other: Innsending): Boolean =
     this ==
         other.copy(
             årsakInnsending = årsakInnsending,
+            telefonnummer = telefonnummer,
         )

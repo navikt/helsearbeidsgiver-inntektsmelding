@@ -27,7 +27,7 @@ class ForespoerselBesvartFraSpleisRiverTest :
 
         test("Ved notis om besvart forespørsel publiseres behov om å hente notifikasjon-ID-er") {
             val forespoerselId = UUID.randomUUID()
-            val forventetPublisert = mockPublisert(UUID.randomUUID(), forespoerselId)
+            val forventetPublisert = notifikasjonHentIdMelding(UUID.randomUUID(), forespoerselId)
 
             testRapid.sendJson(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),

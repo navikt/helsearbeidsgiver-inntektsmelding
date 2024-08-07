@@ -72,7 +72,10 @@ class TilgangForespoerselService(
             tilgang = Key.TILGANG.les(Tilgang.serializer(), melding),
         )
 
-    override fun utfoerSteg0(steg0: Steg0) {
+    override fun utfoerSteg0(
+        data: Map<Key, JsonElement>,
+        steg0: Steg0,
+    ) {
         rapid
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
@@ -92,6 +95,7 @@ class TilgangForespoerselService(
     }
 
     override fun utfoerSteg1(
+        data: Map<Key, JsonElement>,
         steg0: Steg0,
         steg1: Steg1,
     ) {
@@ -116,6 +120,7 @@ class TilgangForespoerselService(
     }
 
     override fun utfoerSteg2(
+        data: Map<Key, JsonElement>,
         steg0: Steg0,
         steg1: Steg1,
         steg2: Steg2,

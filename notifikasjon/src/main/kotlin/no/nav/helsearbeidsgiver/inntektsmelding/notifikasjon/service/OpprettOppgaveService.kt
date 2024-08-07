@@ -56,7 +56,10 @@ class OpprettOppgaveService(
             orgnrMedNavn = Key.VIRKSOMHETER.les(orgMapSerializer, melding),
         )
 
-    override fun utfoerSteg0(steg0: Steg0) {
+    override fun utfoerSteg0(
+        data: Map<Key, JsonElement>,
+        steg0: Steg0,
+    ) {
         rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
@@ -70,6 +73,7 @@ class OpprettOppgaveService(
     }
 
     override fun utfoerSteg1(
+        data: Map<Key, JsonElement>,
         steg0: Steg0,
         steg1: Steg1,
     ) {

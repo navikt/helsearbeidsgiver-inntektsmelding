@@ -123,7 +123,10 @@ class LagreSelvbestemtImService(
             sakId = Key.SAK_ID.les(String.serializer(), melding),
         )
 
-    override fun utfoerSteg0(steg0: Steg0) {
+    override fun utfoerSteg0(
+        data: Map<Key, JsonElement>,
+        steg0: Steg0,
+    ) {
         kontrollerSkjema(steg0.skjema)
 
         rapid.publish(
@@ -170,6 +173,7 @@ class LagreSelvbestemtImService(
     }
 
     override fun utfoerSteg1(
+        data: Map<Key, JsonElement>,
         steg0: Steg0,
         steg1: Steg1,
     ) {
@@ -219,13 +223,14 @@ class LagreSelvbestemtImService(
     }
 
     override fun utfoerSteg2(
+        data: Map<Key, JsonElement>,
         steg0: Steg0,
         steg1: Steg1,
         steg2: Steg2,
     ) {
         when (steg2.inntektsmelding.aarsakInnsending) {
             AarsakInnsending.Endring -> {
-                utfoerSteg3(steg0, steg1, steg2, Steg3(null))
+                utfoerSteg3(data, steg0, steg1, steg2, Steg3(sakId = null))
             }
 
             AarsakInnsending.Ny -> {
@@ -247,6 +252,7 @@ class LagreSelvbestemtImService(
     }
 
     override fun utfoerSteg3(
+        data: Map<Key, JsonElement>,
         steg0: Steg0,
         steg1: Steg1,
         steg2: Steg2,

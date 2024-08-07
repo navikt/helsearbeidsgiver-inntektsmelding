@@ -123,7 +123,10 @@ class InnsendingService(
             erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
         )
 
-    override fun utfoerSteg0(steg0: Steg0) {
+    override fun utfoerSteg0(
+        data: Map<Key, JsonElement>,
+        steg0: Steg0,
+    ) {
         rapid
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
@@ -137,6 +140,7 @@ class InnsendingService(
     }
 
     override fun utfoerSteg1(
+        data: Map<Key, JsonElement>,
         steg0: Steg0,
         steg1: Steg1,
     ) {
@@ -181,6 +185,7 @@ class InnsendingService(
     }
 
     override fun utfoerSteg2(
+        data: Map<Key, JsonElement>,
         steg0: Steg0,
         steg1: Steg1,
         steg2: Steg2,
@@ -233,6 +238,7 @@ class InnsendingService(
     }
 
     override fun utfoerSteg3(
+        data: Map<Key, JsonElement>,
         steg0: Steg0,
         steg1: Steg1,
         steg2: Steg2,

@@ -66,12 +66,16 @@ open class MockService : ServiceMed1Steg<MockService.Steg0, MockService.Steg1>()
         )
 
     override fun utfoerSteg1(
+        data: Map<Key, JsonElement>,
         steg0: Steg0,
         steg1: Steg1,
     ) {
     }
 
-    override fun utfoerSteg0(steg0: Steg0) {}
+    override fun utfoerSteg0(
+        data: Map<Key, JsonElement>,
+        steg0: Steg0,
+    ) {}
 
     override fun onError(
         melding: Map<Key, JsonElement>,

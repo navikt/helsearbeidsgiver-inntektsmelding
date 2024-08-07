@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
 import no.nav.helsearbeidsgiver.felles.db.exposed.test.FunSpecWithDb
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
+import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.SelvbestemtInntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import no.nav.helsearbeidsgiver.utils.test.date.september
@@ -20,7 +21,6 @@ import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.UUID
-import kotlin.random.Random
 
 class SelvbestemtImRepoTest :
     FunSpecWithDb(listOf(SelvbestemtInntektsmeldingEntitet), { db ->
@@ -300,8 +300,3 @@ private fun lesAlleRader(db: Database): List<ResultRow> =
             .orderBy(SelvbestemtInntektsmeldingEntitet.opprettet)
             .toList()
     }
-
-// TODO erstatt med versjon fra felles-pakke
-private fun randomDigitString(length: Int): String =
-    List(length) { Random.nextInt(10) }
-        .joinToString(separator = "")

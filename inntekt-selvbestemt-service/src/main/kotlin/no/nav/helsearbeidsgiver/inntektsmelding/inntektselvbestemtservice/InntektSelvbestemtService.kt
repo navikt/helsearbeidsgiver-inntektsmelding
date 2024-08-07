@@ -49,16 +49,6 @@ class InntektSelvbestemtService(
     override val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.INNTEKT_SELVBESTEMT_REQUESTED
-    override val startKeys =
-        setOf(
-            Key.FNR,
-            Key.ORGNRUNDERENHET,
-            Key.INNTEKTSDATO,
-        )
-    override val dataKeys =
-        setOf(
-            Key.INNTEKT,
-        )
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(

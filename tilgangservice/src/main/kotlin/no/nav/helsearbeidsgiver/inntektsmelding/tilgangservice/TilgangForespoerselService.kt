@@ -40,16 +40,6 @@ class TilgangForespoerselService(
     override val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.TILGANG_FORESPOERSEL_REQUESTED
-    override val startKeys =
-        setOf(
-            Key.FORESPOERSEL_ID,
-            Key.FNR,
-        )
-    override val dataKeys =
-        setOf(
-            Key.FORESPOERSEL_SVAR,
-            Key.TILGANG,
-        )
 
     data class Steg0(
         val transaksjonId: UUID,

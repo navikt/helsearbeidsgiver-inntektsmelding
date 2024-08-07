@@ -42,14 +42,6 @@ class HentSelvbestemtImService(
     override val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.SELVBESTEMT_IM_REQUESTED
-    override val startKeys =
-        setOf(
-            Key.SELVBESTEMT_ID,
-        )
-    override val dataKeys =
-        setOf(
-            Key.SELVBESTEMT_INNTEKTSMELDING,
-        )
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(

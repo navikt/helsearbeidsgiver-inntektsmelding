@@ -15,8 +15,6 @@ sealed interface Service {
     }
 
     val eventName: EventName
-    val startKeys: Set<Key>
-    val dataKeys: Set<Key>
 
     // TODO internal?
     fun onData(melding: Map<Key, JsonElement>)

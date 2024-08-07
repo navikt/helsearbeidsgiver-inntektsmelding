@@ -83,16 +83,12 @@ class ServiceRiverStateful<S>(
     }
 
     private fun getAllRedisData(transaksjonId: UUID): Map<Key, JsonElement> {
-        // TODO bytte (service.startKeys + service.dataKeys) med Keys.entries?
-        val allDataKeys = (service.startKeys + service.dataKeys).map { RedisKey.of(transaksjonId, it) }.toSet()
+        val allKeys = Key.entries.map { RedisKey.of(transaksjonId, it) }.toSet()
         return service.redisStore
-            .getAll(allDataKeys)
+            .getAll(allKeys)
             .mapKeysNotNull { key ->
                 key
-                    .removePrefix(transaksjonId.toString())
-                    .removePrefix(service.redisStore.keyPartSeparator)
-                    // TODO erstatter de to foregående 'removePrefix' etter overgangsperiode
-//                    .removePrefix("$transaksjonId${service.redisStore.keyPartSeparator}")
+                    .removePrefix("$transaksjonId${service.redisStore.keyPartSeparator}")
                     .runCatching(Key::fromString)
                     .getOrElse { error ->
                         "Feil med nøkkel '$key' i Redis.".also {
@@ -111,14 +107,8 @@ sealed class ServiceRiver : ObjectRiver<ServiceMelding>() {
 
     abstract val service: Service
 
-    final override fun les(json: Map<Key, JsonElement>): ServiceMelding? {
-        val nestedData =
-            json[Key.DATA]
-                ?.runCatching { toMap() }
-                ?.getOrNull()
-                .orEmpty()
-
-        return when {
+    final override fun les(json: Map<Key, JsonElement>): ServiceMelding? =
+        when {
             Key.FAIL in json -> {
                 FailMelding(
                     eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), json),
@@ -132,41 +122,19 @@ sealed class ServiceRiver : ObjectRiver<ServiceMelding>() {
                 null
             }
 
-            // Støtter Key.DATA som flagg med datafelt på rot (metode på vei ut)
-            Key.DATA in json &&
-                (
-                    service.startKeys.all(json::containsKey) ||
-                        service.dataKeys.any(json::containsKey)
-                ) -> {
-                DataMelding(
-                    eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), json),
-                    transaksjonId = Key.UUID.les(UuidSerializer, json),
-                    dataMap =
-                        json.filterKeys {
-                            (service.startKeys + service.dataKeys).contains(it)
-                        },
-                )
-            }
-
-            // Støtter Key.DATA som objekt som inneholder datafelt (metode på vei inn)
-            // TODO Når all data er nested under Key.DATA så kan startKeys og dataKeys få visibility protected
-            service.startKeys.all(nestedData::containsKey) ||
-                service.dataKeys.any(nestedData::containsKey) -> {
-                DataMelding(
-                    eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), json),
-                    transaksjonId = Key.UUID.les(UuidSerializer, json),
-                    dataMap =
-                        nestedData.filterKeys {
-                            (service.startKeys + service.dataKeys).contains(it)
-                        },
-                )
-            }
-
             else -> {
-                null
+                val nestedData = json[Key.DATA]?.toMap()
+                if (nestedData != null) {
+                    DataMelding(
+                        eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), json),
+                        transaksjonId = Key.UUID.les(UuidSerializer, json),
+                        dataMap = nestedData,
+                    )
+                } else {
+                    null
+                }
             }
         }
-    }
 
     final override fun ServiceMelding.haandterFeil(
         json: Map<Key, JsonElement>,

@@ -36,15 +36,6 @@ class TilgangOrgService(
     override val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.TILGANG_ORG_REQUESTED
-    override val startKeys =
-        setOf(
-            Key.ORGNRUNDERENHET,
-            Key.FNR,
-        )
-    override val dataKeys =
-        setOf(
-            Key.TILGANG,
-        )
 
     data class Steg0(
         val transaksjonId: UUID,

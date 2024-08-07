@@ -76,5 +76,4 @@ enum class RedisPrefix {
     OpprettSak,
     TilgangForespoersel,
     TilgangOrg,
-    BerikInntektsmeldingService,
 }

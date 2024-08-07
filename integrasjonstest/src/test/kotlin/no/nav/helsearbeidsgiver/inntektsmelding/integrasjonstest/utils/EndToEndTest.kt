@@ -219,7 +219,7 @@ abstract class EndToEndTest : ContainerTest() {
             createSpinnService()
             createTilgangService(redisConnection)
             createHentForespoerselService(redisConnection)
-            createBerikInntektsmeldingService(redisConnection)
+            createBerikInntektsmeldingService()
 
             // Rivers
             createAaregRiver(aaregClient)

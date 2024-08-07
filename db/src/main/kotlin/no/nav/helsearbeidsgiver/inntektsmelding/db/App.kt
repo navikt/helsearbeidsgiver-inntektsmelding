@@ -6,7 +6,7 @@ import no.nav.helsearbeidsgiver.felles.db.exposed.Database
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentLagretImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentSelvbestemtImRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreEksternInntektsmeldingLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreEksternImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreForespoerselLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreJournalpostIdRiver
@@ -53,6 +53,9 @@ fun RapidsConnection.createDbRivers(
         logger.info("Starter ${LagreImRiver::class.simpleName}...")
         LagreImRiver(imRepo).connect(this)
 
+        logger.info("Starter ${LagreEksternImRiver::class.simpleName}...")
+        LagreEksternImRiver(imRepo).connect(this)
+
         logger.info("Starter ${LagreJournalpostIdRiver::class.simpleName}...")
         LagreJournalpostIdRiver(imRepo, selvbestemtImRepo).connect(this)
 
@@ -64,9 +67,6 @@ fun RapidsConnection.createDbRivers(
 
         logger.info("Starter ${NotifikasjonHentIdLoeser::class.simpleName}...")
         NotifikasjonHentIdLoeser(this, forespoerselRepo)
-
-        logger.info("Starter ${LagreEksternInntektsmeldingLoeser::class.simpleName}...")
-        LagreEksternInntektsmeldingLoeser(this, imRepo)
 
         logger.info("Starter ${HentSelvbestemtImRiver::class.simpleName}...")
         HentSelvbestemtImRiver(selvbestemtImRepo).connect(this)

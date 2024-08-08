@@ -56,8 +56,11 @@ class LagreImSkjemaRiver(
         val sisteImSkjema = repository.hentNyesteInntektsmeldingSkjema(forespoerselId)
 
         val erDuplikat =
-            sisteIm?.erDuplikatAv(inntektsmeldingSkjema) ?: false ||
-                sisteImSkjema?.erDuplikatAv(inntektsmeldingSkjema) ?: false
+            when {
+                sisteImSkjema != null -> sisteImSkjema.erDuplikatAv(inntektsmeldingSkjema)
+                sisteIm != null -> sisteIm.erDuplikatAv(inntektsmeldingSkjema)
+                else -> false
+            }
 
         if (erDuplikat) {
             sikkerLogger.warn("Fant duplikat av inntektsmeldingskjema.")

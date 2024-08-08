@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.distribusjon
 
-import no.nav.helsearbeidsgiver.felles.fromEnv
+import no.nav.helsearbeidsgiver.felles.utils.fromEnv
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SslConfigs

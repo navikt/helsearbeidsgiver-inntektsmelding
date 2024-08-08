@@ -2,7 +2,7 @@ package no.nav.helsearbeidsgiver.felles.db.exposed
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import no.nav.helsearbeidsgiver.felles.fromEnv
+import no.nav.helsearbeidsgiver.felles.utils.fromEnv
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database as ExposedDatabase
 

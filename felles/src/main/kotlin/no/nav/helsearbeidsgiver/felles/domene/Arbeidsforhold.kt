@@ -1,6 +1,6 @@
 @file:UseSerializers(LocalDateSerializer::class, LocalDateTimeSerializer::class)
 
-package no.nav.helsearbeidsgiver.felles
+package no.nav.helsearbeidsgiver.felles.domene
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+// TODO skrell bort det vi ikke trenger
 @Serializable
 data class Arbeidsforhold(
     val arbeidsgiver: Arbeidsgiver,

@@ -12,8 +12,8 @@ import io.mockk.unmockkStatic
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
-import no.nav.helsearbeidsgiver.felles.fromEnv
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.utils.fromEnv
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.Mock.altinnOrganisasjoner
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.Mock.innkommendeMelding
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.Mock.toMap

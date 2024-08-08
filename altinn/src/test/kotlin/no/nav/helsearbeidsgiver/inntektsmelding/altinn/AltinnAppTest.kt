@@ -34,7 +34,7 @@ class AltinnAppTest :
         }
         afterEach {
             clearAllMocks()
-            unmockkStatic("no.nav.helsearbeidsgiver.felles.EnvUtilsKt")
+            unmockkStatic("no.nav.helsearbeidsgiver.felles.utils.EnvUtilsKt")
             testRapid.reset()
             server.shutdown()
         }
@@ -76,7 +76,7 @@ class AltinnAppTest :
     })
 
 private fun mockEnv(server: MockWebServer) {
-    mockkStatic("no.nav.helsearbeidsgiver.felles.EnvUtilsKt")
+    mockkStatic("no.nav.helsearbeidsgiver.felles.utils.EnvUtilsKt")
 
     every { "ALTINN_URL".fromEnv() } returns server.url("/altinn").toString()
     every { "ALTINN_SERVICE_CODE".fromEnv() } returns "4936"

@@ -69,6 +69,7 @@ fun mockInnsending(): Innsending =
             ),
         årsakInnsending = AarsakInnsending.ENDRING,
         bekreftOpplysninger = true,
+        forespurtData = listOf("arbeidsgiverperiode", "inntekt", "refusjon"),
     )
 
 fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess {

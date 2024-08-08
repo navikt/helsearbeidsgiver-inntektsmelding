@@ -21,8 +21,8 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.tilForespoersel
+import no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice.mapInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.mapInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
@@ -31,6 +31,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.maxMekker
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -76,7 +78,7 @@ class InnsendingIT : EndToEndTest() {
         )
 
         messages
-            .filter(EventName.INSENDING_STARTED)
+            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.INNTEKTSMELDING, nestedData = true)
             .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
             .firstAsMap()
@@ -165,7 +167,7 @@ class InnsendingIT : EndToEndTest() {
         )
 
         messages
-            .filter(EventName.INSENDING_STARTED)
+            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
             .firstAsMap()
             .also {
@@ -237,9 +239,17 @@ class InnsendingIT : EndToEndTest() {
         const val JOURNALPOST_ID = "journalpost-id-skoleboller"
         const val SAK_ID = "forundret-lysekrone"
         const val OPPGAVE_ID = "neglisjert-sommer"
+        val orgnr = Orgnr.genererGyldig()
 
         val forespoerselId: UUID = UUID.randomUUID()
-        val skjema = mockInnsending().copy(identitetsnummer = bjarneBetjent.ident!!)
+        val skjema =
+            mockInnsending().let { innsending ->
+                innsending.copy(
+                    identitetsnummer = bjarneBetjent.ident!!,
+                    orgnrUnderenhet = orgnr.toString(),
+                    bestemmendeFraværsdag = innsending.fraværsperioder.lastOrNull()?.fom ?: innsending.bestemmendeFraværsdag,
+                )
+            }
 
         private val forespoersel = skjema.tilForespoersel(UUID.randomUUID())
 

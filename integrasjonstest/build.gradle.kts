@@ -32,6 +32,7 @@ dependencies {
     testImplementation(project(":selvbestemt-lagre-im-service"))
     testImplementation(project(":tilgangservice"))
     testImplementation(project(":trengerservice"))
+    testImplementation(project(":berik-inntektsmelding-service"))
 
     testImplementation(project(":felles"))
     testImplementation(project(":felles-db-exposed"))

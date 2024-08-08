@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.innsending
+package no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.FullLoennIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending

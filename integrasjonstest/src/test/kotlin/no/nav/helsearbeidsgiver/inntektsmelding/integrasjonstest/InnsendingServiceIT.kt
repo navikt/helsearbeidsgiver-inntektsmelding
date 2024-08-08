@@ -8,15 +8,11 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
-import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
-import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
@@ -24,7 +20,6 @@ import no.nav.helsearbeidsgiver.felles.test.mock.gyldigInnsendingRequest
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.toForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -74,104 +69,43 @@ class InnsendingServiceIT : EndToEndTest() {
                 ).toJson(),
         )
 
-        // Forespørsel hentet
-        messages
-            .filter(EventName.INSENDING_STARTED)
-            .filter(Key.FORESPOERSEL_SVAR, nestedData = true)
-            .firstAsMap()
-            .verifiserTransaksjonId(transaksjonId)
-            .verifiserForespoerselId()
-            .also {
-                val data = it[Key.DATA].shouldNotBeNull().toMap()
-                data[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel
-            }
-
-        // Tidligere inntektsmelding hentet
-        messages
-            .filter(EventName.INSENDING_STARTED)
-            .filter(Key.LAGRET_INNTEKTSMELDING, nestedData = true)
-            .filter(Key.EKSTERN_INNTEKTSMELDING, nestedData = true)
-            .firstAsMap()
-            .verifiserTransaksjonId(transaksjonId)
-            .verifiserForespoerselId()
-            .also {
-                val data = it[Key.DATA].shouldNotBeNull().toMap()
-                val tidligereInntektsmeldingResult = ResultJson(success = tidligereInntektsmelding.toJson(Inntektsmelding.serializer()))
-
-                data[Key.LAGRET_INNTEKTSMELDING]?.fromJson(ResultJson.serializer()) shouldBe tidligereInntektsmeldingResult
-                data[Key.EKSTERN_INNTEKTSMELDING]?.fromJson(ResultJson.serializer()) shouldBe ResultJson(success = null)
-            }
-
-        // Virksomhetsnavn hentet
-        messages
-            .filter(EventName.INSENDING_STARTED)
-            .filter(Key.VIRKSOMHETER, nestedData = true)
-            .firstAsMap()
-            .verifiserTransaksjonId(transaksjonId)
-            .verifiserForespoerselId()
-            .also {
-                val data = it[Key.DATA].shouldNotBeNull().toMap()
-                data[Key.VIRKSOMHETER]?.fromJson(orgMapSerializer) shouldBe mapOf(Mock.forespoersel.orgnr.let(::Orgnr) to "Bedrift A/S")
-            }
-
-        // Sykmeldt og innsender hentet
-        messages
-            .filter(EventName.INSENDING_STARTED)
-            .filter(Key.PERSONER, nestedData = true)
-            .firstAsMap()
-            .verifiserTransaksjonId(transaksjonId)
-            .verifiserForespoerselId()
-            .also {
-                val data = it[Key.DATA].shouldNotBeNull().toMap()
-
-                shouldNotThrowAny {
-                    data[Key.PERSONER]
-                        .shouldNotBeNull()
-                        .fromJson(personMapSerializer)
-                }
-            }
-
         // Inntektsmelding lagret
         messages
             .filter(EventName.INSENDING_STARTED)
-            .filter(Key.INNTEKTSMELDING, nestedData = true)
             .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
             .firstAsMap()
             .verifiserTransaksjonId(transaksjonId)
             .verifiserForespoerselId()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-
-                shouldNotThrowAny {
-                    data[Key.INNTEKTSMELDING]
-                        .shouldNotBeNull()
-                        .fromJson(Inntektsmelding.serializer())
-
-                    data[Key.ER_DUPLIKAT_IM]
-                        .shouldNotBeNull()
-                        .fromJson(Boolean.serializer())
-                }
+                data[Key.ER_DUPLIKAT_IM]?.fromJson(Boolean.serializer()) shouldBe false
             }
 
         // Siste melding fra service
         messages
-            .filter(EventName.INNTEKTSMELDING_MOTTATT)
+            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .firstAsMap()
             .verifiserTransaksjonId(transaksjonId)
             .verifiserForespoerselId()
             .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+
                 shouldNotThrowAny {
                     it[Key.UUID]
                         .shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
-                    it[Key.FORESPOERSEL_ID]
+                    data[Key.FORESPOERSEL_ID]
                         .shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
-                    it[Key.INNTEKTSMELDING_DOKUMENT]
+                    data[Key.ARBEIDSGIVER_FNR]
                         .shouldNotBeNull()
-                        .fromJson(Inntektsmelding.serializer())
+                        .fromJson(Fnr.serializer())
+
+                    data[Key.SKJEMA_INNTEKTSMELDING]
+                        .shouldNotBeNull()
+                        .fromJson(Innsending.serializer())
                 }
             }
 
@@ -186,7 +120,7 @@ class InnsendingServiceIT : EndToEndTest() {
                 .fromJson(ResultJson.serializer())
                 .success
                 .shouldNotBeNull()
-                .fromJson(Inntektsmelding.serializer())
+                .fromJson(Innsending.serializer())
         }
     }
 
@@ -198,7 +132,7 @@ class InnsendingServiceIT : EndToEndTest() {
     private fun Map<Key, JsonElement>.verifiserForespoerselId(): Map<Key, JsonElement> =
         also {
             val data = it[Key.DATA]?.toMap().orEmpty()
-            val forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) ?: Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data)
+            val forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data)
             forespoerselId shouldBe Mock.forespoerselId
         }
 
@@ -228,7 +162,5 @@ class InnsendingServiceIT : EndToEndTest() {
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
             )
-
-        val forespoersel = forespoerselSvar.toForespoersel()
     }
 }

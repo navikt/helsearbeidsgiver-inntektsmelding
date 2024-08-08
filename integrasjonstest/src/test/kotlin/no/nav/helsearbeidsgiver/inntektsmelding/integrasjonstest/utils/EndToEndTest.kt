@@ -30,6 +30,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAaregRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
+import no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice.createBerikInntektsmeldingService
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createHentEksternImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createSpinnService
@@ -106,36 +107,47 @@ val maxMekker =
 abstract class EndToEndTest : ContainerTest() {
     private val imTestRapid = ImTestRapid()
 
+    // Vent på inntektsmeldingdatabase
     private val inntektsmeldingDatabase by lazy {
         println("Database jdbcUrl for im-db: ${postgresContainerOne.jdbcUrl}")
-        postgresContainerOne
-            .toHikariConfig()
-            .let(::Database)
-            .also {
-                val migrationLocation = Path("../db/src/main/resources/db/migration").absolutePathString()
-                it.migrate(migrationLocation)
-            }.createTruncateFunction()
+
+        return@lazy medFlereForsoek(
+            feilmelding = "Klarte ikke sette opp inntektsmeldingDatabase.",
+        ) {
+            postgresContainerOne
+                .toHikariConfig()
+                .let(::Database)
+                .also {
+                    val migrationLocation = Path("../db/src/main/resources/db/migration").absolutePathString()
+                    it.migrate(migrationLocation)
+                }.createTruncateFunction()
+        }
     }
 
+    // Vent på im-notifikasjon database
     private val notifikasjonDatabase by lazy {
         println("Database jdbcUrl for im-notifikasjon: ${postgresContainerTwo.jdbcUrl}")
-        postgresContainerTwo
-            .toHikariConfig()
-            .let(::Database)
-            .also {
-                val migrationLocation = Path("../notifikasjon/src/main/resources/db/migration").absolutePathString()
-                it.migrate(migrationLocation)
-            }.createTruncateFunction()
+
+        return@lazy medFlereForsoek(
+            feilmelding = "Klarte ikke sette opp notifikasjonDatabase.",
+        ) {
+            postgresContainerTwo
+                .toHikariConfig()
+                .let(::Database)
+                .also {
+                    val migrationLocation = Path("../notifikasjon/src/main/resources/db/migration").absolutePathString()
+                    it.migrate(migrationLocation)
+                }.createTruncateFunction()
+        }
     }
 
     // Vent på rediscontainer
     val redisConnection by lazy {
-        repeat(5) {
-            runCatching { RedisConnection(redisContainer.redisURI) }
-                .onSuccess { return@lazy it }
-                .onFailure { runBlocking { delay(1000) } }
+        return@lazy medFlereForsoek(
+            feilmelding = "Klarte ikke koble til Redis.",
+        ) {
+            RedisConnection(redisContainer.redisURI)
         }
-        throw IllegalStateException("Klarte ikke koble til Redis.")
     }
 
     val messages get() = imTestRapid.messages
@@ -204,6 +216,7 @@ abstract class EndToEndTest : ContainerTest() {
             createSpinnService()
             createTilgangService(redisConnection)
             createHentForespoerselService(redisConnection)
+            createBerikInntektsmeldingService()
 
             // Rivers
             createAaregRiver(aaregClient)
@@ -326,3 +339,17 @@ private fun Database.createTruncateFunction() =
             exec(query)
         }
     }
+
+private fun <T> medFlereForsoek(
+    antallForsoek: Int = 5,
+    pauseMillis: Long = 1000,
+    feilmelding: String,
+    blokk: () -> T,
+): T {
+    repeat(antallForsoek) {
+        runCatching { blokk() }
+            .onSuccess { return it }
+            .onFailure { runBlocking { delay(pauseMillis) } }
+    }
+    throw IllegalStateException(feilmelding)
+}

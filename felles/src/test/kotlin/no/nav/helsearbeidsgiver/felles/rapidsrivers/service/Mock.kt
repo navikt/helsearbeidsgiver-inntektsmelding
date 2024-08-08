@@ -6,7 +6,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Person
+import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail

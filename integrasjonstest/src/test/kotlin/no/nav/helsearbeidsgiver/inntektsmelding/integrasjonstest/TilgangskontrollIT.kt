@@ -7,7 +7,7 @@ import io.mockk.coEvery
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Tilgang
+import no.nav.helsearbeidsgiver.felles.domene.Tilgang
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess

@@ -6,10 +6,10 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
-import no.nav.helsearbeidsgiver.felles.Inntekt
-import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
-import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.Tekst
+import no.nav.helsearbeidsgiver.felles.domene.Inntekt
+import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse

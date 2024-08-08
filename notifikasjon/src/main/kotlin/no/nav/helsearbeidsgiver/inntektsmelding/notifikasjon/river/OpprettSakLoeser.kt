@@ -5,7 +5,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.domene.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov

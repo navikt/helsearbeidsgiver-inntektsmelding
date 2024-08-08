@@ -1,15 +1,10 @@
-package no.nav.helsearbeidsgiver.felles.utils
+package no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
-import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
-import no.nav.helsearbeidsgiver.felles.PeriodeNullable
+import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
+import no.nav.helsearbeidsgiver.felles.domene.PeriodeNullable
 
-const val MAKS_DAGER_OPPHOLD = 3L
-
-fun List<Arbeidsforhold>.orgnrMedHistoriskArbeidsforhold(): List<String> =
-    this
-        .mapNotNull { it.arbeidsgiver.organisasjonsnummer }
-        .distinct()
+private const val MAKS_DAGER_OPPHOLD = 3L
 
 fun List<Periode>.aktivtArbeidsforholdIPeriode(arbeidsforhold: List<Arbeidsforhold>): Boolean {
     val ansattPerioder = arbeidsforhold.map { it.ansettelsesperiode.periode }
@@ -17,13 +12,13 @@ fun List<Periode>.aktivtArbeidsforholdIPeriode(arbeidsforhold: List<Arbeidsforho
     return this.any { it.innenforArbeidsforhold(ansattPerioderSammenslaatt) } || this.any { it.innenforArbeidsforhold(ansattPerioder) }
 }
 
-fun Periode.innenforArbeidsforhold(ansattPerioder: List<PeriodeNullable>): Boolean =
+private fun Periode.innenforArbeidsforhold(ansattPerioder: List<PeriodeNullable>): Boolean =
     ansattPerioder.any { ansPeriode ->
         (ansPeriode.tom == null || this.tom.isBefore(ansPeriode.tom) || this.tom == ansPeriode.tom) &&
-            (ansPeriode.fom!!.isBefore(this.fom) || ansPeriode.fom.isEqual(this.fom))
+            (ansPeriode.fom!!.isBefore(this.fom) || ansPeriode.fom!!.isEqual(this.fom))
     }
 
-fun slaaSammenPerioder(list: List<PeriodeNullable>): List<PeriodeNullable> {
+private fun slaaSammenPerioder(list: List<PeriodeNullable>): List<PeriodeNullable> {
     if (list.size < 2) return list
 
     val remainingPeriods =
@@ -53,7 +48,7 @@ fun slaaSammenPerioder(list: List<PeriodeNullable>): List<PeriodeNullable> {
     return merged
 }
 
-fun oppholdMellomPerioderOverstigerDager(
+private fun oppholdMellomPerioderOverstigerDager(
     a1: PeriodeNullable,
     a2: PeriodeNullable,
     dager: Long,

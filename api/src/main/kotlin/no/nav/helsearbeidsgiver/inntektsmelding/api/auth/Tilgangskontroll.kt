@@ -2,8 +2,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.auth
 
 import io.ktor.server.request.ApplicationRequest
 import kotlinx.coroutines.runBlocking
-import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.TilgangResultat
+import no.nav.helsearbeidsgiver.felles.domene.Tilgang
+import no.nav.helsearbeidsgiver.felles.domene.TilgangResultat
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore

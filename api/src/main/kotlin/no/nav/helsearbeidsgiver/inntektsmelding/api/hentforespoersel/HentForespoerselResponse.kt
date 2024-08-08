@@ -6,9 +6,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
-import no.nav.helsearbeidsgiver.felles.ForespurtData
-import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.ForespurtData
+import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import java.time.LocalDate
 

@@ -18,10 +18,10 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Naturalytelse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.NaturalytelseKode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
-import no.nav.helsearbeidsgiver.felles.Forespoersel
-import no.nav.helsearbeidsgiver.felles.ForespurtData
-import no.nav.helsearbeidsgiver.felles.ForslagInntekt
-import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
+import no.nav.helsearbeidsgiver.felles.domene.ForespurtData
+import no.nav.helsearbeidsgiver.felles.domene.ForslagInntekt
+import no.nav.helsearbeidsgiver.felles.domene.ForslagRefusjon
 import no.nav.helsearbeidsgiver.felles.test.mock.tilForespoersel
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.august

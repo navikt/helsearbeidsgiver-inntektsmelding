@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt
 
 import kotlinx.serialization.Serializable
-import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
+import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 
 @Serializable
 data class InntektResponse(

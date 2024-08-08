@@ -1,6 +1,6 @@
 @file:UseSerializers(LocalDateSerializer::class)
 
-package no.nav.helsearbeidsgiver.felles
+package no.nav.helsearbeidsgiver.felles.domene
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers

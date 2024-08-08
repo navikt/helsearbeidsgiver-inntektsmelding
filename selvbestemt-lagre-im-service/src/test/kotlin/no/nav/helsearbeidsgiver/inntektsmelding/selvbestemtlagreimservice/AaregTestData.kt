@@ -1,14 +1,14 @@
-package no.nav.helsearbeidsgiver.felles.utils
+package no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice
 
-import no.nav.helsearbeidsgiver.felles.Ansettelsesperiode
-import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
-import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
-import no.nav.helsearbeidsgiver.felles.PeriodeNullable
+import no.nav.helsearbeidsgiver.felles.domene.Ansettelsesperiode
+import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
+import no.nav.helsearbeidsgiver.felles.domene.Arbeidsgiver
+import no.nav.helsearbeidsgiver.felles.domene.PeriodeNullable
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 object AaregTestData {
-    val arbeidsgiver = Arbeidsgiver("ORG", "123456789")
+    private val arbeidsgiver = Arbeidsgiver("ORG", "123456789")
 
     val evigArbeidsForholdListe =
         listOf(
@@ -34,7 +34,7 @@ object AaregTestData {
             ),
         )
 
-    val pågåendeArbeidsforholdListe =
+    val paagaaendeArbeidsforholdListe =
         listOf(
             Arbeidsforhold(
                 arbeidsgiver = arbeidsgiver,

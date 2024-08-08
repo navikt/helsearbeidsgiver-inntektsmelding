@@ -1,12 +1,12 @@
-package no.nav.helsearbeidsgiver.felles.utils
+package no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
-import no.nav.helsearbeidsgiver.felles.Ansettelsesperiode
-import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
-import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
-import no.nav.helsearbeidsgiver.felles.PeriodeNullable
+import no.nav.helsearbeidsgiver.felles.domene.Ansettelsesperiode
+import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
+import no.nav.helsearbeidsgiver.felles.domene.Arbeidsgiver
+import no.nav.helsearbeidsgiver.felles.domene.PeriodeNullable
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -77,7 +77,7 @@ class ArbeidsforholdInnenforPeriodeKtTest :
                     LocalDate.of(2021, 1, 1),
                     LocalDate.of(2021, 1, 5),
                 ),
-            ).aktivtArbeidsforholdIPeriode(AaregTestData.pågåendeArbeidsforholdListe) shouldBe false
+            ).aktivtArbeidsforholdIPeriode(AaregTestData.paagaaendeArbeidsforholdListe) shouldBe false
         }
 
         test("Periode begynner samtidig som Arbeidsforholdet") {
@@ -86,7 +86,7 @@ class ArbeidsforholdInnenforPeriodeKtTest :
                     LocalDate.of(2021, 2, 5),
                     LocalDate.of(2021, 2, 9),
                 ),
-            ).aktivtArbeidsforholdIPeriode(AaregTestData.pågåendeArbeidsforholdListe) shouldBe true
+            ).aktivtArbeidsforholdIPeriode(AaregTestData.paagaaendeArbeidsforholdListe) shouldBe true
         }
 
         test("Periode etter Arbeidsforholdet er avsluttet") {

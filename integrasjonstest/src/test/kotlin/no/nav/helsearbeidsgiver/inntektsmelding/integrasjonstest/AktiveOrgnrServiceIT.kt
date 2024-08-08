@@ -16,12 +16,12 @@ import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.brreg.Virksomhet
-import no.nav.helsearbeidsgiver.felles.AktiveArbeidsgivere
-import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.domene.AktiveArbeidsgivere
+import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap

@@ -1,11 +1,13 @@
 @file:UseSerializers(LocalDateSerializer::class)
 
-package no.nav.helsearbeidsgiver.felles
+package no.nav.helsearbeidsgiver.felles.domene
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 
+// TODO erstatt med ResultJson
 @Serializable
 data class TilgangResultat(
     val tilgang: Tilgang? = null,

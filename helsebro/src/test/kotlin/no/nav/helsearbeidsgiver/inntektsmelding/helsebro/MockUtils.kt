@@ -3,8 +3,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntekt

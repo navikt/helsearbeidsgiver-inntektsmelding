@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.felles
+package no.nav.helsearbeidsgiver.felles.utils
 
 fun String.fromEnv(): String =
     System.getenv(this)

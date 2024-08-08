@@ -4,6 +4,7 @@ import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.data.row
 import io.kotest.matchers.shouldBe
+import no.nav.helsearbeidsgiver.felles.domene.ForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntekt
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedForrigeInntekt

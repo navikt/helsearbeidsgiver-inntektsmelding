@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
-import no.nav.helsearbeidsgiver.felles.fromEnv
+import no.nav.helsearbeidsgiver.felles.utils.fromEnv
 
 object Env {
     val url = "ALTINN_URL".fromEnv()

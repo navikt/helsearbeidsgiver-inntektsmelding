@@ -1,5 +1,7 @@
 package no.nav.helsearbeidsgiver.felles
 
+import no.nav.helsearbeidsgiver.felles.domene.Inntekt
+import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.YearMonth

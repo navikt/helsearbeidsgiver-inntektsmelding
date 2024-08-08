@@ -4,13 +4,13 @@ import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.AktiveArbeidsgivere
-import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Person
-import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.domene.AktiveArbeidsgivere
+import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
+import no.nav.helsearbeidsgiver.felles.domene.Person
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson

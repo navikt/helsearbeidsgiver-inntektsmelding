@@ -17,8 +17,8 @@ import io.prometheus.client.CollectorRegistry
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.TilgangResultat
+import no.nav.helsearbeidsgiver.felles.domene.Tilgang
+import no.nav.helsearbeidsgiver.felles.domene.TilgangResultat
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.inntektsmelding.api.apiModule
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig

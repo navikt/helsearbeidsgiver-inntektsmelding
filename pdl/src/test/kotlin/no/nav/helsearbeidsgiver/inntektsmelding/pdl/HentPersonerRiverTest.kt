@@ -16,7 +16,7 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Person
+import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap

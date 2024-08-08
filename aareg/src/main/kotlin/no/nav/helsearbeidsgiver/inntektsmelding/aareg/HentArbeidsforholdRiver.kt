@@ -2,10 +2,10 @@ package no.nav.helsearbeidsgiver.inntektsmelding.aareg
 
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.aareg.AaregClient
-import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -62,6 +62,12 @@ class HentArbeidsforholdRiver(
         "Fant ${arbeidsforhold.size} arbeidsforhold.".also {
             logger.info(it)
             sikkerLogger.info(it)
+        }
+
+        // Logger dette midlertidig for å finne ut om det er mulig.
+        // Det er det trolig ikke: https://www.skatteetaten.no/bedrift-og-organisasjon/arbeidsgiver/a-meldingen/veiledning/arbeidsforholdet/type-arbeidsforhold/ordinart-arbeidsforhold/#Hvilken-informasjon-skal-du-oppgi
+        if (arbeidsforhold.any { it.ansettelsesperiode.periode.fom == null }) {
+            sikkerLogger.info("Fant arbeidsforhold uten fra-dato. Dette logges kun for å vurdere forenklinger i koden.")
         }
 
         return mapOf(

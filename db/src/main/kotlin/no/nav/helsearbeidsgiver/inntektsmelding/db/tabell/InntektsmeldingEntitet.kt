@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.tabell
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
-import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.datetime

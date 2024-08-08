@@ -10,10 +10,10 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Person
-import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
+import no.nav.helsearbeidsgiver.felles.domene.Person
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer

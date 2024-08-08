@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.data.row
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
+import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar

@@ -3,10 +3,10 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson

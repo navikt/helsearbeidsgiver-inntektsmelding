@@ -8,7 +8,7 @@ import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
-import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException

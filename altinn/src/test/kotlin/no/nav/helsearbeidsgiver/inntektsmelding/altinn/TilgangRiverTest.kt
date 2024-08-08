@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Tilgang
+import no.nav.helsearbeidsgiver.felles.domene.Tilgang
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail

@@ -25,11 +25,11 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmeldin
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
-import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Person
+import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
+import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson

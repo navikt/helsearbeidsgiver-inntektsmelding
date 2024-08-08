@@ -19,7 +19,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaAvsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
-import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.date.mars

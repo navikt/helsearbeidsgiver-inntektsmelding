@@ -4,7 +4,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Person
+import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer

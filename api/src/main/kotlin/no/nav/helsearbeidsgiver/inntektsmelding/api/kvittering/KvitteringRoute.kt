@@ -12,10 +12,10 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmeldin
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Kvittering
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.KvitteringEkstern
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.KvitteringSimba
-import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
-import no.nav.helsearbeidsgiver.felles.InnsendtInntektsmelding
-import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.Tekst
+import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.domene.InnsendtInntektsmelding
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore

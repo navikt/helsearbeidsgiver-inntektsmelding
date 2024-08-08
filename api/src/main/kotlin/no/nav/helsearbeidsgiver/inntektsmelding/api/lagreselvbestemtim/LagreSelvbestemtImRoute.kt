@@ -19,7 +19,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Permisjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Permittering
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykefravaer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
-import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore

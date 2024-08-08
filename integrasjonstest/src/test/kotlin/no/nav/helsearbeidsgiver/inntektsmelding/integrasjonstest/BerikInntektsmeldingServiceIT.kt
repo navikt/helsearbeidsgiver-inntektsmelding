@@ -182,7 +182,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
     }
 
     @Test
-    fun `skal bruke defaultverdi for virksomhetsnavn dersom kall til brreg og pdl feiler`() {
+    fun `skal bruke defaultverdier for virksomhetsnavn og personnavn dersom kall til brreg og pdl feiler`() {
         val tidligereInntektsmelding = mockInntektsmelding()
 
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.orgnr.toString())

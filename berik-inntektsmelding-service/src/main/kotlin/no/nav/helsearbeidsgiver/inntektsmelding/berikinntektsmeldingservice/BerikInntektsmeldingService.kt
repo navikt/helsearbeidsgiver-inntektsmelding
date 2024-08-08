@@ -36,6 +36,7 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 private const val UKJENT_NAVN = "Ukjent navn"
+private const val UKJENT_VIRKSOMHET = "Ukjent virksomhet"
 
 data class Steg0(
     val transaksjonId: UUID,
@@ -214,7 +215,7 @@ class BerikInntektsmeldingService(
         val sykmeldtNavn = steg4.personer[steg1.forespoersel.fnr.let(::Fnr)]?.navn ?: UKJENT_NAVN
         val avsenderNavn = steg4.personer[steg0.avsenderFnr]?.navn ?: UKJENT_NAVN
 
-        val orgNavn = steg3.orgnrMedNavn[steg1.forespoersel.orgnr.let(::Orgnr)] ?: "Ukjent virksomhet"
+        val orgNavn = steg3.orgnrMedNavn[steg1.forespoersel.orgnr.let(::Orgnr)] ?: UKJENT_VIRKSOMHET
 
         val inntektsmelding =
             mapInntektsmelding(

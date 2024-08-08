@@ -349,7 +349,7 @@ private fun <T> medFlereForsoek(
     repeat(antallForsoek) {
         runCatching { blokk() }
             .onSuccess { return it }
-            .onFailure { runBlocking { delay(pauseMillis).also { println("Prøver igjen for å få testing til å virke.") } } }
+            .onFailure { runBlocking { delay(pauseMillis) } }
     }
     throw IllegalStateException(feilmelding)
 }

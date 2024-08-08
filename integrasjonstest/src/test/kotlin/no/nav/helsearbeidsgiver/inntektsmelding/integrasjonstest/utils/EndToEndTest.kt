@@ -110,47 +110,44 @@ abstract class EndToEndTest : ContainerTest() {
     // Vent på inntektsmeldingdatabase
     private val inntektsmeldingDatabase by lazy {
         println("Database jdbcUrl for im-db: ${postgresContainerOne.jdbcUrl}")
-        repeat(5) {
-            runCatching {
-                postgresContainerOne
-                    .toHikariConfig()
-                    .let(::Database)
-                    .also {
-                        val migrationLocation = Path("../db/src/main/resources/db/migration").absolutePathString()
-                        it.migrate(migrationLocation)
-                    }.createTruncateFunction()
-            }.onSuccess { return@lazy it }
-                .onFailure { runBlocking { delay(1000) }.also { println("Prøver igjen å sette opp testdatabase.") } }
+
+        return@lazy medFlereForsoek(
+            feilmelding = "Klarte ikke sette opp inntektsmeldingDatabase.",
+        ) {
+            postgresContainerOne
+                .toHikariConfig()
+                .let(::Database)
+                .also {
+                    val migrationLocation = Path("../db/src/main/resources/db/migration").absolutePathString()
+                    it.migrate(migrationLocation)
+                }.createTruncateFunction()
         }
-        throw IllegalStateException("Klarte ikke sette opp inntektsmeldingDatabase.")
     }
 
     // Vent på im-notifikasjon database
     private val notifikasjonDatabase by lazy {
         println("Database jdbcUrl for im-notifikasjon: ${postgresContainerTwo.jdbcUrl}")
-        repeat(5) {
-            runCatching {
-                postgresContainerTwo
-                    .toHikariConfig()
-                    .let(::Database)
-                    .also {
-                        val migrationLocation = Path("../notifikasjon/src/main/resources/db/migration").absolutePathString()
-                        it.migrate(migrationLocation)
-                    }.createTruncateFunction()
-            }.onSuccess { return@lazy it }
-                .onFailure { runBlocking { delay(1000) }.also { println("Prøver igjen å sette opp testdatabase.") } }
+
+        return@lazy medFlereForsoek(
+            feilmelding = "Klarte ikke sette opp notifikasjonDatabase.",
+        ) {
+            postgresContainerTwo
+                .toHikariConfig()
+                .let(::Database)
+                .also {
+                    val migrationLocation = Path("../notifikasjon/src/main/resources/db/migration").absolutePathString()
+                    it.migrate(migrationLocation)
+                }.createTruncateFunction()
         }
-        throw IllegalStateException("Klarte ikke sette opp notifikasjonDatabase.")
     }
 
     // Vent på rediscontainer
     val redisConnection by lazy {
-        repeat(5) {
-            runCatching { RedisConnection(redisContainer.redisURI) }
-                .onSuccess { return@lazy it }
-                .onFailure { runBlocking { delay(1000) } }
+        return@lazy medFlereForsoek(
+            feilmelding = "Klarte ikke koble til Redis.",
+        ) {
+            RedisConnection(redisContainer.redisURI)
         }
-        throw IllegalStateException("Klarte ikke koble til Redis.")
     }
 
     val messages get() = imTestRapid.messages
@@ -342,3 +339,17 @@ private fun Database.createTruncateFunction() =
             exec(query)
         }
     }
+
+private fun <T> medFlereForsoek(
+    antallForsoek: Int = 5,
+    pauseMillis: Long = 1000,
+    feilmelding: String,
+    blokk: () -> T,
+): T {
+    repeat(antallForsoek) {
+        runCatching { blokk() }
+            .onSuccess { return it }
+            .onFailure { runBlocking { delay(pauseMillis).also { println("Prøver igjen for å få testing til å virke.") } } }
+    }
+    throw IllegalStateException(feilmelding)
+}

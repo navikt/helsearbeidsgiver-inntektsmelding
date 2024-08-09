@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaAvsender
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
@@ -40,6 +41,17 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon as RefusjonV1
 
 private val dag = 24.desember(2022)
 private const val INNTEKT = 25_000.0
+
+fun mockSkjemaInntektsmelding(): SkjemaInntektsmelding {
+    val inntektsmelding = mockInntektsmeldingV1()
+    return SkjemaInntektsmelding(
+        forespoerselId = inntektsmelding.type.id,
+        avsenderTlf = inntektsmelding.avsender.tlf,
+        agp = inntektsmelding.agp,
+        inntekt = inntektsmelding.inntekt,
+        refusjon = inntektsmelding.refusjon,
+    )
+}
 
 fun mockSkjemaInntektsmeldingSelvbestemt(): SkjemaInntektsmeldingSelvbestemt {
     val inntektsmelding = mockInntektsmeldingV1()

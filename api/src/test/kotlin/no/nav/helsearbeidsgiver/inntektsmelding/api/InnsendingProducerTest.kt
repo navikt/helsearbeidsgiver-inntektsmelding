@@ -4,12 +4,12 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.test.mock.gyldigInnsendingRequest
+import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingProducer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -24,10 +24,10 @@ class InnsendingProducerTest :
 
         test("publiserer melding på forventet format") {
             val transaksjonId = UUID.randomUUID()
-            val forespoerselId = UUID.randomUUID()
             val avsenderFnr = Fnr.genererGyldig()
+            val skjema = mockSkjemaInntektsmelding()
 
-            producer.publish(transaksjonId, forespoerselId, gyldigInnsendingRequest, avsenderFnr)
+            producer.publish(transaksjonId, skjema, avsenderFnr)
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.firstMessage().toMap() shouldContainExactly
@@ -36,9 +36,9 @@ class InnsendingProducerTest :
                     Key.UUID to transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
-                            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                            Key.FORESPOERSEL_ID to skjema.forespoerselId.toJson(),
                             Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
-                            Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
+                            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
                         ).toJson(),
                 )
         }

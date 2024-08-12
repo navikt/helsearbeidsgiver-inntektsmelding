@@ -29,12 +29,6 @@ fun JsonMessage.requireKeys(vararg keys: IKey) {
     requireKey(*keysAsStr)
 }
 
-// TODO slett
-fun JsonMessage.interestedIn(vararg keys: IKey) {
-    val keysAsStr = keys.map(IKey::str).toTypedArray()
-    interestedIn(*keysAsStr)
-}
-
 fun MessageContext.publish(vararg messageFields: Pair<Key, JsonElement>): JsonElement = publish(messageFields.toMap())
 
 fun MessageContext.publish(messageFields: Map<Key, JsonElement>): JsonElement =

@@ -41,7 +41,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.createDbRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjonRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createMarkerForespoerselBesvart
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottattRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebroRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
@@ -211,7 +211,7 @@ abstract class EndToEndTest : ContainerTest() {
             createDbRivers(imRepository, selvbestemtImRepo, forespoerselRepository)
             createDistribusjonRiver(mockk(relaxed = true))
             createForespoerselBesvartRivers()
-            createForespoerselMottatt(mockPriProducer)
+            createForespoerselMottattRiver()
             createHelsebroRivers(mockPriProducer)
             createHentEksternImRiver(spinnKlient)
             createHentInntektRiver(inntektClient)

@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
@@ -20,6 +21,7 @@ data class BesvartSimbaMelding(
 )
 
 class ForespoerselBesvartFraSimbaRiver : ObjectRiver<BesvartSimbaMelding>() {
+    private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): BesvartSimbaMelding? =
@@ -43,10 +45,10 @@ class ForespoerselBesvartFraSimbaRiver : ObjectRiver<BesvartSimbaMelding>() {
         json: Map<Key, JsonElement>,
         error: Throwable,
     ): Map<Key, JsonElement>? {
-        sikkerLogger.error(
-            "Klarte ikke umiddelbart markere forespørsel som besvart. " +
-                "Event fra helsebro skal løse dette. Aktuell melding:\n${json.toPretty()}",
-        )
+        "Klarte ikke umiddelbart markere forespørsel som besvart. Event fra helsebro skal løse dette.".also {
+            logger.error(it)
+            sikkerLogger.error("$it Aktuell melding:\n${json.toPretty()}")
+        }
 
         return null
     }

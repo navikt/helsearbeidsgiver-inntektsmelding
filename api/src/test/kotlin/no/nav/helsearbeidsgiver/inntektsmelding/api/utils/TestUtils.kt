@@ -16,7 +16,6 @@ import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.domene.Tilgang
 import no.nav.helsearbeidsgiver.felles.domene.TilgangResultat
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
@@ -69,31 +68,20 @@ class TestClient(
             }
         }
 
-    fun post(
-        path: String,
-        body: JsonElement,
-        block: HttpRequestBuilder.() -> Unit = { withAuth() },
-    ): HttpResponse =
-        runBlocking {
-            httpClient.post(path) {
-                contentType(ContentType.Application.Json)
-                setBody(body)
-
-                block()
-            }
-        }
-
     fun <T : Any> post(
         path: String,
         body: T,
         bodySerializer: KSerializer<T>,
         block: HttpRequestBuilder.() -> Unit = { withAuth() },
     ): HttpResponse =
-        post(
-            path,
-            body.toJson(bodySerializer),
-            block,
-        )
+        runBlocking {
+            httpClient.post(path) {
+                contentType(ContentType.Application.Json)
+                setBody(body.toJson(bodySerializer))
+
+                block()
+            }
+        }
 
     private fun HttpRequestBuilder.withAuth() {
         bearerAuth(authToken())

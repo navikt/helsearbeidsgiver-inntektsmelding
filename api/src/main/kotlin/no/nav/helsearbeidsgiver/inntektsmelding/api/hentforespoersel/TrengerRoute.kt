@@ -26,8 +26,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respond
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationError
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -98,16 +96,7 @@ fun Route.hentForespoerselRoute(
                 logger.error("Klarte ikke lese request.", it)
                 val response =
                     ResultJson(
-                        failure =
-                            ValidationResponse(
-                                listOf(
-                                    ValidationError(
-                                        property = HentForespoerselRequest::uuid.name,
-                                        error = it.message.orEmpty(),
-                                        value = "<ukjent>",
-                                    ),
-                                ),
-                            ).toJson(ValidationResponse.serializer()),
+                        failure = "Mangler forespørsel-ID for å hente forespørsel.".toJson(),
                     )
                 respondBadRequest(response, ResultJson.serializer())
             }

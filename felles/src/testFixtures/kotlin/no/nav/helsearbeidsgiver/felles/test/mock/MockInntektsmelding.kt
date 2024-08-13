@@ -97,18 +97,21 @@ fun mockInntektsmeldingV1(): InntektsmeldingV1 =
             ),
         agp =
             Arbeidsgiverperiode(
-                listOf(
-                    5.oktober til 15.oktober,
-                    20.oktober til 22.oktober,
-                ),
-                listOf(
-                    28.september til 28.september,
-                    30.september til 30.september,
-                ),
-                RedusertLoennIAgp(
-                    beloep = 300.3,
-                    begrunnelse = RedusertLoennIAgp.Begrunnelse.FerieEllerAvspasering,
-                ),
+                perioder =
+                    listOf(
+                        5.oktober til 15.oktober,
+                        20.oktober til 22.oktober,
+                    ),
+                egenmeldinger =
+                    listOf(
+                        28.september til 28.september,
+                        30.september til 30.september,
+                    ),
+                redusertLoennIAgp =
+                    RedusertLoennIAgp(
+                        beloep = 300.3,
+                        begrunnelse = RedusertLoennIAgp.Begrunnelse.FerieEllerAvspasering,
+                    ),
             ),
         inntekt =
             InntektV1(

@@ -4,7 +4,6 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
@@ -27,7 +26,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed3Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -44,7 +42,7 @@ data class Steg0(
     val transaksjonId: UUID,
     val forespoerselId: UUID,
     val avsenderFnr: Fnr,
-    val skjema: JsonElement,
+    val skjema: SkjemaInntektsmelding,
 )
 
 data class Steg1(
@@ -81,7 +79,7 @@ class InnsendingService(
             transaksjonId = Key.UUID.les(UuidSerializer, melding),
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
             avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
-            skjema = Key.SKJEMA_INNTEKTSMELDING.les(JsonElement.serializer(), melding),
+            skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding),
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
@@ -191,18 +189,6 @@ class InnsendingService(
         steg2: Steg2,
     ) {
         if (steg2 is Steg2.Komplett) {
-            val skjema =
-                runCatching {
-                    steg0.skjema
-                        .fromJson(SkjemaInntektsmelding.serializer())
-                        .convert(
-                            sykmeldingsperioder = steg1.forespoersel.sykmeldingsperioder,
-                            aarsakInnsending = steg2.aarsakInnsending,
-                        )
-                }.getOrElse {
-                    steg0.skjema.fromJson(Innsending.serializer())
-                }
-
             val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr.let(::Orgnr)] ?: "Ukjent virksomhet"
             val sykmeldtNavn = steg2.personer[steg1.forespoersel.fnr.let(::Fnr)]?.navn ?: UKJENT_NAVN
             val avsenderNavn = steg2.personer[steg0.avsenderFnr]?.navn ?: UKJENT_NAVN
@@ -210,18 +196,24 @@ class InnsendingService(
             val inntektsmelding =
                 mapInntektsmelding(
                     forespoersel = steg1.forespoersel,
-                    skjema = skjema,
-                    fulltnavnArbeidstaker = sykmeldtNavn,
+                    skjema = steg0.skjema,
+                    aarsakInnsending = steg2.aarsakInnsending,
                     virksomhetNavn = orgNavn,
-                    innsenderNavn = avsenderNavn,
+                    sykmeldtNavn = sykmeldtNavn,
+                    avsenderNavn = avsenderNavn,
                 )
 
-            if (inntektsmelding.bestemmendeFraværsdag.isBefore(inntektsmelding.inntektsdato)) {
+            val bestemmendeFravaersdag = utledBestemmendeFravaersdag(steg1.forespoersel, inntektsmelding)
+
+            val inntektsdato = inntektsmelding.inntekt?.inntektsdato
+            if (inntektsdato != null && bestemmendeFravaersdag.isBefore(inntektsdato)) {
                 "Bestemmende fraværsdag er før inntektsdato. Dette er ikke mulig. Spleis vil trolig spør om ny inntektsmelding.".also {
                     logger.error(it)
                     sikkerLogger.error(it)
                 }
             }
+
+            val inntektsmeldingGammeltFormat = inntektsmelding.convert().copy(bestemmendeFraværsdag = bestemmendeFravaersdag)
 
             rapid
                 .publish(
@@ -231,7 +223,7 @@ class InnsendingService(
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                            Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                            Key.INNTEKTSMELDING to inntektsmeldingGammeltFormat.toJson(Inntektsmelding.serializer()),
                         ).toJson(),
                 ).also { loggBehovPublisert(BehovType.LAGRE_IM, it) }
         }

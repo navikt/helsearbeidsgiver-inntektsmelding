@@ -1,12 +1,12 @@
 package no.nav.helsearbeidsgiver.felles.test.mock
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
-import no.nav.helsearbeidsgiver.felles.Forespoersel
-import no.nav.helsearbeidsgiver.felles.ForespoerselType
-import no.nav.helsearbeidsgiver.felles.ForespurtData
-import no.nav.helsearbeidsgiver.felles.ForrigeInntekt
-import no.nav.helsearbeidsgiver.felles.ForslagInntekt
-import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
+import no.nav.helsearbeidsgiver.felles.domene.ForespoerselType
+import no.nav.helsearbeidsgiver.felles.domene.ForespurtData
+import no.nav.helsearbeidsgiver.felles.domene.ForrigeInntekt
+import no.nav.helsearbeidsgiver.felles.domene.ForslagInntekt
+import no.nav.helsearbeidsgiver.felles.domene.ForslagRefusjon
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import java.util.UUID

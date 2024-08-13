@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
-import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -27,6 +26,8 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.toForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.maxMekker
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -182,7 +183,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
     }
 
     @Test
-    fun `skal bruke defaultverdier for virksomhetsnavn og personnavn dersom kall til brreg og pdl feiler`() {
+    fun `skal opprette en bakgrunnsjobb for å gjenoppta berikelsen av inntektsmeldingen senere dersom oppslaget mot pdl feiler`() {
         val tidligereInntektsmelding = mockInntektsmelding()
 
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.orgnr.toString())
@@ -200,13 +201,11 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                 dokumenter = emptyList(),
             )
 
-        coEvery { brregClient.hentVirksomheter(any()) } answers {
-            throw RuntimeException("Fy fasan!")
-        }
-
-        coEvery { pdlKlient.personBolk(any()) } answers {
-            throw RuntimeException("Jai ikke gidde tid til å spille mere sjakk med den dumme ape!")
-        }
+        coEvery { pdlKlient.personBolk(any()) } throws RuntimeException("Fy fasan!") andThen
+            listOf(
+                bjarneBetjent,
+                maxMekker,
+            )
 
         mockForespoerselSvarFraHelsebro(
             forespoerselId = Mock.forespoerselId,
@@ -224,7 +223,37 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                 ).toJson(),
         )
 
-        // Virksomhetsnavn blir satt default tomt
+        // Forespørsel hentet
+        messages
+            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+            .filter(Key.FORESPOERSEL_SVAR, nestedData = true)
+            .firstAsMap()
+            .verifiserTransaksjonId(Mock.transaksjonId)
+            .verifiserForespoerselId()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel
+            }
+
+        // Tidligere inntektsmelding hentet
+        messages
+            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+            .filter(Key.LAGRET_INNTEKTSMELDING, nestedData = true)
+            .filter(Key.EKSTERN_INNTEKTSMELDING, nestedData = true)
+            .firstAsMap()
+            .verifiserTransaksjonId(Mock.transaksjonId)
+            .verifiserForespoerselId()
+            .also {
+                it shouldContainKey Key.DATA
+
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                val tidligereInntektsmeldingResult = ResultJson(success = tidligereInntektsmelding.toJson(Inntektsmelding.serializer()))
+
+                data[Key.LAGRET_INNTEKTSMELDING]?.fromJson(ResultJson.serializer()) shouldBe tidligereInntektsmeldingResult
+                data[Key.EKSTERN_INNTEKTSMELDING]?.fromJson(ResultJson.serializer()) shouldBe ResultJson(success = null)
+            }
+
+        // Virksomhetsnavn hentet
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.VIRKSOMHETER, nestedData = true)
@@ -233,52 +262,20 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .verifiserForespoerselId()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-                shouldNotThrowAny {
-                    data[Key.VIRKSOMHETER]
-                        ?.fromJson(orgMapSerializer)
-                        ?.shouldBeEmpty()
-                }
+                data[Key.VIRKSOMHETER]?.fromJson(orgMapSerializer) shouldBe mapOf(Mock.forespoersel.orgnr.let(::Orgnr) to "Bedrift A/S")
             }
 
-        // Sykmeldt og innsender blir satt default tomt
+        // Personnavn ikke hentet
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.PERSONER, nestedData = true)
-            .firstAsMap()
-            .verifiserTransaksjonId(Mock.transaksjonId)
-            .verifiserForespoerselId()
-            .also {
-                val data = it[Key.DATA].shouldNotBeNull().toMap()
+            .all()
+            .size shouldBe 0
 
-                shouldNotThrowAny {
-                    data[Key.PERSONER]
-                        .shouldNotBeNull()
-                        .fromJson(personMapSerializer)
-                        .shouldBeEmpty()
-                }
-            }
-
-        // Siste melding fra service blir sendt
-        messages
-            .filter(EventName.INNTEKTSMELDING_MOTTATT)
-            .firstAsMap()
-            .verifiserTransaksjonId(Mock.transaksjonId)
-            .verifiserForespoerselId()
-            .also {
-                shouldNotThrowAny {
-                    it[Key.UUID]
-                        .shouldNotBeNull()
-                        .fromJson(UuidSerializer)
-
-                    it[Key.FORESPOERSEL_ID]
-                        .shouldNotBeNull()
-                        .fromJson(UuidSerializer)
-
-                    it[Key.INNTEKTSMELDING_DOKUMENT]
-                        .shouldNotBeNull()
-                        .fromJson(Inntektsmelding.serializer())
-                }
-            }
+        // Det blir satt opp en bakgrunnsjobb som kan gjenoppta berikelsen senere
+        bakgrunnsjobbRepository.getById(Mock.transaksjonId).also {
+            it.shouldNotBeNull()
+        }
     }
 
     private fun Map<Key, JsonElement>.verifiserTransaksjonId(transaksjonId: UUID): Map<Key, JsonElement> =

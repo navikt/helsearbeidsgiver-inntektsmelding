@@ -33,12 +33,12 @@ class FeilLytterTest :
         }
 
         test("skal håndtere gyldige feil med spesifiserte behov") {
-            handler.behovSomHaandteres.forEach { handler.skalHaandteres(lagGyldigFeil(it)) shouldBe true }
+            handler.behovSomHaandteres.forEach { handler.behovSkalHaandteres(lagGyldigFeil(it)) shouldBe true }
         }
 
         test("skal ignorere gyldige feil med visse behov") {
             val ignorerteBehov = BehovType.entries.filterNot { handler.behovSomHaandteres.contains(it) }
-            ignorerteBehov.forEach { handler.skalHaandteres(lagGyldigFeil(it)) shouldBe false }
+            ignorerteBehov.forEach { handler.behovSkalHaandteres(lagGyldigFeil(it)) shouldBe false }
         }
 
         test("skal ignorere feil uten behov") {
@@ -55,12 +55,12 @@ class FeilLytterTest :
                             ).toJson()
                             .parseJson(),
                 )
-            handler.skalHaandteres(feil) shouldBe false
+            handler.behovSkalHaandteres(feil) shouldBe false
         }
 
         test("skal håndtere feil uten forespørselId") {
             val feil = lagGyldigFeilUtenForespoerselId(BehovType.LAGRE_JOURNALPOST_ID)
-            handler.skalHaandteres(feil) shouldBe true
+            handler.behovSkalHaandteres(feil) shouldBe true
         }
 
         test("Ny feil med forskjellig behov og samme id skal lagres") {

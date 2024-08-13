@@ -15,11 +15,9 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Person
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed5Steg
@@ -276,30 +274,7 @@ class BerikInntektsmeldingService(
         melding: Map<Key, JsonElement>,
         fail: Fail,
     ) {
-        val utloesendeMeldingMap = fail.utloesendeMelding.toMap()
-        val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), utloesendeMeldingMap)
-
-        val overkommeligFeil =
-            when (utloesendeBehov) {
-                BehovType.HENT_VIRKSOMHET_NAVN -> Key.VIRKSOMHETER to emptyMap<String, String>().toJson()
-                BehovType.HENT_PERSONER -> Key.PERSONER to emptyMap<String, String>().toJson()
-                else -> null
-            }
-
-        if (overkommeligFeil != null) {
-            val dataMedDefault: Map<Key, JsonElement>? =
-                utloesendeMeldingMap[Key.DATA]
-                    ?.toMap()
-                    ?.plus(overkommeligFeil)
-
-            val meldingMedDefault =
-                dataMedDefault
-                    ?.plus(utloesendeMeldingMap)
-                    ?.plus(Key.DATA to dataMedDefault.toJson())
-                    ?: utloesendeMeldingMap
-
-            onData(meldingMedDefault)
-        }
+        // FeilLytter plukker opp og retryer feil som inneholder eventet INNTEKTSMELDING_SKJEMA_LAGRET.
     }
 
     override fun Steg0.loggfelt(): Map<String, String> =

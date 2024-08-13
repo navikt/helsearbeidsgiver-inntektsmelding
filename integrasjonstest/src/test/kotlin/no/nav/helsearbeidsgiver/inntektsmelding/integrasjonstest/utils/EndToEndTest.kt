@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import no.nav.hag.utils.bakgrunnsjobb.PostgresBakgrunnsjobbRepository
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helsearbeidsgiver.aareg.AaregClient
@@ -40,6 +41,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDbRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjonRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.createFeilLytter
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSimba
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSpleis
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createMarkerForespoerselBesvart
@@ -141,6 +143,23 @@ abstract class EndToEndTest : ContainerTest() {
         }
     }
 
+    // Vent på feilbehandlerdatabase
+    private val bakgrunnsjobbDatabase by lazy {
+        println("Database jdbcUrl for im-feil-behandler: ${postgresContainerThree.jdbcUrl}")
+
+        return@lazy medFlereForsoek(
+            feilmelding = "Klarte ikke sette opp feilbehandlerdatabase.",
+        ) {
+            postgresContainerThree
+                .toHikariConfig()
+                .let(::Database)
+                .also {
+                    val migrationLocation = Path("../feil-behandler/src/main/resources/db/migration").absolutePathString()
+                    it.migrate(migrationLocation)
+                }.createTruncateFunction()
+        }
+    }
+
     // Vent på rediscontainer
     val redisConnection by lazy {
         return@lazy medFlereForsoek(
@@ -159,6 +178,8 @@ abstract class EndToEndTest : ContainerTest() {
     val forespoerselRepository by lazy { ForespoerselRepository(inntektsmeldingDatabase.db) }
 
     private val selvbestemtRepo by lazy { SelvbestemtRepo(notifikasjonDatabase.db) }
+
+    val bakgrunnsjobbRepository by lazy { PostgresBakgrunnsjobbRepository(bakgrunnsjobbDatabase.dataSource) }
 
     val altinnClient = mockk<AltinnClient>()
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
@@ -234,6 +255,7 @@ abstract class EndToEndTest : ContainerTest() {
             createMarkerForespoerselBesvart(mockPriProducer)
             createNotifikasjonRivers(NOTIFIKASJON_LINK, selvbestemtRepo, arbeidsgiverNotifikasjonKlient)
             createPdlRiver(pdlKlient)
+            createFeilLytter(bakgrunnsjobbRepository)
         }
     }
 

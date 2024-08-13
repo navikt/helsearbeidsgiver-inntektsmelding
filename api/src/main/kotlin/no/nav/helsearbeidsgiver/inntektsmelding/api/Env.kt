@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
-import no.nav.helsearbeidsgiver.felles.fromEnv
+import no.nav.helsearbeidsgiver.felles.utils.fromEnv
 
 object Env {
     object Auth {

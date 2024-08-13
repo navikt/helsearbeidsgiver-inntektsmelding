@@ -6,8 +6,8 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -181,7 +181,10 @@ class NotifikasjonIT : EndToEndTest() {
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.FORESPOERSEL_SVAR to mockForespoersel().copy(fnr = Mock.fnr.verdi, orgnr = Mock.orgnr.verdi).toJson(Forespoersel.serializer()),
+                    Key.FORESPOERSEL_SVAR to
+                        mockForespoersel().copy(fnr = Mock.fnr.verdi, orgnr = Mock.orgnr.verdi).toJson(
+                            Forespoersel.serializer(),
+                        ),
                 ).toJson(),
         )
 

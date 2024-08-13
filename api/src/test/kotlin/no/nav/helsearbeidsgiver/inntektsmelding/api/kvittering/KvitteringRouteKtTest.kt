@@ -2,7 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering
 
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
-import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat

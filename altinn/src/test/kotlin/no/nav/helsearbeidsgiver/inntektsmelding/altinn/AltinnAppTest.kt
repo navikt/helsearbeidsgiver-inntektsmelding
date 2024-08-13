@@ -12,8 +12,8 @@ import io.mockk.unmockkStatic
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
-import no.nav.helsearbeidsgiver.felles.fromEnv
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.utils.fromEnv
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.Mock.altinnOrganisasjoner
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.Mock.innkommendeMelding
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.Mock.toMap
@@ -34,7 +34,7 @@ class AltinnAppTest :
         }
         afterEach {
             clearAllMocks()
-            unmockkStatic("no.nav.helsearbeidsgiver.felles.EnvUtilsKt")
+            unmockkStatic("no.nav.helsearbeidsgiver.felles.utils.EnvUtilsKt")
             testRapid.reset()
             server.shutdown()
         }
@@ -76,7 +76,7 @@ class AltinnAppTest :
     })
 
 private fun mockEnv(server: MockWebServer) {
-    mockkStatic("no.nav.helsearbeidsgiver.felles.EnvUtilsKt")
+    mockkStatic("no.nav.helsearbeidsgiver.felles.utils.EnvUtilsKt")
 
     every { "ALTINN_URL".fromEnv() } returns server.url("/altinn").toString()
     every { "ALTINN_SERVICE_CODE".fromEnv() } returns "4936"

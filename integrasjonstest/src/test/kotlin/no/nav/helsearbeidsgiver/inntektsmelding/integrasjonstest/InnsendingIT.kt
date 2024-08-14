@@ -275,15 +275,12 @@ class InnsendingIT : EndToEndTest() {
         val innsendtInntektsmelding =
             mapInntektsmelding(
                 forespoersel = forespoersel,
-                skjema =
-                    skjema.convert(
-                        sykmeldingsperioder = forespoersel.sykmeldingsperioder,
-                        aarsakInnsending = AarsakInnsending.Endring,
-                    ),
-                fulltnavnArbeidstaker = bjarneBetjent.navn.fulltNavn(),
+                skjema = skjema,
+                aarsakInnsending = AarsakInnsending.Endring,
                 virksomhetNavn = "Bedrift A/S",
-                innsenderNavn = maxMekker.navn.fulltNavn(),
-            )
+                sykmeldtNavn = bjarneBetjent.navn.fulltNavn(),
+                avsenderNavn = maxMekker.navn.fulltNavn(),
+            ).convert()
 
         val forespoerselSvar =
             ForespoerselSvar.Suksess(

@@ -4,14 +4,13 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -22,7 +21,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed5Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -38,7 +36,6 @@ private const val UKJENT_VIRKSOMHET = "Ukjent virksomhet"
 
 data class Steg0(
     val transaksjonId: UUID,
-    val forespoerselId: UUID,
     val avsenderFnr: Fnr,
     val skjema: SkjemaInntektsmelding,
 )
@@ -77,7 +74,6 @@ class BerikInntektsmeldingService(
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
             transaksjonId = Key.UUID.les(UuidSerializer, melding),
-            forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
             avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
             skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding),
         )
@@ -130,7 +126,10 @@ class BerikInntektsmeldingService(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
-                Key.DATA to data.toJson(),
+                Key.DATA to
+                    data
+                        .plus(Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson())
+                        .toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_TRENGER_IM, it) }
     }
 
@@ -250,7 +249,7 @@ class BerikInntektsmeldingService(
                 rapid.publish(
                     Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
                     Key.UUID to steg0.transaksjonId.toJson(),
-                    Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                    Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
                     Key.INNTEKTSMELDING_DOKUMENT to steg5.inntektsmelding.toJson(Inntektsmelding.serializer()),
                 )
 
@@ -275,7 +274,7 @@ class BerikInntektsmeldingService(
             Log.klasse(this@BerikInntektsmeldingService),
             Log.event(eventName),
             Log.transaksjonId(transaksjonId),
-            Log.forespoerselId(forespoerselId),
+            Log.forespoerselId(skjema.forespoerselId),
         )
 
     private fun loggBehovPublisert(

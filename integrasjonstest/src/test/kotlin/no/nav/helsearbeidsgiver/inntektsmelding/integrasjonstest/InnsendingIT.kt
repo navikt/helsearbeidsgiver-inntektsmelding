@@ -246,9 +246,9 @@ class InnsendingIT : EndToEndTest() {
         const val SAK_ID = "forundret-lysekrone"
         const val OPPGAVE_ID = "neglisjert-sommer"
 
-        val forespoerselId: UUID = UUID.randomUUID()
-
         val skjema = mockSkjemaInntektsmelding()
+
+        val forespoerselId: UUID = skjema.forespoerselId
 
         private val orgnr = Orgnr.genererGyldig()
 

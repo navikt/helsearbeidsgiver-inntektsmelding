@@ -97,7 +97,6 @@ class InnsendingService(
                         Key.UUID to steg0.transaksjonId.toJson(),
                         Key.DATA to
                             mapOf(
-                                Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
                                 Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
                                 Key.SKJEMA_INNTEKTSMELDING to steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
                             ).toJson(),

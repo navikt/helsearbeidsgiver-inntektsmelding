@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -29,7 +30,7 @@ data class Steg0(
     val transaksjonId: UUID,
     val forespoerselId: UUID,
     val avsenderFnr: Fnr,
-    val skjema: JsonElement,
+    val skjema: SkjemaInntektsmelding,
 )
 
 data class Steg1(
@@ -51,7 +52,7 @@ class InnsendingService(
             transaksjonId = Key.UUID.les(UuidSerializer, melding),
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
             avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
-            skjema = Key.SKJEMA_INNTEKTSMELDING.les(JsonElement.serializer(), melding),
+            skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding),
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
@@ -71,7 +72,7 @@ class InnsendingService(
                 Key.DATA to
                     mapOf(
                         Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                        Key.SKJEMA_INNTEKTSMELDING to steg0.skjema,
+                        Key.SKJEMA_INNTEKTSMELDING to steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
                     ).toJson(),
             ).also { loggBehovPublisert(BehovType.LAGRE_IM_SKJEMA, it) }
     }
@@ -81,7 +82,11 @@ class InnsendingService(
         steg0: Steg0,
         steg1: Steg1,
     ) {
-        val resultJson = ResultJson(success = steg0.skjema).toJson(ResultJson.serializer())
+        val resultJson =
+            ResultJson(
+                success = steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
+            ).toJson(ResultJson.serializer())
+
         redisStore.set(RedisKey.of(steg0.transaksjonId), resultJson)
 
         if (!steg1.erDuplikat) {
@@ -94,7 +99,7 @@ class InnsendingService(
                             mapOf(
                                 Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
                                 Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
-                                Key.SKJEMA_INNTEKTSMELDING to steg0.skjema,
+                                Key.SKJEMA_INNTEKTSMELDING to steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
                             ).toJson(),
                     )
 

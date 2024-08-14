@@ -40,7 +40,7 @@ data class Steg0(
     val transaksjonId: UUID,
     val forespoerselId: UUID,
     val avsenderFnr: Fnr,
-    val skjema: JsonElement,
+    val skjema: SkjemaInntektsmelding,
 )
 
 data class Steg1(
@@ -79,7 +79,7 @@ class BerikInntektsmeldingService(
             transaksjonId = Key.UUID.les(UuidSerializer, melding),
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
             avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
-            skjema = Key.SKJEMA_INNTEKTSMELDING.les(JsonElement.serializer(), melding),
+            skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding),
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
@@ -198,38 +198,31 @@ class BerikInntektsmeldingService(
         steg3: Steg3,
         steg4: Steg4,
     ) {
-        val skjema =
-            runCatching {
-                steg0.skjema
-                    .fromJson(SkjemaInntektsmelding.serializer())
-                    .convert(
-                        sykmeldingsperioder = steg1.forespoersel.sykmeldingsperioder,
-                        aarsakInnsending = steg2.aarsakInnsending,
-                    )
-            }.getOrElse {
-                steg0.skjema.fromJson(Innsending.serializer())
-            }
-
+        val orgNavn = steg3.orgnrMedNavn[steg1.forespoersel.orgnr.let(::Orgnr)] ?: UKJENT_VIRKSOMHET
         val sykmeldtNavn = steg4.personer[steg1.forespoersel.fnr.let(::Fnr)]?.navn ?: UKJENT_NAVN
         val avsenderNavn = steg4.personer[steg0.avsenderFnr]?.navn ?: UKJENT_NAVN
-
-        val orgNavn = steg3.orgnrMedNavn[steg1.forespoersel.orgnr.let(::Orgnr)] ?: UKJENT_VIRKSOMHET
 
         val inntektsmelding =
             mapInntektsmelding(
                 forespoersel = steg1.forespoersel,
-                skjema = skjema,
-                fulltnavnArbeidstaker = sykmeldtNavn,
+                skjema = steg0.skjema,
+                aarsakInnsending = steg2.aarsakInnsending,
                 virksomhetNavn = orgNavn,
-                innsenderNavn = avsenderNavn,
+                sykmeldtNavn = sykmeldtNavn,
+                avsenderNavn = avsenderNavn,
             )
 
-        if (inntektsmelding.bestemmendeFraværsdag.isBefore(inntektsmelding.inntektsdato)) {
+        val bestemmendeFravaersdag = utledBestemmendeFravaersdag(steg1.forespoersel, inntektsmelding)
+
+        val inntektsdato = inntektsmelding.inntekt?.inntektsdato
+        if (inntektsdato != null && bestemmendeFravaersdag.isBefore(inntektsdato)) {
             "Bestemmende fraværsdag er før inntektsdato. Dette er ikke mulig. Spleis vil trolig spør om ny inntektsmelding.".also {
                 logger.error(it)
                 sikkerLogger.error(it)
             }
         }
+
+        val inntektsmeldingGammeltFormat = inntektsmelding.convert().copy(bestemmendeFraværsdag = bestemmendeFravaersdag)
 
         rapid
             .publish(
@@ -238,7 +231,7 @@ class BerikInntektsmeldingService(
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     data
-                        .plus(Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()))
+                        .plus(Key.INNTEKTSMELDING to inntektsmeldingGammeltFormat.toJson(Inntektsmelding.serializer()))
                         .toJson(),
             ).also { loggBehovPublisert(BehovType.LAGRE_IM, it) }
     }

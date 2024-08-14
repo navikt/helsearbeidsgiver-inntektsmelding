@@ -1,126 +1,82 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.FullLoennIArbeidsgiverPerioden
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntekt
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Refusjon
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.bestemmendeFravaersdag
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ForslagInntekt
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.ZonedDateTime
+import java.util.UUID
 
 fun mapInntektsmelding(
     forespoersel: Forespoersel,
-    skjema: Innsending,
-    fulltnavnArbeidstaker: String,
+    skjema: SkjemaInntektsmelding,
+    aarsakInnsending: AarsakInnsending,
     virksomhetNavn: String,
-    innsenderNavn: String,
+    sykmeldtNavn: String,
+    avsenderNavn: String,
 ): Inntektsmelding {
-    val egenmeldingsperioder =
+    val agp =
         if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
-            skjema.egenmeldingsperioder
-        } else {
-            forespoersel.egenmeldingsperioder
-        }
-
-    val arbeidsgiverperioder =
-        if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
-            skjema.arbeidsgiverperioder
-        } else {
-            emptyList()
-        }
-
-    val fullLoennIArbeidsgiverPerioden =
-        if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
-            if (skjema.fullLønnIArbeidsgiverPerioden?.utbetalerFullLønn == false) {
-                skjema.fullLønnIArbeidsgiverPerioden
-            } else {
-                FullLoennIArbeidsgiverPerioden(
-                    utbetalerFullLønn = true,
-                    begrunnelse = null,
-                    utbetalt = null,
-                )
-            }
+            skjema.agp
         } else {
             null
         }
 
-    val inntektsdato =
-        if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
-            // NB!: 'skjema.bestemmendeFraværsdag' inneholder egentlig inntektsdato og ikke bestemmende fraværsdag. Utbedring kommer.
-            skjema.bestemmendeFraværsdag
-        } else {
-            forespoersel.forslagInntektsdato()
-        }
-
-    val bestemmendeFravaersdag =
-        if (
-            forespoersel.forespurtData.arbeidsgiverperiode.paakrevd ||
-            (!forespoersel.forespurtData.inntekt.paakrevd && forespoersel.forespurtData.refusjon.paakrevd)
-        ) {
-            bestemmendeFravaersdag(
-                arbeidsgiverperioder = arbeidsgiverperioder,
-                sykmeldingsperioder = forespoersel.sykmeldingsperioder,
-            )
-        } else {
-            forespoersel.forslagBestemmendeFravaersdag()
-        }
-
     val inntekt =
         if (forespoersel.forespurtData.inntekt.paakrevd) {
-            skjema.inntekt
+            if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
+                skjema.inntekt
+            } else {
+                skjema.inntekt?.copy(
+                    inntektsdato = forespoersel.forslagInntektsdato(),
+                )
+            }
         } else {
             Inntekt(
-                bekreftet = true,
-                beregnetInntekt = (forespoersel.forespurtData.inntekt.forslag as ForslagInntekt.Fastsatt).fastsattInntekt,
-                endringÅrsak = null,
-                manueltKorrigert = true,
+                beloep = (forespoersel.forespurtData.inntekt.forslag as ForslagInntekt.Fastsatt).fastsattInntekt,
+                inntektsdato = forespoersel.forslagInntektsdato(),
+                naturalytelser = emptyList(),
+                endringAarsak = null,
             )
         }
 
     val refusjon =
-        if (forespoersel.forespurtData.refusjon.paakrevd && skjema.refusjon.utbetalerHeleEllerDeler) {
+        if (forespoersel.forespurtData.refusjon.paakrevd) {
             skjema.refusjon
         } else {
-            Refusjon(
-                utbetalerHeleEllerDeler = false,
-                refusjonPrMnd = null,
-                refusjonOpphører = null,
-                refusjonEndringer = null,
-            )
+            null
         }
 
-    val forespurtData =
-        mapOf(
-            "arbeidsgiverperiode" to forespoersel.forespurtData.arbeidsgiverperiode.paakrevd,
-            "inntekt" to forespoersel.forespurtData.inntekt.paakrevd,
-            "refusjon" to forespoersel.forespurtData.refusjon.paakrevd,
-        ).filterValues { it }
-            .keys
-            .toList()
-
     return Inntektsmelding(
-        vedtaksperiodeId = forespoersel.vedtaksperiodeId,
-        orgnrUnderenhet = forespoersel.orgnr,
-        identitetsnummer = forespoersel.fnr,
-        fulltNavn = fulltnavnArbeidstaker,
-        virksomhetNavn = virksomhetNavn,
-        behandlingsdager = emptyList(),
-        egenmeldingsperioder = egenmeldingsperioder,
-        fraværsperioder = forespoersel.sykmeldingsperioder,
-        arbeidsgiverperioder = arbeidsgiverperioder,
-        beregnetInntekt = inntekt.beregnetInntekt,
-        inntektsdato = inntektsdato,
+        id = UUID.randomUUID(),
+        type =
+            Inntektsmelding.Type.Forespurt(
+                id = skjema.forespoerselId,
+                vedtaksperiodeId = forespoersel.vedtaksperiodeId,
+            ),
+        sykmeldt =
+            Sykmeldt(
+                fnr = forespoersel.fnr.let(::Fnr),
+                navn = sykmeldtNavn,
+            ),
+        avsender =
+            Avsender(
+                orgnr = forespoersel.orgnr.let(::Orgnr),
+                orgNavn = virksomhetNavn,
+                navn = avsenderNavn,
+                tlf = skjema.avsenderTlf,
+            ),
+        sykmeldingsperioder = forespoersel.sykmeldingsperioder,
+        agp = agp,
         inntekt = inntekt,
-        fullLønnIArbeidsgiverPerioden = fullLoennIArbeidsgiverPerioden,
         refusjon = refusjon,
-        naturalytelser = skjema.naturalytelser,
-        tidspunkt = ZonedDateTime.now().toOffsetDateTime(),
-        årsakInnsending = skjema.årsakInnsending,
-        innsenderNavn = innsenderNavn,
-        telefonnummer = skjema.telefonnummer,
-        forespurtData = forespurtData,
-        bestemmendeFraværsdag = bestemmendeFravaersdag,
+        aarsakInnsending = aarsakInnsending,
+        mottatt = ZonedDateTime.now().toOffsetDateTime(),
     )
 }

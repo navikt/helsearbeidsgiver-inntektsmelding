@@ -9,21 +9,24 @@ import no.nav.helsearbeidsgiver.felles.domene.ForslagInntekt
 import no.nav.helsearbeidsgiver.felles.domene.ForslagRefusjon
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 fun mockForespoersel(): Forespoersel {
-    val orgnr = "789789789"
+    val orgnr = Orgnr.genererGyldig()
     return Forespoersel(
         type = ForespoerselType.KOMPLETT,
-        orgnr = orgnr,
-        fnr = "15055012345",
+        orgnr = orgnr.verdi,
+        fnr = Fnr.genererGyldig().verdi,
         vedtaksperiodeId = UUID.randomUUID(),
         sykmeldingsperioder = listOf(2.januar til 31.januar),
         egenmeldingsperioder = listOf(1.januar til 1.januar),
         bestemmendeFravaersdager =
             mapOf(
-                orgnr to 1.januar,
-                "555767555" to 5.januar,
+                orgnr.verdi to 1.januar,
+                Orgnr.genererGyldig().verdi to 5.januar,
             ),
         forespurtData = mockForespurtData(),
         erBesvart = false,

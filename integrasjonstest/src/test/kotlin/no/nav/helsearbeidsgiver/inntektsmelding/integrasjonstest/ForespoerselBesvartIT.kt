@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
+import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.maps.shouldNotContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.mockk.every
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -12,14 +12,16 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
+import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ForespoerselBesvartIT : EndToEndTest() {
@@ -30,21 +32,17 @@ class ForespoerselBesvartIT : EndToEndTest() {
 
     @Test
     fun `ved notis om besvart forespørsel så ferdigstilles sak og oppgave`() {
-        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.ORGNR)
-        forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
-        forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
+        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.orgnr.verdi)
+        forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.sakId)
+        forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.oppgaveId)
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns Mock.transaksjonId
+        publish(
+            Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
+            Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+            Pri.Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson(),
+        )
 
-            publish(
-                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                Pri.Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson(),
-            )
-        }
-
-        bekreftForventedeMeldinger()
+        bekreftForventedeMeldinger(forventetTransaksjonId = null)
 
         messages
             .filter(EventName.EKSTERN_INNTEKTSMELDING_REQUESTED)
@@ -58,29 +56,36 @@ class ForespoerselBesvartIT : EndToEndTest() {
 
     @Test
     fun `ved mottatt inntektsmelding så ferdigstilles sak og oppgave`() {
-        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.ORGNR)
-        forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
-        forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
+        val transaksjonId: UUID = UUID.randomUUID()
+
+        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.orgnr.verdi)
+        forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.sakId)
+        forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.oppgaveId)
 
         publish(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
+            Key.UUID to transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.UUID to Mock.transaksjonId.toJson(),
         )
 
-        bekreftForventedeMeldinger()
+        bekreftForventedeMeldinger(forventetTransaksjonId = transaksjonId)
     }
 
-    private fun bekreftForventedeMeldinger() {
+    private fun bekreftForventedeMeldinger(forventetTransaksjonId: UUID?) {
         messages
             .filter(EventName.FORESPOERSEL_BESVART)
             .filter(BehovType.NOTIFIKASJON_HENT_ID)
             .firstAsMap()
             .also {
+                if (forventetTransaksjonId == null) {
+                    it shouldContainKey Key.UUID
+                } else {
+                    Key.UUID.les(UuidSerializer, it) shouldBe forventetTransaksjonId
+                }
+
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.FORESPOERSEL_BESVART
                 Key.BEHOV.les(BehovType.serializer(), it) shouldBe BehovType.NOTIFIKASJON_HENT_ID
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.UUID.les(UuidSerializer, it) shouldBe Mock.transaksjonId
             }
 
         messages
@@ -89,10 +94,16 @@ class ForespoerselBesvartIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 it shouldNotContainKey Key.BEHOV
+
+                if (forventetTransaksjonId == null) {
+                    it shouldContainKey Key.UUID
+                } else {
+                    Key.UUID.les(UuidSerializer, it) shouldBe forventetTransaksjonId
+                }
+
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.FORESPOERSEL_BESVART
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.UUID.les(UuidSerializer, it) shouldBe Mock.transaksjonId
-                Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
+                Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.sakId
             }
 
         messages
@@ -101,10 +112,16 @@ class ForespoerselBesvartIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 it shouldNotContainKey Key.BEHOV
+
+                if (forventetTransaksjonId == null) {
+                    it shouldContainKey Key.UUID
+                } else {
+                    Key.UUID.les(UuidSerializer, it) shouldBe forventetTransaksjonId
+                }
+
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.FORESPOERSEL_BESVART
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.UUID.les(UuidSerializer, it) shouldBe Mock.transaksjonId
-                Key.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
+                Key.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.oppgaveId
             }
 
         messages
@@ -112,10 +129,15 @@ class ForespoerselBesvartIT : EndToEndTest() {
             .filter(Key.SAK_ID, utenDataKey = true)
             .firstAsMap()
             .also {
+                if (forventetTransaksjonId == null) {
+                    it shouldContainKey Key.UUID
+                } else {
+                    Key.UUID.les(UuidSerializer, it) shouldBe forventetTransaksjonId
+                }
+
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.SAK_FERDIGSTILT
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.UUID.les(UuidSerializer, it) shouldBe Mock.transaksjonId
-                Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
+                Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.sakId
             }
 
         messages
@@ -123,20 +145,23 @@ class ForespoerselBesvartIT : EndToEndTest() {
             .filter(Key.OPPGAVE_ID, utenDataKey = true)
             .firstAsMap()
             .also {
+                if (forventetTransaksjonId == null) {
+                    it shouldContainKey Key.UUID
+                } else {
+                    Key.UUID.les(UuidSerializer, it) shouldBe forventetTransaksjonId
+                }
+
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.OPPGAVE_FERDIGSTILT
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.UUID.les(UuidSerializer, it) shouldBe Mock.transaksjonId
-                Key.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
+                Key.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.oppgaveId
             }
     }
 
     private object Mock {
-        const val ORGNR = "sur-moskus"
-        const val SAK_ID = "tjukk-kalender"
-        const val OPPGAVE_ID = "kunstig-demon"
-
-        val forespoerselId = randomUuid()
-        val transaksjonId = randomUuid()
-        val spinnInntektsmeldingId = randomUuid()
+        val forespoerselId: UUID = UUID.randomUUID()
+        val spinnInntektsmeldingId: UUID = UUID.randomUUID()
+        val orgnr = Orgnr.genererGyldig()
+        val sakId = randomDigitString(21)
+        val oppgaveId = randomDigitString(14)
     }
 }

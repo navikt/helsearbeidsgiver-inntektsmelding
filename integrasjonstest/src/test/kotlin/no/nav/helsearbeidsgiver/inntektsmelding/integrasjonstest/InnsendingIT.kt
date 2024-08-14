@@ -10,20 +10,23 @@ import io.mockk.coEvery
 import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
+import no.nav.helsearbeidsgiver.felles.domene.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
-import no.nav.helsearbeidsgiver.felles.test.mock.tilForespoersel
+import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice.mapInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
@@ -31,6 +34,9 @@ import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.maxMekker
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.august
+import no.nav.helsearbeidsgiver.utils.test.date.juli
+import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.BeforeEach
@@ -47,7 +53,7 @@ class InnsendingIT : EndToEndTest() {
 
     @Test
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
-        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.skjema.orgnrUnderenhet)
+        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.forespoersel.orgnr)
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
 
@@ -72,8 +78,8 @@ class InnsendingIT : EndToEndTest() {
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                    Key.ARBEIDSGIVER_FNR to Mock.skjema.identitetsnummer.toJson(),
-                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
+                    Key.ARBEIDSGIVER_FNR to Mock.forespoersel.fnr.toJson(),
+                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
                 ).toJson(),
         )
 
@@ -133,7 +139,7 @@ class InnsendingIT : EndToEndTest() {
 
     @Test
     fun `skal ikke lagre duplikat inntektsmelding`() {
-        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.skjema.orgnrUnderenhet)
+        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.forespoersel.orgnr)
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
         imRepository.lagreInntektsmelding(Mock.forespoerselId, Mock.innsendtInntektsmelding)
@@ -162,7 +168,7 @@ class InnsendingIT : EndToEndTest() {
                 mapOf(
                     Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                     Key.ARBEIDSGIVER_FNR to maxMekker.ident!!.toJson(),
-                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
+                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
                 ).toJson(),
         )
 
@@ -239,24 +245,42 @@ class InnsendingIT : EndToEndTest() {
         const val JOURNALPOST_ID = "journalpost-id-skoleboller"
         const val SAK_ID = "forundret-lysekrone"
         const val OPPGAVE_ID = "neglisjert-sommer"
-        val orgnr = Orgnr.genererGyldig()
 
         val forespoerselId: UUID = UUID.randomUUID()
-        val skjema =
-            mockInnsending().let { innsending ->
-                innsending.copy(
-                    identitetsnummer = bjarneBetjent.ident!!,
-                    orgnrUnderenhet = orgnr.toString(),
-                    bestemmendeFraværsdag = innsending.fraværsperioder.lastOrNull()?.fom ?: innsending.bestemmendeFraværsdag,
-                )
-            }
 
-        private val forespoersel = skjema.tilForespoersel(UUID.randomUUID())
+        val skjema = mockSkjemaInntektsmelding()
+
+        private val orgnr = Orgnr.genererGyldig()
+
+        val forespoersel =
+            Forespoersel(
+                type = ForespoerselType.KOMPLETT,
+                orgnr = orgnr.verdi,
+                fnr = bjarneBetjent.ident!!,
+                vedtaksperiodeId = UUID.randomUUID(),
+                sykmeldingsperioder =
+                    listOf(
+                        1.juli til 12.juli,
+                        15.juli til 2.august,
+                    ),
+                egenmeldingsperioder =
+                    listOf(
+                        26.juni til 27.juni,
+                        29.juni til 29.juni,
+                    ),
+                bestemmendeFravaersdager = mapOf(orgnr.verdi to 15.juli),
+                forespurtData = mockForespurtData(),
+                erBesvart = false,
+            )
 
         val innsendtInntektsmelding =
             mapInntektsmelding(
                 forespoersel = forespoersel,
-                skjema = skjema,
+                skjema =
+                    skjema.convert(
+                        sykmeldingsperioder = forespoersel.sykmeldingsperioder,
+                        aarsakInnsending = AarsakInnsending.Endring,
+                    ),
                 fulltnavnArbeidstaker = bjarneBetjent.navn.fulltNavn(),
                 virksomhetNavn = "Bedrift A/S",
                 innsenderNavn = maxMekker.navn.fulltNavn(),

@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -22,8 +22,7 @@ class InnsendingProducer(
 
     fun publish(
         transaksjonId: UUID,
-        forespoerselId: UUID,
-        request: Innsending,
+        skjemaInntektsmelding: SkjemaInntektsmelding,
         arbeidsgiverFnr: Fnr,
     ) {
         rapid
@@ -32,13 +31,14 @@ class InnsendingProducer(
                 Key.UUID to transaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
-                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                        // TODO fjern i mottaker, så her
+                        Key.FORESPOERSEL_ID to skjemaInntektsmelding.forespoerselId.toJson(),
                         Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
-                        Key.SKJEMA_INNTEKTSMELDING to request.toJson(Innsending.serializer()),
+                        Key.SKJEMA_INNTEKTSMELDING to skjemaInntektsmelding.toJson(SkjemaInntektsmelding.serializer()),
                     ).toJson(),
             ).also {
-                logger.info("Publiserte til kafka forespørselId: $forespoerselId og transaksjonId=$transaksjonId")
-                sikkerLogger.info("Publiserte til kafka forespørselId: $forespoerselId json=${it.toPretty()}")
+                logger.info("Publiserte til kafka forespørselId: ${skjemaInntektsmelding.forespoerselId} og transaksjonId=$transaksjonId")
+                sikkerLogger.info("Publiserte til kafka forespørselId: ${skjemaInntektsmelding.forespoerselId} json=${it.toPretty()}")
             }
     }
 }

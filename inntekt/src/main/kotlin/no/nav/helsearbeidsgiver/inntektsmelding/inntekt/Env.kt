@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.inntekt
 
-import no.nav.helsearbeidsgiver.felles.fromEnv
+import no.nav.helsearbeidsgiver.felles.utils.fromEnv
 import no.nav.helsearbeidsgiver.tokenprovider.OAuth2Environment
 
 object Env {

@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "im-forespoersel-besvart".logger()
@@ -10,25 +9,19 @@ private val logger = "im-forespoersel-besvart".logger()
 fun main() {
     logger.info("Jeg er oppe og kjører!")
 
-    val priProducer = PriProducer()
-
     RapidApplication
         .create(System.getenv())
-        .createForespoerselBesvartFraSimba()
-        .createForespoerselBesvartFraSpleis(priProducer)
+        .createForespoerselBesvartRivers()
         .start()
 
     logger.info("Bye bye, baby, bye bye!")
 }
 
-fun RapidsConnection.createForespoerselBesvartFraSimba(): RapidsConnection =
+fun RapidsConnection.createForespoerselBesvartRivers(): RapidsConnection =
     also {
-        logger.info("Starter ${ForespoerselBesvartFraSimbaLoeser::class.simpleName}...")
-        ForespoerselBesvartFraSimbaLoeser(this)
-    }
+        logger.info("Starter ${ForespoerselBesvartFraSimbaRiver::class.simpleName}...")
+        ForespoerselBesvartFraSimbaRiver().connect(this)
 
-fun RapidsConnection.createForespoerselBesvartFraSpleis(priProducer: PriProducer): RapidsConnection =
-    also {
-        logger.info("Starter ${ForespoerselBesvartFraSpleisLoeser::class.simpleName}...")
-        ForespoerselBesvartFraSpleisLoeser(this, priProducer)
+        logger.info("Starter ${ForespoerselBesvartFraSpleisRiver::class.simpleName}...")
+        ForespoerselBesvartFraSpleisRiver(this).connect(this)
     }

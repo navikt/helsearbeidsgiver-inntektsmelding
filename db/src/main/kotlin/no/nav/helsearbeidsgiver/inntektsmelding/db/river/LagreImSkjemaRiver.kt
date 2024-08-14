@@ -2,7 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -27,7 +27,7 @@ data class LagreImSkjemaMelding(
     val transaksjonId: UUID,
     val data: Map<Key, JsonElement>,
     val forespoerselId: UUID,
-    val inntektsmeldingSkjema: Innsending,
+    val inntektsmeldingSkjema: SkjemaInntektsmelding,
 )
 
 class LagreImSkjemaRiver(
@@ -47,7 +47,7 @@ class LagreImSkjemaRiver(
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
                 data = data,
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
-                inntektsmeldingSkjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), data),
+                inntektsmeldingSkjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), data),
             )
         }
 

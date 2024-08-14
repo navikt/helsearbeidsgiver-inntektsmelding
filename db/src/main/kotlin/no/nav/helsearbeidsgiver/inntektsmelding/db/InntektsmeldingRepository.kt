@@ -3,7 +3,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 import io.prometheus.client.Summary
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
-import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.metrics.recordTime
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -51,7 +52,7 @@ class InntektsmeldingRepository(
 
     fun lagreInntektsmeldingSkjema(
         forespoerselId: UUID,
-        inntektsmeldingSkjema: Innsending,
+        inntektsmeldingSkjema: SkjemaInntektsmelding,
     ) {
         requestLatency.recordTime(label = "lagreInntektsmeldingSkjema") {
             transaction(db) {
@@ -73,7 +74,7 @@ class InntektsmeldingRepository(
             }
         }
 
-    fun hentNyesteInntektsmeldingSkjema(forespoerselId: UUID): Innsending? =
+    fun hentNyesteInntektsmeldingSkjema(forespoerselId: UUID): SkjemaInntektsmelding? =
         requestLatency.recordTime(label = "hentNyesteInntektsmeldingSkjema") {
             transaction(db) {
                 hentNyesteImSkjemaQuery(forespoerselId)

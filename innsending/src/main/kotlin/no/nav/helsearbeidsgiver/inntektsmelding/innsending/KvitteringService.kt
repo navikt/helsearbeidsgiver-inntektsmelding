@@ -4,11 +4,11 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.InnsendtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.domene.InnsendtInntektsmelding
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -99,7 +99,9 @@ class KvitteringService(
         val resultJson =
             ResultJson(
                 success =
-                    InnsendtInntektsmelding(steg1.inntektsmeldingDokument, steg1.eksternInntektsmelding).toJson(InnsendtInntektsmelding.serializer()),
+                    InnsendtInntektsmelding(steg1.inntektsmeldingDokument, steg1.eksternInntektsmelding).toJson(
+                        InnsendtInntektsmelding.serializer(),
+                    ),
             ).toJson(ResultJson.serializer())
 
         redisStore.set(RedisKey.of(steg0.transaksjonId), resultJson)

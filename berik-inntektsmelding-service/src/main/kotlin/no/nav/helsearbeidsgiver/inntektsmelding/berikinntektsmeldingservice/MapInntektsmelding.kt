@@ -6,8 +6,8 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.bestemmendeFravaersdag
-import no.nav.helsearbeidsgiver.felles.Forespoersel
-import no.nav.helsearbeidsgiver.felles.ForslagInntekt
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
+import no.nav.helsearbeidsgiver.felles.domene.ForslagInntekt
 import java.time.ZonedDateTime
 
 fun mapInntektsmelding(

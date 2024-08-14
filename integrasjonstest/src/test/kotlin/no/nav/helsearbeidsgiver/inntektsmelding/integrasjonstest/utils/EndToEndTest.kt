@@ -42,10 +42,9 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDbRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjonRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.createFeilLytter
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSimba
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSpleis
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createMarkerForespoerselBesvart
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottattRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebroRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
@@ -245,9 +244,8 @@ abstract class EndToEndTest : ContainerTest() {
             createBrregRiver(brregClient, false)
             createDbRivers(imRepository, selvbestemtImRepo, forespoerselRepository)
             createDistribusjonRiver(mockk(relaxed = true))
-            createForespoerselBesvartFraSimba()
-            createForespoerselBesvartFraSpleis(mockPriProducer)
-            createForespoerselMottatt(mockPriProducer)
+            createForespoerselBesvartRivers()
+            createForespoerselMottattRiver()
             createHelsebroRivers(mockPriProducer)
             createHentEksternImRiver(spinnKlient)
             createHentInntektRiver(inntektClient)

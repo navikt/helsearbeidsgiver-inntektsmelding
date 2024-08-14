@@ -9,7 +9,6 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
-import java.util.Collections
 
 fun Application.helsesjekkerRouting() {
     routing {
@@ -23,7 +22,9 @@ fun Application.helsesjekkerRouting() {
             val names =
                 call.request.queryParameters
                     .getAll("name[]")
-                    ?.toSet() ?: Collections.emptySet()
+                    ?.toSet()
+                    .orEmpty()
+
             call.respondTextWriter(ContentType.parse(TextFormat.CONTENT_TYPE_004)) {
                 TextFormat.write004(this, CollectorRegistry.defaultRegistry.filteredMetricFamilySamples(names))
             }

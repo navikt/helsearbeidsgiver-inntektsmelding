@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.felles.metrics
 
+import io.prometheus.client.Counter
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
 import kotlin.reflect.KFunction
@@ -22,6 +23,10 @@ object Metrics {
     val inntektRequest = requestMetric("Inntekt")
 
     val pdlRequest = requestMetric("PDL")
+
+    val forespoerslerBesvartFraSimba = counterMetric("forespoersler besvart fra Simba")
+
+    val forespoerslerBesvartFraSpleis = counterMetric("forespoersler besvart fra Spleis")
 }
 
 fun <T> Summary.recordTime(
@@ -59,12 +64,19 @@ private fun requestMetric(clientName: String): Summary =
 private fun latencyMetric(
     name: String,
     description: String,
-): Summary {
-    val nameInSnake = name.replace(Regex("[ -]"), "_").lowercase()
-    return Summary
+): Summary =
+    Summary
         .build()
-        .name("simba_${nameInSnake}_latency_seconds")
+        .name("simba_${name.toSnake()}_latency_seconds")
         .help("Latency (i sek.) for $description.")
         .labelNames("method")
         .register()
-}
+
+private fun counterMetric(description: String): Counter =
+    Counter
+        .build()
+        .name("simba_${description.toSnake()}_counter")
+        .help("Antall $description.")
+        .register()
+
+private fun String.toSnake(): String = replace(Regex("[ -]"), "_").lowercase()

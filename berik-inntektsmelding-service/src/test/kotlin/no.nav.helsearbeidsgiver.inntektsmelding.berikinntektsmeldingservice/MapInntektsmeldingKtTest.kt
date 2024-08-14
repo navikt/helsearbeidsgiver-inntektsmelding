@@ -18,11 +18,12 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Naturalytelse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.NaturalytelseKode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
-import no.nav.helsearbeidsgiver.felles.Forespoersel
-import no.nav.helsearbeidsgiver.felles.ForespurtData
-import no.nav.helsearbeidsgiver.felles.ForslagInntekt
-import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
-import no.nav.helsearbeidsgiver.felles.test.mock.tilForespoersel
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
+import no.nav.helsearbeidsgiver.felles.domene.ForespoerselType
+import no.nav.helsearbeidsgiver.felles.domene.ForespurtData
+import no.nav.helsearbeidsgiver.felles.domene.ForslagInntekt
+import no.nav.helsearbeidsgiver.felles.domene.ForslagRefusjon
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.desember
@@ -574,7 +575,24 @@ private object Mock {
             bekreftOpplysninger = true,
         )
 
-    fun forespoersel(): Forespoersel = skjema().tilForespoersel(UUID.randomUUID())
+    fun forespoersel(): Forespoersel {
+        val skjema = skjema()
+        return Forespoersel(
+            type = ForespoerselType.KOMPLETT,
+            orgnr = skjema.orgnrUnderenhet,
+            fnr = skjema.identitetsnummer,
+            vedtaksperiodeId = UUID.randomUUID(),
+            sykmeldingsperioder = skjema.fraværsperioder,
+            egenmeldingsperioder = skjema.egenmeldingsperioder,
+            bestemmendeFravaersdager =
+                skjema.fraværsperioder
+                    .lastOrNull()
+                    ?.let { mapOf(skjema.orgnrUnderenhet to it.fom) }
+                    .orEmpty(),
+            forespurtData = mockForespurtData(),
+            erBesvart = false,
+        )
+    }
 }
 
 private fun Forespoersel.utenPaakrevdAGP(): Forespoersel =

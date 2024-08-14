@@ -4,21 +4,22 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
-import no.nav.helsearbeidsgiver.felles.Forespoersel
-import no.nav.helsearbeidsgiver.felles.ForespoerselType
-import no.nav.helsearbeidsgiver.felles.ForespurtData
-import no.nav.helsearbeidsgiver.felles.ForrigeInntekt
-import no.nav.helsearbeidsgiver.felles.ForslagInntekt
-import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
-import no.nav.helsearbeidsgiver.felles.HentForespoerselResultat
-import no.nav.helsearbeidsgiver.felles.Inntekt
-import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
-import no.nav.helsearbeidsgiver.felles.ResultJson
-import no.nav.helsearbeidsgiver.felles.TilgangResultat
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
+import no.nav.helsearbeidsgiver.felles.domene.ForespoerselType
+import no.nav.helsearbeidsgiver.felles.domene.ForespurtData
+import no.nav.helsearbeidsgiver.felles.domene.ForrigeInntekt
+import no.nav.helsearbeidsgiver.felles.domene.ForslagInntekt
+import no.nav.helsearbeidsgiver.felles.domene.ForslagRefusjon
+import no.nav.helsearbeidsgiver.felles.domene.HentForespoerselResultat
+import no.nav.helsearbeidsgiver.felles.domene.Inntekt
+import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.domene.TilgangResultat
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedForrigeInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -28,7 +29,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hardcodedJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.jsonStrOrNull
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
@@ -101,7 +101,7 @@ class HentForespoerselRouteKtTest : ApiTest() {
         }
 
     @Test
-    fun `skal returnere valideringsfeil ved ugyldig request`() =
+    fun `skal returnere 400-feil ved ugyldig request`() =
         testApi {
             val ugyldigRequest =
                 JsonObject(
@@ -120,10 +120,9 @@ class HentForespoerselRouteKtTest : ApiTest() {
             assertNull(result.success)
             assertNotNull(result.failure)
 
-            val violations = result.failure!!.fromJson(ValidationResponse.serializer()).errors
+            val feilmelding = result.failure!!.fromJson(String.serializer())
 
-            assertEquals(1, violations.size)
-            assertEquals("uuid", violations[0].property)
+            assertEquals("Mangler forespørsel-ID for å hente forespørsel.", feilmelding)
         }
 
     @Test

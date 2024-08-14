@@ -1,8 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.tabell
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
-import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.datetime
@@ -27,10 +27,10 @@ object InntektsmeldingEntitet : Table("inntektsmelding") {
             kSerializer = EksternInntektsmelding.serializer(),
         ).nullable()
     val skjema =
-        jsonb<Innsending>(
+        jsonb<SkjemaInntektsmelding>(
             name = "skjema",
             jsonConfig = jsonConfig,
-            kSerializer = Innsending.serializer(),
+            kSerializer = SkjemaInntektsmelding.serializer(),
         ).nullable()
     val innsendt = datetime("innsendt")
     val journalpostId = varchar("journalpostid", 30).nullable()

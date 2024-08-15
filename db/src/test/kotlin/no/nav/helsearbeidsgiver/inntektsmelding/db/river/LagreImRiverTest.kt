@@ -47,15 +47,24 @@ class LagreImRiverTest :
         context("inntektsmelding lagres") {
             withData(
                 mapOf(
-                    "hvis ingen andre inntektsmeldinger er mottatt" to null,
+                    "hvis ingen andre inntektsmeldinger er mottatt" to
+                        EksisterendeInnsendinger(
+                            eksisterendeSkjema = null,
+                            eksisterendeInntektsmelding = null,
+                        ),
                     "hvis ikke duplikat av tidligere inntektsmeldinger" to
-                        mockInntektsmelding().copy(
-                            fraværsperioder = listOf(9.august til 29.august),
+                        EksisterendeInnsendinger(
+                            eksisterendeSkjema = null,
+                            eksisterendeInntektsmelding =
+                                mockInntektsmelding().copy(
+                                    fraværsperioder = listOf(9.august til 29.august),
+                                ),
                         ),
                 ),
-            ) { eksisterendeIm ->
-                every { mockImRepo.hentNyesteInntektsmelding(any()) } returns eksisterendeIm
-                every { mockImRepo.lagreInntektsmelding(any(), any()) } just Runs
+            ) { eksisterendeInnsendinger ->
+                every { mockImRepo.hentNyesteInntektsmeldingSkjema(any()) } returns eksisterendeInnsendinger.eksisterendeSkjema
+                every { mockImRepo.hentNyesteInntektsmelding(any()) } returns eksisterendeInnsendinger.eksisterendeInntektsmelding
+                every { mockImRepo.oppdaterInntektsmeldingMedDokument(any(), any()) } just Runs
 
                 val nyInntektsmelding = mockInntektsmelding()
 
@@ -74,12 +83,14 @@ class LagreImRiverTest :
                                 Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
                                 Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
                                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
+                                Key.ER_UTDATERT_IM to false.toJson(Boolean.serializer()),
                             ).toJson(),
                     )
 
                 verifySequence {
                     mockImRepo.hentNyesteInntektsmelding(innkommendeMelding.forespoerselId)
-                    mockImRepo.lagreInntektsmelding(innkommendeMelding.forespoerselId, nyInntektsmelding)
+                    mockImRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.forespoerselId)
+                    mockImRepo.oppdaterInntektsmeldingMedDokument(innkommendeMelding.forespoerselId, nyInntektsmelding)
                 }
             }
         }
@@ -95,8 +106,9 @@ class LagreImRiverTest :
                     tidspunkt = nyInntektsmelding.tidspunkt.minusDays(14),
                 )
 
+            every { mockImRepo.hentNyesteInntektsmeldingSkjema(any()) } returns null
             every { mockImRepo.hentNyesteInntektsmelding(any()) } returns duplikatIm
-            every { mockImRepo.lagreInntektsmelding(any(), any()) } just Runs
+            every { mockImRepo.oppdaterInntektsmeldingMedDokument(any(), any()) } just Runs
 
             val innkommendeMelding = innkommendeMelding(nyInntektsmelding)
 
@@ -113,14 +125,16 @@ class LagreImRiverTest :
                             Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
                             Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
                             Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
+                            Key.ER_UTDATERT_IM to false.toJson(Boolean.serializer()),
                         ).toJson(),
                 )
 
             verifySequence {
                 mockImRepo.hentNyesteInntektsmelding(innkommendeMelding.forespoerselId)
+                mockImRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.forespoerselId)
             }
             verify(exactly = 0) {
-                mockImRepo.lagreInntektsmelding(innkommendeMelding.forespoerselId, nyInntektsmelding)
+                mockImRepo.oppdaterInntektsmeldingMedDokument(innkommendeMelding.forespoerselId, nyInntektsmelding)
             }
         }
 
@@ -182,7 +196,7 @@ private fun innkommendeMelding(inntektsmelding: Inntektsmelding = mockInntektsme
     val forespoerselId = UUID.randomUUID()
 
     return LagreImMelding(
-        eventName = EventName.INSENDING_STARTED,
+        eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
         behovType = BehovType.LAGRE_IM,
         transaksjonId = UUID.randomUUID(),
         data =

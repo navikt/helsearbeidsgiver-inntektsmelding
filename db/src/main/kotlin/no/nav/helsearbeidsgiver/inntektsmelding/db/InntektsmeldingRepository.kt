@@ -49,6 +49,39 @@ class InntektsmeldingRepository(
         }
     }
 
+    fun oppdaterInntektsmeldingMedDokument(
+        forespoerselId: UUID,
+        inntektsmeldingDokument: Inntektsmelding,
+    ) {
+        val antallOppdatert =
+            requestLatency.recordTime(label = "oppdaterInntektsmeldingMedDokument") {
+                transaction(db) {
+                    InntektsmeldingEntitet.update(
+                        where = {
+                            val nyesteImSkjemaIdQuery = hentNyesteImSkjemaQuery(forespoerselId).adjustSelect { select(InntektsmeldingEntitet.id) }
+
+                            (InntektsmeldingEntitet.id eqSubQuery nyesteImSkjemaIdQuery) and
+                                InntektsmeldingEntitet.dokument.isNull()
+                        },
+                    ) {
+                        it[dokument] = inntektsmeldingDokument
+                    }
+                }
+            }
+
+        if (antallOppdatert == 1) {
+            "Lagret inntektsmelding for forespørsel-ID $forespoerselId i database.".also {
+                logger.info(it)
+                sikkerLogger.info(it)
+            }
+        } else {
+            "Oppdaterte uventet antall ($antallOppdatert) rader ved lagring av inntektsmelding med forespørsel-ID $forespoerselId.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
+        }
+    }
+
     fun lagreInntektsmeldingSkjema(
         forespoerselId: UUID,
         inntektsmeldingSkjema: SkjemaInntektsmelding,

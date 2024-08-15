@@ -56,6 +56,8 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.orgnr.toString())
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
+
+        imRepository.lagreInntektsmeldingSkjema(Mock.forespoerselId, Mock.skjema)
         imRepository.lagreInntektsmelding(Mock.forespoerselId, tidligereInntektsmelding)
 
         coEvery {

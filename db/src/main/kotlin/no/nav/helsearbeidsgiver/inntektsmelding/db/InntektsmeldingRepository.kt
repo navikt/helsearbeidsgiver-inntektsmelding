@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import io.prometheus.client.Summary
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding

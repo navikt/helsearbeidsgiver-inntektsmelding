@@ -15,8 +15,8 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.AarsakInnsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -24,7 +24,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInnsending
+import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
@@ -45,22 +45,31 @@ class LagreImSkjemaRiverTest :
         }
 
         context("inntektsmeldingskjema lagres") {
+            val skjemaInntektsmelding = mockSkjemaInntektsmelding()
+
             withData(
                 mapOf(
                     "hvis ingen andre inntektsmeldingskjemaer er mottatt" to null,
                     "hvis ikke duplikat av tidligere inntektsmeldingskjemaer" to
-                        mockInnsending().copy(
-                            egenmeldingsperioder = listOf(13.juli til 31.juli),
+                        skjemaInntektsmelding.copy(
+                            agp =
+                                skjemaInntektsmelding.agp?.let {
+                                    Arbeidsgiverperiode(
+                                        perioder = it.perioder,
+                                        egenmeldinger = listOf(13.juli til 31.juli),
+                                        redusertLoennIAgp = it.redusertLoennIAgp,
+                                    )
+                                },
                         ),
                 ),
-            ) { eksisterendeIm ->
+            ) { eksisterendeImSkjema ->
                 every { mockInntektsmeldingRepo.hentNyesteInntektsmelding(any()) } returns null
-                every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns eksisterendeIm
+                every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns eksisterendeImSkjema
                 every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } just Runs
 
-                val nyInntektsmelding = mockInnsending()
+                val nyttInntektsmeldingSkjema = mockSkjemaInntektsmelding()
 
-                val innkommendeMelding = innkommendeMelding(nyInntektsmelding)
+                val innkommendeMelding = innkommendeMelding(nyttInntektsmeldingSkjema)
 
                 testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -73,7 +82,7 @@ class LagreImSkjemaRiverTest :
                         Key.DATA to
                             mapOf(
                                 Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
-                                Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.inntektsmeldingSkjema.toJson(Innsending.serializer()),
+                                Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.inntektsmeldingSkjema.toJson(SkjemaInntektsmelding.serializer()),
                                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
                             ).toJson(),
                     )
@@ -81,16 +90,16 @@ class LagreImSkjemaRiverTest :
                 verifySequence {
                     mockInntektsmeldingRepo.hentNyesteInntektsmelding(innkommendeMelding.forespoerselId)
                     mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.forespoerselId)
-                    mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(innkommendeMelding.forespoerselId, nyInntektsmelding)
+                    mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(innkommendeMelding.forespoerselId, nyttInntektsmeldingSkjema)
                 }
             }
         }
         test("duplikat lagres ikke, men svarer OK") {
-            val nyInntektsmelding = mockInnsending()
+            val nyInntektsmelding = mockSkjemaInntektsmelding()
 
             val duplikatIm =
                 nyInntektsmelding.copy(
-                    årsakInnsending = AarsakInnsending.NY,
+                    avsenderTlf = "34553399",
                 )
 
             every { mockInntektsmeldingRepo.hentNyesteInntektsmelding(any()) } returns null
@@ -110,7 +119,7 @@ class LagreImSkjemaRiverTest :
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
-                            Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.inntektsmeldingSkjema.toJson(Innsending.serializer()),
+                            Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.inntektsmeldingSkjema.toJson(SkjemaInntektsmelding.serializer()),
                             Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
                         ).toJson(),
                 )
@@ -180,7 +189,7 @@ class LagreImSkjemaRiverTest :
         }
     })
 
-private fun innkommendeMelding(inntektsmeldingSkjema: Innsending = mockInnsending()): LagreImSkjemaMelding {
+private fun innkommendeMelding(inntektsmeldingSkjema: SkjemaInntektsmelding = mockSkjemaInntektsmelding()): LagreImSkjemaMelding {
     val forespoerselId = UUID.randomUUID()
 
     return LagreImSkjemaMelding(
@@ -190,7 +199,7 @@ private fun innkommendeMelding(inntektsmeldingSkjema: Innsending = mockInnsendin
         data =
             mapOf(
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.SKJEMA_INNTEKTSMELDING to inntektsmeldingSkjema.toJson(Innsending.serializer()),
+                Key.SKJEMA_INNTEKTSMELDING to inntektsmeldingSkjema.toJson(SkjemaInntektsmelding.serializer()),
             ),
         forespoerselId = forespoerselId,
         inntektsmeldingSkjema = inntektsmeldingSkjema,

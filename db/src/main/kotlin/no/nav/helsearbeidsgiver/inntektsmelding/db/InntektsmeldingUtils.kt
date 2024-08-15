@@ -25,8 +25,12 @@ fun Inntektsmelding.erDuplikatAv(other: SkjemaInntektsmelding): Boolean =
     ).let {
         it.type.id == other.forespoerselId &&
             it.agp == other.agp &&
-            it.inntekt == other.inntekt &&
-            it.refusjon == other.refusjon
+            it.refusjon == other.refusjon &&
+            // inntektsdato konverteres til LocalDate.EPOCH i convertToV1(...), som gjør at vi må sammenlikne inntekt-feltene hver for seg.
+            it.inntekt?.beloep == other.inntekt?.beloep &&
+            this.inntektsdato == other.inntekt?.inntektsdato &&
+            it.inntekt?.naturalytelser == other.inntekt?.naturalytelser &&
+            it.inntekt?.endringAarsak == other.inntekt?.endringAarsak
     }
 
 fun SkjemaInntektsmelding.erDuplikatAv(other: SkjemaInntektsmelding): Boolean =

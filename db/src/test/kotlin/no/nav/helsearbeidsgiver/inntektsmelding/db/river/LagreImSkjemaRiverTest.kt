@@ -15,6 +15,7 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
@@ -24,6 +25,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingGammeltFormat
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -44,27 +46,58 @@ class LagreImSkjemaRiverTest :
             clearAllMocks()
         }
 
-        context("inntektsmeldingskjema lagres") {
-            val skjemaInntektsmelding = mockSkjemaInntektsmelding()
+        val rentInntektsmeldingSkjema = mockSkjemaInntektsmelding()
+        val justertInntektsmeldingSkjema =
+            rentInntektsmeldingSkjema.let { skjema ->
+                skjema.copy(
+                    agp =
+                        skjema.agp?.let { agp ->
+                            Arbeidsgiverperiode(
+                                perioder = agp.perioder,
+                                egenmeldinger = listOf(13.juli til 31.juli),
+                                redusertLoennIAgp = agp.redusertLoennIAgp,
+                            )
+                        },
+                )
+            }
 
+        val renInntektsmelding = mockInntektsmeldingGammeltFormat()
+        val justertInntektsmelding =
+            renInntektsmelding
+                .copy(egenmeldingsperioder = listOf(13.juli til 31.juli))
+
+        context("inntektsmeldingskjema lagres") {
             withData(
                 mapOf(
-                    "hvis ingen andre inntektsmeldingskjemaer er mottatt" to null,
-                    "hvis ikke duplikat av tidligere inntektsmeldingskjemaer" to
-                        skjemaInntektsmelding.copy(
-                            agp =
-                                skjemaInntektsmelding.agp?.let {
-                                    Arbeidsgiverperiode(
-                                        perioder = it.perioder,
-                                        egenmeldinger = listOf(13.juli til 31.juli),
-                                        redusertLoennIAgp = it.redusertLoennIAgp,
-                                    )
-                                },
+                    "hvis ingen andre inntektsmeldingskjemaer eller inntektsmeldinger er mottatt" to
+                        EksisterendeInnsendinger(
+                            eksisterendeSkjema = null,
+                            eksisterendeInntektsmelding = null,
+                        ),
+                    "hvis ikke duplikat av siste inntektsmeldingskjema og ingen inntektsmeldinger er mottatt" to
+                        EksisterendeInnsendinger(
+                            eksisterendeSkjema = justertInntektsmeldingSkjema,
+                            eksisterendeInntektsmelding = null,
+                        ),
+                    "hvis ingen inntektsmeldingskjema mottatt og ikke duplikat av siste inntektsmelding" to
+                        EksisterendeInnsendinger(
+                            eksisterendeSkjema = null,
+                            eksisterendeInntektsmelding = justertInntektsmelding,
+                        ),
+                    "hvis ikke duplikat av siste inntektsmeldingskjema og heller ikke duplikat av siste inntektsmelding" to
+                        EksisterendeInnsendinger(
+                            eksisterendeSkjema = justertInntektsmeldingSkjema,
+                            eksisterendeInntektsmelding = justertInntektsmelding,
+                        ),
+                    "hvis ikke duplikat av siste inntektsmeldingskjema selv om den er duplikat av siste inntektsmelding" to
+                        EksisterendeInnsendinger(
+                            eksisterendeSkjema = justertInntektsmeldingSkjema,
+                            eksisterendeInntektsmelding = renInntektsmelding,
                         ),
                 ),
-            ) { eksisterendeImSkjema ->
-                every { mockInntektsmeldingRepo.hentNyesteInntektsmelding(any()) } returns null
-                every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns eksisterendeImSkjema
+            ) { eksisterendeInnsendinger ->
+                every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns eksisterendeInnsendinger.eksisterendeSkjema
+                every { mockInntektsmeldingRepo.hentNyesteInntektsmelding(any()) } returns eksisterendeInnsendinger.eksisterendeInntektsmelding
                 every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } just Runs
 
                 val nyttInntektsmeldingSkjema = mockSkjemaInntektsmelding()
@@ -94,44 +127,64 @@ class LagreImSkjemaRiverTest :
                 }
             }
         }
-        test("duplikat lagres ikke, men svarer OK") {
-            val nyInntektsmelding = mockSkjemaInntektsmelding()
 
-            val duplikatIm =
-                nyInntektsmelding.copy(
-                    avsenderTlf = "34553399",
-                )
-
-            every { mockInntektsmeldingRepo.hentNyesteInntektsmelding(any()) } returns null
-            every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns duplikatIm
-            every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } just Runs
-
-            val innkommendeMelding = innkommendeMelding(nyInntektsmelding)
-
-            testRapid.sendJson(innkommendeMelding.toMap())
-
-            testRapid.inspektør.size shouldBeExactly 1
-
-            testRapid.firstMessage().toMap() shouldContainExactly
+        context("inntektsmeldingskjema lagres ikke, men svarer OK") {
+            withData(
                 mapOf(
-                    Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                    Key.DATA to
-                        mapOf(
-                            Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
-                            Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.inntektsmeldingSkjema.toJson(SkjemaInntektsmelding.serializer()),
-                            Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
-                        ).toJson(),
-                )
+                    "hvis duplikat av siste inntektsmeldingskjema og ingen inntektsmeldinger er mottatt" to
+                        EksisterendeInnsendinger(
+                            eksisterendeSkjema = rentInntektsmeldingSkjema,
+                            eksisterendeInntektsmelding = null,
+                        ),
+                    "hvis ingen inntektsmeldingskjema mottatt og duplikat av siste inntektsmelding" to
+                        EksisterendeInnsendinger(
+                            eksisterendeSkjema = null,
+                            eksisterendeInntektsmelding = renInntektsmelding,
+                        ),
+                    "hvis duplikat av siste inntektsmeldingskjema og duplikat av siste inntektsmelding" to
+                        EksisterendeInnsendinger(
+                            eksisterendeSkjema = rentInntektsmeldingSkjema,
+                            eksisterendeInntektsmelding = renInntektsmelding,
+                        ),
+                    "hvis duplikat av siste inntektsmeldingskjema men ikke duplikat av siste inntektsmelding" to
+                        EksisterendeInnsendinger(
+                            eksisterendeSkjema = rentInntektsmeldingSkjema,
+                            eksisterendeInntektsmelding = justertInntektsmelding,
+                        ),
+                ),
+            ) { eksisterendeInnsendinger ->
+                every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns eksisterendeInnsendinger.eksisterendeSkjema
+                every { mockInntektsmeldingRepo.hentNyesteInntektsmelding(any()) } returns eksisterendeInnsendinger.eksisterendeInntektsmelding
+                every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } just Runs
 
-            verifySequence {
-                mockInntektsmeldingRepo.hentNyesteInntektsmelding(innkommendeMelding.forespoerselId)
-                mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.forespoerselId)
-            }
-            verify(exactly = 0) {
-                mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(innkommendeMelding.forespoerselId, nyInntektsmelding)
+                val innkommendeMelding = innkommendeMelding(rentInntektsmeldingSkjema)
+
+                testRapid.sendJson(innkommendeMelding.toMap())
+
+                testRapid.inspektør.size shouldBeExactly 1
+
+                testRapid.firstMessage().toMap() shouldContainExactly
+                    mapOf(
+                        Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
+                        Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.DATA to
+                            mapOf(
+                                Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
+                                Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.inntektsmeldingSkjema.toJson(SkjemaInntektsmelding.serializer()),
+                                Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
+                            ).toJson(),
+                    )
+
+                verifySequence {
+                    mockInntektsmeldingRepo.hentNyesteInntektsmelding(innkommendeMelding.forespoerselId)
+                    mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.forespoerselId)
+                }
+                verify(exactly = 0) {
+                    mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(innkommendeMelding.forespoerselId, rentInntektsmeldingSkjema)
+                }
             }
         }
+
         test("håndterer at repo feiler") {
             every { mockInntektsmeldingRepo.hentNyesteInntektsmelding(any()) } returns null
 
@@ -167,9 +220,9 @@ class LagreImSkjemaRiverTest :
         context("ignorerer melding") {
             withData(
                 mapOf(
-                    "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.HENT_VIRKSOMHET_NAVN.toJson()),
-                    "melding med data som flagg" to Pair(Key.DATA, "".toJson()),
-                    "melding med fail" to Pair(Key.FAIL, mockFail.toJson(Fail.serializer())),
+                    "hvis den inneholder uønsket behov" to Pair(Key.BEHOV, BehovType.HENT_VIRKSOMHET_NAVN.toJson()),
+                    "hvis den inneholder data som flagg" to Pair(Key.DATA, "".toJson()),
+                    "hvis den inneholder en fail" to Pair(Key.FAIL, mockFail.toJson(Fail.serializer())),
                 ),
             ) { uoensketKeyMedVerdi ->
                 testRapid.sendJson(
@@ -222,3 +275,8 @@ private val mockFail =
         forespoerselId = UUID.randomUUID(),
         utloesendeMelding = JsonNull,
     )
+
+data class EksisterendeInnsendinger(
+    val eksisterendeSkjema: SkjemaInntektsmelding?,
+    val eksisterendeInntektsmelding: Inntektsmelding?,
+)

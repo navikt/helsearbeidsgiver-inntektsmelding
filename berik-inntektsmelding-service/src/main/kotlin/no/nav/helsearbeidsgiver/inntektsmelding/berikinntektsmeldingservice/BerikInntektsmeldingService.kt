@@ -143,7 +143,10 @@ class BerikInntektsmeldingService(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_LAGRET_IM.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
-                Key.DATA to data.toJson(),
+                Key.DATA to
+                    data
+                        .plus(Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson())
+                        .toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_LAGRET_IM, it) }
     }
 
@@ -230,8 +233,12 @@ class BerikInntektsmeldingService(
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     data
-                        .plus(Key.INNTEKTSMELDING to inntektsmeldingGammeltFormat.toJson(Inntektsmelding.serializer()))
-                        .toJson(),
+                        .plus(
+                            mapOf(
+                                Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
+                                Key.INNTEKTSMELDING to inntektsmeldingGammeltFormat.toJson(Inntektsmelding.serializer()),
+                            ),
+                        ).toJson(),
             ).also { loggBehovPublisert(BehovType.LAGRE_IM, it) }
     }
 

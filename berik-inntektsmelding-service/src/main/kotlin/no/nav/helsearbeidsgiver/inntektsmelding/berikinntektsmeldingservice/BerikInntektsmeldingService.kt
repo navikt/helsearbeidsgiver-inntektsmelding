@@ -84,8 +84,8 @@ class BerikInntektsmeldingService(
         )
 
     override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 {
-        val tidligereInntektsmelding = run { Key.LAGRET_INNTEKTSMELDING.les(ResultJson.serializer(), melding) }
-        val tidligereEksternInntektsmelding = run { Key.EKSTERN_INNTEKTSMELDING.les(ResultJson.serializer(), melding) }
+        val tidligereInntektsmelding = Key.LAGRET_INNTEKTSMELDING.les(ResultJson.serializer(), melding)
+        val tidligereEksternInntektsmelding = Key.EKSTERN_INNTEKTSMELDING.les(ResultJson.serializer(), melding)
 
         val aarsakInnsending =
             if (tidligereInntektsmelding.success == null && tidligereEksternInntektsmelding.success == null) {

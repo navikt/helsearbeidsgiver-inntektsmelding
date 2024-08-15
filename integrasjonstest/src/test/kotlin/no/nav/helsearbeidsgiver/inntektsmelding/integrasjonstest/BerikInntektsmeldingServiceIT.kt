@@ -8,9 +8,7 @@ import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -80,7 +78,6 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             Key.UUID to Mock.transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                     Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
                 ).toJson(),
@@ -92,7 +89,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .filter(Key.FORESPOERSEL_SVAR, nestedData = true)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
-            .verifiserForespoerselId()
+            .verifiserForespoerselIdFraSkjema()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
                 data[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel
@@ -105,7 +102,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .filter(Key.EKSTERN_INNTEKTSMELDING, nestedData = true)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
-            .verifiserForespoerselId()
+            .verifiserForespoerselIdFraSkjema()
             .also {
                 it shouldContainKey Key.DATA
 
@@ -122,7 +119,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .filter(Key.VIRKSOMHETER, nestedData = true)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
-            .verifiserForespoerselId()
+            .verifiserForespoerselIdFraSkjema()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
                 data[Key.VIRKSOMHETER]?.fromJson(orgMapSerializer) shouldBe mapOf(Mock.forespoersel.orgnr.let(::Orgnr) to "Bedrift A/S")
@@ -135,7 +132,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
-            .verifiserForespoerselId()
+            .verifiserForespoerselIdFraSkjema()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
 
@@ -150,7 +147,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .filter(Key.PERSONER, nestedData = true)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
-            .verifiserForespoerselId()
+            .verifiserForespoerselIdFraSkjema()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
 
@@ -234,7 +231,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .filter(Key.FORESPOERSEL_SVAR, nestedData = true)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
-            .verifiserForespoerselId()
+            .verifiserForespoerselIdFraSkjema()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
                 data[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel
@@ -247,7 +244,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .filter(Key.EKSTERN_INNTEKTSMELDING, nestedData = true)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
-            .verifiserForespoerselId()
+            .verifiserForespoerselIdFraSkjema()
             .also {
                 it shouldContainKey Key.DATA
 
@@ -264,7 +261,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .filter(Key.VIRKSOMHETER, nestedData = true)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
-            .verifiserForespoerselId()
+            .verifiserForespoerselIdFraSkjema()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
                 data[Key.VIRKSOMHETER]?.fromJson(orgMapSerializer) shouldBe mapOf(Mock.forespoersel.orgnr.let(::Orgnr) to "Bedrift A/S")
@@ -295,6 +292,13 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             forespoerselId shouldBe Mock.forespoerselId
         }
 
+    private fun Map<Key, JsonElement>.verifiserForespoerselIdFraSkjema(): Map<Key, JsonElement> =
+        also {
+            val data = it[Key.DATA]?.toMap().orEmpty()
+            val skjema = Key.SKJEMA_INNTEKTSMELDING.lesOrNull(SkjemaInntektsmelding.serializer(), data)
+            skjema?.forespoerselId shouldBe Mock.forespoerselId
+        }
+
     private object Mock {
         val fnrAg = Fnr.genererGyldig()
         val orgnr = Orgnr.genererGyldig()
@@ -302,9 +306,9 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         const val SAK_ID = "tjukk-kalender"
         const val OPPGAVE_ID = "kunstig-demon"
 
-        val forespoerselId: UUID = UUID.randomUUID()
-
         val skjema = mockSkjemaInntektsmelding()
+
+        val forespoerselId: UUID = skjema.forespoerselId
 
         val forespoersel =
             Forespoersel(

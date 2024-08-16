@@ -38,7 +38,7 @@ class InntektsmeldingRepository(
         forespoerselId: UUID,
         inntektsmeldingDokument: Inntektsmelding,
     ) {
-        requestLatency.recordTime(label = "lagreInntektsmelding") {
+        requestLatency.recordTime(InntektsmeldingRepository::lagreInntektsmelding) {
             transaction(db) {
                 InntektsmeldingEntitet.insert {
                     it[this.forespoerselId] = forespoerselId.toString()
@@ -54,7 +54,7 @@ class InntektsmeldingRepository(
         inntektsmeldingDokument: Inntektsmelding,
     ) {
         val antallOppdatert =
-            requestLatency.recordTime(label = "oppdaterInntektsmeldingMedDokument") {
+            requestLatency.recordTime(InntektsmeldingRepository::oppdaterInntektsmeldingMedDokument) {
                 transaction(db) {
                     InntektsmeldingEntitet.update(
                         where = {
@@ -86,7 +86,7 @@ class InntektsmeldingRepository(
         forespoerselId: UUID,
         inntektsmeldingSkjema: SkjemaInntektsmelding,
     ) {
-        requestLatency.recordTime(label = "lagreInntektsmeldingSkjema") {
+        requestLatency.recordTime(InntektsmeldingRepository::lagreInntektsmeldingSkjema) {
             transaction(db) {
                 InntektsmeldingEntitet.insert {
                     it[this.forespoerselId] = forespoerselId.toString()
@@ -98,7 +98,7 @@ class InntektsmeldingRepository(
     }
 
     fun hentNyesteInntektsmelding(forespoerselId: UUID): Inntektsmelding? =
-        requestLatency.recordTime(label = "hentNyesteInntektsmelding") {
+        requestLatency.recordTime(InntektsmeldingRepository::hentNyesteInntektsmelding) {
             transaction(db) {
                 hentNyesteImQuery(forespoerselId)
                     .firstOrNull()
@@ -107,7 +107,7 @@ class InntektsmeldingRepository(
         }
 
     fun hentNyesteInntektsmeldingSkjema(forespoerselId: UUID): SkjemaInntektsmelding? =
-        requestLatency.recordTime(label = "hentNyesteInntektsmeldingSkjema") {
+        requestLatency.recordTime(InntektsmeldingRepository::hentNyesteInntektsmeldingSkjema) {
             transaction(db) {
                 hentNyesteImSkjemaQuery(forespoerselId)
                     .firstOrNull()
@@ -116,7 +116,7 @@ class InntektsmeldingRepository(
         }
 
     fun hentNyesteEksternEllerInternInntektsmelding(forespoerselId: UUID): Pair<Inntektsmelding?, EksternInntektsmelding?> =
-        requestLatency.recordTime(label = "hentNyesteInternEllerEkstern") {
+        requestLatency.recordTime(InntektsmeldingRepository::hentNyesteEksternEllerInternInntektsmelding) {
             transaction(db) {
                 InntektsmeldingEntitet
                     .select(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.eksternInntektsmelding)
@@ -136,7 +136,7 @@ class InntektsmeldingRepository(
         forespoerselId: UUID,
         journalpostId: String,
     ) {
-        requestLatency.recordTime(label = "oppdaterJournalpostId") {
+        requestLatency.recordTime(InntektsmeldingRepository::oppdaterJournalpostId) {
             val antallOppdatert =
                 transaction(db) {
                     InntektsmeldingEntitet.update(

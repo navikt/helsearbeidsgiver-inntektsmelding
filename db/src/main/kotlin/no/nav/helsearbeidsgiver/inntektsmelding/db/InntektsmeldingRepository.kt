@@ -49,69 +49,12 @@ class InntektsmeldingRepository(
         }
     }
 
-    fun oppdaterInntektsmeldingMedDokument(
-        forespoerselId: UUID,
-        inntektsmeldingDokument: Inntektsmelding,
-    ) {
-        val antallOppdatert =
-            requestLatency.recordTime(InntektsmeldingRepository::oppdaterInntektsmeldingMedDokument) {
-                transaction(db) {
-                    InntektsmeldingEntitet.update(
-                        where = {
-                            val nyesteImSkjemaIdQuery = hentNyesteImSkjemaQuery(forespoerselId).adjustSelect { select(InntektsmeldingEntitet.id) }
-
-                            (InntektsmeldingEntitet.id eqSubQuery nyesteImSkjemaIdQuery) and
-                                InntektsmeldingEntitet.dokument.isNull()
-                        },
-                    ) {
-                        it[dokument] = inntektsmeldingDokument
-                    }
-                }
-            }
-
-        if (antallOppdatert == 1) {
-            "Lagret inntektsmelding for forespørsel-ID $forespoerselId i database.".also {
-                logger.info(it)
-                sikkerLogger.info(it)
-            }
-        } else {
-            "Oppdaterte uventet antall ($antallOppdatert) rader ved lagring av inntektsmelding med forespørsel-ID $forespoerselId.".also {
-                logger.error(it)
-                sikkerLogger.error(it)
-            }
-        }
-    }
-
-    fun lagreInntektsmeldingSkjema(
-        forespoerselId: UUID,
-        inntektsmeldingSkjema: SkjemaInntektsmelding,
-    ) {
-        requestLatency.recordTime(InntektsmeldingRepository::lagreInntektsmeldingSkjema) {
-            transaction(db) {
-                InntektsmeldingEntitet.insert {
-                    it[this.forespoerselId] = forespoerselId.toString()
-                    it[skjema] = inntektsmeldingSkjema
-                    it[innsendt] = LocalDateTime.now()
-                }
-            }
-        }
-    }
-
     fun hentNyesteInntektsmelding(forespoerselId: UUID): Inntektsmelding? =
         requestLatency.recordTime(InntektsmeldingRepository::hentNyesteInntektsmelding) {
             transaction(db) {
                 hentNyesteImQuery(forespoerselId)
                     .firstOrNull()
                     ?.getOrNull(InntektsmeldingEntitet.dokument)
-            }
-        }
-
-    fun hentNyesteInntektsmeldingSkjema(forespoerselId: UUID): SkjemaInntektsmelding? =
-        requestLatency.recordTime(InntektsmeldingRepository::hentNyesteInntektsmeldingSkjema) {
-            transaction(db) {
-                hentNyesteImSkjemaQuery(forespoerselId)
-                    .firstOrNull()
-                    ?.getOrNull(InntektsmeldingEntitet.skjema)
             }
         }
 
@@ -174,6 +117,63 @@ class InntektsmeldingRepository(
                 it[this.forespoerselId] = forespoerselId.toString()
                 it[eksternInntektsmelding] = eksternIm
                 it[innsendt] = LocalDateTime.now()
+            }
+        }
+    }
+
+    fun lagreInntektsmeldingSkjema(
+        forespoerselId: UUID,
+        inntektsmeldingSkjema: SkjemaInntektsmelding,
+    ) {
+        requestLatency.recordTime(InntektsmeldingRepository::lagreInntektsmeldingSkjema) {
+            transaction(db) {
+                InntektsmeldingEntitet.insert {
+                    it[this.forespoerselId] = forespoerselId.toString()
+                    it[skjema] = inntektsmeldingSkjema
+                    it[innsendt] = LocalDateTime.now()
+                }
+            }
+        }
+    }
+
+    fun hentNyesteInntektsmeldingSkjema(forespoerselId: UUID): SkjemaInntektsmelding? =
+        requestLatency.recordTime(InntektsmeldingRepository::hentNyesteInntektsmeldingSkjema) {
+            transaction(db) {
+                hentNyesteImSkjemaQuery(forespoerselId)
+                    .firstOrNull()
+                    ?.getOrNull(InntektsmeldingEntitet.skjema)
+            }
+        }
+
+    fun oppdaterInntektsmeldingMedDokument(
+        forespoerselId: UUID,
+        inntektsmeldingDokument: Inntektsmelding,
+    ) {
+        val antallOppdatert =
+            requestLatency.recordTime(InntektsmeldingRepository::oppdaterInntektsmeldingMedDokument) {
+                transaction(db) {
+                    InntektsmeldingEntitet.update(
+                        where = {
+                            val nyesteImSkjemaIdQuery = hentNyesteImSkjemaQuery(forespoerselId).adjustSelect { select(InntektsmeldingEntitet.id) }
+
+                            (InntektsmeldingEntitet.id eqSubQuery nyesteImSkjemaIdQuery) and
+                                InntektsmeldingEntitet.dokument.isNull()
+                        },
+                    ) {
+                        it[dokument] = inntektsmeldingDokument
+                    }
+                }
+            }
+
+        if (antallOppdatert == 1) {
+            "Lagret inntektsmelding for forespørsel-ID $forespoerselId i database.".also {
+                logger.info(it)
+                sikkerLogger.info(it)
+            }
+        } else {
+            "Oppdaterte uventet antall ($antallOppdatert) rader ved lagring av inntektsmelding med forespørsel-ID $forespoerselId.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
             }
         }
     }

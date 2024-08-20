@@ -54,19 +54,11 @@ class LagreImRiver(
 
     override fun LagreImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val nyesteIm = imRepo.hentNyesteInntektsmelding(forespoerselId)
-        val nyesteImSkjema = imRepo.hentNyesteInntektsmeldingSkjema(forespoerselId)
 
-        val erDuplikatAvNyesteIm = nyesteIm?.erDuplikatAv(inntektsmelding) ?: false
+        val erDuplikat = nyesteIm?.erDuplikatAv(inntektsmelding) ?: false
 
-        // Dersom det finnes et nyere skjema med samme forespørsel-ID som *ikke* er lik inntektsmeldingen vi forsøker å lagre,
-        // så har det blitt sendt inn en nyere utgave av denne inntektsmeldingen, og den skal derfor ikke lagres.
-        val erDuplikatAvNyesteImSkjema = nyesteImSkjema?.let { inntektsmelding.erDuplikatAv(it) }
-        val erUtdatertIm = erDuplikatAvNyesteImSkjema == false
-
-        if (erDuplikatAvNyesteIm) {
+        if (erDuplikat) {
             sikkerLogger.warn("Fant duplikat av inntektsmelding.")
-        } else if (erUtdatertIm) {
-            sikkerLogger.warn("Fant en nyere utgave av inntektsmelding.")
         } else {
             imRepo.oppdaterInntektsmeldingMedDokument(forespoerselId, inntektsmelding)
             sikkerLogger.info("Lagret inntektsmelding.")
@@ -79,8 +71,7 @@ class LagreImRiver(
                 data
                     .plus(
                         mapOf(
-                            Key.ER_DUPLIKAT_IM to erDuplikatAvNyesteIm.toJson(Boolean.serializer()),
-                            Key.ER_UTDATERT_IM to erUtdatertIm.toJson(Boolean.serializer()),
+                            Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer()),
                         ),
                     ).toJson(),
         )

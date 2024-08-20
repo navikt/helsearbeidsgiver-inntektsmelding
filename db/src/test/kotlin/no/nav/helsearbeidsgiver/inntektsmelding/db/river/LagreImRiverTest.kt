@@ -62,7 +62,6 @@ class LagreImRiverTest :
                         ),
                 ),
             ) { eksisterendeInnsendinger ->
-                every { mockImRepo.hentNyesteInntektsmeldingSkjema(any()) } returns eksisterendeInnsendinger.eksisterendeSkjema
                 every { mockImRepo.hentNyesteInntektsmelding(any()) } returns eksisterendeInnsendinger.eksisterendeInntektsmelding
                 every { mockImRepo.oppdaterInntektsmeldingMedDokument(any(), any()) } just Runs
 
@@ -83,13 +82,11 @@ class LagreImRiverTest :
                                 Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
                                 Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
                                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
-                                Key.ER_UTDATERT_IM to false.toJson(Boolean.serializer()),
                             ).toJson(),
                     )
 
                 verifySequence {
                     mockImRepo.hentNyesteInntektsmelding(innkommendeMelding.forespoerselId)
-                    mockImRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.forespoerselId)
                     mockImRepo.oppdaterInntektsmeldingMedDokument(innkommendeMelding.forespoerselId, nyInntektsmelding)
                 }
             }
@@ -106,7 +103,6 @@ class LagreImRiverTest :
                     tidspunkt = nyInntektsmelding.tidspunkt.minusDays(14),
                 )
 
-            every { mockImRepo.hentNyesteInntektsmeldingSkjema(any()) } returns null
             every { mockImRepo.hentNyesteInntektsmelding(any()) } returns duplikatIm
             every { mockImRepo.oppdaterInntektsmeldingMedDokument(any(), any()) } just Runs
 
@@ -125,13 +121,11 @@ class LagreImRiverTest :
                             Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
                             Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
                             Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
-                            Key.ER_UTDATERT_IM to false.toJson(Boolean.serializer()),
                         ).toJson(),
                 )
 
             verifySequence {
                 mockImRepo.hentNyesteInntektsmelding(innkommendeMelding.forespoerselId)
-                mockImRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.forespoerselId)
             }
             verify(exactly = 0) {
                 mockImRepo.oppdaterInntektsmeldingMedDokument(innkommendeMelding.forespoerselId, nyInntektsmelding)

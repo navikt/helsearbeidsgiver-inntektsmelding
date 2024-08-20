@@ -61,7 +61,6 @@ data class Steg4(
 data class Steg5(
     val inntektsmelding: Inntektsmelding,
     val erDuplikat: Boolean,
-    val erUtdatert: Boolean,
 )
 
 class BerikInntektsmeldingService(
@@ -116,7 +115,6 @@ class BerikInntektsmeldingService(
         Steg5(
             inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), melding),
             erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
-            erUtdatert = Key.ER_UTDATERT_IM.les(Boolean.serializer(), melding),
         )
 
     override fun utfoerSteg0(
@@ -253,7 +251,7 @@ class BerikInntektsmeldingService(
         steg4: Steg4,
         steg5: Steg5,
     ) {
-        if (!steg5.erDuplikat && !steg5.erUtdatert) {
+        if (!steg5.erDuplikat) {
             val publisert =
                 rapid.publish(
                     Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),

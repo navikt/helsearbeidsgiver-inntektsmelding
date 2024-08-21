@@ -43,15 +43,6 @@ class InntektsmeldingRepository(
             }
         }
 
-    fun hentNyesteBerikedeInnsendingId(forespoerselId: UUID): Long? =
-        requestLatency.recordTime(InntektsmeldingRepository::hentNyesteBerikedeInnsendingId) {
-            transaction(db) {
-                hentNyesteImQuery(forespoerselId)
-                    .firstOrNull()
-                    ?.getOrNull(InntektsmeldingEntitet.id)
-            }
-        }
-
     fun hentNyesteEksternEllerInternInntektsmelding(forespoerselId: UUID): Pair<Inntektsmelding?, EksternInntektsmelding?> =
         requestLatency.recordTime(InntektsmeldingRepository::hentNyesteEksternEllerInternInntektsmelding) {
             transaction(db) {
@@ -109,6 +100,15 @@ class InntektsmeldingRepository(
             }
         }
     }
+
+    fun hentNyesteBerikedeInnsendingId(forespoerselId: UUID): Long? =
+        requestLatency.recordTime(InntektsmeldingRepository::hentNyesteBerikedeInnsendingId) {
+            transaction(db) {
+                hentNyesteImQuery(forespoerselId)
+                    .firstOrNull()
+                    ?.getOrNull(InntektsmeldingEntitet.id)
+            }
+        }
 
     fun lagreInntektsmeldingSkjema(
         forespoerselId: UUID,

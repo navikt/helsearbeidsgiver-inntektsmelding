@@ -57,7 +57,7 @@ class LagreImRiver(
     override fun LagreImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val nyesteIm = imRepo.hentNyesteInntektsmelding(forespoerselId)
 
-        // TODO: Vi tror at denne duplikatsjekken kan fjernes helt etter at vi har gått i prod med den nye Innsending-flyten
+        // TODO: Fjernes etter at vi har gått i prod med den nye innsending-flyten
         val erDuplikat = nyesteIm?.erDuplikatAv(inntektsmelding) ?: false
 
         if (erDuplikat) {

@@ -82,6 +82,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                    Key.INNSENDING_ID to Mock.INNSENDING_ID.toJson(Long.serializer()),
                 ).toJson(),
         )
 
@@ -221,9 +222,9 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             Key.UUID to Mock.transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                     Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                    Key.INNSENDING_ID to Mock.INNSENDING_ID.toJson(Long.serializer()),
                 ).toJson(),
         )
 
@@ -307,6 +308,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         val transaksjonId: UUID = UUID.randomUUID()
         const val SAK_ID = "tjukk-kalender"
         const val OPPGAVE_ID = "kunstig-demon"
+        const val INNSENDING_ID = 1L
 
         val skjema = mockSkjemaInntektsmelding()
 

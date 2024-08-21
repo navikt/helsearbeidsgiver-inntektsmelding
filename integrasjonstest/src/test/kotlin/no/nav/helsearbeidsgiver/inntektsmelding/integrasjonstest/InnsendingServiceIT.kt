@@ -106,6 +106,10 @@ class InnsendingServiceIT : EndToEndTest() {
                     data[Key.SKJEMA_INNTEKTSMELDING]
                         .shouldNotBeNull()
                         .fromJson(SkjemaInntektsmelding.serializer())
+
+                    data[Key.INNSENDING_ID]
+                        .shouldNotBeNull()
+                        .fromJson(Long.serializer())
                 }
             }
 

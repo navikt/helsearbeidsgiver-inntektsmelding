@@ -34,21 +34,6 @@ class InntektsmeldingRepository(
             .labelNames("method")
             .register()
 
-    fun lagreInntektsmelding(
-        forespoerselId: UUID,
-        inntektsmeldingDokument: Inntektsmelding,
-    ) {
-        requestLatency.recordTime(InntektsmeldingRepository::lagreInntektsmelding) {
-            transaction(db) {
-                InntektsmeldingEntitet.insert {
-                    it[this.forespoerselId] = forespoerselId.toString()
-                    it[dokument] = inntektsmeldingDokument
-                    it[innsendt] = LocalDateTime.now()
-                }
-            }
-        }
-    }
-
     fun hentNyesteInntektsmelding(forespoerselId: UUID): Inntektsmelding? =
         requestLatency.recordTime(InntektsmeldingRepository::hentNyesteInntektsmelding) {
             transaction(db) {

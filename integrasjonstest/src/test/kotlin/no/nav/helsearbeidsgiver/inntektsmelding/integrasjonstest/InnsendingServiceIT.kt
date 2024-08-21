@@ -28,6 +28,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.mars
+import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -45,7 +46,8 @@ class InnsendingServiceIT : EndToEndTest() {
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.orgnr.verdi)
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
-        imRepository.lagreInntektsmelding(Mock.forespoerselId, tidligereInntektsmelding)
+        val innsendingId = imRepository.lagreInntektsmeldingSkjema(Mock.forespoerselId, Mock.skjema)
+        imRepository.oppdaterMedBeriketDokument(Mock.forespoerselId, innsendingId, tidligereInntektsmelding)
 
         mockForespoerselSvarFraHelsebro(
             forespoerselId = Mock.forespoerselId,
@@ -62,6 +64,19 @@ class InnsendingServiceIT : EndToEndTest() {
                 dokumenter = emptyList(),
             )
 
+        val nyInnsending =
+            Mock.skjema.let {
+                it.copy(
+                    agp =
+                        it.agp?.copy(
+                            egenmeldinger =
+                                listOf(
+                                    6.oktober til 11.oktober,
+                                ),
+                        ),
+                )
+            }
+
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
@@ -69,7 +84,7 @@ class InnsendingServiceIT : EndToEndTest() {
                 mapOf(
                     Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                     Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
-                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjemaInntektsmelding.toJson(SkjemaInntektsmelding.serializer()),
+                    Key.SKJEMA_INNTEKTSMELDING to nyInnsending.toJson(SkjemaInntektsmelding.serializer()),
                 ).toJson(),
         )
 
@@ -151,11 +166,11 @@ class InnsendingServiceIT : EndToEndTest() {
         const val SAK_ID = "tjukk-kalender"
         const val OPPGAVE_ID = "kunstig-demon"
 
-        val skjemaInntektsmelding = mockSkjemaInntektsmelding()
+        val skjema = mockSkjemaInntektsmelding()
 
         val orgnr = Orgnr.genererGyldig()
         val fnrAg = Fnr.genererGyldig()
-        val forespoerselId: UUID = skjemaInntektsmelding.forespoerselId
+        val forespoerselId: UUID = skjema.forespoerselId
         val vedtaksperiodeId: UUID = UUID.randomUUID()
 
         val forespoerselSvar =

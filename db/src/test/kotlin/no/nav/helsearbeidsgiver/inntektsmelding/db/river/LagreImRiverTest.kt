@@ -154,7 +154,7 @@ class LagreImRiverTest :
                 mockImRepo.hentNyesteInntektsmelding(any())
             }
             verify(exactly = 0) {
-                mockImRepo.lagreInntektsmelding(any(), any())
+                mockImRepo.oppdaterMedBeriketDokument(any(), any(), any())
             }
         }
 
@@ -176,7 +176,7 @@ class LagreImRiverTest :
 
                 verify(exactly = 0) {
                     mockImRepo.hentNyesteInntektsmelding(any())
-                    mockImRepo.lagreInntektsmelding(any(), any())
+                    mockImRepo.oppdaterMedBeriketDokument(any(), any(), any())
                 }
             }
         }

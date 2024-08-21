@@ -10,7 +10,8 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingGammeltFormat
+import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -33,7 +34,8 @@ class KvitteringIT : EndToEndTest() {
         val forespoerselId = UUID.randomUUID()
 
         forespoerselRepository.lagreForespoersel(forespoerselId.toString(), Mock.orgnr)
-        imRepository.lagreInntektsmelding(forespoerselId, mockInntektsmelding())
+        val innsendingId = imRepository.lagreInntektsmeldingSkjema(forespoerselId, mockSkjemaInntektsmelding())
+        imRepository.oppdaterMedBeriketDokument(forespoerselId, innsendingId, mockInntektsmeldingGammeltFormat())
 
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),

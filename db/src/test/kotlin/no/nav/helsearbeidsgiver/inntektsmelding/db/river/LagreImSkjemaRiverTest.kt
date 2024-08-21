@@ -96,41 +96,35 @@ class LagreImSkjemaRiverTest :
             }
         }
 
-        context("inntektsmeldingskjema lagres ikke, men svarer OK") {
-            withData(
+        test("inntektsmeldingskjema lagres ikke, men svarer OK hvis skjema er duplikat av siste inntektsmeldingskjema") {
+            val innsendingId = 1L
+            every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns rentInntektsmeldingSkjema
+            every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } returns innsendingId
+
+            val innkommendeMelding = innkommendeMelding(rentInntektsmeldingSkjema)
+
+            testRapid.sendJson(innkommendeMelding.toMap())
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
-                    "hvis skjema er duplikat av siste inntektsmeldingskjema" to rentInntektsmeldingSkjema,
-                ),
-            ) { eksisterendeInntektsmeldingSkjema ->
-                val innsendingId = 1L
-                every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns eksisterendeInntektsmeldingSkjema
-                every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } returns innsendingId
+                    Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
+                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
+                            Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.inntektsmeldingSkjema.toJson(SkjemaInntektsmelding.serializer()),
+                            Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
+                            Key.INNSENDING_ID to (-1L).toJson(Long.serializer()),
+                        ).toJson(),
+                )
 
-                val innkommendeMelding = innkommendeMelding(rentInntektsmeldingSkjema)
-
-                testRapid.sendJson(innkommendeMelding.toMap())
-
-                testRapid.inspektør.size shouldBeExactly 1
-
-                testRapid.firstMessage().toMap() shouldContainExactly
-                    mapOf(
-                        Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                        Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                        Key.DATA to
-                            mapOf(
-                                Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
-                                Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.inntektsmeldingSkjema.toJson(SkjemaInntektsmelding.serializer()),
-                                Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
-                                Key.INNSENDING_ID to (-1L).toJson(Long.serializer()),
-                            ).toJson(),
-                    )
-
-                verifySequence {
-                    mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.forespoerselId)
-                }
-                verify(exactly = 0) {
-                    mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(innkommendeMelding.forespoerselId, rentInntektsmeldingSkjema)
-                }
+            verifySequence {
+                mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.forespoerselId)
+            }
+            verify(exactly = 0) {
+                mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(innkommendeMelding.forespoerselId, rentInntektsmeldingSkjema)
             }
         }
 

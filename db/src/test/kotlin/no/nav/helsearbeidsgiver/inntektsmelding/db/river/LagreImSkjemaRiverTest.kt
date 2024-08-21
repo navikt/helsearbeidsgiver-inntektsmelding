@@ -23,7 +23,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingGammeltFormat
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -59,44 +58,16 @@ class LagreImSkjemaRiverTest :
                 )
             }
 
-        val renInntektsmelding = mockInntektsmeldingGammeltFormat()
-        val justertInntektsmelding =
-            renInntektsmelding
-                .copy(egenmeldingsperioder = listOf(13.juli til 31.juli))
-
         context("inntektsmeldingskjema lagres") {
             withData(
                 mapOf(
-                    "hvis ingen andre inntektsmeldingskjemaer eller inntektsmeldinger er mottatt" to
-                        EksisterendeInnsendinger(
-                            eksisterendeSkjema = null,
-                            eksisterendeInntektsmelding = null,
-                        ),
-                    "hvis ikke duplikat av siste inntektsmeldingskjema og ingen inntektsmeldinger er mottatt" to
-                        EksisterendeInnsendinger(
-                            eksisterendeSkjema = justertInntektsmeldingSkjema,
-                            eksisterendeInntektsmelding = null,
-                        ),
-                    "hvis ingen inntektsmeldingskjema mottatt og ikke duplikat av siste inntektsmelding" to
-                        EksisterendeInnsendinger(
-                            eksisterendeSkjema = null,
-                            eksisterendeInntektsmelding = justertInntektsmelding,
-                        ),
-                    "hvis ikke duplikat av siste inntektsmeldingskjema og heller ikke duplikat av siste inntektsmelding" to
-                        EksisterendeInnsendinger(
-                            eksisterendeSkjema = justertInntektsmeldingSkjema,
-                            eksisterendeInntektsmelding = justertInntektsmelding,
-                        ),
-                    "hvis ikke duplikat av siste inntektsmeldingskjema selv om den er duplikat av siste inntektsmelding" to
-                        EksisterendeInnsendinger(
-                            eksisterendeSkjema = justertInntektsmeldingSkjema,
-                            eksisterendeInntektsmelding = renInntektsmelding,
-                        ),
+                    "hvis ingen andre inntektsmeldingskjemaer er mottatt" to null,
+                    "hvis ikke duplikat av siste inntektsmeldingskjema" to justertInntektsmeldingSkjema,
                 ),
-            ) { eksisterendeInnsendinger ->
-                every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns eksisterendeInnsendinger.eksisterendeSkjema
-                every { mockInntektsmeldingRepo.hentNyesteInntektsmelding(any()) } returns eksisterendeInnsendinger.eksisterendeInntektsmelding
-                every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } returns 4
+            ) { eksisterendeInntektsmeldingskjema ->
+                val innsendingId = 1L
+                every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns eksisterendeInntektsmeldingskjema
+                every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } returns innsendingId
 
                 val nyttInntektsmeldingSkjema = mockSkjemaInntektsmelding()
 
@@ -115,11 +86,11 @@ class LagreImSkjemaRiverTest :
                                 Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
                                 Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.inntektsmeldingSkjema.toJson(SkjemaInntektsmelding.serializer()),
                                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
+                                Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
                             ).toJson(),
                     )
 
                 verifySequence {
-                    mockInntektsmeldingRepo.hentNyesteInntektsmelding(innkommendeMelding.forespoerselId)
                     mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.forespoerselId)
                     mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(innkommendeMelding.forespoerselId, nyttInntektsmeldingSkjema)
                 }
@@ -129,31 +100,12 @@ class LagreImSkjemaRiverTest :
         context("inntektsmeldingskjema lagres ikke, men svarer OK") {
             withData(
                 mapOf(
-                    "hvis duplikat av siste inntektsmeldingskjema og ingen inntektsmeldinger er mottatt" to
-                        EksisterendeInnsendinger(
-                            eksisterendeSkjema = rentInntektsmeldingSkjema,
-                            eksisterendeInntektsmelding = null,
-                        ),
-                    "hvis ingen inntektsmeldingskjema mottatt og duplikat av siste inntektsmelding" to
-                        EksisterendeInnsendinger(
-                            eksisterendeSkjema = null,
-                            eksisterendeInntektsmelding = renInntektsmelding,
-                        ),
-                    "hvis duplikat av siste inntektsmeldingskjema og duplikat av siste inntektsmelding" to
-                        EksisterendeInnsendinger(
-                            eksisterendeSkjema = rentInntektsmeldingSkjema,
-                            eksisterendeInntektsmelding = renInntektsmelding,
-                        ),
-                    "hvis duplikat av siste inntektsmeldingskjema men ikke duplikat av siste inntektsmelding" to
-                        EksisterendeInnsendinger(
-                            eksisterendeSkjema = rentInntektsmeldingSkjema,
-                            eksisterendeInntektsmelding = justertInntektsmelding,
-                        ),
+                    "hvis skjema er duplikat av siste inntektsmeldingskjema" to rentInntektsmeldingSkjema,
                 ),
-            ) { eksisterendeInnsendinger ->
-                every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns eksisterendeInnsendinger.eksisterendeSkjema
-                every { mockInntektsmeldingRepo.hentNyesteInntektsmelding(any()) } returns eksisterendeInnsendinger.eksisterendeInntektsmelding
-                every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } returns 4
+            ) { eksisterendeInntektsmeldingSkjema ->
+                val innsendingId = 1L
+                every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns eksisterendeInntektsmeldingSkjema
+                every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } returns innsendingId
 
                 val innkommendeMelding = innkommendeMelding(rentInntektsmeldingSkjema)
 
@@ -170,11 +122,11 @@ class LagreImSkjemaRiverTest :
                                 Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
                                 Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.inntektsmeldingSkjema.toJson(SkjemaInntektsmelding.serializer()),
                                 Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
+                                Key.INNSENDING_ID to (-1L).toJson(Long.serializer()),
                             ).toJson(),
                     )
 
                 verifySequence {
-                    mockInntektsmeldingRepo.hentNyesteInntektsmelding(innkommendeMelding.forespoerselId)
                     mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.forespoerselId)
                 }
                 verify(exactly = 0) {
@@ -208,7 +160,6 @@ class LagreImSkjemaRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             verifySequence {
-                mockInntektsmeldingRepo.hentNyesteInntektsmelding(any())
                 mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any())
             }
             verify(exactly = 0) {
@@ -233,7 +184,6 @@ class LagreImSkjemaRiverTest :
 
                 verify(exactly = 0) {
                     mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any())
-                    mockInntektsmeldingRepo.hentNyesteInntektsmelding(any())
                     mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any())
                 }
             }

@@ -52,15 +52,9 @@ class LagreImSkjemaRiver(
         }
 
     override fun LagreImSkjemaMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        val sisteIm = repository.hentNyesteInntektsmelding(forespoerselId)
         val sisteImSkjema = repository.hentNyesteInntektsmeldingSkjema(forespoerselId)
 
-        val erDuplikat =
-            when {
-                sisteImSkjema != null -> sisteImSkjema.erDuplikatAv(inntektsmeldingSkjema)
-                sisteIm != null -> sisteIm.erDuplikatAv(inntektsmeldingSkjema) // TODO: Fjerne
-                else -> false
-            }
+        val erDuplikat = sisteImSkjema?.erDuplikatAv(inntektsmeldingSkjema) ?: false
 
         val innsendingId =
             if (erDuplikat) {

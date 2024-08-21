@@ -38,6 +38,7 @@ data class Steg0(
     val transaksjonId: UUID,
     val avsenderFnr: Fnr,
     val skjema: SkjemaInntektsmelding,
+    val innsendingId: Long,
 )
 
 data class Steg1(
@@ -76,6 +77,7 @@ class BerikInntektsmeldingService(
             transaksjonId = Key.UUID.les(UuidSerializer, melding),
             avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
             skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding),
+            innsendingId = Key.INNSENDING_ID.les(Long.serializer(), melding),
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
@@ -237,6 +239,7 @@ class BerikInntektsmeldingService(
                             mapOf(
                                 Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
                                 Key.INNTEKTSMELDING to inntektsmeldingGammeltFormat.toJson(Inntektsmelding.serializer()),
+                                Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
                             ),
                         ).toJson(),
             ).also { loggBehovPublisert(BehovType.LAGRE_IM, it) }
@@ -258,6 +261,7 @@ class BerikInntektsmeldingService(
                     Key.UUID to steg0.transaksjonId.toJson(),
                     Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
                     Key.INNTEKTSMELDING_DOKUMENT to steg5.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                    Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
                 )
 
             MdcUtils.withLogFields(

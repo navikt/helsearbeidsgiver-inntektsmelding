@@ -4,10 +4,8 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
-import io.mockk.Runs
 import io.mockk.clearAllMocks
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
@@ -98,7 +96,7 @@ class LagreImSkjemaRiverTest :
             ) { eksisterendeInnsendinger ->
                 every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns eksisterendeInnsendinger.eksisterendeSkjema
                 every { mockInntektsmeldingRepo.hentNyesteInntektsmelding(any()) } returns eksisterendeInnsendinger.eksisterendeInntektsmelding
-                every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } just Runs
+                every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } returns 4
 
                 val nyttInntektsmeldingSkjema = mockSkjemaInntektsmelding()
 
@@ -155,7 +153,7 @@ class LagreImSkjemaRiverTest :
             ) { eksisterendeInnsendinger ->
                 every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns eksisterendeInnsendinger.eksisterendeSkjema
                 every { mockInntektsmeldingRepo.hentNyesteInntektsmelding(any()) } returns eksisterendeInnsendinger.eksisterendeInntektsmelding
-                every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } just Runs
+                every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } returns 4
 
                 val innkommendeMelding = innkommendeMelding(rentInntektsmeldingSkjema)
 

@@ -51,6 +51,7 @@ enum class Key(
     SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
     EKSTERN_INNTEKTSMELDING("eksternInntektsmelding"),
     ER_DUPLIKAT_IM("er_duplikat_im"),
+    INNSENDING_ID("innsending_id"),
     ;
 
     override fun toString(): String = str

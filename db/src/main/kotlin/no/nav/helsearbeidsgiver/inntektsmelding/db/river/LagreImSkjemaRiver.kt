@@ -58,23 +58,29 @@ class LagreImSkjemaRiver(
         val erDuplikat =
             when {
                 sisteImSkjema != null -> sisteImSkjema.erDuplikatAv(inntektsmeldingSkjema)
-                sisteIm != null -> sisteIm.erDuplikatAv(inntektsmeldingSkjema)
+                sisteIm != null -> sisteIm.erDuplikatAv(inntektsmeldingSkjema) // TODO: Fjerne
                 else -> false
             }
 
-        if (erDuplikat) {
-            sikkerLogger.warn("Fant duplikat av inntektsmeldingskjema.")
-        } else {
-            repository.lagreInntektsmeldingSkjema(forespoerselId, inntektsmeldingSkjema)
-            sikkerLogger.info("Lagret inntektsmeldingskjema.")
-        }
+        val innsendingId =
+            if (erDuplikat) {
+                sikkerLogger.warn("Fant duplikat av inntektsmeldingskjema.")
+                -1 // TODO: Hva skal vi sette denne til når vi får et duplikat skjema inn?
+            } else {
+                repository.lagreInntektsmeldingSkjema(forespoerselId, inntektsmeldingSkjema).also {
+                    sikkerLogger.info("Lagret inntektsmeldingskjema.")
+                }
+            }
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to
                 data
                     .plus(
-                        Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer()),
+                        mapOf(
+                            Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer()),
+                            Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
+                        ),
                     ).toJson(),
         )
     }

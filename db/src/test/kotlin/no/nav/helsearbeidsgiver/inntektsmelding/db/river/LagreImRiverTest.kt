@@ -63,7 +63,7 @@ class LagreImRiverTest :
                 ),
             ) { eksisterendeInnsendinger ->
                 every { mockImRepo.hentNyesteInntektsmelding(any()) } returns eksisterendeInnsendinger.eksisterendeInntektsmelding
-                every { mockImRepo.oppdaterInntektsmeldingMedDokument(any(), any()) } just Runs
+                every { mockImRepo.oppdaterInntektsmeldingMedDokument(any(), any(), any()) } just Runs
 
                 val nyInntektsmelding = mockInntektsmelding()
 
@@ -87,7 +87,7 @@ class LagreImRiverTest :
 
                 verifySequence {
                     mockImRepo.hentNyesteInntektsmelding(innkommendeMelding.forespoerselId)
-                    mockImRepo.oppdaterInntektsmeldingMedDokument(innkommendeMelding.forespoerselId, nyInntektsmelding)
+                    mockImRepo.oppdaterInntektsmeldingMedDokument(innkommendeMelding.forespoerselId, 1L, nyInntektsmelding)
                 }
             }
         }
@@ -104,7 +104,7 @@ class LagreImRiverTest :
                 )
 
             every { mockImRepo.hentNyesteInntektsmelding(any()) } returns duplikatIm
-            every { mockImRepo.oppdaterInntektsmeldingMedDokument(any(), any()) } just Runs
+            every { mockImRepo.oppdaterInntektsmeldingMedDokument(any(), any(), any()) } just Runs
 
             val innkommendeMelding = innkommendeMelding(nyInntektsmelding)
 
@@ -128,7 +128,7 @@ class LagreImRiverTest :
                 mockImRepo.hentNyesteInntektsmelding(innkommendeMelding.forespoerselId)
             }
             verify(exactly = 0) {
-                mockImRepo.oppdaterInntektsmeldingMedDokument(innkommendeMelding.forespoerselId, nyInntektsmelding)
+                mockImRepo.oppdaterInntektsmeldingMedDokument(innkommendeMelding.forespoerselId, 1L, nyInntektsmelding)
             }
         }
 
@@ -200,6 +200,7 @@ private fun innkommendeMelding(inntektsmelding: Inntektsmelding = mockInntektsme
             ),
         forespoerselId = forespoerselId,
         inntektsmelding = inntektsmelding,
+        innsendingId = 1L,
     )
 }
 

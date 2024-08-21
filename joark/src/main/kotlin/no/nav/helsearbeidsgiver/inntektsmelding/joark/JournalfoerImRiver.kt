@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender
@@ -101,6 +102,7 @@ class JournalfoerImRiver(
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
             Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
+            Key.INNSENDING_ID to json[Key.INNSENDING_ID],
         ).mapValuesNotNull { it }
             .also {
                 MdcUtils.withLogFields(

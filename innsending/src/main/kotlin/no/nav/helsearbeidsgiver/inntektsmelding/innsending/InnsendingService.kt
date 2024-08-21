@@ -35,6 +35,7 @@ data class Steg0(
 
 data class Steg1(
     val erDuplikat: Boolean,
+    val innsendingId: Long,
 )
 
 class InnsendingService(
@@ -58,6 +59,7 @@ class InnsendingService(
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
         Steg1(
             erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
+            innsendingId = Key.INNSENDING_ID.les(Long.serializer(), melding),
         )
 
     override fun utfoerSteg0(
@@ -99,6 +101,7 @@ class InnsendingService(
                             mapOf(
                                 Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
                                 Key.SKJEMA_INNTEKTSMELDING to steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                                Key.INNSENDING_ID to steg1.innsendingId.toJson(Long.serializer()),
                             ).toJson(),
                     )
 

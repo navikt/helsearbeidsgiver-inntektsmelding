@@ -58,6 +58,15 @@ class InntektsmeldingRepository(
             }
         }
 
+    fun hentNyesteInnsendingId(forespoerselId: UUID): Long? =
+        requestLatency.recordTime(InntektsmeldingRepository::hentNyesteInntektsmelding) {
+            transaction(db) {
+                hentNyesteImQuery(forespoerselId)
+                    .firstOrNull()
+                    ?.getOrNull(InntektsmeldingEntitet.id)
+            }
+        }
+
     fun hentNyesteEksternEllerInternInntektsmelding(forespoerselId: UUID): Pair<Inntektsmelding?, EksternInntektsmelding?> =
         requestLatency.recordTime(InntektsmeldingRepository::hentNyesteEksternEllerInternInntektsmelding) {
             transaction(db) {
@@ -76,19 +85,14 @@ class InntektsmeldingRepository(
         }
 
     fun oppdaterJournalpostId(
-        forespoerselId: UUID,
+        innsendingId: Long,
         journalpostId: String,
     ) {
         requestLatency.recordTime(InntektsmeldingRepository::oppdaterJournalpostId) {
             val antallOppdatert =
                 transaction(db) {
                     InntektsmeldingEntitet.update(
-                        where = {
-                            val nyesteImIdQuery = hentNyesteImQuery(forespoerselId).adjustSelect { select(InntektsmeldingEntitet.id) }
-
-                            (InntektsmeldingEntitet.id eqSubQuery nyesteImIdQuery) and
-                                InntektsmeldingEntitet.journalpostId.isNull()
-                        },
+                        where = { InntektsmeldingEntitet.id eq innsendingId },
                     ) {
                         it[InntektsmeldingEntitet.journalpostId] = journalpostId
                     }
@@ -124,17 +128,16 @@ class InntektsmeldingRepository(
     fun lagreInntektsmeldingSkjema(
         forespoerselId: UUID,
         inntektsmeldingSkjema: SkjemaInntektsmelding,
-    ) {
+    ): Long =
         requestLatency.recordTime(InntektsmeldingRepository::lagreInntektsmeldingSkjema) {
             transaction(db) {
                 InntektsmeldingEntitet.insert {
                     it[this.forespoerselId] = forespoerselId.toString()
                     it[skjema] = inntektsmeldingSkjema
                     it[innsendt] = LocalDateTime.now()
-                }
+                } get InntektsmeldingEntitet.id
             }
         }
-    }
 
     fun hentNyesteInntektsmeldingSkjema(forespoerselId: UUID): SkjemaInntektsmelding? =
         requestLatency.recordTime(InntektsmeldingRepository::hentNyesteInntektsmeldingSkjema) {
@@ -147,6 +150,7 @@ class InntektsmeldingRepository(
 
     fun oppdaterInntektsmeldingMedDokument(
         forespoerselId: UUID,
+        inntektsmeldingDatabaseId: Long,
         inntektsmeldingDokument: Inntektsmelding,
     ) {
         val antallOppdatert =
@@ -154,10 +158,7 @@ class InntektsmeldingRepository(
                 transaction(db) {
                     InntektsmeldingEntitet.update(
                         where = {
-                            val nyesteImSkjemaIdQuery = hentNyesteImSkjemaQuery(forespoerselId).adjustSelect { select(InntektsmeldingEntitet.id) }
-
-                            (InntektsmeldingEntitet.id eqSubQuery nyesteImSkjemaIdQuery) and
-                                InntektsmeldingEntitet.dokument.isNull()
+                            InntektsmeldingEntitet.id eq inntektsmeldingDatabaseId
                         },
                     ) {
                         it[dokument] = inntektsmeldingDokument

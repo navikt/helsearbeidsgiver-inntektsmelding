@@ -72,7 +72,7 @@ class LagreJournalpostIdRiverTest :
                     )
 
                 verifySequence {
-                    mockImRepo.oppdaterJournalpostId(innkommendeMelding.inntektsmeldingType.id, innkommendeMelding.journalpostId)
+                    mockImRepo.oppdaterJournalpostId(1L, innkommendeMelding.journalpostId)
                 }
                 verify(exactly = 0) {
                     mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())

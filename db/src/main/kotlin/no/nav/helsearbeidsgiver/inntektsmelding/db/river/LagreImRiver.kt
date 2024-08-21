@@ -28,6 +28,7 @@ data class LagreImMelding(
     val data: Map<Key, JsonElement>,
     val forespoerselId: UUID,
     val inntektsmelding: Inntektsmelding,
+    val innsendingId: Long,
 )
 
 class LagreImRiver(
@@ -49,18 +50,20 @@ class LagreImRiver(
                 data = data,
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
                 inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
+                innsendingId = Key.INNSENDING_ID.les(Long.serializer(), data),
             )
         }
 
     override fun LagreImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val nyesteIm = imRepo.hentNyesteInntektsmelding(forespoerselId)
 
+        // TODO: Vi tror at denne duplikatsjekken kan fjernes helt etter at vi har gått i prod med den nye Innsending-flyten
         val erDuplikat = nyesteIm?.erDuplikatAv(inntektsmelding) ?: false
 
         if (erDuplikat) {
             sikkerLogger.warn("Fant duplikat av inntektsmelding.")
         } else {
-            imRepo.oppdaterInntektsmeldingMedDokument(forespoerselId, inntektsmelding)
+            imRepo.oppdaterInntektsmeldingMedDokument(forespoerselId, innsendingId, inntektsmelding)
             sikkerLogger.info("Lagret inntektsmelding.")
         }
 

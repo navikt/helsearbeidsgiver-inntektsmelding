@@ -43,6 +43,7 @@ class TestRepo(
         }
 }
 
+// TODO: Disse testene bør skrives om nå som vi lagrer skjema og oppdaterer med dokument og deretter oppdaterer med journalpostid
 class RepositoryTest :
     FunSpecWithDb(listOf(InntektsmeldingEntitet, ForespoerselEntitet), { db ->
 
@@ -142,28 +143,31 @@ class RepositoryTest :
             }.shouldBeEmpty()
 
             val forespoerselId = UUID.randomUUID()
+            val innsendingId = 1L
+
             val dok1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = OffsetDateTime.now())
             val journalpost1 = "jp-1"
 
             foresporselRepo.lagreForespoersel(forespoerselId.toString(), orgnr)
             inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, dok1)
-            inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, journalpost1)
+            inntektsmeldingRepo.oppdaterJournalpostId(innsendingId, journalpost1)
             val record = testRepo.hentRecordFraInntektsmelding(forespoerselId)
             record.shouldNotBeNull()
             val journalPostId = record.getOrNull(InntektsmeldingEntitet.journalpostId)
             journalPostId.shouldNotBeNull()
         }
 
-        test("skal kun oppdatere siste inntektsmelding med journalpostId") {
+        test("skal kun oppdatere den andre inntektsmeldingen med journalpostId") {
             val forespoerselId = UUID.randomUUID()
+            val innsendingId = 2L
             val journalpostId = "jp-mollefonken-kjele"
 
             foresporselRepo.lagreForespoersel(forespoerselId.toString(), orgnr)
             inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, INNTEKTSMELDING_DOKUMENT)
             inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, INNTEKTSMELDING_DOKUMENT)
 
-            // Skal kun oppdatere siste
-            inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, journalpostId)
+            // Skal kun oppdatere nummer to
+            inntektsmeldingRepo.oppdaterJournalpostId(innsendingId, journalpostId)
 
             val resultat =
                 transaction(db) {
@@ -188,13 +192,14 @@ class RepositoryTest :
 
         test("skal _ikke_ oppdatere noen inntektsmeldinger med journalpostId dersom siste allerede har") {
             val forespoerselId = UUID.randomUUID()
+            val innsendingId = 2L
             val gammelJournalpostId = "jp-traust-gevir"
             val nyJournalpostId = "jp-gallant-badehette"
 
             foresporselRepo.lagreForespoersel(forespoerselId.toString(), orgnr)
             inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, INNTEKTSMELDING_DOKUMENT)
             inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, INNTEKTSMELDING_DOKUMENT)
-            inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, gammelJournalpostId)
+            inntektsmeldingRepo.oppdaterJournalpostId(innsendingId, gammelJournalpostId)
 
             val resultatFoerNyJournalpostId =
                 transaction(db) {
@@ -217,7 +222,7 @@ class RepositoryTest :
             }
 
             // Skal ha null effekt
-            inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, nyJournalpostId)
+            inntektsmeldingRepo.oppdaterJournalpostId(innsendingId, nyJournalpostId)
 
             val resultsEtterNyJournalpostId =
                 transaction(db) {
@@ -243,12 +248,13 @@ class RepositoryTest :
         test("skal _ikke_ oppdatere journalpostId for ekstern inntektsmelding") {
             val forespoerselId = UUID.randomUUID()
             val journalpostId = "jp-slem-fryser"
+            val innsendingId = 2L
 
             foresporselRepo.lagreForespoersel(forespoerselId.toString(), orgnr)
             inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, INNTEKTSMELDING_DOKUMENT)
             inntektsmeldingRepo.lagreEksternInntektsmelding(forespoerselId, mockEksternInntektsmelding())
 
-            inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, journalpostId)
+            inntektsmeldingRepo.oppdaterJournalpostId(innsendingId, journalpostId)
 
             val resultat =
                 transaction(db) {

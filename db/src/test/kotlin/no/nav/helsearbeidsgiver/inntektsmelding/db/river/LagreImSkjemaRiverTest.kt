@@ -13,7 +13,6 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
@@ -223,8 +222,3 @@ private val mockFail =
         forespoerselId = UUID.randomUUID(),
         utloesendeMelding = JsonNull,
     )
-
-data class EksisterendeInnsendinger(
-    val eksisterendeSkjema: SkjemaInntektsmelding?,
-    val eksisterendeInntektsmelding: Inntektsmelding?,
-)

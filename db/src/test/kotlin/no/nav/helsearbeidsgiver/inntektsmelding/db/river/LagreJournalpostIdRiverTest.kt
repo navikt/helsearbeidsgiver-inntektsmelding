@@ -51,7 +51,7 @@ class LagreJournalpostIdRiverTest :
         context("journalpost-ID lagres i databasen") {
             test("forespurt IM") {
                 every { mockImRepo.oppdaterJournalpostId(any(), any()) } just Runs
-                every { mockImRepo.hentNyesteInnsendingId(any()) } returns INNSENDING_ID
+                every { mockImRepo.hentNyesteBerikedeInnsendingId(any()) } returns INNSENDING_ID
 
                 val innkommendeMelding =
                     Mock.innkommendeMelding(
@@ -76,7 +76,7 @@ class LagreJournalpostIdRiverTest :
 
                 verifySequence {
                     mockImRepo.oppdaterJournalpostId(INNSENDING_ID, innkommendeMelding.journalpostId)
-                    mockImRepo.hentNyesteInnsendingId(innkommendeMelding.inntektsmeldingType.id)
+                    mockImRepo.hentNyesteBerikedeInnsendingId(innkommendeMelding.inntektsmeldingType.id)
                 }
                 verify(exactly = 0) {
                     mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
@@ -112,6 +112,31 @@ class LagreJournalpostIdRiverTest :
                 verify(exactly = 0) {
                     mockImRepo.oppdaterJournalpostId(any(), any())
                 }
+            }
+        }
+
+        test("journalpost-ID lagres i databasen, men blir ikke sendt videre fordi IM ikke er nyeste innsending") {
+            every { mockImRepo.oppdaterJournalpostId(any(), any()) } just Runs
+            every { mockImRepo.hentNyesteBerikedeInnsendingId(any()) } returns INNSENDING_ID + 1L
+
+            val innkommendeMelding =
+                Mock.innkommendeMelding(
+                    InntektsmeldingV1.Type.Forespurt(
+                        id = UUID.randomUUID(),
+                        vedtaksperiodeId = UUID.randomUUID(),
+                    ),
+                )
+
+            testRapid.sendJson(innkommendeMelding.toMap())
+
+            testRapid.inspektør.size shouldBeExactly 0
+
+            verifySequence {
+                mockImRepo.oppdaterJournalpostId(INNSENDING_ID, innkommendeMelding.journalpostId)
+                mockImRepo.hentNyesteBerikedeInnsendingId(innkommendeMelding.inntektsmeldingType.id)
+            }
+            verify(exactly = 0) {
+                mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
             }
         }
 

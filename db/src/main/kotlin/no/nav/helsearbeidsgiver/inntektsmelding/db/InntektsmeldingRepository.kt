@@ -58,8 +58,8 @@ class InntektsmeldingRepository(
             }
         }
 
-    fun hentNyesteInnsendingId(forespoerselId: UUID): Long? =
-        requestLatency.recordTime(InntektsmeldingRepository::hentNyesteInntektsmelding) {
+    fun hentNyesteBerikedeInnsendingId(forespoerselId: UUID): Long? =
+        requestLatency.recordTime(InntektsmeldingRepository::hentNyesteBerikedeInnsendingId) {
             transaction(db) {
                 hentNyesteImQuery(forespoerselId)
                     .firstOrNull()
@@ -148,17 +148,17 @@ class InntektsmeldingRepository(
             }
         }
 
-    fun oppdaterInntektsmeldingMedDokument(
+    fun oppdaterMedBeriketDokument(
         forespoerselId: UUID,
-        inntektsmeldingDatabaseId: Long,
+        innsendingId: Long,
         inntektsmeldingDokument: Inntektsmelding,
     ) {
         val antallOppdatert =
-            requestLatency.recordTime(InntektsmeldingRepository::oppdaterInntektsmeldingMedDokument) {
+            requestLatency.recordTime(InntektsmeldingRepository::oppdaterMedBeriketDokument) {
                 transaction(db) {
                     InntektsmeldingEntitet.update(
                         where = {
-                            InntektsmeldingEntitet.id eq inntektsmeldingDatabaseId
+                            InntektsmeldingEntitet.id eq innsendingId
                         },
                     ) {
                         it[dokument] = inntektsmeldingDokument

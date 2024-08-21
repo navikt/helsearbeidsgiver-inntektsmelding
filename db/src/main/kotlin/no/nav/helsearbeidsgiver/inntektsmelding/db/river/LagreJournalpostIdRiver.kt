@@ -95,8 +95,13 @@ class LagreJournalpostIdRiver(
 
                 imRepo.oppdaterJournalpostId(innsendingId, journalpostId)
 
-                if (imRepo.hentNyesteInnsendingId(inntektsmeldingType.id) != innsendingId) {
-                    return null
+                if (imRepo.hentNyesteBerikedeInnsendingId(inntektsmeldingType.id) != innsendingId) {
+                    return null.also {
+                        "Inntektsmelding journalført, men ikke distribuert pga. nyere innsending.".also {
+                            logger.info(it)
+                            sikkerLogger.info(it)
+                        }
+                    }
                 }
             }
 

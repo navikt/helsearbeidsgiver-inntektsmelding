@@ -57,7 +57,7 @@ class LagreImRiverTest :
                 ),
             ) { eksisterendeInntektsmelding ->
                 every { mockImRepo.hentNyesteInntektsmelding(any()) } returns eksisterendeInntektsmelding
-                every { mockImRepo.oppdaterInntektsmeldingMedDokument(any(), any(), any()) } just Runs
+                every { mockImRepo.oppdaterMedBeriketDokument(any(), any(), any()) } just Runs
 
                 val nyInntektsmelding = mockInntektsmelding()
 
@@ -82,7 +82,7 @@ class LagreImRiverTest :
 
                 verifySequence {
                     mockImRepo.hentNyesteInntektsmelding(innkommendeMelding.forespoerselId)
-                    mockImRepo.oppdaterInntektsmeldingMedDokument(innkommendeMelding.forespoerselId, innsendingId, nyInntektsmelding)
+                    mockImRepo.oppdaterMedBeriketDokument(innkommendeMelding.forespoerselId, innsendingId, nyInntektsmelding)
                 }
             }
         }
@@ -99,7 +99,7 @@ class LagreImRiverTest :
                 )
 
             every { mockImRepo.hentNyesteInntektsmelding(any()) } returns duplikatIm
-            every { mockImRepo.oppdaterInntektsmeldingMedDokument(any(), any(), any()) } just Runs
+            every { mockImRepo.oppdaterMedBeriketDokument(any(), any(), any()) } just Runs
 
             val innkommendeMelding = innkommendeMelding(innsendingId, nyInntektsmelding)
 
@@ -124,7 +124,7 @@ class LagreImRiverTest :
                 mockImRepo.hentNyesteInntektsmelding(innkommendeMelding.forespoerselId)
             }
             verify(exactly = 0) {
-                mockImRepo.oppdaterInntektsmeldingMedDokument(innkommendeMelding.forespoerselId, innsendingId, nyInntektsmelding)
+                mockImRepo.oppdaterMedBeriketDokument(innkommendeMelding.forespoerselId, innsendingId, nyInntektsmelding)
             }
         }
 

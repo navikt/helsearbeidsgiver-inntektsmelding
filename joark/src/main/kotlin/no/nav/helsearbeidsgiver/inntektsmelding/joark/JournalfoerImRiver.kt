@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender
@@ -136,8 +135,12 @@ class JournalfoerImRiver(
 
         return fail
             .tilMelding()
-            .plus(Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID])
-            .mapValuesNotNull { it }
+            .plus(
+                mapOf(
+                    Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
+                    Key.INNSENDING_ID to json[Key.INNSENDING_ID],
+                ),
+            ).mapValuesNotNull { it }
     }
 
     override fun JournalfoerImMelding.loggfelt(): Map<String, String> =

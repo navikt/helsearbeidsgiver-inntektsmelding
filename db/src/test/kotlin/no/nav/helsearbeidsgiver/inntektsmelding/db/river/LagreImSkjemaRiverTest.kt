@@ -96,8 +96,10 @@ class LagreImSkjemaRiverTest :
             }
         }
 
-        test("inntektsmeldingskjema lagres ikke, men svarer OK hvis skjema er duplikat av siste inntektsmeldingskjema") {
+        test("duplikat lagres ikke, men svarer OK") {
             val innsendingId = 1L
+            val innsendingIdVedDuplikat = -1L
+
             every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns rentInntektsmeldingSkjema
             every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } returns innsendingId
 
@@ -116,7 +118,7 @@ class LagreImSkjemaRiverTest :
                             Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
                             Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.inntektsmeldingSkjema.toJson(SkjemaInntektsmelding.serializer()),
                             Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
-                            Key.INNSENDING_ID to (-1L).toJson(Long.serializer()),
+                            Key.INNSENDING_ID to innsendingIdVedDuplikat.toJson(Long.serializer()),
                         ).toJson(),
                 )
 

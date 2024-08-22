@@ -11,6 +11,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -59,6 +60,7 @@ class JournalfoerImRiverTest :
             ) { inntektsmeldingJson ->
                 val journalpostId = UUID.randomUUID().toString()
                 val forespoerselId = UUID.randomUUID()
+                val innsendingId = 1L
 
                 val innkommendeMelding = Mock.innkommendeMelding(EventName.INNTEKTSMELDING_MOTTATT, inntektsmeldingJson)
 
@@ -69,7 +71,12 @@ class JournalfoerImRiverTest :
                 testRapid.sendJson(
                     innkommendeMelding
                         .toMap()
-                        .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson()),
+                        .plus(
+                            mapOf(
+                                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                                Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
+                            ),
+                        ),
                 )
 
                 testRapid.inspektør.size shouldBeExactly 1
@@ -86,6 +93,7 @@ class JournalfoerImRiverTest :
                         Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                         Key.JOURNALPOST_ID to journalpostId.toJson(),
                         Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                        Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
                     )
 
                 coVerifySequence {
@@ -223,13 +231,19 @@ class JournalfoerImRiverTest :
         context("håndterer feil") {
             test("ugyldig inntektsmelding feiler") {
                 val forespoerselId = UUID.randomUUID()
+                val innsendingId = 1L
 
                 val innkommendeMelding = Mock.innkommendeMelding(EventName.INNTEKTSMELDING_MOTTATT, "ikke en inntektsmelding".toJson())
 
                 val innkommendeJsonMap =
                     innkommendeMelding
                         .toMap()
-                        .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
+                        .plus(
+                            mapOf(
+                                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                                Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
+                            ),
+                        )
 
                 val forventetFail =
                     Fail(
@@ -251,7 +265,12 @@ class JournalfoerImRiverTest :
                 testRapid.firstMessage().toMap() shouldContainExactly
                     forventetFail
                         .tilMelding()
-                        .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
+                        .plus(
+                            mapOf(
+                                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                                Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
+                            ),
+                        )
 
                 coVerify(exactly = 0) {
                     mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())

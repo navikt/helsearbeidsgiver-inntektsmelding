@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
@@ -21,6 +22,7 @@ import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
@@ -29,6 +31,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndT
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.maxMekker
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
@@ -201,9 +204,9 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
         } returns
             OpprettOgFerdigstillResponse(
-                journalpostId = "journalpost-id-sukkerspinn",
+                journalpostId = "journalpost-id-granateple",
                 journalpostFerdigstilt = true,
-                melding = "Ha en brillefin dag!",
+                melding = "Hvis du vil se bedre, bli en brilleslange!",
                 dokumenter = emptyList(),
             )
 
@@ -278,10 +281,61 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .all()
             .size shouldBe 0
 
+        // Feilmelding
+        messages.filterFeil().all().size shouldBe 1
+
         // Det blir satt opp en bakgrunnsjobb som kan gjenoppta berikelsen senere
-        bakgrunnsjobbRepository.getById(Mock.transaksjonId).also {
+        val bakgrunnsjobb = bakgrunnsjobbRepository.getById(Mock.transaksjonId)
+
+        bakgrunnsjobb.also {
             it.shouldNotBeNull()
+            it.data.parseJson().also {
+                it.lesBehov() shouldBe BehovType.HENT_PERSONER
+                it.toMap().verifiserForespoerselId().verifiserTransaksjonId(Mock.transaksjonId)
+            }
         }
+
+        // Gjenoppta berikelsen ved å kjøre den utløsende meldingen i bakgrunnsjobben
+        bakgrunnsjobb?.data?.let { publish(it) }
+
+        // Sykmeldt og innsender hentet
+        messages
+            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+            .filter(Key.PERSONER, nestedData = true)
+            .firstAsMap()
+            .verifiserTransaksjonId(Mock.transaksjonId)
+            .verifiserForespoerselIdFraSkjema()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+
+                shouldNotThrowAny {
+                    data[Key.PERSONER]
+                        .shouldNotBeNull()
+                        .fromJson(personMapSerializer)
+                }
+            }
+
+        // Siste melding fra service
+        messages
+            .filter(EventName.INNTEKTSMELDING_MOTTATT)
+            .firstAsMap()
+            .verifiserTransaksjonId(Mock.transaksjonId)
+            .verifiserForespoerselId()
+            .also {
+                shouldNotThrowAny {
+                    it[Key.UUID]
+                        .shouldNotBeNull()
+                        .fromJson(UuidSerializer)
+
+                    it[Key.FORESPOERSEL_ID]
+                        .shouldNotBeNull()
+                        .fromJson(UuidSerializer)
+
+                    it[Key.INNTEKTSMELDING_DOKUMENT]
+                        .shouldNotBeNull()
+                        .fromJson(Inntektsmelding.serializer())
+                }
+            }
     }
 
     private fun Map<Key, JsonElement>.verifiserTransaksjonId(transaksjonId: UUID): Map<Key, JsonElement> =

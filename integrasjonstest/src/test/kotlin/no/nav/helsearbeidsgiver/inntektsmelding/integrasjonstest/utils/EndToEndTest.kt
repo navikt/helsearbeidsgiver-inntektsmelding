@@ -112,7 +112,7 @@ abstract class EndToEndTest : ContainerTest() {
     private val inntektsmeldingDatabase by lazy {
         println("Database jdbcUrl for im-db: ${postgresContainerOne.jdbcUrl}")
 
-        return@lazy medFlereForsoek(
+        return@lazy withRetries(
             feilmelding = "Klarte ikke sette opp inntektsmeldingDatabase.",
         ) {
             postgresContainerOne
@@ -129,7 +129,7 @@ abstract class EndToEndTest : ContainerTest() {
     private val notifikasjonDatabase by lazy {
         println("Database jdbcUrl for im-notifikasjon: ${postgresContainerTwo.jdbcUrl}")
 
-        return@lazy medFlereForsoek(
+        return@lazy withRetries(
             feilmelding = "Klarte ikke sette opp notifikasjonDatabase.",
         ) {
             postgresContainerTwo
@@ -146,7 +146,7 @@ abstract class EndToEndTest : ContainerTest() {
     private val bakgrunnsjobbDatabase by lazy {
         println("Database jdbcUrl for im-feil-behandler: ${postgresContainerThree.jdbcUrl}")
 
-        return@lazy medFlereForsoek(
+        return@lazy withRetries(
             feilmelding = "Klarte ikke sette opp feilbehandlerdatabase.",
         ) {
             postgresContainerThree
@@ -161,7 +161,7 @@ abstract class EndToEndTest : ContainerTest() {
 
     // Vent på rediscontainer
     val redisConnection by lazy {
-        return@lazy medFlereForsoek(
+        return@lazy withRetries(
             feilmelding = "Klarte ikke koble til Redis.",
         ) {
             RedisConnection(redisContainer.redisURI)
@@ -286,6 +286,11 @@ abstract class EndToEndTest : ContainerTest() {
             .parseJson()
     }
 
+    fun publish(message: String) {
+        println("Publiserer melding: $message")
+        imTestRapid.publish(message)
+    }
+
     fun mockForespoerselSvarFraHelsebro(
         forespoerselId: UUID,
         forespoerselSvar: ForespoerselSvar.Suksess,
@@ -360,7 +365,7 @@ private fun Database.createTruncateFunction() =
         }
     }
 
-private fun <T> medFlereForsoek(
+private fun <T> withRetries(
     antallForsoek: Int = 5,
     pauseMillis: Long = 1000,
     feilmelding: String,

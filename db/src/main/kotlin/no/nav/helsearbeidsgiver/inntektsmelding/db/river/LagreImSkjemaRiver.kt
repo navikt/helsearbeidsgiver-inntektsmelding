@@ -21,6 +21,8 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
+private const val INNSENDING_ID_VED_DUPLIKAT = -1L
+
 data class LagreImSkjemaMelding(
     val eventName: EventName,
     val behovType: BehovType,
@@ -59,7 +61,7 @@ class LagreImSkjemaRiver(
         val innsendingId =
             if (erDuplikat) {
                 sikkerLogger.warn("Fant duplikat av inntektsmeldingskjema.")
-                -1 // TODO: Hva skal vi sette denne til når vi får et duplikat skjema inn?
+                INNSENDING_ID_VED_DUPLIKAT
             } else {
                 repository.lagreInntektsmeldingSkjema(forespoerselId, inntektsmeldingSkjema).also {
                     sikkerLogger.info("Lagret inntektsmeldingskjema.")

@@ -89,8 +89,6 @@ class LagreJournalpostIdRiver(
 
         when (inntektsmeldingType) {
             is InntektsmeldingV1.Type.Forespurt -> {
-                // TODO: Må trekkes ut når selvbestemtinnsendingen skrives om
-                // Kan brekke under deploy, før INNSENDING_ID kommer
                 val innsendingId = Key.INNSENDING_ID.les(Long.serializer(), json)
 
                 imRepo.oppdaterJournalpostId(innsendingId, journalpostId)

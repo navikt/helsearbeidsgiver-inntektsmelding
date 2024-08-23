@@ -42,9 +42,9 @@ class LagreImSkjemaRiverTest :
             clearAllMocks()
         }
 
-        val rentInntektsmeldingSkjema = mockSkjemaInntektsmelding()
-        val justertInntektsmeldingSkjema =
-            rentInntektsmeldingSkjema.let { skjema ->
+        val inntektsmeldingSkjema = mockSkjemaInntektsmelding()
+        val inntektsmeldingSkjemaMedEndredeEgenmeldinger =
+            inntektsmeldingSkjema.let { skjema ->
                 skjema.copy(
                     agp =
                         skjema.agp?.let { agp ->
@@ -61,7 +61,7 @@ class LagreImSkjemaRiverTest :
             withData(
                 mapOf(
                     "hvis ingen andre inntektsmeldingskjemaer er mottatt" to null,
-                    "hvis ikke duplikat av siste inntektsmeldingskjema" to justertInntektsmeldingSkjema,
+                    "hvis ikke duplikat av siste inntektsmeldingskjema" to inntektsmeldingSkjemaMedEndredeEgenmeldinger,
                 ),
             ) { eksisterendeInntektsmeldingskjema ->
                 val innsendingId = 1L
@@ -100,10 +100,10 @@ class LagreImSkjemaRiverTest :
             val innsendingId = 1L
             val innsendingIdVedDuplikat = -1L
 
-            every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns rentInntektsmeldingSkjema
+            every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns inntektsmeldingSkjema
             every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } returns innsendingId
 
-            val innkommendeMelding = innkommendeMelding(rentInntektsmeldingSkjema)
+            val innkommendeMelding = innkommendeMelding(inntektsmeldingSkjema)
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -126,7 +126,7 @@ class LagreImSkjemaRiverTest :
                 mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.forespoerselId)
             }
             verify(exactly = 0) {
-                mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(innkommendeMelding.forespoerselId, rentInntektsmeldingSkjema)
+                mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(innkommendeMelding.forespoerselId, inntektsmeldingSkjema)
             }
         }
 

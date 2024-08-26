@@ -1,7 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.river
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.equals.shouldNotBeEqual
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.json.Json
 import no.nav.hag.utils.bakgrunnsjobb.Bakgrunnsjobb
 import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbStatus
 import no.nav.hag.utils.bakgrunnsjobb.MockBakgrunnsjobbRepository
@@ -10,12 +12,14 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.prosessor.FeilProsessor
 import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.time.LocalDateTime
 import java.util.UUID
@@ -107,11 +111,38 @@ class FeilLytterTest :
             rapid.sendTestMessage(feilmelding)
             repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.STOPPET), true).size shouldBe 1
         }
+
+        test("Flere feil i en lang verdikjede (ny feil / nytt behov og ny transaksjon etter en OK rekjøring) skal opprette en ny feil") {
+            val now = LocalDateTime.now()
+            val transaksjonId = UUID.randomUUID()
+            val feilmeldingJournalfoer = lagRapidFeilmelding(BehovType.JOURNALFOER, transaksjonId)
+            rapid.sendTestMessage(feilmeldingJournalfoer)
+            repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 1
+            // nå kjører bakgrunnsjobb, plukker opp feilen og rekjører - det går fint, så feilen kommer ikke på nytt.
+            // Istedet feiler neste steg - nytt behov fra samme transaksjon
+            val feilmeldingLagre = lagRapidFeilmelding(BehovType.LAGRE_JOURNALPOST_ID, transaksjonId)
+            rapid.sendTestMessage(feilmeldingLagre)
+            // status på gammel jobb blir ikke oppdatert i denne testen..
+            repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 2
+
+            val utloesendeMelding = repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true)[1].data
+            val nyTransaksjonId = Key.UUID.les(UuidSerializer, Json.parseToJsonElement(utloesendeMelding).toMap())
+            transaksjonId shouldNotBeEqual nyTransaksjonId
+
+            val nyFeilmeldingLagre = lagRapidFeilmelding(BehovType.LAGRE_JOURNALPOST_ID, nyTransaksjonId)
+            rapid.sendTestMessage(nyFeilmeldingLagre) // !! ny tx, ikke samme igjen!
+
+            // Bakgrunnsjobben har blitt oppdatert og går til status FEILET..
+            repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 1
+            repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.FEILET), true).size shouldBe 1
+        }
     })
 
-fun lagRapidFeilmelding(behovType: BehovType = BehovType.LAGRE_JOURNALPOST_ID): String {
+fun lagRapidFeilmelding(
+    behovType: BehovType = BehovType.LAGRE_JOURNALPOST_ID,
+    transaksjonId: UUID = UUID.randomUUID(),
+): String {
     val eventName = EventName.INNTEKTSMELDING_MOTTATT
-    val transaksjonId = UUID.randomUUID()
     val forespoerselId = UUID.randomUUID()
 
     return mapOf(

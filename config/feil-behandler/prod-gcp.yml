@@ -3,6 +3,7 @@ azure:
   enabled: true
 database:
   - name: im-error-recovery
+dbTier: db-f1-micro
 envFrom:
   - type: secret
     name: google-sql-im-feil-behandler

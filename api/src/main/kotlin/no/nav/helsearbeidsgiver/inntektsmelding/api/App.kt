@@ -29,6 +29,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.inntektselvbestemt.inntektSe
 import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.kvitteringRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.lagreselvbestemtim.lagreSelvbestemtImRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
+import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgangorgnr.tilgangOrgnrRoute
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
@@ -51,6 +52,7 @@ object Routes {
     const val SELVBESTEMT_INNTEKTSMELDING_MED_ID = "$SELVBESTEMT_INNTEKTSMELDING/{selvbestemtId}"
     const val KVITTERING = "/kvittering"
     const val AKTIVEORGNR = "/aktiveorgnr"
+    const val TILGANG_ORGNR = "/tilgangorgnr/{orgnr}"
 }
 
 fun main() {
@@ -121,6 +123,7 @@ fun Application.apiModule(
                 lagreSelvbestemtImRoute(rapid, tilgangskontroll, redisConnection)
                 hentSelvbestemtImRoute(rapid, tilgangskontroll, redisConnection)
                 aktiveOrgnrRoute(rapid, redisConnection)
+                tilgangOrgnrRoute(tilgangskontroll)
             }
         }
     }

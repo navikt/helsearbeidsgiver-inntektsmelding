@@ -10,6 +10,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
@@ -17,8 +18,11 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.prosessor.FeilProsessor
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.sql.SQLException
+import java.util.UUID
 
 class FeilLytter(
     rapidsConnection: RapidsConnection,
@@ -71,7 +75,9 @@ class FeilLytter(
             if (eksisterendeJobb != null) {
                 if (fail.utloesendeMelding.toMap()[Key.BEHOV] != eksisterendeJobb.data.parseJson().toMap()[Key.BEHOV]) {
                     sikkerLogger.info("Id $jobbId finnes fra før med annet behov. Lagrer en ny jobb.")
-                    lagre(Bakgrunnsjobb(type = jobbType, data = fail.utloesendeMelding.toString()))
+                    val nyTransaksjonId = UUID.randomUUID()
+                    val utloesendeMeldingMedNyTransaksjonId = fail.utloesendeMelding.toMap() + mapOf(Key.UUID to nyTransaksjonId.toJson(UuidSerializer))
+                    lagre(Bakgrunnsjobb(nyTransaksjonId, type = jobbType, data = utloesendeMeldingMedNyTransaksjonId.toJson().toString()))
                 } else {
                     oppdater(eksisterendeJobb)
                 }

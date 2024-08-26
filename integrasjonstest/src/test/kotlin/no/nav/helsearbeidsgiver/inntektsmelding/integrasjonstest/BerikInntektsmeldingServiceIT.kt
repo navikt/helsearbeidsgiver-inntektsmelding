@@ -191,7 +191,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
     }
 
     @Test
-    fun `skal opprette en bakgrunnsjobb for å gjenoppta berikelsen av inntektsmeldingen senere dersom oppslaget mot pdl feiler`() {
+    fun `skal opprette en bakgrunnsjobb som gjenopptar berikelsen av inntektsmeldingen senere dersom oppslaget mot pdl feiler`() {
         val tidligereInntektsmelding = mockInntektsmelding()
 
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.orgnr.toString())

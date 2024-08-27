@@ -251,47 +251,16 @@ private object Mock {
         mapOf(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to
-                steg0data.toJson(),
+            Key.DATA to steg0data.toJson(),
         )
 
-    fun steg1(transaksjonId: UUID): Map<Key, JsonElement> =
-        mapOf(
-            Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.DATA to
-                (steg0data + steg1data).toJson(),
-        )
+    fun steg1(transaksjonId: UUID): Map<Key, JsonElement> = steg0(transaksjonId).plusData(steg1data)
 
-    fun steg2(transaksjonId: UUID): Map<Key, JsonElement> =
-        mapOf(
-            Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.DATA to
-                (steg0data + steg1data + steg2data).toJson(),
-        )
+    fun steg2(transaksjonId: UUID): Map<Key, JsonElement> = steg1(transaksjonId).plusData(steg2data)
 
-    fun steg3(transaksjonId: UUID): Map<Key, JsonElement> =
-        mapOf(
-            Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.DATA to
-                (steg0data + steg1data + steg2data + steg3data).toJson(),
-        )
+    fun steg3(transaksjonId: UUID): Map<Key, JsonElement> = steg2(transaksjonId).plusData(steg3data)
 
-    fun steg4(transaksjonId: UUID): Map<Key, JsonElement> =
-        mapOf(
-            Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.DATA to
-                (steg0data + steg1data + steg2data + steg3data + steg4data).toJson(),
-        )
+    fun steg4(transaksjonId: UUID): Map<Key, JsonElement> = steg3(transaksjonId).plusData(steg4data)
 
-    fun steg5(transaksjonId: UUID): Map<Key, JsonElement> =
-        mapOf(
-            Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.DATA to
-                (steg0data + steg1data + steg2data + steg3data + steg4data + steg5data).toJson(),
-        )
+    fun steg5(transaksjonId: UUID): Map<Key, JsonElement> = steg4(transaksjonId).plusData(steg5data)
 }

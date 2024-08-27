@@ -10,8 +10,6 @@ import io.mockk.coEvery
 import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -25,12 +23,10 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
-import no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice.mapInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.maxMekker
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -295,16 +291,6 @@ class InnsendingIT : EndToEndTest() {
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
             )
-
-        val innsendtInntektsmelding =
-            mapInntektsmelding(
-                forespoersel = forespoersel,
-                skjema = skjema,
-                aarsakInnsending = AarsakInnsending.Endring,
-                virksomhetNavn = "Bedrift A/S",
-                sykmeldtNavn = bjarneBetjent.navn.fulltNavn(),
-                avsenderNavn = maxMekker.navn.fulltNavn(),
-            ).convert()
 
         val forespoerselSvar =
             ForespoerselSvar.Suksess(

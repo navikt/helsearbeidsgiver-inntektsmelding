@@ -21,6 +21,13 @@ fun Map<Key, JsonElement>.plusData(dataField: Pair<Key, JsonElement>): Map<Key, 
     )
 }
 
+fun Map<Key, JsonElement>.plusData(dataMap: Map<Key, JsonElement>): Map<Key, JsonElement> {
+    val data = this[Key.DATA]?.toMap().orEmpty()
+    return this.plus(
+        Key.DATA to data.plus(dataMap).toJson(),
+    )
+}
+
 fun Map<Key, JsonElement>.minusData(vararg dataKey: Key): Map<Key, JsonElement> {
     val data = this[Key.DATA]?.toMap().orEmpty()
     return this.plus(

@@ -2,7 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -21,52 +21,52 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-data class LagreImMelding(
+private const val INNSENDING_ID_VED_DUPLIKAT = -1L
+
+data class LagreImSkjemaMelding(
     val eventName: EventName,
     val behovType: BehovType,
     val transaksjonId: UUID,
     val data: Map<Key, JsonElement>,
     val forespoerselId: UUID,
-    val inntektsmelding: Inntektsmelding,
-    val innsendingId: Long,
+    val inntektsmeldingSkjema: SkjemaInntektsmelding,
 )
 
-class LagreImRiver(
-    private val imRepo: InntektsmeldingRepository,
-) : ObjectRiver<LagreImMelding>() {
+class LagreImSkjemaRiver(
+    private val repository: InntektsmeldingRepository,
+) : ObjectRiver<LagreImSkjemaMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun les(json: Map<Key, JsonElement>): LagreImMelding? =
+    override fun les(json: Map<Key, JsonElement>): LagreImSkjemaMelding? =
         if (Key.FAIL in json) {
             null
         } else {
             val data = json[Key.DATA]?.toMap().orEmpty()
-
-            LagreImMelding(
+            LagreImSkjemaMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
-                behovType = Key.BEHOV.krev(BehovType.LAGRE_IM, BehovType.serializer(), json),
+                behovType = Key.BEHOV.krev(BehovType.LAGRE_IM_SKJEMA, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
                 data = data,
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
-                inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
-                innsendingId = Key.INNSENDING_ID.les(Long.serializer(), data),
+                inntektsmeldingSkjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), data),
             )
         }
 
-    override fun LagreImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        val nyesteIm = imRepo.hentNyesteInntektsmelding(forespoerselId)
+    override fun LagreImSkjemaMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
+        val sisteImSkjema = repository.hentNyesteInntektsmeldingSkjema(forespoerselId)
 
-        // TODO: Fjernes etter at vi har gått i prod med den nye innsending-flyten
-        val erDuplikat = nyesteIm?.erDuplikatAv(inntektsmelding) ?: false
+        val erDuplikat = sisteImSkjema?.erDuplikatAv(inntektsmeldingSkjema) ?: false
 
-        if (erDuplikat) {
-            sikkerLogger.warn("Fant duplikat av inntektsmelding.")
-        } else {
-            imRepo.oppdaterMedBeriketDokument(forespoerselId, innsendingId, inntektsmelding)
-            sikkerLogger.info("Lagret inntektsmelding.")
-        }
-
+        val innsendingId =
+            if (erDuplikat) {
+                sikkerLogger.warn("Fant duplikat av inntektsmeldingskjema.")
+                INNSENDING_ID_VED_DUPLIKAT
+            } else {
+                repository.lagreInntektsmeldingSkjema(forespoerselId, inntektsmeldingSkjema).also {
+                    sikkerLogger.info("Lagret inntektsmeldingskjema.")
+                }
+            }
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),
@@ -75,18 +75,19 @@ class LagreImRiver(
                     .plus(
                         mapOf(
                             Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer()),
+                            Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
                         ),
                     ).toJson(),
         )
     }
 
-    override fun LagreImMelding.haandterFeil(
+    override fun LagreImSkjemaMelding.haandterFeil(
         json: Map<Key, JsonElement>,
         error: Throwable,
     ): Map<Key, JsonElement> {
         val fail =
             Fail(
-                feilmelding = "Klarte ikke lagre inntektsmelding i database.",
+                feilmelding = "Klarte ikke lagre inntektsmeldingskjema i database.",
                 event = eventName,
                 transaksjonId = transaksjonId,
                 forespoerselId = forespoerselId,
@@ -99,9 +100,9 @@ class LagreImRiver(
         return fail.tilMelding()
     }
 
-    override fun LagreImMelding.loggfelt(): Map<String, String> =
+    override fun LagreImSkjemaMelding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this@LagreImRiver),
+            Log.klasse(this@LagreImSkjemaRiver),
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),

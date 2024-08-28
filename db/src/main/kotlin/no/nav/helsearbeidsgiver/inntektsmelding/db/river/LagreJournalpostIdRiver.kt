@@ -83,13 +83,24 @@ class LagreJournalpostIdRiver(
             }
         }
 
-    override fun LagreJournalpostIdMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
+    override fun LagreJournalpostIdMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         logger.info("Mottok melding.")
         sikkerLogger.info("Mottok melding:\n${json.toPretty()}")
 
         when (inntektsmeldingType) {
             is InntektsmeldingV1.Type.Forespurt -> {
-                imRepo.oppdaterJournalpostId(inntektsmeldingType.id, journalpostId)
+                val innsendingId = Key.INNSENDING_ID.les(Long.serializer(), json)
+
+                imRepo.oppdaterJournalpostId(innsendingId, journalpostId)
+
+                if (imRepo.hentNyesteBerikedeInnsendingId(inntektsmeldingType.id) != innsendingId) {
+                    return null.also {
+                        "Inntektsmelding journalført, men ikke distribuert pga. nyere innsending.".also {
+                            logger.info(it)
+                            sikkerLogger.info(it)
+                        }
+                    }
+                }
             }
 
             is InntektsmeldingV1.Type.Selvbestemt -> {

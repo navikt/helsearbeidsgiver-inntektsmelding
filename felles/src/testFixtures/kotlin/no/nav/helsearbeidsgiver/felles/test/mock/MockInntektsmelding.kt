@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.felles.test.mock
 
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.BegrunnelseIngenEllerRedusertUtbetalingKode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.FullLoennIArbeidsgiverPerioden
@@ -145,10 +146,12 @@ fun mockInntektsmeldingV1(): InntektsmeldingV1 =
         mottatt = 14.mars.kl(14, 41, 42, 0).atOffset(ZoneOffset.ofHours(1)),
     )
 
+fun mockInntektsmeldingGammeltFormat(): Inntektsmelding = mockInntektsmeldingV1().convert()
+
 fun mockInntektsmelding(): Inntektsmelding =
     Inntektsmelding(
-        orgnrUnderenhet = "123456789",
-        identitetsnummer = "12345678901",
+        orgnrUnderenhet = Orgnr.genererGyldig().verdi,
+        identitetsnummer = Fnr.genererGyldig().verdi,
         fulltNavn = "Ola Normann",
         virksomhetNavn = "Norge AS",
         behandlingsdager = listOf(dag),

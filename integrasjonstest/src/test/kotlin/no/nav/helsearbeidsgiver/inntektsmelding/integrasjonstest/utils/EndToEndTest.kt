@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import no.nav.hag.utils.bakgrunnsjobb.PostgresBakgrunnsjobbRepository
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helsearbeidsgiver.aareg.AaregClient
@@ -30,6 +31,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAaregRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
+import no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice.createBerikInntektsmeldingService
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createHentEksternImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createSpinnService
@@ -39,6 +41,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDbRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjonRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.createFeilLytter
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createMarkerForespoerselBesvart
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottattRiver
@@ -105,36 +108,64 @@ val maxMekker =
 abstract class EndToEndTest : ContainerTest() {
     private val imTestRapid = ImTestRapid()
 
+    // Vent på inntektsmeldingdatabase
     private val inntektsmeldingDatabase by lazy {
         println("Database jdbcUrl for im-db: ${postgresContainerOne.jdbcUrl}")
-        postgresContainerOne
-            .toHikariConfig()
-            .let(::Database)
-            .also {
-                val migrationLocation = Path("../db/src/main/resources/db/migration").absolutePathString()
-                it.migrate(migrationLocation)
-            }.createTruncateFunction()
+
+        return@lazy withRetries(
+            feilmelding = "Klarte ikke sette opp inntektsmeldingDatabase.",
+        ) {
+            postgresContainerOne
+                .toHikariConfig()
+                .let(::Database)
+                .also {
+                    val migrationLocation = Path("../db/src/main/resources/db/migration").absolutePathString()
+                    it.migrate(migrationLocation)
+                }.createTruncateFunction()
+        }
     }
 
+    // Vent på im-notifikasjon database
     private val notifikasjonDatabase by lazy {
         println("Database jdbcUrl for im-notifikasjon: ${postgresContainerTwo.jdbcUrl}")
-        postgresContainerTwo
-            .toHikariConfig()
-            .let(::Database)
-            .also {
-                val migrationLocation = Path("../notifikasjon/src/main/resources/db/migration").absolutePathString()
-                it.migrate(migrationLocation)
-            }.createTruncateFunction()
+
+        return@lazy withRetries(
+            feilmelding = "Klarte ikke sette opp notifikasjonDatabase.",
+        ) {
+            postgresContainerTwo
+                .toHikariConfig()
+                .let(::Database)
+                .also {
+                    val migrationLocation = Path("../notifikasjon/src/main/resources/db/migration").absolutePathString()
+                    it.migrate(migrationLocation)
+                }.createTruncateFunction()
+        }
+    }
+
+    // Vent på feilbehandlerdatabase
+    private val bakgrunnsjobbDatabase by lazy {
+        println("Database jdbcUrl for im-feil-behandler: ${postgresContainerThree.jdbcUrl}")
+
+        return@lazy withRetries(
+            feilmelding = "Klarte ikke sette opp feilbehandlerdatabase.",
+        ) {
+            postgresContainerThree
+                .toHikariConfig()
+                .let(::Database)
+                .also {
+                    val migrationLocation = Path("../feil-behandler/src/main/resources/db/migration").absolutePathString()
+                    it.migrate(migrationLocation)
+                }.createTruncateFunction()
+        }
     }
 
     // Vent på rediscontainer
     val redisConnection by lazy {
-        repeat(5) {
-            runCatching { RedisConnection(redisContainer.redisURI) }
-                .onSuccess { return@lazy it }
-                .onFailure { runBlocking { delay(1000) } }
+        return@lazy withRetries(
+            feilmelding = "Klarte ikke koble til Redis.",
+        ) {
+            RedisConnection(redisContainer.redisURI)
         }
-        throw IllegalStateException("Klarte ikke koble til Redis.")
     }
 
     val messages get() = imTestRapid.messages
@@ -146,6 +177,8 @@ abstract class EndToEndTest : ContainerTest() {
     val forespoerselRepository by lazy { ForespoerselRepository(inntektsmeldingDatabase.db) }
 
     private val selvbestemtRepo by lazy { SelvbestemtRepo(notifikasjonDatabase.db) }
+
+    val bakgrunnsjobbRepository by lazy { PostgresBakgrunnsjobbRepository(bakgrunnsjobbDatabase.dataSource) }
 
     val altinnClient = mockk<AltinnClient>()
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
@@ -203,6 +236,7 @@ abstract class EndToEndTest : ContainerTest() {
             createSpinnService()
             createTilgangService(redisConnection)
             createHentForespoerselService(redisConnection)
+            createBerikInntektsmeldingService()
 
             // Rivers
             createAaregRiver(aaregClient)
@@ -219,6 +253,7 @@ abstract class EndToEndTest : ContainerTest() {
             createMarkerForespoerselBesvart(mockPriProducer)
             createNotifikasjonRivers(NOTIFIKASJON_LINK, selvbestemtRepo, arbeidsgiverNotifikasjonKlient)
             createPdlRiver(pdlKlient)
+            createFeilLytter(bakgrunnsjobbRepository)
         }
     }
 
@@ -249,6 +284,11 @@ abstract class EndToEndTest : ContainerTest() {
             }.toJson()
             .also(imTestRapid::publish)
             .parseJson()
+    }
+
+    fun publish(message: String) {
+        println("Publiserer melding: $message")
+        imTestRapid.publish(message)
     }
 
     fun mockForespoerselSvarFraHelsebro(
@@ -324,3 +364,17 @@ private fun Database.createTruncateFunction() =
             exec(query)
         }
     }
+
+private fun <T> withRetries(
+    antallForsoek: Int = 5,
+    pauseMillis: Long = 1000,
+    feilmelding: String,
+    blokk: () -> T,
+): T {
+    repeat(antallForsoek) {
+        runCatching { blokk() }
+            .onSuccess { return it }
+            .onFailure { runBlocking { delay(pauseMillis) } }
+    }
+    throw IllegalStateException(feilmelding)
+}

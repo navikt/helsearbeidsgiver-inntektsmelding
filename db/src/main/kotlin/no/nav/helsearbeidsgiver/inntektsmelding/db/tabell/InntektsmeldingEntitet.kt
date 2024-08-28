@@ -10,7 +10,7 @@ import org.jetbrains.exposed.sql.json.jsonb
 
 object InntektsmeldingEntitet : Table("inntektsmelding") {
     val id =
-        integer("id").autoIncrement(
+        long("id").autoIncrement(
             idSeqName = "inntektsmelding_id_seq",
         )
     val forespoerselId = varchar(name = "forespoersel_id", length = 40) references ForespoerselEntitet.forespoerselId

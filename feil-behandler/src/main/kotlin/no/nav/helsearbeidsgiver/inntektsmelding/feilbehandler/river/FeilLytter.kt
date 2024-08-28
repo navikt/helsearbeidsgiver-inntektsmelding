@@ -8,6 +8,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
@@ -41,6 +42,10 @@ class FeilLytter(
             BehovType.LAGRE_JOURNALPOST_ID,
             BehovType.NOTIFIKASJON_HENT_ID,
         )
+    val eventerSomHaandteres =
+        listOf(
+            EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
+        )
 
     init {
         sikkerLogger.info("Starter applikasjon - lytter på innkommende feil!")
@@ -62,7 +67,7 @@ class FeilLytter(
             sikkerLogger.warn("Kunne ikke parse feil-objekt, ignorerer...")
             return
         }
-        if (skalHaandteres(fail)) {
+        if (behovSkalHaandteres(fail) || eventSkalHaandteres(fail)) {
             // slå opp transaksjonID. Hvis den finnes, kan det være en annen feilende melding i samme transaksjon (forskjelig behov): Lagre i så fall
             // med egen id. Denne id vil så sendes med som ny transaksjonID ved rekjøring..
             val jobbId = fail.transaksjonId
@@ -115,10 +120,17 @@ class FeilLytter(
         }
     }
 
-    fun skalHaandteres(fail: Fail): Boolean {
+    fun behovSkalHaandteres(fail: Fail): Boolean {
         val behovFraMelding = fail.utloesendeMelding.toMap()[Key.BEHOV]?.fromJson(BehovType.serializer())
         val skalHaandteres = behovSomHaandteres.contains(behovFraMelding)
         sikkerLogger.info("Behov: $behovFraMelding skal håndteres: $skalHaandteres")
+        return skalHaandteres
+    }
+
+    fun eventSkalHaandteres(fail: Fail): Boolean {
+        val eventFraMelding = fail.utloesendeMelding.toMap()[Key.EVENT_NAME]?.fromJson(EventName.serializer())
+        val skalHaandteres = eventerSomHaandteres.contains(eventFraMelding)
+        sikkerLogger.info("Event: $eventFraMelding skal håndteres: $skalHaandteres")
         return skalHaandteres
     }
 }

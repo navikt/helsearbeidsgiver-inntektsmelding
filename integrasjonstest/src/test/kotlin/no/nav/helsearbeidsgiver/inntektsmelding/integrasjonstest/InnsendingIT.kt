@@ -10,8 +10,6 @@ import io.mockk.coEvery
 import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -26,11 +24,9 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.mapInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.maxMekker
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -84,7 +80,7 @@ class InnsendingIT : EndToEndTest() {
         )
 
         messages
-            .filter(EventName.INSENDING_STARTED)
+            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.INNTEKTSMELDING, nestedData = true)
             .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
             .firstAsMap()
@@ -142,24 +138,8 @@ class InnsendingIT : EndToEndTest() {
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.forespoersel.orgnr)
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
-        imRepository.lagreInntektsmelding(Mock.forespoerselId, Mock.innsendtInntektsmelding)
 
-        mockForespoerselSvarFraHelsebro(
-            forespoerselId = Mock.forespoerselId,
-            forespoerselSvar = Mock.forespoerselSvar,
-        )
-
-        coEvery {
-            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
-        } returns
-            OpprettOgFerdigstillResponse(
-                journalpostId = Mock.JOURNALPOST_ID,
-                journalpostFerdigstilt = true,
-                melding = "Ha en fin dag!",
-                dokumenter = emptyList(),
-            )
-
-        coEvery { brregClient.hentVirksomhetNavn(any()) } returns "Bedrift A/S"
+        imRepository.lagreInntektsmeldingSkjema(Mock.forespoerselId, Mock.skjema)
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
@@ -167,7 +147,7 @@ class InnsendingIT : EndToEndTest() {
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                    Key.ARBEIDSGIVER_FNR to maxMekker.ident!!.toJson(),
+                    Key.ARBEIDSGIVER_FNR to Mock.forespoersel.fnr.toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
                 ).toJson(),
         )
@@ -180,6 +160,45 @@ class InnsendingIT : EndToEndTest() {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
                 data[Key.ER_DUPLIKAT_IM].shouldNotBeNull().fromJson(Boolean.serializer()).shouldBeTrue()
             }
+
+        messages.filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET).all() shouldHaveSize 0
+
+        messages.filter(EventName.INNTEKTSMELDING_MOTTATT).all() shouldHaveSize 0
+
+        messages.filter(EventName.INNTEKTSMELDING_JOURNALFOERT).all() shouldHaveSize 0
+
+        messages.filter(EventName.INNTEKTSMELDING_DISTRIBUERT).all() shouldHaveSize 0
+    }
+
+    @Test
+    fun `skal ikke lagre duplikat inntektsmeldingskjema`() {
+        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.forespoersel.orgnr)
+        forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
+        forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
+
+        imRepository.lagreInntektsmeldingSkjema(Mock.forespoerselId, Mock.skjema)
+
+        publish(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.UUID to UUID.randomUUID().toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                    Key.ARBEIDSGIVER_FNR to Mock.forespoersel.fnr.toJson(),
+                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                ).toJson(),
+        )
+
+        messages
+            .filter(EventName.INSENDING_STARTED)
+            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.ER_DUPLIKAT_IM].shouldNotBeNull().fromJson(Boolean.serializer()).shouldBeTrue()
+            }
+
+        messages.filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET).all() shouldHaveSize 0
 
         messages.filter(EventName.INNTEKTSMELDING_MOTTATT).all() shouldHaveSize 0
 
@@ -246,8 +265,9 @@ class InnsendingIT : EndToEndTest() {
         const val SAK_ID = "forundret-lysekrone"
         const val OPPGAVE_ID = "neglisjert-sommer"
 
-        val forespoerselId: UUID = UUID.randomUUID()
         val skjema = mockSkjemaInntektsmelding()
+
+        val forespoerselId: UUID = skjema.forespoerselId
 
         private val orgnr = Orgnr.genererGyldig()
 
@@ -271,16 +291,6 @@ class InnsendingIT : EndToEndTest() {
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
             )
-
-        val innsendtInntektsmelding =
-            mapInntektsmelding(
-                forespoersel = forespoersel,
-                skjema = skjema,
-                aarsakInnsending = AarsakInnsending.Endring,
-                virksomhetNavn = "Bedrift A/S",
-                sykmeldtNavn = bjarneBetjent.navn.fulltNavn(),
-                avsenderNavn = maxMekker.navn.fulltNavn(),
-            ).convert()
 
         val forespoerselSvar =
             ForespoerselSvar.Suksess(

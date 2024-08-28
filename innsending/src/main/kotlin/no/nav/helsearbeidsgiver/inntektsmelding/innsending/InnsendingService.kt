@@ -3,28 +3,19 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
-import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
-import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
-import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed3Steg
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -33,10 +24,7 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
-
-private const val UKJENT_NAVN = "Ukjent navn"
 
 data class Steg0(
     val transaksjonId: UUID,
@@ -46,28 +34,14 @@ data class Steg0(
 )
 
 data class Steg1(
-    val forespoersel: Forespoersel,
-)
-
-sealed class Steg2 {
-    data class Komplett(
-        val aarsakInnsending: AarsakInnsending,
-        val orgnrMedNavn: Map<Orgnr, String>,
-        val personer: Map<Fnr, Person>,
-    ) : Steg2()
-
-    data object Delvis : Steg2()
-}
-
-data class Steg3(
-    val inntektsmelding: Inntektsmelding,
     val erDuplikat: Boolean,
+    val innsendingId: Long,
 )
 
 class InnsendingService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore,
-) : ServiceMed3Steg<Steg0, Steg1, Steg2, Steg3>(),
+) : ServiceMed1Steg<Steg0, Steg1>(),
     Service.MedRedis {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
@@ -84,41 +58,8 @@ class InnsendingService(
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
         Steg1(
-            forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding),
-        )
-
-    override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 {
-        val tidligereInntektsmelding = runCatching { Key.LAGRET_INNTEKTSMELDING.les(ResultJson.serializer(), melding) }
-        val tidligereEksternInntektsmelding = runCatching { Key.EKSTERN_INNTEKTSMELDING.les(ResultJson.serializer(), melding) }
-        val orgnrMedNavn = runCatching { Key.VIRKSOMHETER.les(orgMapSerializer, melding) }
-        val personer = runCatching { Key.PERSONER.les(personMapSerializer, melding) }
-
-        val results = listOf(tidligereInntektsmelding, tidligereEksternInntektsmelding, orgnrMedNavn, personer)
-
-        return if (results.all { it.isSuccess }) {
-            val aarsakInnsending =
-                if (tidligereInntektsmelding.getOrThrow().success == null && tidligereEksternInntektsmelding.getOrThrow().success == null) {
-                    AarsakInnsending.Ny
-                } else {
-                    AarsakInnsending.Endring
-                }
-
-            Steg2.Komplett(
-                aarsakInnsending = aarsakInnsending,
-                orgnrMedNavn = orgnrMedNavn.getOrThrow(),
-                personer = personer.getOrThrow(),
-            )
-        } else if (results.any { it.isSuccess }) {
-            Steg2.Delvis
-        } else {
-            throw results.firstNotNullOf { it.exceptionOrNull() }
-        }
-    }
-
-    override fun lesSteg3(melding: Map<Key, JsonElement>): Steg3 =
-        Steg3(
-            inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), melding),
             erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
+            innsendingId = Key.INNSENDING_ID.les(Long.serializer(), melding),
         )
 
     override fun utfoerSteg0(
@@ -128,13 +69,14 @@ class InnsendingService(
         rapid
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
+                Key.BEHOV to BehovType.LAGRE_IM_SKJEMA.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                        Key.SKJEMA_INNTEKTSMELDING to steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
                     ).toJson(),
-            ).also { loggBehovPublisert(BehovType.HENT_TRENGER_IM, it) }
+            ).also { loggBehovPublisert(BehovType.LAGRE_IM_SKJEMA, it) }
     }
 
     override fun utfoerSteg1(
@@ -142,148 +84,33 @@ class InnsendingService(
         steg0: Steg0,
         steg1: Steg1,
     ) {
-        rapid
-            .publish(
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.HENT_LAGRET_IM.toJson(),
-                Key.UUID to steg0.transaksjonId.toJson(),
-                Key.DATA to
-                    mapOf(
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                    ).toJson(),
-            ).also { loggBehovPublisert(BehovType.HENT_LAGRET_IM, it) }
-
-        rapid
-            .publish(
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
-                Key.UUID to steg0.transaksjonId.toJson(),
-                Key.DATA to
-                    mapOf(
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                        Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(String.serializer()),
-                    ).toJson(),
-            ).also { loggBehovPublisert(BehovType.HENT_VIRKSOMHET_NAVN, it) }
-
-        rapid
-            .publish(
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
-                Key.UUID to steg0.transaksjonId.toJson(),
-                Key.DATA to
-                    mapOf(
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                        Key.FNR_LISTE to
-                            setOf(
-                                steg1.forespoersel.fnr.let(::Fnr),
-                                steg0.avsenderFnr,
-                            ).toJson(Fnr.serializer()),
-                    ).toJson(),
-            ).also { loggBehovPublisert(BehovType.HENT_PERSONER, it) }
-    }
-
-    override fun utfoerSteg2(
-        data: Map<Key, JsonElement>,
-        steg0: Steg0,
-        steg1: Steg1,
-        steg2: Steg2,
-    ) {
-        if (steg2 is Steg2.Komplett) {
-            val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr.let(::Orgnr)] ?: "Ukjent virksomhet"
-            val sykmeldtNavn = steg2.personer[steg1.forespoersel.fnr.let(::Fnr)]?.navn ?: UKJENT_NAVN
-            val avsenderNavn = steg2.personer[steg0.avsenderFnr]?.navn ?: UKJENT_NAVN
-
-            val inntektsmelding =
-                mapInntektsmelding(
-                    forespoersel = steg1.forespoersel,
-                    skjema = steg0.skjema,
-                    aarsakInnsending = steg2.aarsakInnsending,
-                    virksomhetNavn = orgNavn,
-                    sykmeldtNavn = sykmeldtNavn,
-                    avsenderNavn = avsenderNavn,
-                )
-
-            val bestemmendeFravaersdag = utledBestemmendeFravaersdag(steg1.forespoersel, inntektsmelding)
-
-            val inntektsdato = inntektsmelding.inntekt?.inntektsdato
-            if (inntektsdato != null && bestemmendeFravaersdag.isBefore(inntektsdato)) {
-                "Bestemmende fraværsdag er før inntektsdato. Dette er ikke mulig. Spleis vil trolig spør om ny inntektsmelding.".also {
-                    logger.error(it)
-                    sikkerLogger.error(it)
-                }
-            }
-
-            val inntektsmeldingGammeltFormat = inntektsmelding.convert().copy(bestemmendeFraværsdag = bestemmendeFravaersdag)
-
-            rapid
-                .publish(
-                    Key.EVENT_NAME to eventName.toJson(),
-                    Key.BEHOV to BehovType.LAGRE_IM.toJson(),
-                    Key.UUID to steg0.transaksjonId.toJson(),
-                    Key.DATA to
-                        mapOf(
-                            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                            Key.INNTEKTSMELDING to inntektsmeldingGammeltFormat.toJson(Inntektsmelding.serializer()),
-                        ).toJson(),
-                ).also { loggBehovPublisert(BehovType.LAGRE_IM, it) }
-        }
-    }
-
-    override fun utfoerSteg3(
-        data: Map<Key, JsonElement>,
-        steg0: Steg0,
-        steg1: Steg1,
-        steg2: Steg2,
-        steg3: Steg3,
-    ) {
         val resultJson =
             ResultJson(
-                success = steg3.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                success = steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
             ).toJson(ResultJson.serializer())
 
         redisStore.set(RedisKey.of(steg0.transaksjonId), resultJson)
 
-        if (!steg3.erDuplikat) {
+        if (!steg1.erDuplikat) {
             val publisert =
-                rapid.publish(
-                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
-                    Key.UUID to steg0.transaksjonId.toJson(),
-                    Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                    Key.INNTEKTSMELDING_DOKUMENT to steg3.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                )
+                rapid
+                    .publish(
+                        Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
+                        Key.UUID to steg0.transaksjonId.toJson(),
+                        Key.DATA to
+                            mapOf(
+                                Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
+                                Key.SKJEMA_INNTEKTSMELDING to steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                                Key.INNSENDING_ID to steg1.innsendingId.toJson(Long.serializer()),
+                            ).toJson(),
+                    )
 
             MdcUtils.withLogFields(
-                Log.event(EventName.INNTEKTSMELDING_MOTTATT),
+                Log.event(EventName.INNTEKTSMELDING_SKJEMA_LAGRET),
             ) {
                 logger.info("Publiserte melding.")
                 sikkerLogger.info("Publiserte melding:\n${publisert.toPretty()}")
             }
-        }
-    }
-
-    override fun onError(
-        melding: Map<Key, JsonElement>,
-        fail: Fail,
-    ) {
-        val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
-
-        val datafeil =
-            when (utloesendeBehov) {
-                BehovType.HENT_VIRKSOMHET_NAVN -> Key.VIRKSOMHETER to emptyMap<String, String>().toJson()
-                BehovType.HENT_PERSONER -> Key.PERSONER to emptyMap<String, String>().toJson()
-                else -> null
-            }
-
-        if (datafeil != null) {
-            redisStore.set(RedisKey.of(fail.transaksjonId, datafeil.first), datafeil.second)
-
-            val meldingMedDefault = mapOf(datafeil).plus(melding)
-
-            onData(meldingMedDefault)
-        } else {
-            val resultJson = ResultJson(failure = fail.feilmelding.toJson())
-
-            redisStore.set(RedisKey.of(fail.transaksjonId), resultJson.toJson(ResultJson.serializer()))
         }
     }
 
@@ -307,5 +134,14 @@ class InnsendingService(
                 sikkerLogger.info("$it\n${publisert.toPretty()}")
             }
         }
+    }
+
+    override fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    ) {
+        val resultJson = ResultJson(failure = fail.feilmelding.toJson())
+
+        redisStore.set(RedisKey.of(fail.transaksjonId), resultJson.toJson(ResultJson.serializer()))
     }
 }

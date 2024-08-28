@@ -101,6 +101,7 @@ class JournalfoerImRiver(
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
             Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
+            Key.INNSENDING_ID to json[Key.INNSENDING_ID],
         ).mapValuesNotNull { it }
             .also {
                 MdcUtils.withLogFields(
@@ -134,8 +135,12 @@ class JournalfoerImRiver(
 
         return fail
             .tilMelding()
-            .plus(Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID])
-            .mapValuesNotNull { it }
+            .plus(
+                mapOf(
+                    Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
+                    Key.INNSENDING_ID to json[Key.INNSENDING_ID],
+                ),
+            ).mapValuesNotNull { it }
     }
 
     override fun JournalfoerImMelding.loggfelt(): Map<String, String> =

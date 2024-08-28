@@ -34,7 +34,11 @@ fun buildApp(env: Map<String, String>): RapidsConnection {
 
 fun RapidsConnection.createFeilLytter(database: Database): RapidsConnection =
     also {
-        val repository = PostgresBakgrunnsjobbRepository(database.dataSource)
+        createFeilLytter(repository = PostgresBakgrunnsjobbRepository(database.dataSource))
+    }
+
+fun RapidsConnection.createFeilLytter(repository: PostgresBakgrunnsjobbRepository): RapidsConnection =
+    also {
         FeilLytter(it, repository)
         val bgService = BakgrunnsjobbService(repository)
         bgService.registrer(FeilProsessor(it))

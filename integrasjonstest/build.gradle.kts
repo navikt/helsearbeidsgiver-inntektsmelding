@@ -1,6 +1,7 @@
 val aaregClientVersion: String by project
 val altinnClientVersion: String by project
 val arbeidsgiverNotifikasjonKlientVersion: String by project
+val bakgrunnsjobbVersion: String by project
 val brregKlientVersion: String by project
 val dokarkivKlientVersion: String by project
 val inntektKlientVersion: String by project
@@ -32,9 +33,14 @@ dependencies {
     testImplementation(project(":selvbestemt-lagre-im-service"))
     testImplementation(project(":tilgangservice"))
     testImplementation(project(":trengerservice"))
+    testImplementation(project(":berik-inntektsmelding-service"))
+    testImplementation(project(":berik-inntektsmelding-service"))
+    testImplementation(project(":feil-behandler"))
 
     testImplementation(project(":felles"))
     testImplementation(project(":felles-db-exposed"))
+
+    testImplementation("no.nav.helsearbeidsgiver:hag-bakgrunnsjobb:$bakgrunnsjobbVersion")
 
     testImplementation(testFixtures(project(":felles")))
     testImplementation(testFixtures(project(":felles-db-exposed")))

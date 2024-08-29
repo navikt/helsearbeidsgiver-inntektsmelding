@@ -77,7 +77,9 @@ class FeilLytter(
                     sikkerLogger.info("Id $jobbId finnes fra før med annet behov. Lagrer en ny jobb.")
                     val nyTransaksjonId = UUID.randomUUID()
                     val utloesendeMeldingMedNyTransaksjonId = fail.utloesendeMelding.toMap() + mapOf(Key.UUID to nyTransaksjonId.toJson(UuidSerializer))
-                    lagre(Bakgrunnsjobb(nyTransaksjonId, type = jobbType, data = utloesendeMeldingMedNyTransaksjonId.toJson().toString()))
+                    lagre(
+                        Bakgrunnsjobb(nyTransaksjonId, type = jobbType, data = utloesendeMeldingMedNyTransaksjonId.toJson().toString(), maksAntallForsoek = 10),
+                    )
                 } else {
                     oppdater(eksisterendeJobb)
                 }
@@ -88,6 +90,7 @@ class FeilLytter(
                         uuid = fail.transaksjonId,
                         type = jobbType,
                         data = fail.utloesendeMelding.toString(),
+                        maksAntallForsoek = 10,
                     )
                 lagre(jobb)
             }

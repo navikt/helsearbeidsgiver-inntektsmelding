@@ -68,6 +68,7 @@ fun mockSkjemaInntektsmeldingSelvbestemt(): SkjemaInntektsmeldingSelvbestemt {
         agp = inntektsmelding.agp,
         inntekt = inntektsmelding.inntekt!!,
         refusjon = inntektsmelding.refusjon,
+        vedtaksperiodeId = UUID.randomUUID(),
     )
 }
 

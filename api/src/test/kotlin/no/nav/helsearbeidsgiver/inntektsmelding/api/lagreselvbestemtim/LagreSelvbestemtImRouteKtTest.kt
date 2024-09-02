@@ -88,7 +88,8 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
                         "perioder": [{"fom": "2024-02-14", "tom": "2024-02-15"}, {"fom": "2024-02-21", "tom": "2024-02-21"}]
                     }
                 },
-                "refusjon": null
+                "refusjon": null,
+                "vedtaksperiodeId": null
             }
             """.removeJsonWhitespace()
                     .parseJson()
@@ -185,7 +186,7 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
         }
 
     @Test
-    fun `skal returnere bad reqest hvis arbeidsforhold mangler`() =
+    fun `skal returnere bad request hvis arbeidsforhold mangler`() =
         testApi {
             val expectedFeilmelding = "Mangler arbeidsforhold i perioden"
 

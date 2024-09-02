@@ -514,6 +514,7 @@ private object Mock {
                         ),
                     sluttdato = 30.mars,
                 ),
+            vedtaksperiodeId = null,
         )
 
     val inntektsmelding =

@@ -367,6 +367,7 @@ fun tilInntektsmelding(
         type =
             Inntektsmelding.Type.Selvbestemt(
                 id = skjema.selvbestemtId ?: UUID.randomUUID(),
+                vedtaksperiodeId = skjema.vedtaksperiodeId,
             ),
         sykmeldt =
             Sykmeldt(

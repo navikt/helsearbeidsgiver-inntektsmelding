@@ -90,6 +90,7 @@ class LagreJournalpostIdRiverTest :
                     Mock.innkommendeMelding(
                         InntektsmeldingV1.Type.Selvbestemt(
                             id = UUID.randomUUID(),
+                            vedtaksperiodeId = UUID.randomUUID(),
                         ),
                     )
 
@@ -185,6 +186,7 @@ class LagreJournalpostIdRiverTest :
                     Mock.innkommendeMelding(
                         InntektsmeldingV1.Type.Selvbestemt(
                             id = UUID.randomUUID(),
+                            vedtaksperiodeId = UUID.randomUUID(),
                         ),
                     )
 
@@ -249,6 +251,7 @@ class LagreJournalpostIdRiverTest :
                         .innkommendeMelding(
                             InntektsmeldingV1.Type.Selvbestemt(
                                 id = UUID.randomUUID(),
+                                vedtaksperiodeId = UUID.randomUUID(),
                             ),
                         ).toMap()
                         .minus(Key.SELVBESTEMT_ID),

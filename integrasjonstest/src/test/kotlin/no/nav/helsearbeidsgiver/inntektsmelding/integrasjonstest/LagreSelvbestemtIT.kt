@@ -71,6 +71,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
                 type =
                     InntektsmeldingV1.Type.Selvbestemt(
                         id = UUID.randomUUID(),
+                        vedtaksperiodeId = UUID.randomUUID(),
                     ),
                 aarsakInnsending = AarsakInnsending.Ny,
             )
@@ -436,6 +437,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
                     type =
                         InntektsmeldingV1.Type.Selvbestemt(
                             id = skjema.selvbestemtId.shouldNotBeNull(),
+                            vedtaksperiodeId = skjema.vedtaksperiodeId.shouldNotBeNull(),
                         ),
                     sykmeldt =
                         Sykmeldt(

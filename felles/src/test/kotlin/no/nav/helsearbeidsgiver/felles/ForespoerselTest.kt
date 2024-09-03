@@ -21,12 +21,35 @@ class ForespoerselTest :
     FunSpec({
 
         context(Forespoersel::forslagBestemmendeFravaersdag.name) {
-            test("gir bestemmende fraværsdag for eget orgnr") {
+            test("bestemmende fraværsdag-forslaget fra Spleis overstyres av eldre sykmelding + egenmelding") {
                 val orgnr = "555898023"
 
                 val forespoersel =
                     mockForespoersel().copy(
                         orgnr = orgnr,
+                        sykmeldingsperioder = listOf(2.januar til 31.januar),
+                        egenmeldingsperioder = listOf(1.januar til 1.januar),
+                        bestemmendeFravaersdager =
+                            mapOf(
+                                orgnr to 1.juli,
+                                "444707112" to 13.mai,
+                            ),
+                    )
+
+                forespoersel.forslagBestemmendeFravaersdag() shouldBe 1.januar
+            }
+
+            test("bestemmende fraværsdag-forslaget fra Spleis brukes dersom den er tidligere enn sykmelding + egenmelding") {
+                val orgnr = "555898023"
+
+                val forespoersel =
+                    mockForespoersel().copy(
+                        orgnr = orgnr,
+                        sykmeldingsperioder =
+                            listOf(
+                                1.august til 31.august,
+                            ),
+                        egenmeldingsperioder = listOf(30.juli til 30.juli),
                         bestemmendeFravaersdager =
                             mapOf(
                                 orgnr to 1.juli,
@@ -45,6 +68,7 @@ class ForespoerselTest :
                             listOf(
                                 5.januar til 30.januar,
                             ),
+                        egenmeldingsperioder = listOf(1.januar til 1.januar),
                         bestemmendeFravaersdager =
                             mapOf(
                                 "444707112" to 13.mai,
@@ -56,12 +80,17 @@ class ForespoerselTest :
         }
 
         context(Forespoersel::forslagInntektsdato.name) {
-            test("gir minste bestemmende fraværsdag (når det stammer fra eget orgnr)") {
+            test("gir minste bestemmende fraværsdag (når det stammer fra eget orgnr og den er tidligere enn sykmelding + egenmelding)") {
                 val orgnr = "333848343"
 
                 val forespoersel =
                     mockForespoersel().copy(
                         orgnr = orgnr,
+                        sykmeldingsperioder =
+                            listOf(
+                                1.desember til 31.desember,
+                            ),
+                        egenmeldingsperioder = listOf(28.november til 29.november),
                         bestemmendeFravaersdager =
                             mapOf(
                                 orgnr to 28.februar,
@@ -73,12 +102,17 @@ class ForespoerselTest :
                 forespoersel.forslagInntektsdato() shouldBe 28.februar
             }
 
-            test("gir minste bestemmende fraværsdag (når det stammer fra annet orgnr)") {
+            test("gir minste bestemmende fraværsdag (når det stammer fra annet orgnr og den er tidligere enn sykmelding + egenmelding)") {
                 val orgnr = "333848343"
 
                 val forespoersel =
                     mockForespoersel().copy(
                         orgnr = orgnr,
+                        sykmeldingsperioder =
+                            listOf(
+                                1.desember til 31.desember,
+                            ),
+                        egenmeldingsperioder = listOf(28.november til 29.november),
                         bestemmendeFravaersdager =
                             mapOf(
                                 orgnr to 9.november,
@@ -90,10 +124,15 @@ class ForespoerselTest :
                 forespoersel.forslagInntektsdato() shouldBe 4.november
             }
 
-            test("gir minste bestemmende fraværsdag selv uten eget orgnr") {
+            test("gir minste bestemmende fraværsdag selv uten eget orgnr når den er tidligere enn sykmelding + egenmelding") {
                 val forespoersel =
                     mockForespoersel().copy(
                         orgnr = "333848343",
+                        sykmeldingsperioder =
+                            listOf(
+                                1.desember til 31.desember,
+                            ),
+                        egenmeldingsperioder = listOf(28.november til 29.november),
                         bestemmendeFravaersdager =
                             mapOf(
                                 "851993994" to 7.juni,
@@ -102,6 +141,25 @@ class ForespoerselTest :
                     )
 
                 forespoersel.forslagInntektsdato() shouldBe 5.juni
+            }
+
+            test("beregner bestemmende fraværsdag fra sykmelding + egenmelding dersom de kommer tidligere enn bestemmende fraværsdager fra Spleis") {
+                val forespoersel =
+                    mockForespoersel().copy(
+                        orgnr = "333848343",
+                        sykmeldingsperioder =
+                            listOf(
+                                2.januar til 31.januar,
+                            ),
+                        egenmeldingsperioder = listOf(1.januar til 1.januar),
+                        bestemmendeFravaersdager =
+                            mapOf(
+                                "851993994" to 7.juni,
+                                "900505434" to 5.juni,
+                            ),
+                    )
+
+                forespoersel.forslagInntektsdato() shouldBe 1.januar
             }
 
             test("beregner bestemmende fraværsdag dersom ingen er tilstede") {

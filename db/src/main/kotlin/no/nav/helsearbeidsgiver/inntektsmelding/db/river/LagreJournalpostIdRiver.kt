@@ -58,7 +58,10 @@ class LagreJournalpostIdRiver(
                         vedtaksperiodeId = vedtaksperiodeId,
                     )
                 } else if (selvbestemtId != null) {
-                    InntektsmeldingV1.Type.Selvbestemt(selvbestemtId)
+                    InntektsmeldingV1.Type.Selvbestemt(
+                        id = selvbestemtId,
+                        vedtaksperiodeId = vedtaksperiodeId,
+                    )
                 } else {
                     null
                 }

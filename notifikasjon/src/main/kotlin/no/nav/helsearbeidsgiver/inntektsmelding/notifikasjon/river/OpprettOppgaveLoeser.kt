@@ -114,7 +114,7 @@ class OpprettOppgaveLoeser(
                 arbeidsgiverNotifikasjonKlient.opprettNyOppgave(
                     eksternId = forespoerselId.toString(),
                     lenke = "$linkUrl/im-dialog/$forespoerselId",
-                    tekst = "Send inn inntektsmelding",
+                    tekst = "Innsending av inntektsmelding",
                     virksomhetsnummer = orgnr,
                     merkelapp = "Inntektsmelding sykepenger",
                     tidspunkt = null,

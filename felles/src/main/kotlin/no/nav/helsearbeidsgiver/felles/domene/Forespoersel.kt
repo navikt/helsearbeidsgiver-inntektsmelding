@@ -47,12 +47,12 @@ data class Forespoersel(
         bestemmendeFravaersdager.minus(orgnr).minOfOrNull {
             it.value
         }
-}
 
-private fun finnTidligste(
-    spleisForslag: LocalDate?,
-    beregnet: LocalDate,
-): LocalDate = listOfNotNull(spleisForslag, beregnet).min()
+    private fun finnTidligste(
+        spleisForslag: LocalDate?,
+        beregnet: LocalDate,
+    ): LocalDate = listOfNotNull(spleisForslag, beregnet).min()
+}
 
 enum class ForespoerselType {
     KOMPLETT,

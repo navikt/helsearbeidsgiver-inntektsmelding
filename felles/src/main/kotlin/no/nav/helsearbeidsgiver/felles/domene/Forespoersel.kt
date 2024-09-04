@@ -29,7 +29,7 @@ data class Forespoersel(
             beregnet =
                 bestemmendeFravaersdag(
                     arbeidsgiverperioder = emptyList(),
-                    sykmeldingsperioder = sykmeldingsperioder + egenmeldingsperioder,
+                    sykefravaersperioder = sykmeldingsperioder + egenmeldingsperioder,
                 ),
         )
 
@@ -39,7 +39,7 @@ data class Forespoersel(
             beregnet =
                 bestemmendeFravaersdag(
                     arbeidsgiverperioder = emptyList(),
-                    sykmeldingsperioder = sykmeldingsperioder + egenmeldingsperioder,
+                    sykefravaersperioder = sykmeldingsperioder + egenmeldingsperioder,
                 ),
         )
 

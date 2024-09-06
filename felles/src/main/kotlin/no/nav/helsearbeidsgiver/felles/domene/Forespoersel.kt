@@ -24,20 +24,34 @@ data class Forespoersel(
     val erBesvart: Boolean,
 ) {
     fun forslagBestemmendeFravaersdag(): LocalDate =
-        bestemmendeFravaersdager[orgnr]
-            ?: bestemmendeFravaersdag(
-                arbeidsgiverperioder = emptyList(),
-                sykmeldingsperioder = sykmeldingsperioder,
-            )
+        finnTidligste(
+            spleisForslag = bestemmendeFravaersdager[orgnr],
+            beregnet =
+                bestemmendeFravaersdag(
+                    arbeidsgiverperioder = emptyList(),
+                    sykefravaersperioder = sykmeldingsperioder + egenmeldingsperioder,
+                ),
+        )
 
     fun forslagInntektsdato(): LocalDate =
-        bestemmendeFravaersdager.minOfOrNull { it.value }
-            ?: bestemmendeFravaersdag(
-                arbeidsgiverperioder = emptyList(),
-                sykmeldingsperioder = sykmeldingsperioder,
-            )
+        finnTidligste(
+            spleisForslag = bestemmendeFravaersdager.minOfOrNull { it.value },
+            beregnet =
+                bestemmendeFravaersdag(
+                    arbeidsgiverperioder = emptyList(),
+                    sykefravaersperioder = sykmeldingsperioder + egenmeldingsperioder,
+                ),
+        )
 
-    fun eksternBestemmendeFravaersdag(): LocalDate? = bestemmendeFravaersdager.minus(orgnr).minOfOrNull { it.value }
+    fun eksternBestemmendeFravaersdag(): LocalDate? =
+        bestemmendeFravaersdager.minus(orgnr).minOfOrNull {
+            it.value
+        }
+
+    private fun finnTidligste(
+        spleisForslag: LocalDate?,
+        beregnet: LocalDate,
+    ): LocalDate = listOfNotNull(spleisForslag, beregnet).min()
 }
 
 enum class ForespoerselType {

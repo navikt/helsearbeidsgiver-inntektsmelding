@@ -23,7 +23,7 @@ fun utledBestemmendeFravaersdag(
     ) {
         bestemmendeFravaersdag(
             arbeidsgiverperioder = inntektsmelding.agp?.perioder.orEmpty(),
-            sykmeldingsperioder = forespoersel.sykmeldingsperioder,
+            sykefravaersperioder = forespoersel.sykmeldingsperioder,
         )
     } else {
         forespoersel.forslagBestemmendeFravaersdag()

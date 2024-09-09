@@ -131,7 +131,9 @@ private fun Inntektsmelding.tilKvitteringSimba(): KvitteringSimba =
         behandlingsdager = behandlingsdager,
         egenmeldingsperioder = egenmeldingsperioder,
         arbeidsgiverperioder = arbeidsgiverperioder,
-        bestemmendeFraværsdag = bestemmendeFraværsdag,
+        // Frontend tolker feltet bestemmendeFraværsdag som om det var inntektsdato.
+        // Vi vil slippe denne hacken ved overgang til v1.Inntektsmelding, som kun inneholder inntektsdato (ikke bestemmende fraværsdag).
+        bestemmendeFraværsdag = inntektsdato ?: bestemmendeFraværsdag,
         fraværsperioder = fraværsperioder,
         inntekt =
             Inntekt(

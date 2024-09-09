@@ -50,7 +50,6 @@ class MapInntektsmeldingKtTest :
                     type shouldBe
                         Inntektsmelding.Type.Forespurt(
                             id = skjema.forespoerselId,
-                            vedtaksperiodeId = forespoersel.vedtaksperiodeId,
                         )
 
                     sykmeldt shouldBe

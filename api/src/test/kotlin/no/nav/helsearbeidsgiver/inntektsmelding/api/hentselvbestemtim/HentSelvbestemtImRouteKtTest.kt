@@ -288,7 +288,8 @@ private fun Inntektsmelding.hardcodedJson(): String =
         "inntekt": ${inntekt?.hardcodedJson()},
         "refusjon": ${refusjon?.hardcodedJson()},
         "aarsakInnsending": "$aarsakInnsending",
-        "mottatt": "$mottatt"
+        "mottatt": "$mottatt",
+        "vedtaksperiodeId": "$vedtaksperiodeId"
     }
     """.removeJsonWhitespace()
 
@@ -298,8 +299,7 @@ private fun Inntektsmelding.Type.hardcodedJson(): String =
             """
             {
                 "type": "Forespurt",
-                "id": "$id",
-                "vedtaksperiodeId": "$vedtaksperiodeId"
+                "id": "$id"
             }
             """
 

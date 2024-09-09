@@ -46,7 +46,6 @@ class HentSelvbestemtImRiverTest :
                     type =
                         Inntektsmelding.Type.Selvbestemt(
                             id = innkommendeMelding.selvbestemtId,
-                            vedtaksperiodeId = UUID.randomUUID(),
                         ),
                 )
 

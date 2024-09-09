@@ -31,13 +31,11 @@ class SelvbestemtImRepoTest :
 
             test("henter nyeste") {
                 val selvbestemtId = UUID.randomUUID()
-                val vedtaksperiodeId = UUID.randomUUID()
                 val originalInntektsmelding =
                     mockInntektsmeldingV1().copy(
                         type =
                             Inntektsmelding.Type.Selvbestemt(
                                 id = selvbestemtId,
-                                vedtaksperiodeId = vedtaksperiodeId,
                             ),
                     )
                 val endretInntektsmelding =
@@ -68,13 +66,11 @@ class SelvbestemtImRepoTest :
 
             test("henter eneste") {
                 val selvbestemtId = UUID.randomUUID()
-                val vedtaksperiodeId = UUID.randomUUID()
                 val inntektsmelding =
                     mockInntektsmeldingV1().copy(
                         type =
                             Inntektsmelding.Type.Selvbestemt(
                                 id = selvbestemtId,
-                                vedtaksperiodeId = vedtaksperiodeId,
                             ),
                     )
 
@@ -120,7 +116,6 @@ class SelvbestemtImRepoTest :
 
             test("inntektsmeldinger med samme selvbestemt ID lagres") {
                 val selvbestemtId = UUID.randomUUID()
-                val vedtaksperiodeId = UUID.randomUUID()
 
                 repeat(2) {
                     val inntektsmelding =
@@ -128,7 +123,6 @@ class SelvbestemtImRepoTest :
                             type =
                                 Inntektsmelding.Type.Selvbestemt(
                                     id = selvbestemtId,
-                                    vedtaksperiodeId = vedtaksperiodeId,
                                 ),
                         )
 
@@ -155,14 +149,12 @@ class SelvbestemtImRepoTest :
 
             test("journalpost-ID oppdateres for angitt selvbestemt ID") {
                 val selvbestemtId = UUID.randomUUID()
-                val vedtaksperiodeId = UUID.randomUUID()
                 val journalpostId = randomDigitString(12)
                 val inntektsmelding =
                     mockInntektsmeldingV1().copy(
                         type =
                             Inntektsmelding.Type.Selvbestemt(
                                 id = selvbestemtId,
-                                vedtaksperiodeId = vedtaksperiodeId,
                             ),
                     )
 
@@ -188,14 +180,12 @@ class SelvbestemtImRepoTest :
 
             test("kun nyeste inntektsmelding oppdateres med journalpost-ID") {
                 val selvbestemtId = UUID.randomUUID()
-                val vedtaksperiodeId = UUID.randomUUID()
                 val journalpostId = randomDigitString(5)
                 val originalInntektsmelding =
                     mockInntektsmeldingV1().copy(
                         type =
                             Inntektsmelding.Type.Selvbestemt(
                                 id = selvbestemtId,
-                                vedtaksperiodeId = vedtaksperiodeId,
                             ),
                     )
                 val endretInntektsmelding =
@@ -226,7 +216,6 @@ class SelvbestemtImRepoTest :
 
             test("oppdaterer journalpost-ID kun dersom gammel verdi er 'null'") {
                 val selvbestemtId = UUID.randomUUID()
-                val vedtaksperiodeId = UUID.randomUUID()
                 val gammelJournalpostId = randomDigitString(10)
                 val nyJournalpostId = randomDigitString(8)
                 val originalInntektsmelding =
@@ -234,7 +223,6 @@ class SelvbestemtImRepoTest :
                         type =
                             Inntektsmelding.Type.Selvbestemt(
                                 id = selvbestemtId,
-                                vedtaksperiodeId = vedtaksperiodeId,
                             ),
                     )
                 val endretInntektsmelding =

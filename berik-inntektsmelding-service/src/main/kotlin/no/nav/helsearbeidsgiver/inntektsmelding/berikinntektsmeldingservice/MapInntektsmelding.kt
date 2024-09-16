@@ -58,7 +58,6 @@ fun mapInntektsmelding(
         type =
             Inntektsmelding.Type.Forespurt(
                 id = skjema.forespoerselId,
-                vedtaksperiodeId = forespoersel.vedtaksperiodeId,
             ),
         sykmeldt =
             Sykmeldt(
@@ -78,5 +77,6 @@ fun mapInntektsmelding(
         refusjon = refusjon,
         aarsakInnsending = aarsakInnsending,
         mottatt = ZonedDateTime.now().toOffsetDateTime(),
+        vedtaksperiodeId = forespoersel.vedtaksperiodeId,
     )
 }

@@ -57,7 +57,6 @@ class LagreJournalpostIdRiverTest :
                     Mock.innkommendeMelding(
                         InntektsmeldingV1.Type.Forespurt(
                             id = UUID.randomUUID(),
-                            vedtaksperiodeId = UUID.randomUUID(),
                         ),
                     )
 
@@ -123,7 +122,6 @@ class LagreJournalpostIdRiverTest :
                 Mock.innkommendeMelding(
                     InntektsmeldingV1.Type.Forespurt(
                         id = UUID.randomUUID(),
-                        vedtaksperiodeId = UUID.randomUUID(),
                     ),
                 )
 
@@ -148,7 +146,6 @@ class LagreJournalpostIdRiverTest :
                     Mock.innkommendeMelding(
                         InntektsmeldingV1.Type.Forespurt(
                             id = UUID.randomUUID(),
-                            vedtaksperiodeId = UUID.randomUUID(),
                         ),
                     )
 
@@ -229,7 +226,6 @@ class LagreJournalpostIdRiverTest :
                         .innkommendeMelding(
                             InntektsmeldingV1.Type.Forespurt(
                                 id = UUID.randomUUID(),
-                                vedtaksperiodeId = UUID.randomUUID(),
                             ),
                         ).toMap()
                         .plus(uoensketKeyMedVerdi),

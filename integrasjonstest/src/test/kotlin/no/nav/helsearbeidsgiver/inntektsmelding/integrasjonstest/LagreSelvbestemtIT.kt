@@ -449,6 +449,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
                             navn = "Jan Eggum",
                         ),
                     aarsakInnsending = AarsakInnsending.Endring,
+                    vedtaksperiodeId = skjema.vedtaksperiodeId.shouldNotBeNull(),
                 )
             }
     }

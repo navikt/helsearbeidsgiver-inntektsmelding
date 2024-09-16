@@ -50,7 +50,6 @@ class MapInntektsmeldingKtTest :
                     type shouldBe
                         Inntektsmelding.Type.Forespurt(
                             id = skjema.forespoerselId,
-                            vedtaksperiodeId = forespoersel.vedtaksperiodeId,
                         )
 
                     sykmeldt shouldBe
@@ -80,6 +79,8 @@ class MapInntektsmeldingKtTest :
                     refusjon shouldBe skjema.refusjon
 
                     aarsakInnsending shouldBe AarsakInnsending.Endring
+
+                    vedtaksperiodeId shouldBe forespoersel.vedtaksperiodeId
 
                     mottatt.shouldBeWithin(5.seconds.toJavaDuration(), ZonedDateTime.now().toOffsetDateTime())
                 }

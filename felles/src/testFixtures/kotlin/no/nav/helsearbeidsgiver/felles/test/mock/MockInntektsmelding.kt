@@ -68,6 +68,7 @@ fun mockSkjemaInntektsmeldingSelvbestemt(): SkjemaInntektsmeldingSelvbestemt {
         agp = inntektsmelding.agp,
         inntekt = inntektsmelding.inntekt!!,
         refusjon = inntektsmelding.refusjon,
+        vedtaksperiodeId = UUID.randomUUID(),
     )
 }
 
@@ -77,7 +78,6 @@ fun mockInntektsmeldingV1(): InntektsmeldingV1 =
         type =
             InntektsmeldingV1.Type.Forespurt(
                 id = UUID.randomUUID(),
-                vedtaksperiodeId = UUID.randomUUID(),
             ),
         sykmeldt =
             Sykmeldt(
@@ -144,6 +144,7 @@ fun mockInntektsmeldingV1(): InntektsmeldingV1 =
             ),
         aarsakInnsending = AarsakInnsendingV1.Endring,
         mottatt = 14.mars.kl(14, 41, 42, 0).atOffset(ZoneOffset.ofHours(1)),
+        vedtaksperiodeId = UUID.randomUUID(),
     )
 
 fun mockInntektsmeldingGammeltFormat(): Inntektsmelding = mockInntektsmeldingV1().convert()

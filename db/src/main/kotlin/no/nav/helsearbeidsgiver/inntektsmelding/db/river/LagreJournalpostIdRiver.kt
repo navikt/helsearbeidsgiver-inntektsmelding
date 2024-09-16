@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -47,18 +46,15 @@ class LagreJournalpostIdRiver(
         } else {
             val forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, json)
             val selvbestemtId = Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, json)
-
-            val inntektsmelding = Key.INNTEKTSMELDING_DOKUMENT.les(Inntektsmelding.serializer(), json)
-            val vedtaksperiodeId = inntektsmelding.vedtaksperiodeId
-
             val inntektsmeldingType =
-                if (forespoerselId != null && vedtaksperiodeId != null) {
+                if (forespoerselId != null) {
                     InntektsmeldingV1.Type.Forespurt(
                         id = forespoerselId,
-                        vedtaksperiodeId = vedtaksperiodeId,
                     )
                 } else if (selvbestemtId != null) {
-                    InntektsmeldingV1.Type.Selvbestemt(selvbestemtId)
+                    InntektsmeldingV1.Type.Selvbestemt(
+                        id = selvbestemtId,
+                    )
                 } else {
                     null
                 }

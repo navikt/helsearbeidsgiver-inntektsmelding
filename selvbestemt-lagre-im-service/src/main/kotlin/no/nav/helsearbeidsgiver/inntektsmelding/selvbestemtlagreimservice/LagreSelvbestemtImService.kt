@@ -386,5 +386,6 @@ fun tilInntektsmelding(
         refusjon = skjema.refusjon,
         aarsakInnsending = aarsakInnsending,
         mottatt = OffsetDateTime.now(),
+        vedtaksperiodeId = skjema.vedtaksperiodeId,
     )
 }

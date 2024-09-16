@@ -80,6 +80,8 @@ class MapInntektsmeldingKtTest :
 
                     aarsakInnsending shouldBe AarsakInnsending.Endring
 
+                    vedtaksperiodeId shouldBe forespoersel.vedtaksperiodeId
+
                     mottatt.shouldBeWithin(5.seconds.toJavaDuration(), ZonedDateTime.now().toOffsetDateTime())
                 }
             }

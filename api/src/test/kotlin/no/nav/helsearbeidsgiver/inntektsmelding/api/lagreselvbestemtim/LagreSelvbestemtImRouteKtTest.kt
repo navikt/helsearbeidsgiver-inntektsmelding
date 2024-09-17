@@ -103,6 +103,53 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
         }
 
     @Test
+    fun `skal godta og returnere id ved innsending som mangler vedtaksperiodeId`() =
+        testApi {
+            val selvbestemtId = UUID.randomUUID()
+
+            coEvery { mockRedisConnection.get(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    Mock.successResult(selvbestemtId),
+                )
+
+            val skjemaJson =
+                """
+            {
+                "selvbestemtId": "$selvbestemtId",
+                "type": {
+                    "type": "Selvbestemt",
+                    "id": "${UUID.randomUUID()}"
+                },
+                "sykmeldtFnr": "${Fnr.genererGyldig()}",
+                "avsender": {
+                    "orgnr": "${Orgnr.genererGyldig()}",
+                    "tlf": "${randomDigitString(8)}"
+                },
+                "sykmeldingsperioder": [{"fom": "2024-02-12", "tom": "2024-02-28"}],
+                "agp": null,
+                "inntekt": {
+                    "beloep": 1000.10,
+                    "inntektsdato": "2024-02-12",
+                    "naturalytelser": [],
+                    "endringAarsak": {
+                        "aarsak": "Bonus"
+                    }
+                },
+                "refusjon": null
+            }
+            """.removeJsonWhitespace()
+                    .parseJson()
+
+            val response = post(path, skjemaJson, JsonElement.serializer())
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.OK
+            actualJson shouldBe Mock.successResponseJson(selvbestemtId)
+        }
+
+    @Test
     fun `feil i request body gir 400-feil`() =
         testApi {
             val expectedFeilmelding = "Feil under serialisering."

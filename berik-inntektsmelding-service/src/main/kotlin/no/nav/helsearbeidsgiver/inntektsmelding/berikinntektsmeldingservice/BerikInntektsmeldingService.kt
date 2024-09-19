@@ -86,6 +86,7 @@ class BerikInntektsmeldingService(
         )
 
     override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 {
+        // TODO: Fjern hele dette steget etter at vi har gått over til å bruke forespoersel.erBesvart til å avgjøre aarsakInnsending
         val tidligereInntektsmelding = Key.LAGRET_INNTEKTSMELDING.les(ResultJson.serializer(), melding)
         val tidligereEksternInntektsmelding = Key.EKSTERN_INNTEKTSMELDING.les(ResultJson.serializer(), melding)
 
@@ -205,12 +206,13 @@ class BerikInntektsmeldingService(
         val orgNavn = steg3.orgnrMedNavn[steg1.forespoersel.orgnr.let(::Orgnr)] ?: UKJENT_VIRKSOMHET
         val sykmeldtNavn = steg4.personer[steg1.forespoersel.fnr.let(::Fnr)]?.navn ?: UKJENT_NAVN
         val avsenderNavn = steg4.personer[steg0.avsenderFnr]?.navn ?: UKJENT_NAVN
+        val aarsakInnsending = if (steg1.forespoersel.erBesvart) AarsakInnsending.Endring else AarsakInnsending.Ny
 
         val inntektsmelding =
             mapInntektsmelding(
                 forespoersel = steg1.forespoersel,
                 skjema = steg0.skjema,
-                aarsakInnsending = steg2.aarsakInnsending,
+                aarsakInnsending = aarsakInnsending,
                 virksomhetNavn = orgNavn,
                 sykmeldtNavn = sykmeldtNavn,
                 avsenderNavn = avsenderNavn,

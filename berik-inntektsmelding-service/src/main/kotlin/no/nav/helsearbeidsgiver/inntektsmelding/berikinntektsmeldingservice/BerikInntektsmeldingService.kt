@@ -227,19 +227,9 @@ class BerikInntektsmeldingService(
                 sikkerLogger.error(it)
             }
         }
-        val gammeltFormat = inntektsmelding.convert()
-        val defaultUtregnetGammeltFormat = gammeltFormat.bestemmendeFraværsdag
-        if (bestemmendeFravaersdag != defaultUtregnetGammeltFormat) {
-            (
-                "Utledning av bestemmendeFraværsdag er ikke konsistent for id ${inntektsmelding.id}. " +
-                    "Utledet var: $bestemmendeFravaersdag, konvertert gir: $defaultUtregnetGammeltFormat"
-            ).also {
-                logger.error(it)
-                sikkerLogger.error(it)
-            }
-        }
-        // TODO: hvorfor utleder vi to ganger!? Droppe copy..?
-        val inntektsmeldingGammeltFormat = gammeltFormat.copy(bestemmendeFraværsdag = bestemmendeFravaersdag)
+
+        val inntektsmeldingGammeltFormat = inntektsmelding.convert().copy(bestemmendeFraværsdag = bestemmendeFravaersdag)
+
         rapid
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),

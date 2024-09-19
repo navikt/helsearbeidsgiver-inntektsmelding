@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsm
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
@@ -28,7 +27,6 @@ import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.json.lesData
 import no.nav.helsearbeidsgiver.felles.test.json.lesEventName
 import no.nav.helsearbeidsgiver.felles.test.json.plusData
-import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingGammeltFormat
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
@@ -72,22 +70,9 @@ class BerikInntektsmeldingServiceTest :
 
             testRapid.sendJson(Mock.steg1(Mock.transaksjonId))
 
-            // Melding med forventet behov og data sendt for å hente lagrede inntektsmeldinger
+            // Melding med forventet behov og data sendt for å hente virksomhetsnavn
             testRapid.inspektør.size shouldBeExactly 2
             testRapid.message(1).also {
-                it.lesBehov() shouldBe BehovType.HENT_LAGRET_IM
-
-                Key.FORESPOERSEL_ID.lesOrNull(
-                    serializer = UuidSerializer,
-                    melding = it.lesData(),
-                ) shouldBe Mock.skjema.forespoerselId
-            }
-
-            testRapid.sendJson(Mock.steg2(Mock.transaksjonId))
-
-            // Melding med forventet behov og data sendt for å hente virksomhetsnavn
-            testRapid.inspektør.size shouldBeExactly 3
-            testRapid.message(2).also {
                 it.lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
 
                 Key.ORGNR_UNDERENHETER.lesOrNull(
@@ -96,11 +81,11 @@ class BerikInntektsmeldingServiceTest :
                 ) shouldNotBe null
             }
 
-            testRapid.sendJson(Mock.steg3(Mock.transaksjonId))
+            testRapid.sendJson(Mock.steg2(Mock.transaksjonId))
 
             // Melding med forventet behov og data sendt for å hente personnavn
-            testRapid.inspektør.size shouldBeExactly 4
-            testRapid.message(3).also {
+            testRapid.inspektør.size shouldBeExactly 3
+            testRapid.message(2).also {
                 it.lesBehov() shouldBe BehovType.HENT_PERSONER
 
                 Key.FNR_LISTE.lesOrNull(
@@ -109,11 +94,11 @@ class BerikInntektsmeldingServiceTest :
                 ) shouldNotBe null
             }
 
-            testRapid.sendJson(Mock.steg4(Mock.transaksjonId))
+            testRapid.sendJson(Mock.steg3(Mock.transaksjonId))
 
             // Melding med forventet behov og data sendt for å lagre inntektsmelding
-            testRapid.inspektør.size shouldBeExactly 5
-            testRapid.message(4).also {
+            testRapid.inspektør.size shouldBeExactly 4
+            testRapid.message(3).also {
                 it.lesBehov() shouldBe BehovType.LAGRE_IM
 
                 val data = it.lesData()
@@ -126,11 +111,11 @@ class BerikInntektsmeldingServiceTest :
                 Key.INNSENDING_ID.lesOrNull(Long.serializer(), data) shouldBe Mock.innsendingId
             }
 
-            testRapid.sendJson(Mock.steg5(Mock.transaksjonId))
+            testRapid.sendJson(Mock.steg4(Mock.transaksjonId))
 
             // Inntektsmelding sendt videre til journalføring med forventet data
-            testRapid.inspektør.size shouldBeExactly 6
-            testRapid.message(5).also {
+            testRapid.inspektør.size shouldBeExactly 5
+            testRapid.message(4).also {
                 it.lesEventName() shouldBe EventName.INNTEKTSMELDING_MOTTATT
                 Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it.toMap()) shouldBe Mock.skjema.forespoerselId
                 Key.INNTEKTSMELDING_DOKUMENT.lesOrNull(Inntektsmelding.serializer(), it.toMap()) shouldNotBe null
@@ -141,7 +126,7 @@ class BerikInntektsmeldingServiceTest :
         test("duplikat IM sendes _ikke_ videre til journalføring") {
             testRapid.sendJson(
                 Mock
-                    .steg5(Mock.transaksjonId)
+                    .steg4(Mock.transaksjonId)
                     .plusData(Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer())),
             )
 
@@ -175,7 +160,6 @@ private object Mock {
     val forespoersel = mockForespoersel()
     val skjema = mockSkjemaInntektsmelding()
     val inntektsmelding = mockInntektsmeldingGammeltFormat()
-    val eksternInntektsmelding = mockEksternInntektsmelding()
 
     val avsender =
         Fnr.genererGyldig().let {
@@ -219,25 +203,15 @@ private object Mock {
 
     val steg2data =
         mapOf(
-            Key.LAGRET_INNTEKTSMELDING to
-                inntektsmelding.toJson(
-                    Inntektsmelding
-                        .serializer(),
-                ),
-            Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
+            Key.VIRKSOMHETER to orgnrMedNavn.toJson(orgMapSerializer),
         )
 
     val steg3data =
         mapOf(
-            Key.VIRKSOMHETER to orgnrMedNavn.toJson(orgMapSerializer),
-        )
-
-    val steg4data =
-        mapOf(
             Key.PERSONER to personer.toJson(personMapSerializer),
         )
 
-    val steg5data =
+    val steg4data =
         mapOf(
             Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
             Key.INNTEKTSMELDING to
@@ -261,6 +235,4 @@ private object Mock {
     fun steg3(transaksjonId: UUID): Map<Key, JsonElement> = steg2(transaksjonId).plusData(steg3data)
 
     fun steg4(transaksjonId: UUID): Map<Key, JsonElement> = steg3(transaksjonId).plusData(steg4data)
-
-    fun steg5(transaksjonId: UUID): Map<Key, JsonElement> = steg4(transaksjonId).plusData(steg5data)
 }

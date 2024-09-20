@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
-import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -16,7 +15,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ForespoerselType
-import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
@@ -99,24 +97,6 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
                 data[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel
-            }
-
-        // Tidligere inntektsmelding hentet
-        messages
-            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.LAGRET_INNTEKTSMELDING, nestedData = true)
-            .filter(Key.EKSTERN_INNTEKTSMELDING, nestedData = true)
-            .firstAsMap()
-            .verifiserTransaksjonId(Mock.transaksjonId)
-            .verifiserForespoerselIdFraSkjema()
-            .also {
-                it shouldContainKey Key.DATA
-
-                val data = it[Key.DATA].shouldNotBeNull().toMap()
-                val tidligereInntektsmeldingResult = ResultJson(success = tidligereInntektsmelding.toJson(Inntektsmelding.serializer()))
-
-                data[Key.LAGRET_INNTEKTSMELDING]?.fromJson(ResultJson.serializer()) shouldBe tidligereInntektsmeldingResult
-                data[Key.EKSTERN_INNTEKTSMELDING]?.fromJson(ResultJson.serializer()) shouldBe ResultJson(success = null)
             }
 
         // Virksomhetsnavn hentet
@@ -242,24 +222,6 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
                 data[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel
-            }
-
-        // Tidligere inntektsmelding hentet
-        messages
-            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.LAGRET_INNTEKTSMELDING, nestedData = true)
-            .filter(Key.EKSTERN_INNTEKTSMELDING, nestedData = true)
-            .firstAsMap()
-            .verifiserTransaksjonId(Mock.transaksjonId)
-            .verifiserForespoerselIdFraSkjema()
-            .also {
-                it shouldContainKey Key.DATA
-
-                val data = it[Key.DATA].shouldNotBeNull().toMap()
-                val tidligereInntektsmeldingResult = ResultJson(success = tidligereInntektsmelding.toJson(Inntektsmelding.serializer()))
-
-                data[Key.LAGRET_INNTEKTSMELDING]?.fromJson(ResultJson.serializer()) shouldBe tidligereInntektsmeldingResult
-                data[Key.EKSTERN_INNTEKTSMELDING]?.fromJson(ResultJson.serializer()) shouldBe ResultJson(success = null)
             }
 
         // Virksomhetsnavn hentet

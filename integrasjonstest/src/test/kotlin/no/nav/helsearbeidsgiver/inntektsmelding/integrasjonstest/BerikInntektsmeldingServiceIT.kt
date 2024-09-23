@@ -114,7 +114,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         // Inntektsmelding lagret
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.INNTEKTSMELDING, nestedData = true)
+            .filter(Key.INNTEKTSMELDING_DOKUMENT, nestedData = true)
             .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
@@ -122,7 +122,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
 
-                data[Key.INNTEKTSMELDING].shouldNotBeNull().fromJson(Inntektsmelding.serializer())
+                data[Key.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull().fromJson(Inntektsmelding.serializer())
 
                 data[Key.ER_DUPLIKAT_IM]?.fromJson(Boolean.serializer()) shouldBe false
             }

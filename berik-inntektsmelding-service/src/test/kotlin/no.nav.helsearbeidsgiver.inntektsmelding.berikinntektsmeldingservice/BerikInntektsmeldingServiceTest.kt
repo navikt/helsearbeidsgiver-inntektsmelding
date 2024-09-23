@@ -102,11 +102,7 @@ class BerikInntektsmeldingServiceTest :
                 it.lesBehov() shouldBe BehovType.LAGRE_IM
 
                 val data = it.lesData()
-                Key.INNTEKTSMELDING.lesOrNull(
-                    Inntektsmelding
-                        .serializer(),
-                    data,
-                ) shouldNotBe null
+                Key.INNTEKTSMELDING_DOKUMENT.lesOrNull(Inntektsmelding.serializer(), data) shouldNotBe null
                 Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data) shouldBe Mock.skjema.forespoerselId
                 Key.INNSENDING_ID.lesOrNull(Long.serializer(), data) shouldBe Mock.innsendingId
             }
@@ -214,11 +210,7 @@ private object Mock {
     val steg4data =
         mapOf(
             Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
-            Key.INNTEKTSMELDING to
-                inntektsmelding.toJson(
-                    Inntektsmelding
-                        .serializer(),
-                ),
+            Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()),
         )
 
     fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =

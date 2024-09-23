@@ -194,7 +194,9 @@ class BerikInntektsmeldingService(
                         .plus(
                             mapOf(
                                 Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
+                                // TODO Fjern Key.INNTEKTSMELDING etter overgangsperiode
                                 Key.INNTEKTSMELDING to inntektsmeldingGammeltFormat.toJson(Inntektsmelding.serializer()),
+                                Key.INNTEKTSMELDING_DOKUMENT to inntektsmeldingGammeltFormat.toJson(Inntektsmelding.serializer()),
                                 Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
                             ),
                         ).toJson(),

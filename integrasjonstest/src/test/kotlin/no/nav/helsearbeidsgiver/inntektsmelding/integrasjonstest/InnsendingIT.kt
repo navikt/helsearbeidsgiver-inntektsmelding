@@ -81,13 +81,13 @@ class InnsendingIT : EndToEndTest() {
 
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.INNTEKTSMELDING, nestedData = true)
+            .filter(Key.INNTEKTSMELDING_DOKUMENT, nestedData = true)
             .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
             .firstAsMap()
             .also {
                 // Ble lagret i databasen
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-                data[Key.INNTEKTSMELDING].shouldNotBeNull()
+                data[Key.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
                 data[Key.ER_DUPLIKAT_IM].shouldNotBeNull().fromJson(Boolean.serializer()).shouldBeFalse()
             }
 

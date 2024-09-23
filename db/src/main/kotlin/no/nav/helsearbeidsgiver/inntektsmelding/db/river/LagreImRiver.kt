@@ -49,7 +49,7 @@ class LagreImRiver(
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
                 data = data,
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
-                inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
+                inntektsmelding = Key.INNTEKTSMELDING_DOKUMENT.les(Inntektsmelding.serializer(), data),
                 innsendingId = Key.INNSENDING_ID.les(Long.serializer(), data),
             )
         }

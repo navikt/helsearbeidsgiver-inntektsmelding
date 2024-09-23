@@ -90,7 +90,7 @@ class BerikInntektsmeldingService(
 
     override fun lesSteg4(melding: Map<Key, JsonElement>): Steg4 =
         Steg4(
-            inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), melding),
+            inntektsmelding = Key.INNTEKTSMELDING_DOKUMENT.les(Inntektsmelding.serializer(), melding),
             erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
         )
 
@@ -194,8 +194,6 @@ class BerikInntektsmeldingService(
                         .plus(
                             mapOf(
                                 Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
-                                // TODO Fjern Key.INNTEKTSMELDING etter overgangsperiode
-                                Key.INNTEKTSMELDING to inntektsmeldingGammeltFormat.toJson(Inntektsmelding.serializer()),
                                 Key.INNTEKTSMELDING_DOKUMENT to inntektsmeldingGammeltFormat.toJson(Inntektsmelding.serializer()),
                                 Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
                             ),

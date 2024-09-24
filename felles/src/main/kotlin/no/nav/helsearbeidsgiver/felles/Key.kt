@@ -21,6 +21,7 @@ enum class Key(
     ARBEIDSGIVER_FNR("arbeidsgiver_fnr"),
     UUID("uuid"),
     FORESPOERSEL_ID("forespoerselId"),
+    VEDTAKSPERIODE_ID_LISTE("vedtaksperiode_id_liste"),
     JOURNALPOST_ID("journalpostId"),
     DATA("data"),
     FAIL("fail"),

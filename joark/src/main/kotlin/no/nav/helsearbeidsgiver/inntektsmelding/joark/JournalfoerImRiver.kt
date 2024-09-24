@@ -58,7 +58,12 @@ class JournalfoerImRiver(
                     JournalfoerImMelding(
                         eventName = eventName,
                         transaksjonId = transaksjonId,
-                        inntektsmeldingJson = Key.INNTEKTSMELDING_DOKUMENT.les(JsonElement.serializer(), json),
+                        inntektsmeldingJson =
+                            Key.INNTEKTSMELDING
+                                .lesOrNull(InntektsmeldingV1.serializer(), json)
+                                ?.convert()
+                                ?.toJson(Inntektsmelding.serializer())
+                                ?: Key.INNTEKTSMELDING_DOKUMENT.les(JsonElement.serializer(), json),
                     )
 
                 EventName.SELVBESTEMT_IM_LAGRET ->

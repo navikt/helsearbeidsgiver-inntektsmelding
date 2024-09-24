@@ -25,7 +25,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
 fun Route.hentForespoerselIderRoute(
@@ -62,6 +61,7 @@ fun Route.hentForespoerselIderRoute(
                 logger.info("Hentet forespørselIDene: $resultatJson")
 
                 val resultat = resultatJson.success?.fromJson(HentForespoerselIderResultat.serializer())
+
                 if (resultat != null) {
                     respond(HttpStatusCode.OK, HentForespoerselIderResponse(resultat.ider), HentForespoerselIderResponse.serializer())
                 } else {

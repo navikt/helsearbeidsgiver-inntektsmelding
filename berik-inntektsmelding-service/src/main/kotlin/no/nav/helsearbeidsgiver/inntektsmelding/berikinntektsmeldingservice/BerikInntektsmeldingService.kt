@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -20,6 +21,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed4Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -28,7 +31,9 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import java.time.LocalDate
 import java.util.UUID
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
 
 private const val UKJENT_NAVN = "Ukjent navn"
 private const val UKJENT_VIRKSOMHET = "Ukjent virksomhet"
@@ -53,6 +58,10 @@ data class Steg3(
 )
 
 data class Steg4(
+    // TODO fjern nullable etter overgangsperiode
+    val inntektsmeldingV1: InntektsmeldingV1?,
+    // TODO fjern nullable etter overgangsperiode
+    val bestemmendeFravaersdag: LocalDate?,
     val inntektsmelding: Inntektsmelding,
     val erDuplikat: Boolean,
 )
@@ -90,6 +99,8 @@ class BerikInntektsmeldingService(
 
     override fun lesSteg4(melding: Map<Key, JsonElement>): Steg4 =
         Steg4(
+            inntektsmeldingV1 = Key.INNTEKTSMELDING.lesOrNull(InntektsmeldingV1.serializer(), melding),
+            bestemmendeFravaersdag = Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, melding),
             inntektsmelding = Key.INNTEKTSMELDING_DOKUMENT.les(Inntektsmelding.serializer(), melding),
             erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
         )
@@ -194,6 +205,9 @@ class BerikInntektsmeldingService(
                         .plus(
                             mapOf(
                                 Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
+                                Key.INNTEKTSMELDING to inntektsmelding.toJson(InntektsmeldingV1.serializer()),
+                                // TODO vurder å flytte denne inn i InntektsmeldingV1 (ikke sikker om det er en god idé, så avventer til v1 er brukt overalt)
+                                Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag.toJson(),
                                 Key.INNTEKTSMELDING_DOKUMENT to inntektsmeldingGammeltFormat.toJson(Inntektsmelding.serializer()),
                                 Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
                             ),
@@ -212,11 +226,15 @@ class BerikInntektsmeldingService(
         if (!steg4.erDuplikat) {
             val publisert =
                 rapid.publish(
-                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
-                    Key.UUID to steg0.transaksjonId.toJson(),
-                    Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
-                    Key.INNTEKTSMELDING_DOKUMENT to steg4.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                    Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
+                    mapOf(
+                        Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
+                        Key.UUID to steg0.transaksjonId.toJson(),
+                        Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
+                        Key.INNTEKTSMELDING to steg4.inntektsmeldingV1?.toJson(InntektsmeldingV1.serializer()),
+                        Key.BESTEMMENDE_FRAVAERSDAG to steg4.bestemmendeFravaersdag?.toJson(),
+                        Key.INNTEKTSMELDING_DOKUMENT to steg4.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                        Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
+                    ).mapValuesNotNull { it },
                 )
 
             MdcUtils.withLogFields(

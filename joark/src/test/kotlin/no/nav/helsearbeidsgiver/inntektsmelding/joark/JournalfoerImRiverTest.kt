@@ -372,6 +372,8 @@ private object Mock {
             eventName = eventName,
             transaksjonId = UUID.randomUUID(),
             inntektsmeldingJson = inntektsmeldingJson,
+            // TODO legg til verdi når InntektsmeldingV1 er tatt i bruk
+            bestemmendeFravaersdag = null,
         )
 
     fun JournalfoerImMelding.toMap(imKey: Key = Key.INNTEKTSMELDING_DOKUMENT): Map<Key, JsonElement> =

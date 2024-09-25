@@ -20,6 +20,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
@@ -34,6 +35,7 @@ data class JournalfoerImMelding(
     val transaksjonId: UUID,
     // TODO endre til v1.Inntektsmelding når kun den brukes
     val inntektsmeldingJson: JsonElement,
+    val bestemmendeFravaersdag: LocalDate?,
 )
 
 class JournalfoerImRiver(
@@ -64,6 +66,7 @@ class JournalfoerImRiver(
                                 ?.convert()
                                 ?.toJson(Inntektsmelding.serializer())
                                 ?: Key.INNTEKTSMELDING_DOKUMENT.les(JsonElement.serializer(), json),
+                        bestemmendeFravaersdag = Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, json),
                     )
 
                 EventName.SELVBESTEMT_IM_LAGRET ->
@@ -71,6 +74,7 @@ class JournalfoerImRiver(
                         eventName = eventName,
                         transaksjonId = transaksjonId,
                         inntektsmeldingJson = Key.SELVBESTEMT_INNTEKTSMELDING.les(JsonElement.serializer(), json),
+                        bestemmendeFravaersdag = null,
                     )
 
                 else ->
@@ -94,6 +98,12 @@ class JournalfoerImRiver(
             }.getOrElse {
                 // Fall tilbake til gammel IM-modell
                 inntektsmeldingJson.fromJson(Inntektsmelding.serializer())
+            }.let {
+                if (bestemmendeFravaersdag != null) {
+                    it.copy(bestemmendeFraværsdag = bestemmendeFravaersdag)
+                } else {
+                    it
+                }
             }
 
         val journalpostId = opprettOgFerdigstillJournalpost(transaksjonId, inntektsmelding)

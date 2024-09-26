@@ -161,7 +161,7 @@ class PdfDokument(
         val seksjonStartY = y // Husk når denne seksjonen starter i y-aksen
 
         // --- Kolonnen til venstre -------------------------------------------------
-        addLabel("Bestemmende fraværsdag (skjæringstidpunkt)", dokument.bestemmendeFraværsdag.toNorsk(), kolonneEn)
+        addLabel("Bestemmende fraværsdag (skjæringstidpunkt)", dokument.inntektsdato?.toNorsk(), kolonneEn)
         addLabel("Arbeidsgiverperiode", x = kolonneEn)
         addPerioder(kolonneEn, dokument.arbeidsgiverperioder)
 
@@ -201,7 +201,7 @@ class PdfDokument(
 
     private fun addInntekt() {
         addSection("Beregnet månedslønn")
-        addLabel("Registrert inntekt (per ${dokument.bestemmendeFraværsdag.toNorsk()})", dokument.beregnetInntekt.toNorsk() + " kr/måned")
+        addLabel("Registrert inntekt (per ${dokument.inntektsdato?.toNorsk()})", dokument.beregnetInntekt.toNorsk() + " kr/måned")
         val endringsårsak = dokument.inntekt?.endringÅrsak
         when (endringsårsak) {
             null -> return // trenger ikke sende inn årsak...

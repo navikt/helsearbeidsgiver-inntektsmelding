@@ -33,8 +33,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as Inn
 data class JournalfoerImMelding(
     val eventName: EventName,
     val transaksjonId: UUID,
-    // TODO endre til v1.Inntektsmelding når kun den brukes
-    val inntektsmeldingJson: JsonElement,
+    val inntektsmelding: InntektsmeldingV1,
     val bestemmendeFravaersdag: LocalDate?,
 )
 
@@ -60,12 +59,7 @@ class JournalfoerImRiver(
                     JournalfoerImMelding(
                         eventName = eventName,
                         transaksjonId = transaksjonId,
-                        inntektsmeldingJson =
-                            Key.INNTEKTSMELDING
-                                .lesOrNull(InntektsmeldingV1.serializer(), json)
-                                ?.convert()
-                                ?.toJson(Inntektsmelding.serializer())
-                                ?: Key.INNTEKTSMELDING_DOKUMENT.les(JsonElement.serializer(), json),
+                        inntektsmelding = Key.INNTEKTSMELDING.les(InntektsmeldingV1.serializer(), json),
                         bestemmendeFravaersdag = Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, json),
                     )
 
@@ -73,7 +67,7 @@ class JournalfoerImRiver(
                     JournalfoerImMelding(
                         eventName = eventName,
                         transaksjonId = transaksjonId,
-                        inntektsmeldingJson = Key.SELVBESTEMT_INNTEKTSMELDING.les(JsonElement.serializer(), json),
+                        inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(InntektsmeldingV1.serializer(), json),
                         bestemmendeFravaersdag = null,
                     )
 
@@ -89,31 +83,27 @@ class JournalfoerImRiver(
             sikkerLogger.info("$it Innkommende melding:\n${json.toPretty()}")
         }
 
-        val inntektsmelding =
-            runCatching {
-                // Prøv ny IM-modell
-                inntektsmeldingJson
-                    .fromJson(InntektsmeldingV1.serializer())
-                    .convert()
-            }.getOrElse {
-                // Fall tilbake til gammel IM-modell
-                inntektsmeldingJson.fromJson(Inntektsmelding.serializer())
-            }.let {
-                if (bestemmendeFravaersdag != null) {
-                    it.copy(bestemmendeFraværsdag = bestemmendeFravaersdag)
-                } else {
-                    it
+        val inntektsmeldingGammeltFormat =
+            inntektsmelding
+                .convert()
+                .let {
+                    if (bestemmendeFravaersdag != null) {
+                        it.copy(bestemmendeFraværsdag = bestemmendeFravaersdag)
+                    } else {
+                        it
+                    }
                 }
-            }
 
-        val journalpostId = opprettOgFerdigstillJournalpost(transaksjonId, inntektsmelding)
+        val journalpostId = opprettOgFerdigstillJournalpost(transaksjonId, inntektsmeldingGammeltFormat)
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.LAGRE_JOURNALPOST_ID.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
+            Key.INNTEKTSMELDING to inntektsmelding.toJson(InntektsmeldingV1.serializer()),
+            Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag?.toJson(),
+            Key.INNTEKTSMELDING_DOKUMENT to inntektsmeldingGammeltFormat.toJson(Inntektsmelding.serializer()),
             Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
             Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
             Key.INNSENDING_ID to json[Key.INNSENDING_ID],

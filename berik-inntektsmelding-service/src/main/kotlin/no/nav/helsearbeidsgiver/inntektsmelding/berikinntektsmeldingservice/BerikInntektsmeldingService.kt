@@ -13,7 +13,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -58,10 +57,8 @@ data class Steg3(
 )
 
 data class Steg4(
-    // TODO fjern nullable etter overgangsperiode
-    val inntektsmeldingV1: InntektsmeldingV1?,
-    // TODO fjern nullable etter overgangsperiode
-    val bestemmendeFravaersdag: LocalDate?,
+    val inntektsmeldingV1: InntektsmeldingV1,
+    val bestemmendeFravaersdag: LocalDate,
     val inntektsmelding: Inntektsmelding,
     val erDuplikat: Boolean,
 )
@@ -99,8 +96,8 @@ class BerikInntektsmeldingService(
 
     override fun lesSteg4(melding: Map<Key, JsonElement>): Steg4 =
         Steg4(
-            inntektsmeldingV1 = Key.INNTEKTSMELDING.lesOrNull(InntektsmeldingV1.serializer(), melding),
-            bestemmendeFravaersdag = Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, melding),
+            inntektsmeldingV1 = Key.INNTEKTSMELDING.les(InntektsmeldingV1.serializer(), melding),
+            bestemmendeFravaersdag = Key.BESTEMMENDE_FRAVAERSDAG.les(LocalDateSerializer, melding),
             inntektsmelding = Key.INNTEKTSMELDING_DOKUMENT.les(Inntektsmelding.serializer(), melding),
             erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
         )
@@ -230,9 +227,8 @@ class BerikInntektsmeldingService(
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
                         Key.UUID to steg0.transaksjonId.toJson(),
                         Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
-                        Key.INNTEKTSMELDING to steg4.inntektsmeldingV1?.toJson(InntektsmeldingV1.serializer()),
-                        Key.BESTEMMENDE_FRAVAERSDAG to steg4.bestemmendeFravaersdag?.toJson(),
-                        Key.INNTEKTSMELDING_DOKUMENT to steg4.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                        Key.INNTEKTSMELDING to steg4.inntektsmeldingV1.toJson(InntektsmeldingV1.serializer()),
+                        Key.BESTEMMENDE_FRAVAERSDAG to steg4.bestemmendeFravaersdag.toJson(),
                         Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
                     ).mapValuesNotNull { it },
                 )

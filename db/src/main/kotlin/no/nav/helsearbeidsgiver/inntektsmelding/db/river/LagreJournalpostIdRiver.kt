@@ -108,6 +108,8 @@ class LagreJournalpostIdRiver(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
+            Key.INNTEKTSMELDING to json[Key.INNTEKTSMELDING],
+            Key.BESTEMMENDE_FRAVAERSDAG to json[Key.BESTEMMENDE_FRAVAERSDAG],
             Key.INNTEKTSMELDING_DOKUMENT to json[Key.INNTEKTSMELDING_DOKUMENT],
             Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
             Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],

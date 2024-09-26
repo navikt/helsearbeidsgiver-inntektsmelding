@@ -31,8 +31,10 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.Mock.toMap
-import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import java.time.LocalDate
 import java.util.UUID
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender as KlientAvsender
@@ -52,17 +54,12 @@ class JournalfoerImRiverTest :
         }
 
         context("oppretter journalpost og publiserer melding for å lagre journalpost-ID") {
-            withData(
-                mapOf(
-                    "forespurt inntektsmelding (gammel versjon)" to Mock.inntektsmeldingGammelVersjon.toJson(Inntektsmelding.serializer()),
-                    "forespurt inntektsmelding (ny versjon, ikke i bruk)" to Mock.inntektsmeldingNyVersjon.toJson(InntektsmeldingV1.serializer()),
-                ),
-            ) { inntektsmeldingJson ->
+            test("forespurt inntektsmelding") {
                 val journalpostId = UUID.randomUUID().toString()
                 val forespoerselId = UUID.randomUUID()
                 val innsendingId = 1L
 
-                val innkommendeMelding = Mock.innkommendeMelding(EventName.INNTEKTSMELDING_MOTTATT, inntektsmeldingJson)
+                val innkommendeMelding = Mock.innkommendeMelding(EventName.INNTEKTSMELDING_MOTTATT, Mock.inntektsmelding, Mock.bestemmendeFravaersdag)
 
                 coEvery {
                     mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
@@ -85,13 +82,15 @@ class JournalfoerImRiverTest :
                     mapOf(
                         Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
                         Key.BEHOV to BehovType.LAGRE_JOURNALPOST_ID.toJson(),
+                        Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.JOURNALPOST_ID to journalpostId.toJson(),
+                        Key.INNTEKTSMELDING to Mock.inntektsmelding.toJson(InntektsmeldingV1.serializer()),
+                        Key.BESTEMMENDE_FRAVAERSDAG to Mock.bestemmendeFravaersdag.toJson(),
                         Key.INNTEKTSMELDING_DOKUMENT to
-                            innkommendeMelding.inntektsmeldingJson.let {
+                            innkommendeMelding.inntektsmelding.let {
                                 runCatching { it.tilGammelInntektsmeldingJson() }
                                     .getOrDefault(it)
                             },
-                        Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                        Key.JOURNALPOST_ID to journalpostId.toJson(),
                         Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                         Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
                     )
@@ -99,17 +98,17 @@ class JournalfoerImRiverTest :
                 coVerifySequence {
                     mockDokArkivKlient.opprettOgFerdigstillJournalpost(
                         tittel = "Inntektsmelding",
-                        gjelderPerson = GjelderPerson(Mock.inntektsmeldingGammelVersjon.identitetsnummer),
+                        gjelderPerson = GjelderPerson(Mock.inntektsmelding.sykmeldt.fnr.verdi),
                         avsender =
                             KlientAvsender.Organisasjon(
-                                orgnr = Mock.inntektsmeldingGammelVersjon.orgnrUnderenhet,
-                                navn = Mock.inntektsmeldingGammelVersjon.virksomhetNavn,
+                                orgnr = Mock.inntektsmelding.avsender.orgnr.verdi,
+                                navn = Mock.inntektsmelding.avsender.orgNavn,
                             ),
                         datoMottatt = LocalDate.now(),
                         dokumenter =
                             withArg {
                                 it shouldHaveSize 1
-                                it.first().dokumentVarianter.map { it.filtype } shouldContainExactly listOf("XML", "PDFA")
+                                it.first().dokumentVarianter.map(DokumentVariant::filtype) shouldContainExactly listOf("XML", "PDFA")
                             },
                         eksternReferanseId = "ARI-${innkommendeMelding.transaksjonId}",
                         callId = "callId_${innkommendeMelding.transaksjonId}",
@@ -117,16 +116,11 @@ class JournalfoerImRiverTest :
                 }
             }
 
-            withData(
-                mapOf(
-                    "selvbestemt inntektsmelding (ny versjon)" to Mock.inntektsmeldingNyVersjon.toJson(InntektsmeldingV1.serializer()),
-                    "selvbestemt inntektsmelding (gammel versjon, ikke i bruk)" to Mock.inntektsmeldingGammelVersjon.toJson(Inntektsmelding.serializer()),
-                ),
-            ) { inntektsmeldingJson ->
+            test("selvbestemt inntektsmelding") {
                 val journalpostId = UUID.randomUUID().toString()
                 val selvbestemtId = UUID.randomUUID()
 
-                val innkommendeMelding = Mock.innkommendeMelding(EventName.SELVBESTEMT_IM_LAGRET, inntektsmeldingJson)
+                val innkommendeMelding = Mock.innkommendeMelding(EventName.SELVBESTEMT_IM_LAGRET, Mock.inntektsmelding)
 
                 coEvery {
                     mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
@@ -144,24 +138,25 @@ class JournalfoerImRiverTest :
                     mapOf(
                         Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
                         Key.BEHOV to BehovType.LAGRE_JOURNALPOST_ID.toJson(),
+                        Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.JOURNALPOST_ID to journalpostId.toJson(),
+                        Key.INNTEKTSMELDING to Mock.inntektsmelding.toJson(InntektsmeldingV1.serializer()),
                         Key.INNTEKTSMELDING_DOKUMENT to
-                            innkommendeMelding.inntektsmeldingJson.let {
+                            innkommendeMelding.inntektsmelding.let {
                                 runCatching { it.tilGammelInntektsmeldingJson() }
                                     .getOrDefault(it)
                             },
-                        Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                        Key.JOURNALPOST_ID to journalpostId.toJson(),
                         Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
                     )
 
                 coVerifySequence {
                     mockDokArkivKlient.opprettOgFerdigstillJournalpost(
                         tittel = "Inntektsmelding",
-                        gjelderPerson = GjelderPerson(Mock.inntektsmeldingNyVersjon.sykmeldt.fnr.verdi),
+                        gjelderPerson = GjelderPerson(Mock.inntektsmelding.sykmeldt.fnr.verdi),
                         avsender =
                             KlientAvsender.Organisasjon(
-                                orgnr = Mock.inntektsmeldingNyVersjon.avsender.orgnr.verdi,
-                                navn = Mock.inntektsmeldingNyVersjon.avsender.orgNavn,
+                                orgnr = Mock.inntektsmelding.avsender.orgnr.verdi,
+                                navn = Mock.inntektsmelding.avsender.orgNavn,
                             ),
                         datoMottatt = LocalDate.now(),
                         dokumenter =
@@ -183,7 +178,7 @@ class JournalfoerImRiverTest :
             val innkommendeMelding =
                 Mock.innkommendeMelding(
                     EventName.SELVBESTEMT_IM_LAGRET,
-                    Mock.inntektsmeldingNyVersjon.toJson(InntektsmeldingV1.serializer()),
+                    Mock.inntektsmelding,
                 )
 
             coEvery {
@@ -201,26 +196,27 @@ class JournalfoerImRiverTest :
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
                     Key.BEHOV to BehovType.LAGRE_JOURNALPOST_ID.toJson(),
-                    Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmeldingJson.tilGammelInntektsmeldingJson(),
                     Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                     Key.JOURNALPOST_ID to journalpostId.toJson(),
+                    Key.INNTEKTSMELDING to Mock.inntektsmelding.toJson(InntektsmeldingV1.serializer()),
+                    Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmelding.tilGammelInntektsmeldingJson(),
                     Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
                 )
 
             coVerifySequence {
                 mockDokArkivKlient.opprettOgFerdigstillJournalpost(
                     tittel = "Inntektsmelding",
-                    gjelderPerson = GjelderPerson(Mock.inntektsmeldingNyVersjon.sykmeldt.fnr.verdi),
+                    gjelderPerson = GjelderPerson(Mock.inntektsmelding.sykmeldt.fnr.verdi),
                     avsender =
                         KlientAvsender.Organisasjon(
-                            orgnr = Mock.inntektsmeldingNyVersjon.avsender.orgnr.verdi,
-                            navn = Mock.inntektsmeldingNyVersjon.avsender.orgNavn,
+                            orgnr = Mock.inntektsmelding.avsender.orgnr.verdi,
+                            navn = Mock.inntektsmelding.avsender.orgNavn,
                         ),
                     datoMottatt = LocalDate.now(),
                     dokumenter =
                         withArg {
                             it shouldHaveSize 1
-                            it.first().dokumentVarianter.map { it.filtype } shouldContainExactly listOf("XML", "PDFA")
+                            it.first().dokumentVarianter.map(DokumentVariant::filtype) shouldContainExactly listOf("XML", "PDFA")
                         },
                     eksternReferanseId = "ARI-${innkommendeMelding.transaksjonId}",
                     callId = "callId_${innkommendeMelding.transaksjonId}",
@@ -228,99 +224,45 @@ class JournalfoerImRiverTest :
             }
         }
 
-        context("håndterer feil") {
-            test("ugyldig inntektsmelding feiler") {
-                val forespoerselId = UUID.randomUUID()
-                val innsendingId = 1L
+        test("håndterer klientfeil") {
+            coEvery {
+                mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
+            } throws RuntimeException("dette går itj', nei!")
 
-                val innkommendeMelding = Mock.innkommendeMelding(EventName.INNTEKTSMELDING_MOTTATT, "ikke en inntektsmelding".toJson())
+            val selvbestemtId = UUID.randomUUID()
 
-                val innkommendeJsonMap =
-                    innkommendeMelding
-                        .toMap()
-                        .plus(
-                            mapOf(
-                                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                                Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
-                            ),
-                        )
+            val innkommendeMelding = Mock.innkommendeMelding(EventName.INNTEKTSMELDING_MOTTATT, Mock.inntektsmelding)
 
-                val forventetFail =
-                    Fail(
-                        feilmelding = "Klarte ikke journalføre.",
-                        event = innkommendeMelding.eventName,
-                        transaksjonId = innkommendeMelding.transaksjonId,
-                        forespoerselId = forespoerselId,
-                        utloesendeMelding =
-                            innkommendeJsonMap
-                                .plus(
-                                    Key.BEHOV to BehovType.JOURNALFOER.toJson(),
-                                ).toJson(),
-                    )
+            val innkommendeJsonMap =
+                innkommendeMelding
+                    .toMap()
+                    .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
 
-                testRapid.sendJson(innkommendeJsonMap)
+            val forventetFail =
+                Fail(
+                    feilmelding = "Klarte ikke journalføre.",
+                    event = innkommendeMelding.eventName,
+                    transaksjonId = innkommendeMelding.transaksjonId,
+                    forespoerselId = null,
+                    utloesendeMelding =
+                        innkommendeJsonMap
+                            .plus(
+                                Key.BEHOV to BehovType.JOURNALFOER.toJson(),
+                            ).toJson(),
+                )
 
-                testRapid.inspektør.size shouldBeExactly 1
+            testRapid.sendJson(innkommendeJsonMap)
 
-                testRapid.firstMessage().toMap() shouldContainExactly
-                    forventetFail
-                        .tilMelding()
-                        .plus(
-                            mapOf(
-                                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                                Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
-                            ),
-                        )
+            testRapid.inspektør.size shouldBeExactly 1
 
-                coVerify(exactly = 0) {
-                    mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
-                }
-            }
+            testRapid.firstMessage().toMap() shouldContainExactly
+                forventetFail
+                    .tilMelding()
+                    .minus(Key.FORESPOERSEL_ID)
+                    .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
 
-            test("klient feiler") {
-                coEvery {
-                    mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
-                } throws RuntimeException("dette går itj', nei!")
-
-                val selvbestemtId = UUID.randomUUID()
-
-                val innkommendeMelding =
-                    Mock.innkommendeMelding(
-                        EventName.INNTEKTSMELDING_MOTTATT,
-                        Mock.inntektsmeldingGammelVersjon.toJson(Inntektsmelding.serializer()),
-                    )
-
-                val innkommendeJsonMap =
-                    innkommendeMelding
-                        .toMap()
-                        .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
-
-                val forventetFail =
-                    Fail(
-                        feilmelding = "Klarte ikke journalføre.",
-                        event = innkommendeMelding.eventName,
-                        transaksjonId = innkommendeMelding.transaksjonId,
-                        forespoerselId = null,
-                        utloesendeMelding =
-                            innkommendeJsonMap
-                                .plus(
-                                    Key.BEHOV to BehovType.JOURNALFOER.toJson(),
-                                ).toJson(),
-                    )
-
-                testRapid.sendJson(innkommendeJsonMap)
-
-                testRapid.inspektør.size shouldBeExactly 1
-
-                testRapid.firstMessage().toMap() shouldContainExactly
-                    forventetFail
-                        .tilMelding()
-                        .minus(Key.FORESPOERSEL_ID)
-                        .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
-
-                coVerifySequence {
-                    mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
-                }
+            coVerifySequence {
+                mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
             }
         }
 
@@ -335,10 +277,8 @@ class JournalfoerImRiverTest :
             ) { uoensketKeyMedVerdi ->
                 testRapid.sendJson(
                     Mock
-                        .innkommendeMelding(
-                            EventName.INNTEKTSMELDING_MOTTATT,
-                            Mock.inntektsmeldingGammelVersjon.toJson(Inntektsmelding.serializer()),
-                        ).toMap()
+                        .innkommendeMelding(EventName.INNTEKTSMELDING_MOTTATT, Mock.inntektsmelding)
+                        .toMap()
                         .plus(uoensketKeyMedVerdi),
                 )
 
@@ -352,8 +292,8 @@ class JournalfoerImRiverTest :
     })
 
 private object Mock {
-    val inntektsmeldingNyVersjon = mockInntektsmeldingV1()
-    val inntektsmeldingGammelVersjon = inntektsmeldingNyVersjon.convert()
+    val inntektsmelding = mockInntektsmeldingV1()
+    val bestemmendeFravaersdag = 20.oktober
 
     val fail =
         Fail(
@@ -366,22 +306,23 @@ private object Mock {
 
     fun innkommendeMelding(
         eventName: EventName,
-        inntektsmeldingJson: JsonElement,
+        inntektsmelding: InntektsmeldingV1,
+        bestemmendeFravaersdag: LocalDate? = null,
     ): JournalfoerImMelding =
         JournalfoerImMelding(
             eventName = eventName,
             transaksjonId = UUID.randomUUID(),
-            inntektsmeldingJson = inntektsmeldingJson,
-            // TODO legg til verdi når InntektsmeldingV1 er tatt i bruk
-            bestemmendeFravaersdag = null,
+            inntektsmelding = inntektsmelding,
+            bestemmendeFravaersdag = bestemmendeFravaersdag,
         )
 
-    fun JournalfoerImMelding.toMap(imKey: Key = Key.INNTEKTSMELDING_DOKUMENT): Map<Key, JsonElement> =
+    fun JournalfoerImMelding.toMap(imKey: Key = Key.INNTEKTSMELDING): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            imKey to inntektsmeldingJson.toJson(JsonElement.serializer()),
-        )
+            imKey to inntektsmelding.toJson(InntektsmeldingV1.serializer()),
+            Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag?.toJson(LocalDateSerializer),
+        ).mapValuesNotNull { it }
 
     fun opprettOgFerdigstillResponse(journalpostId: String): OpprettOgFerdigstillResponse =
         OpprettOgFerdigstillResponse(
@@ -392,7 +333,6 @@ private object Mock {
         )
 }
 
-private fun JsonElement.tilGammelInntektsmeldingJson(): JsonElement =
-    fromJson(InntektsmeldingV1.serializer())
-        .convert()
+private fun InntektsmeldingV1.tilGammelInntektsmeldingJson(): JsonElement =
+    convert()
         .toJson(Inntektsmelding.serializer())

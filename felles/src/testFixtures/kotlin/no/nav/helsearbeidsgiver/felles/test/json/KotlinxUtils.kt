@@ -14,12 +14,7 @@ fun JsonElement.lesEventName(): EventName? = Key.EVENT_NAME.lesOrNull(EventName.
 
 fun JsonElement.lesData(): Map<Key, JsonElement> = this.toMap()[Key.DATA]?.toMap().orEmpty()
 
-fun Map<Key, JsonElement>.plusData(dataField: Pair<Key, JsonElement>): Map<Key, JsonElement> {
-    val data = this[Key.DATA]?.toMap().orEmpty()
-    return this.plus(
-        Key.DATA to data.plus(dataField).toJson(),
-    )
-}
+fun Map<Key, JsonElement>.plusData(dataField: Pair<Key, JsonElement>): Map<Key, JsonElement> = plusData(mapOf(dataField))
 
 fun Map<Key, JsonElement>.plusData(dataMap: Map<Key, JsonElement>): Map<Key, JsonElement> {
     val data = this[Key.DATA]?.toMap().orEmpty()

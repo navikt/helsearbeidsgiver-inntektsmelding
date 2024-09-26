@@ -115,7 +115,6 @@ class InnsendingIT : EndToEndTest() {
             .also {
                 it shouldContainKey Key.INNTEKTSMELDING_DOKUMENT
                 it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
-                it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
         messages
@@ -125,7 +124,7 @@ class InnsendingIT : EndToEndTest() {
                 // Verifiser at inntektsmelding er distribuert på ekstern kafka
                 it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
 
-                it[Key.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
+                it[Key.INNTEKTSMELDING].shouldNotBeNull()
             }
 
         bekreftForventedeMeldingerForFerdigstilligAvOppgaveOgSak()

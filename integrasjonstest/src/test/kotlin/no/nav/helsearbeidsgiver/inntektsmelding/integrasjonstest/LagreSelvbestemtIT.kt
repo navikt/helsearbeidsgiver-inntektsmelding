@@ -6,10 +6,8 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.maps.shouldContainAll
-import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldNotBeSameInstanceAs
 import io.mockk.coEvery
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
@@ -20,9 +18,8 @@ import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
 import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -54,7 +51,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
 import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold as KlientArbeidsforhold
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LagreSelvbestemtIT : EndToEndTest() {
@@ -69,7 +65,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
         val nyInntektsmelding =
             Mock.inntektsmelding.copy(
                 type =
-                    InntektsmeldingV1.Type.Selvbestemt(
+                    Inntektsmelding.Type.Selvbestemt(
                         id = UUID.randomUUID(),
                     ),
                 aarsakInnsending = AarsakInnsending.Ny,
@@ -135,7 +131,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-                Key.SELVBESTEMT_INNTEKTSMELDING.les(InntektsmeldingV1.serializer(), data).shouldBeEqualToInntektsmelding(nyInntektsmelding)
+                Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), data).shouldBeEqualToInntektsmelding(nyInntektsmelding)
             }
 
         // Lagring utført, uten duplikat
@@ -153,7 +149,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-                Key.SELVBESTEMT_INNTEKTSMELDING.les(InntektsmeldingV1.serializer(), data).shouldBeEqualToInntektsmelding(nyInntektsmelding)
+                Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), data).shouldBeEqualToInntektsmelding(nyInntektsmelding)
             }
 
         // Opprettelse av sak utført
@@ -170,24 +166,24 @@ class LagreSelvbestemtIT : EndToEndTest() {
             .filter(EventName.SELVBESTEMT_IM_LAGRET)
             .firstAsMap()[Key.SELVBESTEMT_INNTEKTSMELDING]
             .shouldNotBeNull()
-            .fromJson(InntektsmeldingV1.serializer())
+            .fromJson(Inntektsmelding.serializer())
             .shouldBeEqualToInntektsmelding(nyInntektsmelding)
 
         messages
             .filter(EventName.SELVBESTEMT_IM_LAGRET)
             .filter(BehovType.LAGRE_JOURNALPOST_ID)
             .firstAsMap()
-            .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, nyInntektsmelding)
+            .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, nyInntektsmelding, compareType = false)
 
         messages
             .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
             .firstAsMap()
-            .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, nyInntektsmelding)
+            .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, nyInntektsmelding, compareType = false)
 
         messages
             .filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
             .firstAsMap()
-            .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, nyInntektsmelding)
+            .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, nyInntektsmelding, compareType = false)
     }
 
     @Test
@@ -243,24 +239,24 @@ class LagreSelvbestemtIT : EndToEndTest() {
             .filter(EventName.SELVBESTEMT_IM_LAGRET)
             .firstAsMap()[Key.SELVBESTEMT_INNTEKTSMELDING]
             .shouldNotBeNull()
-            .fromJson(InntektsmeldingV1.serializer())
-            .shouldBeEqualToInntektsmelding(Mock.inntektsmelding)
+            .fromJson(Inntektsmelding.serializer())
+            .shouldBeEqualToInntektsmelding(Mock.inntektsmelding, compareType = true)
 
         messages
             .filter(EventName.SELVBESTEMT_IM_LAGRET)
             .filter(BehovType.LAGRE_JOURNALPOST_ID)
             .firstAsMap()
-            .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, Mock.inntektsmelding)
+            .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, Mock.inntektsmelding, compareType = true)
 
         messages
             .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
             .firstAsMap()
-            .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, Mock.inntektsmelding)
+            .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, Mock.inntektsmelding, compareType = true)
 
         messages
             .filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
             .firstAsMap()
-            .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, Mock.inntektsmelding)
+            .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, Mock.inntektsmelding, compareType = true)
     }
 
     @Test
@@ -291,7 +287,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-                Key.SELVBESTEMT_INNTEKTSMELDING.les(InntektsmeldingV1.serializer(), data).shouldBeEqualToInntektsmelding(Mock.inntektsmelding)
+                Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), data).shouldBeEqualToInntektsmelding(Mock.inntektsmelding, compareType = true)
             }
 
         serviceMessages
@@ -337,25 +333,28 @@ class LagreSelvbestemtIT : EndToEndTest() {
             .shouldBeEmpty()
     }
 
-    private fun InntektsmeldingV1.shouldBeEqualToInntektsmelding(other: InntektsmeldingV1) {
-        shouldBeEqualToIgnoringFields(other, InntektsmeldingV1::id, InntektsmeldingV1::type, InntektsmeldingV1::mottatt)
-        type shouldNotBeSameInstanceAs other.type
+    private fun Inntektsmelding.shouldBeEqualToInntektsmelding(
+        other: Inntektsmelding,
+        compareType: Boolean = false,
+    ) {
+        shouldBeEqualToIgnoringFields(other, Inntektsmelding::id, Inntektsmelding::type, Inntektsmelding::mottatt)
+        if (compareType) {
+            type shouldBe other.type
+        }
     }
 
     private fun Map<Key, JsonElement>.shouldContainNokTilJournalfoeringOgDistribusjon(
         transaksjonId: UUID,
-        inntektsmelding: InntektsmeldingV1,
+        inntektsmelding: Inntektsmelding,
+        compareType: Boolean,
     ) {
-        this shouldContainKey Key.SELVBESTEMT_ID
         this shouldContainAll
             mapOf(
                 Key.UUID to transaksjonId.toJson(),
                 Key.JOURNALPOST_ID to Mock.journalpostId.toJson(),
             )
 
-        Key.INNTEKTSMELDING_DOKUMENT
-            .les(Inntektsmelding.serializer(), this)
-            .shouldBeEqualToIgnoringFields(inntektsmelding.convert(), Inntektsmelding::tidspunkt)
+        Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), this).shouldBeEqualToInntektsmelding(inntektsmelding, compareType)
     }
 
     private object Mock {
@@ -434,7 +433,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
             mockInntektsmeldingV1().let {
                 it.copy(
                     type =
-                        InntektsmeldingV1.Type.Selvbestemt(
+                        Inntektsmelding.Type.Selvbestemt(
                             id = skjema.selvbestemtId.shouldNotBeNull(),
                         ),
                     sykmeldt =

@@ -51,18 +51,22 @@ class VedtaksperiodeIdForespoerselSvarRiver : PriObjectRiver<VedtaksperiodeIdFor
         sikkerLogger.info("Mottok løsning på pri-topic:\n$json")
 
         val forespoersler = forespoerselSvar.resultat.associate { it.forespoerselId to it.toForespoersel() }
-        return mapOf(
-            Key.EVENT_NAME to eventName.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.DATA to
-                data
-                    .plus(
-                        Key.FORESPOERSLER_SVAR to
-                            forespoersler.toJson(
-                                serializer = MapSerializer(UuidSerializer, Forespoersel.serializer()),
-                            ),
-                    ).toJson(),
-        )
+        return if (forespoerselSvar.feil == null) {
+            mapOf(
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.DATA to
+                    data
+                        .plus(
+                            Key.FORESPOERSLER_SVAR to
+                                forespoersler.toJson(
+                                    serializer = MapSerializer(UuidSerializer, Forespoersel.serializer()),
+                                ),
+                        ).toJson(),
+            )
+        } else {
+            throw ForespoerselFraVedtaksperiodeIdException()
+        }
     }
 
     override fun VedtaksperiodeIdForespoerselSvarMelding.haandterFeil(
@@ -111,3 +115,5 @@ class VedtaksperiodeIdForespoerselSvarRiver : PriObjectRiver<VedtaksperiodeIdFor
             erBesvart = erBesvart,
         )
 }
+
+private class ForespoerselFraVedtaksperiodeIdException : RuntimeException()

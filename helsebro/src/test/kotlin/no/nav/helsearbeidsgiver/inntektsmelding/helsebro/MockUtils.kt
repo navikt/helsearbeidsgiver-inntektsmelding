@@ -8,9 +8,12 @@ import no.nav.helsearbeidsgiver.felles.domene.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntekt
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselListeSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 fun mockForespoerselSvarMedSuksess(): ForespoerselSvar =
@@ -20,6 +23,29 @@ fun mockForespoerselSvarMedSuksess(): ForespoerselSvar =
         feil = null,
         boomerang = mockBoomerang(),
     )
+
+fun mockForespoerselListeSvarMedSuksess(): ForespoerselListeSvar {
+    val orgnr = Orgnr.genererGyldig()
+    return ForespoerselListeSvar(
+        resultat =
+            listOf(
+                ForespoerselListeSvar.Forespoersel(
+                    type = ForespoerselType.KOMPLETT,
+                    orgnr = orgnr,
+                    fnr = "deputize-snowy-quirk",
+                    vedtaksperiodeId = UUID.randomUUID(),
+                    forespoerselId = UUID.randomUUID(),
+                    skjaeringstidspunkt = 11.januar(2018),
+                    sykmeldingsperioder = listOf(2.januar til 16.januar),
+                    egenmeldingsperioder = listOf(1.januar til 1.januar),
+                    bestemmendeFravaersdager = mapOf(orgnr to 1.januar),
+                    forespurtData = mockForespurtData(),
+                    erBesvart = false,
+                ),
+            ),
+        boomerang = mockBoomerang(),
+    )
+}
 
 fun mockForespoerselSvarMedSuksessMedFastsattInntekt(): ForespoerselSvar =
     ForespoerselSvar(
@@ -35,6 +61,13 @@ fun mockForespoerselSvarMedFeil(): ForespoerselSvar =
         resultat = null,
         feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET,
         boomerang = mockBoomerang(),
+    )
+
+fun mockForespoerselListeSvarMedFeil(): ForespoerselListeSvar =
+    ForespoerselListeSvar(
+        resultat = emptyList(),
+        boomerang = mockBoomerang(),
+        feil = ForespoerselListeSvar.Feil.FORESPOERSEL_FOR_VEDTAKSPERIODE_ID_LISTE_FEILET,
     )
 
 fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =

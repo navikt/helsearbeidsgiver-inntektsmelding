@@ -8,6 +8,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.domene.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.domene.ForespurtData
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar.Feil
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -18,6 +19,7 @@ import java.util.UUID
 data class ForespoerselListeSvar(
     val resultat: List<Forespoersel>,
     val boomerang: JsonElement,
+    val feil: Feil? = null,
 ) {
     @Serializable
     data class Forespoersel(
@@ -33,4 +35,8 @@ data class ForespoerselListeSvar(
         val forespurtData: ForespurtData,
         val erBesvart: Boolean,
     )
+
+    enum class Feil {
+        FORESPOERSEL_FOR_VEDTAKSPERIODE_ID_LISTE_FEILET,
+    }
 }

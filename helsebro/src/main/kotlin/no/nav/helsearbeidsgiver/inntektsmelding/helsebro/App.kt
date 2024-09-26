@@ -27,4 +27,10 @@ fun RapidsConnection.createHelsebroRivers(priProducer: PriProducer): RapidsConne
 
         logger.info("Starter ${ForespoerselSvarRiver::class.simpleName}...")
         ForespoerselSvarRiver().connect(this)
+
+        logger.info("Starter ${VedtaksperiodeIdForespoerselRiver::class.simpleName}...")
+        VedtaksperiodeIdForespoerselRiver(priProducer).connect(this)
+
+        logger.info("Starter ${VedtaksperiodeIdForespoerselSvarRiver::class.simpleName}...")
+        VedtaksperiodeIdForespoerselSvarRiver().connect(this)
     }

@@ -43,6 +43,7 @@ enum class Key(
     ORGNR_UNDERENHETER("orgnr_underenheter"),
     ORG_RETTIGHETER("org_rettigheter"),
     FORESPOERSEL_SVAR("forespoersel-svar"),
+    FORESPOERSLER_SVAR("forespoersler_svar"),
     INNTEKT("inntekt"),
     FNR("fnr"),
     FNR_LISTE("fnr_liste"),

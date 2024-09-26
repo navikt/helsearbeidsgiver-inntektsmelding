@@ -7,8 +7,9 @@ import io.ktor.server.routing.post
 import io.prometheus.client.Summary
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.domene.HentForespoerselIderResultat
+import no.nav.helsearbeidsgiver.felles.domene.HentForespoerslerForVedtaksperiodeIderResultat
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.domene.VedtaksperiodeIdForespoerselIdPar
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -19,6 +20,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettighete
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.receive
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respond
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
@@ -33,7 +35,7 @@ fun Route.hentForespoerselIderRoute(
     redisConnection: RedisConnection,
 ) {
     val hentForespoerselProducer = HentForespoerselIderProducer(rapid)
-    val redisPoller = RedisStore(redisConnection, RedisPrefix.HentForespoerselIder).let(::RedisPoller)
+    val redisPoller = RedisStore(redisConnection, RedisPrefix.HentForespoerslerForeVedtaksperiodeIder).let(::RedisPoller)
 
     val requestLatency =
         Summary
@@ -52,18 +54,41 @@ fun Route.hentForespoerselIderRoute(
         }.onSuccess { request ->
             logger.info("Henter forespørselIDer for vedtaksperiodeIDene: ${request.vedtaksperiodeIder}")
             try {
-                tilgangskontroll.validerTilgangTilOrg(call.request, request.orgnr.verdi)
-
                 hentForespoerselProducer.publish(transaksjonId, request)
 
                 val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
 
-                logger.info("Hentet forespørselIDene: $resultatJson")
+                sikkerLogger.info("Hentet forespørslene: $resultatJson")
 
-                val resultat = resultatJson.success?.fromJson(HentForespoerselIderResultat.serializer())
+                val resultat = resultatJson.success?.fromJson(HentForespoerslerForVedtaksperiodeIderResultat.serializer())
 
                 if (resultat != null) {
-                    respond(HttpStatusCode.OK, HentForespoerselIderResponse(resultat.ider), HentForespoerselIderResponse.serializer())
+                    val orgnrSet = resultat.forespoersler.map { it.value.orgnr }.toSet()
+
+                    when {
+                        orgnrSet.size > 1 ->
+                            respondBadRequest("Ikke tillat å hente forespoersler som tilhører ulike arbeidsgivere.", String.serializer())
+
+                        else -> {
+                            orgnrSet.firstOrNull()?.run { tilgangskontroll.validerTilgangTilOrg(call.request, it.toString()) }
+
+                            val respons =
+                                HentForespoerselIderResponse(
+                                    resultat.forespoersler.map {
+                                        VedtaksperiodeIdForespoerselIdPar(
+                                            forespoerselId = it.key,
+                                            vedtaksperiodeId = it.value.vedtaksperiodeId,
+                                        )
+                                    },
+                                )
+
+                            respond(
+                                HttpStatusCode.OK,
+                                respons,
+                                HentForespoerselIderResponse.serializer(),
+                            )
+                        }
+                    }
                 } else {
                     val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: "Teknisk feil, prøv igjen senere."
                     respondInternalServerError(feilmelding, String.serializer())

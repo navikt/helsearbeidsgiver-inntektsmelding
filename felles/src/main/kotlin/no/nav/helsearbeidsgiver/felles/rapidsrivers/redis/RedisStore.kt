@@ -65,7 +65,7 @@ class RedisStore(
 enum class RedisPrefix {
     AktiveOrgnr,
     HentForespoersel,
-    HentForespoerselIder,
+    HentForespoerslerForeVedtaksperiodeIder,
     HentSelvbestemtIm,
     Innsending,
     InntektSelvbestemt,

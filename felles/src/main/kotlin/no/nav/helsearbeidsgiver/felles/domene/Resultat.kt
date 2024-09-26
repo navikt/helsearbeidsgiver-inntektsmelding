@@ -7,6 +7,7 @@ import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import java.util.UUID
 
 // TODO erstatt med ResultJson
 @Serializable
@@ -26,6 +27,6 @@ data class HentForespoerselResultat(
 )
 
 @Serializable
-data class HentForespoerselIderResultat(
-    val ider: List<VedtaksperiodeIdForespoerselIdPar>,
+data class HentForespoerslerForVedtaksperiodeIderResultat(
+    val forespoersler: Map<UUID, Forespoersel>,
 )

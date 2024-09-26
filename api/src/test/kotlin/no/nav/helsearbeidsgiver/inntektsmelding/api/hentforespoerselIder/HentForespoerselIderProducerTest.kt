@@ -13,8 +13,6 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselider.HentForespoerselIderProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselider.HentForespoerselIderRequest
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 class HentForespoerselIderProducerTest :
@@ -24,10 +22,9 @@ class HentForespoerselIderProducerTest :
 
         test("publiserer melding på forventet format") {
             val transaksjonId = UUID.randomUUID()
-            val orgnr = Orgnr.genererGyldig()
             val vedtaksperiodeIder = listOf(UUID.randomUUID(), UUID.randomUUID())
 
-            producer.publish(transaksjonId, HentForespoerselIderRequest(orgnr, vedtaksperiodeIder))
+            producer.publish(transaksjonId, HentForespoerselIderRequest(vedtaksperiodeIder))
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.firstMessage().toMap() shouldContainExactly

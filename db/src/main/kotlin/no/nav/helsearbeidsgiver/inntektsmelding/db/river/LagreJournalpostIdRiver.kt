@@ -109,7 +109,7 @@ class LagreJournalpostIdRiver(
                 utloesendeMelding = json.toJson(),
             )
 
-        logger.error(fail.feilmelding, error) // TODO temp error
+        logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
         return fail.tilMelding()

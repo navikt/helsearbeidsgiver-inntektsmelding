@@ -15,8 +15,9 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.AarsakInnsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -24,12 +25,13 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
+import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import java.util.UUID
 
 class LagreImRiverTest :
@@ -51,15 +53,15 @@ class LagreImRiverTest :
                 mapOf(
                     "hvis ingen andre inntektsmeldinger er mottatt" to null,
                     "hvis ikke duplikat av tidligere inntektsmeldinger" to
-                        mockInntektsmelding().copy(
-                            fraværsperioder = listOf(9.august til 29.august),
+                        mockInntektsmeldingV1().copy(
+                            sykmeldingsperioder = listOf(9.august til 29.august),
                         ),
                 ),
             ) { eksisterendeInntektsmelding ->
-                every { mockImRepo.hentNyesteInntektsmelding(any()) } returns eksisterendeInntektsmelding
+                every { mockImRepo.hentNyesteInntektsmelding(any()) } returns eksisterendeInntektsmelding?.convert()
                 every { mockImRepo.oppdaterMedBeriketDokument(any(), any(), any()) } just Runs
 
-                val nyInntektsmelding = mockInntektsmelding()
+                val nyInntektsmelding = mockInntektsmeldingV1()
 
                 val innkommendeMelding = innkommendeMelding(innsendingId, nyInntektsmelding)
 
@@ -73,32 +75,37 @@ class LagreImRiverTest :
                         Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                         Key.DATA to
                             mapOf(
-                                Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
-                                Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                                Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                                Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag.toJson(),
                                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
                                 Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
                             ).toJson(),
                     )
 
                 verifySequence {
-                    mockImRepo.hentNyesteInntektsmelding(innkommendeMelding.forespoerselId)
-                    mockImRepo.oppdaterMedBeriketDokument(innkommendeMelding.forespoerselId, innsendingId, nyInntektsmelding)
+                    mockImRepo.hentNyesteInntektsmelding(innkommendeMelding.inntektsmelding.type.id)
+                    mockImRepo.oppdaterMedBeriketDokument(innkommendeMelding.inntektsmelding.type.id, innsendingId, nyInntektsmelding.convert())
                 }
             }
         }
 
         test("duplikat lagres ikke, men svarer OK") {
-            val nyInntektsmelding = mockInntektsmelding()
+            val nyInntektsmelding = mockInntektsmeldingV1()
 
             val duplikatIm =
-                nyInntektsmelding.copy(
-                    vedtaksperiodeId = UUID.randomUUID(),
-                    innsenderNavn = "Krokete Krølltang",
-                    årsakInnsending = AarsakInnsending.NY,
-                    tidspunkt = nyInntektsmelding.tidspunkt.minusDays(14),
-                )
+                nyInntektsmelding.let {
+                    it.copy(
+                        vedtaksperiodeId = UUID.randomUUID(),
+                        avsender =
+                            it.avsender.copy(
+                                navn = "Krokete Krølltang",
+                            ),
+                        aarsakInnsending = AarsakInnsending.Ny,
+                        mottatt = nyInntektsmelding.mottatt.minusDays(14),
+                    )
+                }
 
-            every { mockImRepo.hentNyesteInntektsmelding(any()) } returns duplikatIm
+            every { mockImRepo.hentNyesteInntektsmelding(any()) } returns duplikatIm.convert()
             every { mockImRepo.oppdaterMedBeriketDokument(any(), any(), any()) } just Runs
 
             val innkommendeMelding = innkommendeMelding(innsendingId, nyInntektsmelding)
@@ -113,18 +120,18 @@ class LagreImRiverTest :
                     Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
-                            Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
-                            Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                            Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                            Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag.toJson(),
                             Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
                             Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
                         ).toJson(),
                 )
 
             verifySequence {
-                mockImRepo.hentNyesteInntektsmelding(innkommendeMelding.forespoerselId)
+                mockImRepo.hentNyesteInntektsmelding(innkommendeMelding.inntektsmelding.type.id)
             }
             verify(exactly = 0) {
-                mockImRepo.oppdaterMedBeriketDokument(innkommendeMelding.forespoerselId, innsendingId, nyInntektsmelding)
+                mockImRepo.oppdaterMedBeriketDokument(any(), any(), any())
             }
         }
 
@@ -140,7 +147,7 @@ class LagreImRiverTest :
                     feilmelding = "Klarte ikke lagre inntektsmelding i database.",
                     event = innkommendeMelding.eventName,
                     transaksjonId = innkommendeMelding.transaksjonId,
-                    forespoerselId = innkommendeMelding.forespoerselId,
+                    forespoerselId = innkommendeMelding.inntektsmelding.type.id,
                     utloesendeMelding = innkommendeMelding.toMap().toJson(),
                 )
 
@@ -182,27 +189,26 @@ class LagreImRiverTest :
         }
     })
 
+private val bestemmendeFravaersdag = 20.oktober
+
 private fun innkommendeMelding(
     innsendingId: Long,
-    inntektsmelding: Inntektsmelding = mockInntektsmelding(),
-): LagreImMelding {
-    val forespoerselId = UUID.randomUUID()
-
-    return LagreImMelding(
+    inntektsmelding: Inntektsmelding = mockInntektsmeldingV1(),
+): LagreImMelding =
+    LagreImMelding(
         eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
         behovType = BehovType.LAGRE_IM,
         transaksjonId = UUID.randomUUID(),
         data =
             mapOf(
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag.toJson(),
                 Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
             ),
-        forespoerselId = forespoerselId,
         inntektsmelding = inntektsmelding,
+        bestemmendeFravaersdag = bestemmendeFravaersdag,
         innsendingId = innsendingId,
     )
-}
 
 private fun LagreImMelding.toMap(): Map<Key, JsonElement> =
     mapOf(

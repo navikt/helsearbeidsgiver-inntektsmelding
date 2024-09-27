@@ -9,7 +9,6 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -216,8 +215,7 @@ private object Mock {
         mapOf(
             Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
             Key.INNTEKTSMELDING to inntektsmelding.toJson(InntektsmeldingV1.serializer()),
-            Key.BESTEMMENDE_FRAVAERSDAG to 20.oktober.toJson(LocalDateSerializer),
-            Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.convert().toJson(Inntektsmelding.serializer()),
+            Key.BESTEMMENDE_FRAVAERSDAG to 20.oktober.toJson(),
         )
 
     fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =

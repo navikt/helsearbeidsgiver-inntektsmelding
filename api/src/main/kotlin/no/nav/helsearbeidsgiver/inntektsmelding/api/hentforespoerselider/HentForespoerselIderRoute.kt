@@ -70,7 +70,7 @@ fun Route.hentForespoerselIderRoute(
                             respondBadRequest("Ikke tillat å hente forespoersler som tilhører ulike arbeidsgivere.", String.serializer())
 
                         else -> {
-                            orgnrSet.firstOrNull()?.run { tilgangskontroll.validerTilgangTilOrg(call.request, it.toString()) }
+                            orgnrSet.firstOrNull()?.also { orgnr -> tilgangskontroll.validerTilgangTilOrg(call.request, orgnr) }
 
                             val respons =
                                 HentForespoerselIderResponse(

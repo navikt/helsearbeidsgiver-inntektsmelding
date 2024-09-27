@@ -105,7 +105,6 @@ class InnsendingIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 // Journalført i dokarkiv
-                it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
                 it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
             }
 
@@ -113,7 +112,7 @@ class InnsendingIT : EndToEndTest() {
             .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
             .firstAsMap()
             .also {
-                it shouldContainKey Key.INNTEKTSMELDING_DOKUMENT
+                it shouldContainKey Key.INNTEKTSMELDING
                 it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
             }
 

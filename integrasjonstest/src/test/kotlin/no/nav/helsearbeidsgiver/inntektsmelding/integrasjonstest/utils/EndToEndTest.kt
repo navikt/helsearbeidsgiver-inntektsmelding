@@ -46,6 +46,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForesp
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createMarkerForespoerselBesvart
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottattRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebroRivers
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselListeSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createHentInntektRiver
@@ -319,6 +320,39 @@ abstract class EndToEndTest : ContainerTest() {
                         resultat = forespoerselSvar,
                         boomerang = boomerang.shouldNotBeNull(),
                     ).toJson(ForespoerselSvar.serializer()),
+            )
+
+            boomerang = null
+
+            Result.success(JsonObject(emptyMap()))
+        }
+    }
+
+    fun mockForespoerselSvarFraHelsebro(forespoerselListeSvar: List<ForespoerselListeSvar.Forespoersel>) {
+        var boomerang: JsonElement? = null
+
+        every {
+            mockPriProducer.send(
+                *varargAll { (key, value) ->
+                    if (key == Pri.Key.BOOMERANG) {
+                        boomerang = value
+                    }
+
+                    val erKorrektBehov =
+                        runCatching { value.fromJson(Pri.BehovType.serializer()) }.getOrNull() == Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE
+
+                    (key == Pri.Key.BEHOV && erKorrektBehov) ||
+                        key in setOf(Pri.Key.VEDTAKSPERIODE_ID_LISTE, Pri.Key.BOOMERANG)
+                },
+            )
+        } answers {
+            publish(
+                Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
+                Pri.Key.LØSNING to
+                    ForespoerselListeSvar(
+                        resultat = forespoerselListeSvar,
+                        boomerang = boomerang.shouldNotBeNull(),
+                    ).toJson(ForespoerselListeSvar.serializer()),
             )
 
             boomerang = null

@@ -6,9 +6,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.domene.ForespurtData
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar.Feil
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -34,7 +34,20 @@ data class ForespoerselListeSvar(
         val bestemmendeFravaersdager: Map<Orgnr, LocalDate>,
         val forespurtData: ForespurtData,
         val erBesvart: Boolean,
-    )
+    ) {
+        fun toForespoersel(): no.nav.helsearbeidsgiver.felles.domene.Forespoersel =
+            Forespoersel(
+                type = type,
+                orgnr = orgnr.toString(),
+                fnr = fnr,
+                vedtaksperiodeId = vedtaksperiodeId,
+                sykmeldingsperioder = sykmeldingsperioder,
+                egenmeldingsperioder = egenmeldingsperioder,
+                bestemmendeFravaersdager = bestemmendeFravaersdager.mapKeys { it.key.toString() },
+                forespurtData = forespurtData,
+                erBesvart = erBesvart,
+            )
+    }
 
     enum class Feil {
         FORESPOERSEL_FOR_VEDTAKSPERIODE_ID_LISTE_FEILET,

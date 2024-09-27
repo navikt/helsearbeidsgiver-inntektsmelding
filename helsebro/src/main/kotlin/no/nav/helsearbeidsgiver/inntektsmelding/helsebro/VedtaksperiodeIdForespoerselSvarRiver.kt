@@ -51,6 +51,7 @@ class VedtaksperiodeIdForespoerselSvarRiver : PriObjectRiver<VedtaksperiodeIdFor
         sikkerLogger.info("Mottok løsning på pri-topic:\n$json")
 
         val forespoersler = forespoerselSvar.resultat.associate { it.forespoerselId to it.toForespoersel() }
+
         return if (forespoerselSvar.feil == null) {
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
@@ -100,19 +101,6 @@ class VedtaksperiodeIdForespoerselSvarRiver : PriObjectRiver<VedtaksperiodeIdFor
             Log.event(eventName),
             Log.behov(BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE),
             Log.transaksjonId(transaksjonId),
-        )
-
-    private fun ForespoerselListeSvar.Forespoersel.toForespoersel(): Forespoersel =
-        Forespoersel(
-            type = type,
-            orgnr = orgnr.toString(),
-            fnr = fnr,
-            vedtaksperiodeId = vedtaksperiodeId,
-            sykmeldingsperioder = sykmeldingsperioder,
-            egenmeldingsperioder = egenmeldingsperioder,
-            bestemmendeFravaersdager = bestemmendeFravaersdager.mapKeys { it.key.toString() },
-            forespurtData = forespurtData,
-            erBesvart = erBesvart,
         )
 }
 

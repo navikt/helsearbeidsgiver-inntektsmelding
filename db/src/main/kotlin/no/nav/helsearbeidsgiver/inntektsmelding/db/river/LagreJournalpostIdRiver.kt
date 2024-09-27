@@ -72,8 +72,8 @@ class LagreJournalpostIdRiver(
                 } else {
                     "Klarte ikke journalføre pga. manglende innsending-ID for forespørsel '${inntektsmelding.type.id}' og journalpost-ID '$journalpostId'."
                         .also {
-                            logger.info(it)
-                            sikkerLogger.info(it)
+                            logger.error(it)
+                            sikkerLogger.error(it)
                         }
                 }
             }

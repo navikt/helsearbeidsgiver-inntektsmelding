@@ -74,7 +74,7 @@ class LagreImRiverTest :
                         Key.DATA to
                             mapOf(
                                 Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
-                                Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                                Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
                                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
                                 Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
                             ).toJson(),
@@ -114,7 +114,7 @@ class LagreImRiverTest :
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
-                            Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                            Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
                             Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
                             Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
                         ).toJson(),
@@ -195,7 +195,7 @@ private fun innkommendeMelding(
         data =
             mapOf(
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()),
                 Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
             ),
         forespoerselId = forespoerselId,

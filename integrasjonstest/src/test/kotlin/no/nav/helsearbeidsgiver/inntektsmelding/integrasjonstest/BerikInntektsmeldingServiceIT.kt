@@ -30,6 +30,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBet
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.maxMekker
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
@@ -42,6 +43,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BerikInntektsmeldingServiceIT : EndToEndTest() {
@@ -114,7 +116,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         // Inntektsmelding lagret
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.INNTEKTSMELDING, nestedData = true)
+            .filter(Key.INNTEKTSMELDING_DOKUMENT, nestedData = true)
             .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
@@ -122,7 +124,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
 
-                data[Key.INNTEKTSMELDING].shouldNotBeNull().fromJson(Inntektsmelding.serializer())
+                data[Key.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull().fromJson(Inntektsmelding.serializer())
 
                 data[Key.ER_DUPLIKAT_IM]?.fromJson(Boolean.serializer()) shouldBe false
             }
@@ -160,9 +162,13 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                         .shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
-                    it[Key.INNTEKTSMELDING_DOKUMENT]
+                    it[Key.INNTEKTSMELDING]
                         .shouldNotBeNull()
-                        .fromJson(Inntektsmelding.serializer())
+                        .fromJson(InntektsmeldingV1.serializer())
+
+                    it[Key.BESTEMMENDE_FRAVAERSDAG]
+                        .shouldNotBeNull()
+                        .fromJson(LocalDateSerializer)
                 }
             }
 
@@ -293,9 +299,13 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                         .shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
-                    it[Key.INNTEKTSMELDING_DOKUMENT]
+                    it[Key.INNTEKTSMELDING]
                         .shouldNotBeNull()
-                        .fromJson(Inntektsmelding.serializer())
+                        .fromJson(InntektsmeldingV1.serializer())
+
+                    it[Key.BESTEMMENDE_FRAVAERSDAG]
+                        .shouldNotBeNull()
+                        .fromJson(LocalDateSerializer)
                 }
             }
     }

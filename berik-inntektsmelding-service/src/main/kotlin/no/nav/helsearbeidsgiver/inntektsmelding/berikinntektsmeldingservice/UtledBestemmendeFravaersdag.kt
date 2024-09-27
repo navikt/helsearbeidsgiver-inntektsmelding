@@ -10,7 +10,7 @@ import java.time.LocalDate
  * - Vi ber om AGP. Da kan AGP inneholde info som Spleis ikke vet om, f. eks. egenmeldinger.
  * - Vi ber kun om refusjon. Da kan Spleis sitt forslag inneholde feil`*` dersom sykmeldt har mer enn én arbeidsgiver.
  *
- * `*` Det er ikke feil, men forslagene fra Spleis er egentlig inntektsdatoer, ikke BF-er.
+ * `*` Det er ikke feil, men forslagene fra Spleis er egentlig inntektsdatoer per arbeidsgiver, ikke BF-er.
  * For én arbeidsgiver så er disse datoene like, men det er de nødvendigvis ikke ved mer enn én arbeidsgiver.
 */
 fun utledBestemmendeFravaersdag(

@@ -48,6 +48,7 @@ enum class Key(
     FNR("fnr"),
     FNR_LISTE("fnr_liste"),
     PERSONER("personer"),
+    BESTEMMENDE_FRAVAERSDAG("bestemmende_fravaersdag"),
     INNTEKTSDATO("inntektsdato"),
     TILGANG("tilgang"),
     SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),

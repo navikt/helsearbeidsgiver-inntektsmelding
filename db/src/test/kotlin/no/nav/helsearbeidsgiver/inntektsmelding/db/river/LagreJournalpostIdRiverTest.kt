@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -30,7 +31,9 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.Mock.INNSENDING_ID
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.Mock.toMap
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import java.util.UUID
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
 
@@ -69,6 +72,8 @@ class LagreJournalpostIdRiverTest :
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
                         Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                         Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
+                        Key.INNTEKTSMELDING to Mock.inntektsmelding.toJson(InntektsmeldingV1.serializer()),
+                        Key.BESTEMMENDE_FRAVAERSDAG to Mock.bestemmendeFravaersdag.toJson(LocalDateSerializer),
                         Key.INNTEKTSMELDING_DOKUMENT to INNTEKTSMELDING_DOKUMENT.toJson(Inntektsmelding.serializer()),
                         Key.FORESPOERSEL_ID to innkommendeMelding.inntektsmeldingType.id.toJson(),
                     )
@@ -101,6 +106,8 @@ class LagreJournalpostIdRiverTest :
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
                         Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                         Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
+                        Key.INNTEKTSMELDING to Mock.inntektsmelding.toJson(InntektsmeldingV1.serializer()),
+                        Key.BESTEMMENDE_FRAVAERSDAG to Mock.bestemmendeFravaersdag.toJson(LocalDateSerializer),
                         Key.INNTEKTSMELDING_DOKUMENT to INNTEKTSMELDING_DOKUMENT.toJson(Inntektsmelding.serializer()),
                         Key.SELVBESTEMT_ID to innkommendeMelding.inntektsmeldingType.id.toJson(),
                     )
@@ -263,6 +270,9 @@ class LagreJournalpostIdRiverTest :
 private object Mock {
     const val INNSENDING_ID = 1L
 
+    val inntektsmelding = mockInntektsmeldingV1()
+    val bestemmendeFravaersdag = 20.oktober
+
     fun innkommendeMelding(inntektsmeldingType: InntektsmeldingV1.Type): LagreJournalpostIdMelding =
         LagreJournalpostIdMelding(
             eventName = EventName.INNTEKTSMELDING_MOTTATT,
@@ -279,8 +289,10 @@ private object Mock {
                     Key.EVENT_NAME to eventName.toJson(),
                     Key.BEHOV to behovType.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.INNTEKTSMELDING_DOKUMENT to INNTEKTSMELDING_DOKUMENT.toJson(Inntektsmelding.serializer()),
                     Key.JOURNALPOST_ID to journalpostId.toJson(),
+                    Key.INNTEKTSMELDING to inntektsmelding.toJson(InntektsmeldingV1.serializer()),
+                    Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag.toJson(LocalDateSerializer),
+                    Key.INNTEKTSMELDING_DOKUMENT to INNTEKTSMELDING_DOKUMENT.toJson(Inntektsmelding.serializer()),
                     Key.FORESPOERSEL_ID to inntektsmeldingType.id.toJson(),
                     Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
                 )
@@ -291,8 +303,10 @@ private object Mock {
                     Key.EVENT_NAME to eventName.toJson(),
                     Key.BEHOV to behovType.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.INNTEKTSMELDING_DOKUMENT to INNTEKTSMELDING_DOKUMENT.toJson(Inntektsmelding.serializer()),
                     Key.JOURNALPOST_ID to journalpostId.toJson(),
+                    Key.INNTEKTSMELDING to inntektsmelding.toJson(InntektsmeldingV1.serializer()),
+                    Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag.toJson(LocalDateSerializer),
+                    Key.INNTEKTSMELDING_DOKUMENT to INNTEKTSMELDING_DOKUMENT.toJson(Inntektsmelding.serializer()),
                     Key.SELVBESTEMT_ID to inntektsmeldingType.id.toJson(),
                 )
             }

@@ -9,6 +9,7 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -28,17 +29,20 @@ import no.nav.helsearbeidsgiver.felles.test.json.lesData
 import no.nav.helsearbeidsgiver.felles.test.json.lesEventName
 import no.nav.helsearbeidsgiver.felles.test.json.plusData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingGammeltFormat
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
 
 class BerikInntektsmeldingServiceTest :
     FunSpec({
@@ -102,13 +106,9 @@ class BerikInntektsmeldingServiceTest :
                 it.lesBehov() shouldBe BehovType.LAGRE_IM
 
                 val data = it.lesData()
-                Key.INNTEKTSMELDING.lesOrNull(
-                    Inntektsmelding
-                        .serializer(),
-                    data,
-                ) shouldNotBe null
+                Key.INNTEKTSMELDING_DOKUMENT.lesOrNull(Inntektsmelding.serializer(), data) shouldNotBe null
                 Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data) shouldBe Mock.skjema.forespoerselId
-                Key.INNSENDING_ID.lesOrNull(Long.serializer(), data) shouldBe Mock.innsendingId
+                Key.INNSENDING_ID.lesOrNull(Long.serializer(), data) shouldBe Mock.INNSENDING_ID
             }
 
             testRapid.sendJson(Mock.steg4(Mock.transaksjonId))
@@ -118,8 +118,9 @@ class BerikInntektsmeldingServiceTest :
             testRapid.message(4).also {
                 it.lesEventName() shouldBe EventName.INNTEKTSMELDING_MOTTATT
                 Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it.toMap()) shouldBe Mock.skjema.forespoerselId
-                Key.INNTEKTSMELDING_DOKUMENT.lesOrNull(Inntektsmelding.serializer(), it.toMap()) shouldNotBe null
-                Key.INNSENDING_ID.lesOrNull(Long.serializer(), it.toMap()) shouldBe Mock.innsendingId
+                Key.INNTEKTSMELDING.lesOrNull(InntektsmeldingV1.serializer(), it.toMap()) shouldNotBe null
+                Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, it.toMap()) shouldNotBe null
+                Key.INNSENDING_ID.lesOrNull(Long.serializer(), it.toMap()) shouldBe Mock.INNSENDING_ID
             }
         }
 
@@ -156,10 +157,12 @@ class BerikInntektsmeldingServiceTest :
     })
 
 private object Mock {
-    val transaksjonId = UUID.randomUUID()
+    const val INNSENDING_ID = 1L
+
+    val transaksjonId: UUID = UUID.randomUUID()
     val forespoersel = mockForespoersel()
     val skjema = mockSkjemaInntektsmelding()
-    val inntektsmelding = mockInntektsmeldingGammeltFormat()
+    val inntektsmelding = mockInntektsmeldingV1()
 
     val avsender =
         Fnr.genererGyldig().let {
@@ -187,13 +190,11 @@ private object Mock {
             sykmeldt.fnr to sykmeldt,
         )
 
-    val innsendingId = 1L
-
     val steg0data =
         mapOf(
             Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
             Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
-            Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
+            Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
         )
 
     val steg1data =
@@ -214,11 +215,9 @@ private object Mock {
     val steg4data =
         mapOf(
             Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
-            Key.INNTEKTSMELDING to
-                inntektsmelding.toJson(
-                    Inntektsmelding
-                        .serializer(),
-                ),
+            Key.INNTEKTSMELDING to inntektsmelding.toJson(InntektsmeldingV1.serializer()),
+            Key.BESTEMMENDE_FRAVAERSDAG to 20.oktober.toJson(LocalDateSerializer),
+            Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.convert().toJson(Inntektsmelding.serializer()),
         )
 
     fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =

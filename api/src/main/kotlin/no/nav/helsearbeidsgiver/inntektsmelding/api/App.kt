@@ -46,7 +46,6 @@ object Routes {
 
     const val HENT_FORESPOERSEL = "/hent-forespoersel"
     const val HENT_FORESPOERSEL_IDER = "/hent-forespoersel-ider"
-    const val TRENGER = "/trenger"
     const val INNTEKT = "/inntekt"
     const val INNTEKT_SELVBESTEMT = "/inntekt-selvbestemt"
     const val INNSENDING = "/inntektsmelding"

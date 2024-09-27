@@ -44,7 +44,6 @@ object Routes {
     const val PREFIX = "/api/v1"
 
     const val HENT_FORESPOERSEL = "/hent-forespoersel"
-    const val TRENGER = "/trenger"
     const val INNTEKT = "/inntekt"
     const val INNTEKT_SELVBESTEMT = "/inntekt-selvbestemt"
     const val INNSENDING = "/inntektsmelding"

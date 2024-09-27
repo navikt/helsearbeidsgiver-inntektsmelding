@@ -13,7 +13,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.bestemmendeFravaersdag
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -33,7 +33,6 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
 
 class DistribusjonRiverTest :
     FunSpec({
@@ -74,7 +73,7 @@ class DistribusjonRiverTest :
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_DISTRIBUERT.toJson(),
                         Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                         Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
-                        Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(InntektsmeldingV1.serializer()),
+                        Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
                         Key.BESTEMMENDE_FRAVAERSDAG to innkommendeMelding.bestemmendeFravaersdag?.toJson(),
                     ).mapValuesNotNull { it }
 
@@ -109,7 +108,7 @@ class DistribusjonRiverTest :
                 val selvbestemtInntektsmelding =
                     mockInntektsmeldingV1().copy(
                         type =
-                            InntektsmeldingV1.Type.Selvbestemt(
+                            Inntektsmelding.Type.Selvbestemt(
                                 id = UUID.randomUUID(),
                             ),
                     )
@@ -120,7 +119,7 @@ class DistribusjonRiverTest :
                     innkommendeMelding
                         .toMap()
                         .minus(Key.BESTEMMENDE_FRAVAERSDAG)
-                        .plus(Key.INNTEKTSMELDING to selvbestemtInntektsmelding.toJson(InntektsmeldingV1.serializer()))
+                        .plus(Key.INNTEKTSMELDING to selvbestemtInntektsmelding.toJson(Inntektsmelding.serializer()))
                         .plus(Key.BEHOV to innkommendeBehov?.toJson())
                         .mapValuesNotNull { it },
                 )
@@ -132,7 +131,7 @@ class DistribusjonRiverTest :
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_DISTRIBUERT.toJson(),
                         Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                         Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
-                        Key.INNTEKTSMELDING to selvbestemtInntektsmelding.toJson(InntektsmeldingV1.serializer()),
+                        Key.INNTEKTSMELDING to selvbestemtInntektsmelding.toJson(Inntektsmelding.serializer()),
                     )
 
                 val forventetRecord =
@@ -233,7 +232,7 @@ private object Mock {
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.INNTEKTSMELDING to inntektsmelding.toJson(InntektsmeldingV1.serializer()),
+            Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag?.toJson(),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
         ).mapValuesNotNull { it }

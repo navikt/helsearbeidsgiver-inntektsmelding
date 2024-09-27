@@ -153,6 +153,10 @@ class JournalfoerImRiver(
             Log.klasse(this@JournalfoerImRiver),
             Log.event(eventName),
             Log.transaksjonId(transaksjonId),
+            when (inntektsmelding.type) {
+                is InntektsmeldingV1.Type.Forespurt -> Log.forespoerselId(inntektsmelding.type.id)
+                is InntektsmeldingV1.Type.Selvbestemt -> Log.selvbestemtId(inntektsmelding.type.id)
+            },
         )
 
     private fun opprettOgFerdigstillJournalpost(

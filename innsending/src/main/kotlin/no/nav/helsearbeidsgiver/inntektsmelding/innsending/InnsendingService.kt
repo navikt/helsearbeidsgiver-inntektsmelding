@@ -28,7 +28,6 @@ import java.util.UUID
 
 data class Steg0(
     val transaksjonId: UUID,
-    val forespoerselId: UUID,
     val avsenderFnr: Fnr,
     val skjema: SkjemaInntektsmelding,
 )
@@ -51,7 +50,6 @@ class InnsendingService(
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
             transaksjonId = Key.UUID.les(UuidSerializer, melding),
-            forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
             avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
             skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding),
         )
@@ -73,7 +71,8 @@ class InnsendingService(
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                        // TODO slett etter overgangsperiode
+                        Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
                         Key.SKJEMA_INNTEKTSMELDING to steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
                     ).toJson(),
             ).also { loggBehovPublisert(BehovType.LAGRE_IM_SKJEMA, it) }
@@ -119,7 +118,7 @@ class InnsendingService(
             Log.klasse(this@InnsendingService),
             Log.event(eventName),
             Log.transaksjonId(transaksjonId),
-            Log.forespoerselId(forespoerselId),
+            Log.forespoerselId(skjema.forespoerselId),
         )
 
     private fun loggBehovPublisert(

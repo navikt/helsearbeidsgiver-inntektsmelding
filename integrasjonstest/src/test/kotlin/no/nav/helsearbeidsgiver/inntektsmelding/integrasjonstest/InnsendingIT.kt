@@ -139,7 +139,7 @@ class InnsendingIT : EndToEndTest() {
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
 
-        imRepository.lagreInntektsmeldingSkjema(Mock.forespoerselId, Mock.skjema)
+        imRepository.lagreInntektsmeldingSkjema(Mock.skjema)
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
@@ -176,7 +176,7 @@ class InnsendingIT : EndToEndTest() {
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
 
-        imRepository.lagreInntektsmeldingSkjema(Mock.forespoerselId, Mock.skjema)
+        imRepository.lagreInntektsmeldingSkjema(Mock.skjema)
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),

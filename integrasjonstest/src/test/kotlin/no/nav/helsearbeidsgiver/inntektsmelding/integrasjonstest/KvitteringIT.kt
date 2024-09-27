@@ -31,18 +31,18 @@ class KvitteringIT : EndToEndTest() {
     @Test
     fun `skal hente data til kvittering`() {
         val transaksjonId = UUID.randomUUID()
-        val forespoerselId = UUID.randomUUID()
+        val skjema = mockSkjemaInntektsmelding()
 
-        forespoerselRepository.lagreForespoersel(forespoerselId.toString(), Mock.orgnr)
-        val innsendingId = imRepository.lagreInntektsmeldingSkjema(forespoerselId, mockSkjemaInntektsmelding())
-        imRepository.oppdaterMedBeriketDokument(forespoerselId, innsendingId, mockInntektsmeldingGammeltFormat())
+        forespoerselRepository.lagreForespoersel(skjema.forespoerselId.toString(), Mock.orgnr)
+        val innsendingId = imRepository.lagreInntektsmeldingSkjema(skjema)
+        imRepository.oppdaterMedBeriketDokument(skjema.forespoerselId, innsendingId, mockInntektsmeldingGammeltFormat())
 
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.FORESPOERSEL_ID to skjema.forespoerselId.toJson(),
                 ).toJson(),
         )
 

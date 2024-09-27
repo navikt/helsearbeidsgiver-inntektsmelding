@@ -110,14 +110,11 @@ class InntektsmeldingRepository(
             }
         }
 
-    fun lagreInntektsmeldingSkjema(
-        forespoerselId: UUID,
-        inntektsmeldingSkjema: SkjemaInntektsmelding,
-    ): Long =
+    fun lagreInntektsmeldingSkjema(inntektsmeldingSkjema: SkjemaInntektsmelding): Long =
         requestLatency.recordTime(InntektsmeldingRepository::lagreInntektsmeldingSkjema) {
             transaction(db) {
                 InntektsmeldingEntitet.insert {
-                    it[this.forespoerselId] = forespoerselId.toString()
+                    it[this.forespoerselId] = inntektsmeldingSkjema.forespoerselId.toString()
                     it[skjema] = inntektsmeldingSkjema
                     it[innsendt] = LocalDateTime.now()
                 } get InntektsmeldingEntitet.id

@@ -66,7 +66,7 @@ class LagreImSkjemaRiverTest :
             ) { eksisterendeInntektsmeldingskjema ->
                 val innsendingId = 1L
                 every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns eksisterendeInntektsmeldingskjema
-                every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } returns innsendingId
+                every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any()) } returns innsendingId
 
                 val nyttInntektsmeldingSkjema = mockSkjemaInntektsmelding()
 
@@ -82,7 +82,6 @@ class LagreImSkjemaRiverTest :
                         Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                         Key.DATA to
                             mapOf(
-                                Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
                                 Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.inntektsmeldingSkjema.toJson(SkjemaInntektsmelding.serializer()),
                                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
                                 Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
@@ -90,8 +89,8 @@ class LagreImSkjemaRiverTest :
                     )
 
                 verifySequence {
-                    mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.forespoerselId)
-                    mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(innkommendeMelding.forespoerselId, nyttInntektsmeldingSkjema)
+                    mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.inntektsmeldingSkjema.forespoerselId)
+                    mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(nyttInntektsmeldingSkjema)
                 }
             }
         }
@@ -101,7 +100,7 @@ class LagreImSkjemaRiverTest :
             val innsendingIdVedDuplikat = -1L
 
             every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns inntektsmeldingSkjema
-            every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } returns innsendingId
+            every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any()) } returns innsendingId
 
             val innkommendeMelding = innkommendeMelding(inntektsmeldingSkjema)
 
@@ -115,7 +114,6 @@ class LagreImSkjemaRiverTest :
                     Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
-                            Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
                             Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.inntektsmeldingSkjema.toJson(SkjemaInntektsmelding.serializer()),
                             Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
                             Key.INNSENDING_ID to innsendingIdVedDuplikat.toJson(Long.serializer()),
@@ -123,10 +121,10 @@ class LagreImSkjemaRiverTest :
                 )
 
             verifySequence {
-                mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.forespoerselId)
+                mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.inntektsmeldingSkjema.forespoerselId)
             }
             verify(exactly = 0) {
-                mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(innkommendeMelding.forespoerselId, inntektsmeldingSkjema)
+                mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingSkjema)
             }
         }
 
@@ -144,7 +142,7 @@ class LagreImSkjemaRiverTest :
                     feilmelding = "Klarte ikke lagre inntektsmeldingskjema i database.",
                     event = innkommendeMelding.eventName,
                     transaksjonId = innkommendeMelding.transaksjonId,
-                    forespoerselId = innkommendeMelding.forespoerselId,
+                    forespoerselId = innkommendeMelding.inntektsmeldingSkjema.forespoerselId,
                     utloesendeMelding = innkommendeMelding.toMap().toJson(),
                 )
 
@@ -158,7 +156,7 @@ class LagreImSkjemaRiverTest :
                 mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any())
             }
             verify(exactly = 0) {
-                mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any())
+                mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any())
             }
         }
         context("ignorerer melding") {
@@ -179,28 +177,23 @@ class LagreImSkjemaRiverTest :
 
                 verify(exactly = 0) {
                     mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any())
-                    mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any())
+                    mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any())
                 }
             }
         }
     })
 
-private fun innkommendeMelding(inntektsmeldingSkjema: SkjemaInntektsmelding = mockSkjemaInntektsmelding()): LagreImSkjemaMelding {
-    val forespoerselId = UUID.randomUUID()
-
-    return LagreImSkjemaMelding(
+private fun innkommendeMelding(inntektsmeldingSkjema: SkjemaInntektsmelding = mockSkjemaInntektsmelding()): LagreImSkjemaMelding =
+    LagreImSkjemaMelding(
         eventName = EventName.INSENDING_STARTED,
         behovType = BehovType.LAGRE_IM_SKJEMA,
         transaksjonId = UUID.randomUUID(),
         data =
             mapOf(
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.SKJEMA_INNTEKTSMELDING to inntektsmeldingSkjema.toJson(SkjemaInntektsmelding.serializer()),
             ),
-        forespoerselId = forespoerselId,
         inntektsmeldingSkjema = inntektsmeldingSkjema,
     )
-}
 
 private fun LagreImSkjemaMelding.toMap(): Map<Key, JsonElement> =
     mapOf(

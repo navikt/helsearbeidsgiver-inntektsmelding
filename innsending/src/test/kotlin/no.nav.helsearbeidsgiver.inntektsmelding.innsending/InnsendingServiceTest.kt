@@ -91,7 +91,7 @@ class InnsendingServiceTest :
                 val data = it[Key.DATA]?.toMap().orEmpty()
                 Key.ARBEIDSGIVER_FNR.lesOrNull(Fnr.serializer(), data) shouldBe Mock.avsender.fnr
                 Key.SKJEMA_INNTEKTSMELDING.lesOrNull(SkjemaInntektsmelding.serializer(), data) shouldBe nyttSkjema
-                Key.INNSENDING_ID.lesOrNull(Long.serializer(), data) shouldBe Mock.innsendingId
+                Key.INNSENDING_ID.lesOrNull(Long.serializer(), data) shouldBe Mock.INNSENDING_ID
             }
 
             verify {
@@ -181,6 +181,8 @@ class InnsendingServiceTest :
     })
 
 private object Mock {
+    const val INNSENDING_ID = 1L
+
     val avsender =
         Fnr.genererGyldig().let {
             Person(
@@ -192,15 +194,12 @@ private object Mock {
 
     val skjema = mockSkjemaInntektsmelding()
 
-    val innsendingId = 1L
-
     fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.FORESPOERSEL_ID to skjema.forespoerselId.toJson(),
                     Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
                 ).toJson(),
@@ -213,7 +212,7 @@ private object Mock {
             Key.DATA to
                 mapOf(
                     Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
-                    Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
+                    Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
                 ).toJson(),
         )
 }

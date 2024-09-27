@@ -28,7 +28,6 @@ data class LagreImSkjemaMelding(
     val behovType: BehovType,
     val transaksjonId: UUID,
     val data: Map<Key, JsonElement>,
-    val forespoerselId: UUID,
     val inntektsmeldingSkjema: SkjemaInntektsmelding,
 )
 
@@ -48,13 +47,12 @@ class LagreImSkjemaRiver(
                 behovType = Key.BEHOV.krev(BehovType.LAGRE_IM_SKJEMA, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
                 data = data,
-                forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
                 inntektsmeldingSkjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), data),
             )
         }
 
     override fun LagreImSkjemaMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        val sisteImSkjema = repository.hentNyesteInntektsmeldingSkjema(forespoerselId)
+        val sisteImSkjema = repository.hentNyesteInntektsmeldingSkjema(inntektsmeldingSkjema.forespoerselId)
 
         val erDuplikat = sisteImSkjema?.erDuplikatAv(inntektsmeldingSkjema) ?: false
 
@@ -63,7 +61,7 @@ class LagreImSkjemaRiver(
                 sikkerLogger.warn("Fant duplikat av inntektsmeldingskjema.")
                 INNSENDING_ID_VED_DUPLIKAT
             } else {
-                repository.lagreInntektsmeldingSkjema(forespoerselId, inntektsmeldingSkjema).also {
+                repository.lagreInntektsmeldingSkjema(inntektsmeldingSkjema).also {
                     sikkerLogger.info("Lagret inntektsmeldingskjema.")
                 }
             }
@@ -90,7 +88,7 @@ class LagreImSkjemaRiver(
                 feilmelding = "Klarte ikke lagre inntektsmeldingskjema i database.",
                 event = eventName,
                 transaksjonId = transaksjonId,
-                forespoerselId = forespoerselId,
+                forespoerselId = inntektsmeldingSkjema.forespoerselId,
                 utloesendeMelding = json.toJson(),
             )
 
@@ -106,6 +104,6 @@ class LagreImSkjemaRiver(
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),
-            Log.forespoerselId(forespoerselId),
+            Log.forespoerselId(inntektsmeldingSkjema.forespoerselId),
         )
 }

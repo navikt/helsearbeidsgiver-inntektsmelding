@@ -115,7 +115,6 @@ class InnsendingIT : EndToEndTest() {
             .also {
                 it shouldContainKey Key.INNTEKTSMELDING_DOKUMENT
                 it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
-                it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
         messages
@@ -125,7 +124,7 @@ class InnsendingIT : EndToEndTest() {
                 // Verifiser at inntektsmelding er distribuert på ekstern kafka
                 it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
 
-                it[Key.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
+                it[Key.INNTEKTSMELDING].shouldNotBeNull()
             }
 
         bekreftForventedeMeldingerForFerdigstilligAvOppgaveOgSak()
@@ -139,7 +138,7 @@ class InnsendingIT : EndToEndTest() {
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
 
-        imRepository.lagreInntektsmeldingSkjema(Mock.forespoerselId, Mock.skjema)
+        imRepository.lagreInntektsmeldingSkjema(Mock.skjema)
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
@@ -176,7 +175,7 @@ class InnsendingIT : EndToEndTest() {
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
 
-        imRepository.lagreInntektsmeldingSkjema(Mock.forespoerselId, Mock.skjema)
+        imRepository.lagreInntektsmeldingSkjema(Mock.skjema)
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),

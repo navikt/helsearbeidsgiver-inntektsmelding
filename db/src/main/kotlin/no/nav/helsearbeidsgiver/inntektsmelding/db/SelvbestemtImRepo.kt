@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.SelvbestemtInntektsmel
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
@@ -26,7 +25,11 @@ class SelvbestemtImRepo(
     fun hentNyesteIm(selvbestemtId: UUID): Inntektsmelding? =
         Metrics.dbSelvbestemtIm.recordTime(::hentNyesteIm) {
             transaction(db) {
-                hentNyesteImQuery(selvbestemtId)
+                SelvbestemtInntektsmeldingEntitet
+                    .selectAll()
+                    .where { SelvbestemtInntektsmeldingEntitet.selvbestemtId eq selvbestemtId }
+                    .orderBy(SelvbestemtInntektsmeldingEntitet.opprettet, SortOrder.DESC)
+                    .limit(1)
                     .firstOrNull(SelvbestemtInntektsmeldingEntitet.inntektsmelding)
             }
         }
@@ -44,7 +47,7 @@ class SelvbestemtImRepo(
     }
 
     fun oppdaterJournalpostId(
-        selvbestemtId: UUID,
+        inntektsmeldingId: UUID,
         journalpostId: String,
     ) {
         val antallOppdatert =
@@ -52,9 +55,7 @@ class SelvbestemtImRepo(
                 transaction(db) {
                     SelvbestemtInntektsmeldingEntitet.update(
                         where = {
-                            val nyesteImIdQuery = hentNyesteImQuery(selvbestemtId).adjustSelect { select(SelvbestemtInntektsmeldingEntitet.id) }
-
-                            (SelvbestemtInntektsmeldingEntitet.id eqSubQuery nyesteImIdQuery) and
+                            (SelvbestemtInntektsmeldingEntitet.inntektsmeldingId eq inntektsmeldingId) and
                                 SelvbestemtInntektsmeldingEntitet.journalpostId.isNull()
                         },
                     ) {
@@ -76,10 +77,3 @@ class SelvbestemtImRepo(
         }
     }
 }
-
-private fun hentNyesteImQuery(selvbestemtId: UUID): Query =
-    SelvbestemtInntektsmeldingEntitet
-        .selectAll()
-        .where { SelvbestemtInntektsmeldingEntitet.selvbestemtId eq selvbestemtId }
-        .orderBy(SelvbestemtInntektsmeldingEntitet.opprettet, SortOrder.DESC)
-        .limit(1)

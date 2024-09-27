@@ -147,7 +147,7 @@ class SelvbestemtImRepoTest :
 
         context(SelvbestemtImRepo::oppdaterJournalpostId.name) {
 
-            test("journalpost-ID oppdateres for angitt selvbestemt ID") {
+            test("journalpost-ID oppdateres for angitt inntektsmelding-ID (_ulik_ selvbestemt ID)") {
                 val selvbestemtId = UUID.randomUUID()
                 val journalpostId = randomDigitString(12)
                 val inntektsmelding =
@@ -160,7 +160,7 @@ class SelvbestemtImRepoTest :
 
                 selvbestemtImRepo.lagreIm(inntektsmelding)
                 selvbestemtImRepo.lagreIm(mockInntektsmeldingV1())
-                selvbestemtImRepo.oppdaterJournalpostId(selvbestemtId, journalpostId)
+                selvbestemtImRepo.oppdaterJournalpostId(inntektsmelding.id, journalpostId)
 
                 val alleRader = lesAlleRader(db)
 
@@ -173,14 +173,16 @@ class SelvbestemtImRepoTest :
                 }
 
                 alleRader.last().let {
+                    it[SelvbestemtInntektsmeldingEntitet.inntektsmeldingId] shouldNotBe inntektsmelding.id
                     it[SelvbestemtInntektsmeldingEntitet.selvbestemtId] shouldNotBe selvbestemtId
-                    it[SelvbestemtInntektsmeldingEntitet.journalpostId] shouldNotBe journalpostId
+                    it[SelvbestemtInntektsmeldingEntitet.journalpostId].shouldBeNull()
                 }
             }
 
-            test("kun nyeste inntektsmelding oppdateres med journalpost-ID") {
+            test("journalpost-ID oppdateres for angitt inntektsmelding-ID (_lik_ selvbestemt ID)") {
                 val selvbestemtId = UUID.randomUUID()
-                val journalpostId = randomDigitString(5)
+                val journalpostId1 = randomDigitString(5)
+                val journalpostId2 = randomDigitString(6)
                 val originalInntektsmelding =
                     mockInntektsmeldingV1().copy(
                         type =
@@ -195,7 +197,8 @@ class SelvbestemtImRepoTest :
 
                 selvbestemtImRepo.lagreIm(originalInntektsmelding)
                 selvbestemtImRepo.lagreIm(endretInntektsmelding)
-                selvbestemtImRepo.oppdaterJournalpostId(selvbestemtId, journalpostId)
+                selvbestemtImRepo.oppdaterJournalpostId(originalInntektsmelding.id, journalpostId1)
+                selvbestemtImRepo.oppdaterJournalpostId(endretInntektsmelding.id, journalpostId2)
 
                 val alleRader = lesAlleRader(db)
 
@@ -204,13 +207,13 @@ class SelvbestemtImRepoTest :
                 alleRader.first().let {
                     it[SelvbestemtInntektsmeldingEntitet.inntektsmeldingId] shouldBe originalInntektsmelding.id
                     it[SelvbestemtInntektsmeldingEntitet.selvbestemtId] shouldBe selvbestemtId
-                    it[SelvbestemtInntektsmeldingEntitet.journalpostId].shouldBeNull()
+                    it[SelvbestemtInntektsmeldingEntitet.journalpostId] shouldBe journalpostId1
                 }
 
                 alleRader.last().let {
                     it[SelvbestemtInntektsmeldingEntitet.inntektsmeldingId] shouldBe endretInntektsmelding.id
                     it[SelvbestemtInntektsmeldingEntitet.selvbestemtId] shouldBe selvbestemtId
-                    it[SelvbestemtInntektsmeldingEntitet.journalpostId] shouldBe journalpostId
+                    it[SelvbestemtInntektsmeldingEntitet.journalpostId] shouldBe journalpostId2
                 }
             }
 
@@ -232,7 +235,7 @@ class SelvbestemtImRepoTest :
 
                 selvbestemtImRepo.lagreIm(originalInntektsmelding)
                 selvbestemtImRepo.lagreIm(endretInntektsmelding)
-                selvbestemtImRepo.oppdaterJournalpostId(selvbestemtId, gammelJournalpostId)
+                selvbestemtImRepo.oppdaterJournalpostId(endretInntektsmelding.id, gammelJournalpostId)
 
                 val alleRaderEtterSetup = lesAlleRader(db)
 
@@ -251,7 +254,7 @@ class SelvbestemtImRepoTest :
                 }
 
                 // Denne skal ha ingen effekt
-                selvbestemtImRepo.oppdaterJournalpostId(selvbestemtId, nyJournalpostId)
+                selvbestemtImRepo.oppdaterJournalpostId(endretInntektsmelding.id, nyJournalpostId)
 
                 val alleRaderEtterOppdatering = lesAlleRader(db)
 
@@ -278,10 +281,10 @@ class SelvbestemtImRepoTest :
                 selvbestemtImRepo.lagreIm(inntektsmelding1)
                 selvbestemtImRepo.lagreIm(inntektsmelding2)
 
-                selvbestemtImRepo.oppdaterJournalpostId(inntektsmelding1.type.id, journalpostId)
+                selvbestemtImRepo.oppdaterJournalpostId(inntektsmelding1.id, journalpostId)
 
                 shouldThrowExactly<ExposedSQLException> {
-                    selvbestemtImRepo.oppdaterJournalpostId(inntektsmelding2.type.id, journalpostId)
+                    selvbestemtImRepo.oppdaterJournalpostId(inntektsmelding2.id, journalpostId)
                 }
             }
 

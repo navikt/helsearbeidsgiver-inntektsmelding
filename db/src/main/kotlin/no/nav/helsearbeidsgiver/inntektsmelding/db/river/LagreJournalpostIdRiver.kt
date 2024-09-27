@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -16,21 +17,19 @@ import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
 
 data class LagreJournalpostIdMelding(
     val eventName: EventName,
     val behovType: BehovType,
     val transaksjonId: UUID,
-    // TODO erstatt med v1.Inntektsmelding når mulig
-    val inntektsmeldingType: InntektsmeldingV1.Type,
+    val inntektsmelding: Inntektsmelding,
     val journalpostId: String,
+    val innsendingId: Long?,
 )
 
 class LagreJournalpostIdRiver(
@@ -44,75 +43,52 @@ class LagreJournalpostIdRiver(
         if (setOf(Key.DATA, Key.FAIL).any(json::containsKey)) {
             null
         } else {
-            val forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, json)
-            val selvbestemtId = Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, json)
-            val inntektsmeldingType =
-                if (forespoerselId != null) {
-                    InntektsmeldingV1.Type.Forespurt(
-                        id = forespoerselId,
-                    )
-                } else if (selvbestemtId != null) {
-                    InntektsmeldingV1.Type.Selvbestemt(
-                        id = selvbestemtId,
-                    )
-                } else {
-                    null
-                }
-
-            if (inntektsmeldingType != null) {
-                LagreJournalpostIdMelding(
-                    eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
-                    behovType = Key.BEHOV.krev(BehovType.LAGRE_JOURNALPOST_ID, BehovType.serializer(), json),
-                    transaksjonId = Key.UUID.les(UuidSerializer, json),
-                    inntektsmeldingType = inntektsmeldingType,
-                    journalpostId = Key.JOURNALPOST_ID.les(String.serializer(), json),
-                )
-            } else {
-                if (Key.BEHOV.lesOrNull(BehovType.serializer(), json) == BehovType.LAGRE_JOURNALPOST_ID) {
-                    "Klarte ikke lagre journalpost-ID. Melding mangler inntektsmeldingstype-ID.".also {
-                        logger.error(it)
-                        sikkerLogger.error("$it\n${json.toPretty()}")
-                    }
-                }
-
-                null
-            }
+            LagreJournalpostIdMelding(
+                eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
+                behovType = Key.BEHOV.krev(BehovType.LAGRE_JOURNALPOST_ID, BehovType.serializer(), json),
+                transaksjonId = Key.UUID.les(UuidSerializer, json),
+                inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), json),
+                journalpostId = Key.JOURNALPOST_ID.les(String.serializer(), json),
+                innsendingId = Key.INNSENDING_ID.lesOrNull(Long.serializer(), json),
+            )
         }
 
     override fun LagreJournalpostIdMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         logger.info("Mottok melding.")
         sikkerLogger.info("Mottok melding:\n${json.toPretty()}")
 
-        when (inntektsmeldingType) {
-            is InntektsmeldingV1.Type.Forespurt -> {
-                val innsendingId = Key.INNSENDING_ID.les(Long.serializer(), json)
+        when (inntektsmelding.type) {
+            is Inntektsmelding.Type.Forespurt -> {
+                if (innsendingId != null) {
+                    imRepo.oppdaterJournalpostId(innsendingId, journalpostId)
 
-                imRepo.oppdaterJournalpostId(innsendingId, journalpostId)
-
-                if (imRepo.hentNyesteBerikedeInnsendingId(inntektsmeldingType.id) != innsendingId) {
-                    return null.also {
+                    if (imRepo.hentNyesteBerikedeInnsendingId(inntektsmelding.type.id) != innsendingId) {
                         "Inntektsmelding journalført, men ikke distribuert pga. nyere innsending.".also {
                             logger.info(it)
                             sikkerLogger.info(it)
                         }
+                        return null
                     }
+                } else {
+                    "Klarte ikke journalføre pga. manglende innsending-ID for forespørsel '${inntektsmelding.type.id}' og journalpost-ID '$journalpostId'."
+                        .also {
+                            logger.error(it)
+                            sikkerLogger.error(it)
+                        }
                 }
             }
 
-            is InntektsmeldingV1.Type.Selvbestemt -> {
-                selvbestemtImRepo.oppdaterJournalpostId(inntektsmeldingType.id, journalpostId)
+            is Inntektsmelding.Type.Selvbestemt -> {
+                selvbestemtImRepo.oppdaterJournalpostId(inntektsmelding.id, journalpostId)
             }
         }
 
         return mapOf(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.JOURNALPOST_ID to journalpostId.toJson(),
-            Key.INNTEKTSMELDING to json[Key.INNTEKTSMELDING],
+            Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.BESTEMMENDE_FRAVAERSDAG to json[Key.BESTEMMENDE_FRAVAERSDAG],
-            Key.INNTEKTSMELDING_DOKUMENT to json[Key.INNTEKTSMELDING_DOKUMENT],
-            Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
-            Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
+            Key.JOURNALPOST_ID to journalpostId.toJson(),
         ).mapValuesNotNull { it }
             .also {
                 logger.info("Publiserer event '${EventName.INNTEKTSMELDING_JOURNALFOERT}' med journalpost-ID '$journalpostId'.")
@@ -129,17 +105,14 @@ class LagreJournalpostIdRiver(
                 feilmelding = "Klarte ikke lagre journalpost-ID '$journalpostId'.",
                 event = eventName,
                 transaksjonId = transaksjonId,
-                forespoerselId = json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer),
+                forespoerselId = null,
                 utloesendeMelding = json.toJson(),
             )
 
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
-        return fail
-            .tilMelding()
-            .plus(Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID])
-            .mapValuesNotNull { it }
+        return fail.tilMelding()
     }
 
     override fun LagreJournalpostIdMelding.loggfelt(): Map<String, String> =
@@ -148,5 +121,9 @@ class LagreJournalpostIdRiver(
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),
+            when (inntektsmelding.type) {
+                is Inntektsmelding.Type.Forespurt -> Log.forespoerselId(inntektsmelding.type.id)
+                is Inntektsmelding.Type.Selvbestemt -> Log.selvbestemtId(inntektsmelding.type.id)
+            },
         )
 }

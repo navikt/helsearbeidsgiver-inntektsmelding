@@ -43,14 +43,14 @@ class InnsendingServiceIT : EndToEndTest() {
         val transaksjonId: UUID = UUID.randomUUID()
         val tidligereInntektsmelding = mockInntektsmelding()
 
-        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.orgnr.verdi)
-        forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
-        forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
-        val innsendingId = imRepository.lagreInntektsmeldingSkjema(Mock.forespoerselId, Mock.skjema)
-        imRepository.oppdaterMedBeriketDokument(Mock.forespoerselId, innsendingId, tidligereInntektsmelding)
+        forespoerselRepository.lagreForespoersel(Mock.skjema.forespoerselId.toString(), Mock.orgnr.verdi)
+        forespoerselRepository.oppdaterSakId(Mock.skjema.forespoerselId.toString(), Mock.SAK_ID)
+        forespoerselRepository.oppdaterOppgaveId(Mock.skjema.forespoerselId.toString(), Mock.OPPGAVE_ID)
+        val innsendingId = imRepository.lagreInntektsmeldingSkjema(Mock.skjema)
+        imRepository.oppdaterMedBeriketDokument(Mock.skjema.forespoerselId, innsendingId, tidligereInntektsmelding)
 
         mockForespoerselSvarFraHelsebro(
-            forespoerselId = Mock.forespoerselId,
+            forespoerselId = Mock.skjema.forespoerselId,
             forespoerselSvar = Mock.forespoerselSvar,
         )
 
@@ -82,7 +82,7 @@ class InnsendingServiceIT : EndToEndTest() {
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                    Key.FORESPOERSEL_ID to Mock.skjema.forespoerselId.toJson(),
                     Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to nyInnsending.toJson(SkjemaInntektsmelding.serializer()),
                 ).toJson(),
@@ -152,14 +152,14 @@ class InnsendingServiceIT : EndToEndTest() {
         also {
             val data = it[Key.DATA]?.toMap().orEmpty()
             val forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data)
-            forespoerselId shouldBe Mock.forespoerselId
+            forespoerselId shouldBe Mock.skjema.forespoerselId
         }
 
     private fun Map<Key, JsonElement>.verifiserForespoerselIdFraSkjema(): Map<Key, JsonElement> =
         also {
             val data = it[Key.DATA]?.toMap().orEmpty()
             val skjema = Key.SKJEMA_INNTEKTSMELDING.lesOrNull(SkjemaInntektsmelding.serializer(), data)
-            skjema?.forespoerselId shouldBe Mock.forespoerselId
+            skjema?.forespoerselId shouldBe Mock.skjema.forespoerselId
         }
 
     private object Mock {
@@ -170,7 +170,6 @@ class InnsendingServiceIT : EndToEndTest() {
 
         val orgnr = Orgnr.genererGyldig()
         val fnrAg = Fnr.genererGyldig()
-        val forespoerselId: UUID = skjema.forespoerselId
         val vedtaksperiodeId: UUID = UUID.randomUUID()
 
         val forespoerselSvar =

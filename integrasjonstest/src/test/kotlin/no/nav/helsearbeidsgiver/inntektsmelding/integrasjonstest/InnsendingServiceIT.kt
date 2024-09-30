@@ -91,7 +91,7 @@ class InnsendingServiceIT : EndToEndTest() {
         // Inntektsmelding lagret
         messages
             .filter(EventName.INSENDING_STARTED)
-            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
+            .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .verifiserTransaksjonId(transaksjonId)
             .verifiserForespoerselId()

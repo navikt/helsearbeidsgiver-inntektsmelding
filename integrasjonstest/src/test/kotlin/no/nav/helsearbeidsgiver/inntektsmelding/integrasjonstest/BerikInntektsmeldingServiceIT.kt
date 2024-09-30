@@ -92,7 +92,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         // Forespørsel hentet
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.FORESPOERSEL_SVAR, nestedData = true)
+            .filter(Key.FORESPOERSEL_SVAR)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
             .verifiserForespoerselIdFraSkjema()
@@ -104,7 +104,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         // Virksomhetsnavn hentet
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.VIRKSOMHETER, nestedData = true)
+            .filter(Key.VIRKSOMHETER)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
             .verifiserForespoerselIdFraSkjema()
@@ -116,8 +116,8 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         // Inntektsmelding lagret
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.INNTEKTSMELDING_DOKUMENT, nestedData = true)
-            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
+            .filter(Key.INNTEKTSMELDING_DOKUMENT)
+            .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
             .verifiserForespoerselIdFraSkjema()
@@ -132,7 +132,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         // Sykmeldt og innsender hentet
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.PERSONER, nestedData = true)
+            .filter(Key.PERSONER)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
             .verifiserForespoerselIdFraSkjema()
@@ -221,7 +221,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         // Forespørsel hentet
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.FORESPOERSEL_SVAR, nestedData = true)
+            .filter(Key.FORESPOERSEL_SVAR)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
             .verifiserForespoerselIdFraSkjema()
@@ -233,7 +233,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         // Virksomhetsnavn hentet
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.VIRKSOMHETER, nestedData = true)
+            .filter(Key.VIRKSOMHETER)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
             .verifiserForespoerselIdFraSkjema()
@@ -245,7 +245,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         // Personnavn ikke hentet
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.PERSONER, nestedData = true)
+            .filter(Key.PERSONER)
             .all()
             .size shouldBe 0
 
@@ -269,7 +269,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         // Sykmeldt og innsender hentet
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.PERSONER, nestedData = true)
+            .filter(Key.PERSONER)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
             .verifiserForespoerselIdFraSkjema()

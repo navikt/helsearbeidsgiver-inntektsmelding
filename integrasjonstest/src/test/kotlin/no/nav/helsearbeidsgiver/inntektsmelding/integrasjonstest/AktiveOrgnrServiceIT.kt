@@ -102,7 +102,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             }
 
         aktiveOrgnrMeldinger
-            .filter(Key.ORG_RETTIGHETER, nestedData = true)
+            .filter(Key.ORG_RETTIGHETER)
             .firstAsMap()
             .also { melding ->
                 val data = melding[Key.DATA].shouldNotBeNull().toMap()
@@ -110,7 +110,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             }
 
         aktiveOrgnrMeldinger
-            .filter(Key.ARBEIDSFORHOLD, nestedData = true)
+            .filter(Key.ARBEIDSFORHOLD)
             .firstAsMap()
             .also { melding ->
                 val data = melding[Key.DATA].shouldNotBeNull().toMap()
@@ -126,7 +126,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             }
 
         aktiveOrgnrMeldinger
-            .filter(Key.VIRKSOMHETER, nestedData = true)
+            .filter(Key.VIRKSOMHETER)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -183,7 +183,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             }
 
         aktiveOrgnrMeldinger
-            .filter(Key.ORG_RETTIGHETER, nestedData = true)
+            .filter(Key.ORG_RETTIGHETER)
             .firstAsMap()
             .also { melding ->
                 val data = melding[Key.DATA].shouldNotBeNull().toMap()
@@ -191,7 +191,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             }
 
         aktiveOrgnrMeldinger
-            .filter(Key.ARBEIDSFORHOLD, nestedData = true)
+            .filter(Key.ARBEIDSFORHOLD)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()

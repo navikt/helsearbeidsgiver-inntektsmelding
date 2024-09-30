@@ -57,7 +57,7 @@ class InntektSelvbestemtIT : EndToEndTest() {
             )
 
         messages
-            .filter(Key.INNTEKT, nestedData = true)
+            .filter(Key.INNTEKT)
             .firstAsMap()
             .shouldContainExactly(
                 mapOf(

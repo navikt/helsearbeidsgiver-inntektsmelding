@@ -81,8 +81,8 @@ class InnsendingIT : EndToEndTest() {
 
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.INNTEKTSMELDING_DOKUMENT, nestedData = true)
-            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
+            .filter(Key.INNTEKTSMELDING_DOKUMENT)
+            .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {
                 // Ble lagret i databasen
@@ -152,7 +152,7 @@ class InnsendingIT : EndToEndTest() {
 
         messages
             .filter(EventName.INSENDING_STARTED)
-            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
+            .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -189,7 +189,7 @@ class InnsendingIT : EndToEndTest() {
 
         messages
             .filter(EventName.INSENDING_STARTED)
-            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
+            .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -216,7 +216,7 @@ class InnsendingIT : EndToEndTest() {
 
         messages
             .filter(EventName.FORESPOERSEL_BESVART)
-            .filter(Key.SAK_ID, utenDataKey = true)
+            .filter(Key.SAK_ID, nestedData = false, utenDataKey = true)
             .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
@@ -225,7 +225,7 @@ class InnsendingIT : EndToEndTest() {
 
         messages
             .filter(EventName.FORESPOERSEL_BESVART)
-            .filter(Key.OPPGAVE_ID, utenDataKey = true)
+            .filter(Key.OPPGAVE_ID, nestedData = false, utenDataKey = true)
             .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId

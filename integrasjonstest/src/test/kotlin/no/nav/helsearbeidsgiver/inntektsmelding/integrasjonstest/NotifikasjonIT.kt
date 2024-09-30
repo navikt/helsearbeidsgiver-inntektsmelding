@@ -57,7 +57,7 @@ class NotifikasjonIT : EndToEndTest() {
 
         messages
             .filter(EventName.SAK_OPPRETT_REQUESTED)
-            .filter(Key.PERSONER, nestedData = true)
+            .filter(Key.PERSONER)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -76,7 +76,7 @@ class NotifikasjonIT : EndToEndTest() {
 
         messages
             .filter(EventName.SAK_OPPRETT_REQUESTED)
-            .filter(Key.SAK_ID)
+            .filter(Key.SAK_ID, nestedData = false)
             .firstAsMap()
             .also {
                 val sakId = it[Key.SAK_ID]?.fromJsonToString()
@@ -200,7 +200,7 @@ class NotifikasjonIT : EndToEndTest() {
 
         messages
             .filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
-            .filter(Key.PERSONER, nestedData = true)
+            .filter(Key.PERSONER)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -219,7 +219,7 @@ class NotifikasjonIT : EndToEndTest() {
 
         messages
             .filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
-            .filter(Key.SAK_ID)
+            .filter(Key.SAK_ID, nestedData = false)
             .firstAsMap()
             .also {
                 val sakId = it[Key.SAK_ID]?.fromJsonToString()

@@ -50,7 +50,7 @@ class MessagesTest :
         }
 
         test("finner korrekt melding for key") {
-            val funnetMelding = Mock.meldinger.filter(Key.VIRKSOMHET).firstAsMap()
+            val funnetMelding = Mock.meldinger.filter(Key.VIRKSOMHET, nestedData = false).firstAsMap()
 
             funnetMelding.also {
                 it shouldContainKey Key.DATA
@@ -60,7 +60,7 @@ class MessagesTest :
 
         test("finner ikke manglende melding for key") {
             Mock.meldinger
-                .filter(Key.ARBEIDSFORHOLD)
+                .filter(Key.ARBEIDSFORHOLD, nestedData = false)
                 .all()
                 .shouldBeEmpty()
         }

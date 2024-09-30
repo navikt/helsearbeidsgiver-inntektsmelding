@@ -12,10 +12,10 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.vedtaksperiodeListeSerializer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
@@ -24,13 +24,13 @@ class VedtaksperiodeIdForespoerselRiverTest :
         val testRapid = TestRapid()
         val mockPriProducer = mockk<PriProducer>()
 
-        VedtaksperiodeIdForespoerselRiver(mockPriProducer).connect(testRapid)
+        HentForespoerslerForVedtaksperiodeIdListeRiver(mockPriProducer).connect(testRapid)
 
         test("Ved behov om forespørsler på rapid-topic publiseres behov om forespørsler på pri-topic") {
             // Må bare returnere en Result med gyldig JSON
             every { mockPriProducer.send(*anyVararg<Pair<Pri.Key, JsonElement>>()) } returns Result.success(JsonNull)
 
-            val expectedEvent = EventName.FORESPOERSEL_IDER_REQUESTED
+            val expectedEvent = EventName.FORESPOERSLER_REQUESTED
             val expectedTransaksjonId = UUID.randomUUID()
             val expectedVedtaksperiodeIdListe = listOf(UUID.randomUUID(), UUID.randomUUID())
 
@@ -40,7 +40,7 @@ class VedtaksperiodeIdForespoerselRiverTest :
                 Key.UUID to expectedTransaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
-                        Key.VEDTAKSPERIODE_ID_LISTE to expectedVedtaksperiodeIdListe.toJson(vedtaksperiodeListeSerializer),
+                        Key.VEDTAKSPERIODE_ID_LISTE to expectedVedtaksperiodeIdListe.toJson(UuidSerializer),
                     ).toJson(),
             )
 
@@ -49,14 +49,14 @@ class VedtaksperiodeIdForespoerselRiverTest :
             verifySequence {
                 mockPriProducer.send(
                     Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
-                    Pri.Key.VEDTAKSPERIODE_ID_LISTE to expectedVedtaksperiodeIdListe.toJson(vedtaksperiodeListeSerializer),
+                    Pri.Key.VEDTAKSPERIODE_ID_LISTE to expectedVedtaksperiodeIdListe.toJson(UuidSerializer),
                     Pri.Key.BOOMERANG to
                         mapOf(
                             Key.EVENT_NAME to expectedEvent.toJson(),
                             Key.UUID to expectedTransaksjonId.toJson(),
                             Key.DATA to
                                 mapOf(
-                                    Key.VEDTAKSPERIODE_ID_LISTE to expectedVedtaksperiodeIdListe.toJson(vedtaksperiodeListeSerializer),
+                                    Key.VEDTAKSPERIODE_ID_LISTE to expectedVedtaksperiodeIdListe.toJson(UuidSerializer),
                                 ).toJson(),
                         ).toJson(),
                 )

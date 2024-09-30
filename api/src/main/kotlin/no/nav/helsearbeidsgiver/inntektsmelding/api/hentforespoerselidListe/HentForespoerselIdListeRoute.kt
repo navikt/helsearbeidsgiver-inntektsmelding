@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselider
+package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselidListe
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
@@ -7,7 +7,7 @@ import io.ktor.server.routing.post
 import io.prometheus.client.Summary
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.domene.HentForespoerslerForVedtaksperiodeIderResultat
+import no.nav.helsearbeidsgiver.felles.domene.HentForespoerslerForVedtaksperiodeIdListeResultat
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.domene.VedtaksperiodeIdForespoerselIdPar
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
@@ -27,40 +27,41 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import java.util.UUID
 
-fun Route.hentForespoerselIderRoute(
+fun Route.hentForespoerselIdListeRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
     redisConnection: RedisConnection,
 ) {
-    val hentForespoerselProducer = HentForespoerselIderProducer(rapid)
-    val redisPoller = RedisStore(redisConnection, RedisPrefix.HentForespoerslerForeVedtaksperiodeIder).let(::RedisPoller)
+    val hentForespoerslerProducer = HentForespoerslerProducer(rapid)
+    val redisPoller = RedisStore(redisConnection, RedisPrefix.HentForespoerslerForeVedtaksperiodeIdListe).let(::RedisPoller)
 
     val requestLatency =
         Summary
             .build()
-            .name("simba_hent_forespoersel_ider_latency_seconds")
-            .help("hent forespoersel ider endpoint latency in seconds")
+            .name("simba_hent_forespoersel_id_liste_latency_seconds")
+            .help("hent forespoersel id liste endpoint latency in seconds")
             .register()
 
-    post(Routes.HENT_FORESPOERSEL_IDER) {
+    post(Routes.HENT_FORESPOERSEL_ID_LISTE) {
         val transaksjonId = UUID.randomUUID()
 
         val requestTimer = requestLatency.startTimer()
 
         runCatching {
-            receive(HentForespoerselIderRequest.serializer())
+            receive(HentForespoerslerRequest.serializer())
         }.onSuccess { request ->
-            logger.info("Henter forespørselIDer for vedtaksperiodeIDene: ${request.vedtaksperiodeIder}")
+            logger.info("Henter forespørsler for liste med vedtaksperiode-IDer: ${request.vedtaksperiodeIdListe}")
             try {
-                hentForespoerselProducer.publish(transaksjonId, request)
+                hentForespoerslerProducer.publish(transaksjonId, request)
 
                 val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
 
                 sikkerLogger.info("Hentet forespørslene: $resultatJson")
 
-                val resultat = resultatJson.success?.fromJson(HentForespoerslerForVedtaksperiodeIderResultat.serializer())
+                val resultat = resultatJson.success?.fromJson(HentForespoerslerForVedtaksperiodeIdListeResultat.serializer())
 
                 if (resultat != null) {
                     val orgnrSet = resultat.forespoersler.map { it.value.orgnr }.toSet()
@@ -73,19 +74,17 @@ fun Route.hentForespoerselIderRoute(
                             orgnrSet.firstOrNull()?.also { orgnr -> tilgangskontroll.validerTilgangTilOrg(call.request, orgnr) }
 
                             val respons =
-                                HentForespoerselIderResponse(
-                                    resultat.forespoersler.map {
-                                        VedtaksperiodeIdForespoerselIdPar(
-                                            forespoerselId = it.key,
-                                            vedtaksperiodeId = it.value.vedtaksperiodeId,
-                                        )
-                                    },
-                                )
+                                resultat.forespoersler.map {
+                                    VedtaksperiodeIdForespoerselIdPar(
+                                        forespoerselId = it.key,
+                                        vedtaksperiodeId = it.value.vedtaksperiodeId,
+                                    )
+                                }
 
                             respond(
                                 HttpStatusCode.OK,
                                 respons,
-                                HentForespoerselIderResponse.serializer(),
+                                VedtaksperiodeIdForespoerselIdPar.serializer().list(),
                             )
                         }
                     }
@@ -96,10 +95,10 @@ fun Route.hentForespoerselIderRoute(
             } catch (e: ManglerAltinnRettigheterException) {
                 respondForbidden("Mangler rettigheter for organisasjon.", String.serializer())
             } catch (_: RedisPollerTimeoutException) {
-                logger.info("Fikk timeout ved henting av forespørselIDer for vedtaksperiodeIDene: ${request.vedtaksperiodeIder}")
+                logger.info("Fikk timeout ved henting av forespørselIDer for vedtaksperiodeIDene: ${request.vedtaksperiodeIdListe}")
                 respondInternalServerError(RedisTimeoutResponse(), RedisTimeoutResponse.serializer())
             } catch (e: Exception) {
-                logger.error("Ukjent feil ved henting av forespørselIDer for vedtaksperiodeIDene: ${request.vedtaksperiodeIder}", e)
+                logger.error("Ukjent feil ved henting av forespørselIDer for vedtaksperiodeIDene: ${request.vedtaksperiodeIdListe}", e)
                 respondInternalServerError("Teknisk feil, prøv igjen senere.", String.serializer())
             }
         }.also {

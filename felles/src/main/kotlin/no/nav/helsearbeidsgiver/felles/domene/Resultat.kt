@@ -27,6 +27,6 @@ data class HentForespoerselResultat(
 )
 
 @Serializable
-data class HentForespoerslerForVedtaksperiodeIderResultat(
+data class HentForespoerslerForVedtaksperiodeIdListeResultat(
     val forespoersler: Map<UUID, Forespoersel>,
 )

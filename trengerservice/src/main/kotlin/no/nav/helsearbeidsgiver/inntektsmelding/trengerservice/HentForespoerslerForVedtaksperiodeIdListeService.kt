@@ -8,11 +8,10 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
-import no.nav.helsearbeidsgiver.felles.domene.HentForespoerslerForVedtaksperiodeIderResultat
+import no.nav.helsearbeidsgiver.felles.domene.HentForespoerslerForVedtaksperiodeIdListeResultat
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.vedtaksperiodeListeSerializer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
@@ -21,6 +20,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
@@ -28,19 +28,19 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-class HentForespoerslerForVedtaksperiodeIderService(
+class HentForespoerslerForVedtaksperiodeIdListeService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore,
-) : ServiceMed1Steg<HentForespoerslerForVedtaksperiodeIderService.Steg0, HentForespoerslerForVedtaksperiodeIderService.Steg1>(),
+) : ServiceMed1Steg<HentForespoerslerForVedtaksperiodeIdListeService.Steg0, HentForespoerslerForVedtaksperiodeIdListeService.Steg1>(),
     Service.MedRedis {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val eventName = EventName.FORESPOERSEL_IDER_REQUESTED
+    override val eventName = EventName.FORESPOERSLER_REQUESTED
 
     data class Steg0(
         val transaksjonId: UUID,
-        val vedtaksperiodeIder: List<UUID>,
+        val vedtaksperiodeIdListe: List<UUID>,
     )
 
     data class Steg1(
@@ -50,7 +50,7 @@ class HentForespoerslerForVedtaksperiodeIderService(
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
             transaksjonId = Key.UUID.les(UuidSerializer, melding),
-            vedtaksperiodeIder = Key.VEDTAKSPERIODE_ID_LISTE.les(vedtaksperiodeListeSerializer, melding),
+            vedtaksperiodeIdListe = Key.VEDTAKSPERIODE_ID_LISTE.les(UuidSerializer.list(), melding),
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
@@ -69,7 +69,7 @@ class HentForespoerslerForVedtaksperiodeIderService(
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
-                        Key.VEDTAKSPERIODE_ID_LISTE to steg0.vedtaksperiodeIder.toJson(vedtaksperiodeListeSerializer),
+                        Key.VEDTAKSPERIODE_ID_LISTE to steg0.vedtaksperiodeIdListe.toJson(UuidSerializer),
                     ).toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE, it) }
     }
@@ -82,9 +82,9 @@ class HentForespoerslerForVedtaksperiodeIderService(
         val resultJson =
             ResultJson(
                 success =
-                    HentForespoerslerForVedtaksperiodeIderResultat(
+                    HentForespoerslerForVedtaksperiodeIdListeResultat(
                         forespoersler = steg1.forespoersler,
-                    ).toJson(HentForespoerslerForVedtaksperiodeIderResultat.serializer()),
+                    ).toJson(HentForespoerslerForVedtaksperiodeIdListeResultat.serializer()),
             ).toJson(ResultJson.serializer())
 
         redisStore.set(RedisKey.of(steg0.transaksjonId), resultJson)
@@ -109,7 +109,7 @@ class HentForespoerslerForVedtaksperiodeIderService(
 
     override fun Steg0.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this@HentForespoerslerForVedtaksperiodeIderService),
+            Log.klasse(this@HentForespoerslerForVedtaksperiodeIdListeService),
             Log.event(eventName),
             Log.transaksjonId(transaksjonId),
         )

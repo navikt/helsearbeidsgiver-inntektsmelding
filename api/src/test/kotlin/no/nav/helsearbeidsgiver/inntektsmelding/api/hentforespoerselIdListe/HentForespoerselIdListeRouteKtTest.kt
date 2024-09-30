@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIder
+package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIdListe
 
 import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
@@ -8,12 +8,12 @@ import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
-import no.nav.helsearbeidsgiver.felles.domene.HentForespoerslerForVedtaksperiodeIderResultat
+import no.nav.helsearbeidsgiver.felles.domene.HentForespoerslerForVedtaksperiodeIdListeResultat
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
-import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselider.HentForespoerselIderRequest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselidListe.HentForespoerslerRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
@@ -26,8 +26,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class HentForespoerselIderRouteKtTest : ApiTest() {
-    private val path = Routes.PREFIX + Routes.HENT_FORESPOERSEL_IDER
+class HentForespoerselIdListeRouteKtTest : ApiTest() {
+    private val path = Routes.PREFIX + Routes.HENT_FORESPOERSEL_ID_LISTE
 
     @BeforeEach
     fun setup() {
@@ -37,19 +37,19 @@ class HentForespoerselIderRouteKtTest : ApiTest() {
     @Test
     fun `gir OK med forespørsel-IDer`() =
         testApi {
-            val expectedForespoerselIder = Mock.mockResultat()
+            val mockResultat = Mock.mockResultat()
 
             coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
-                    Mock.successResult(expectedForespoerselIder),
+                    Mock.successResult(mockResultat),
                     harTilgangResultat,
                 )
 
             val response =
                 post(
                     path,
-                    HentForespoerselIderRequest(vedtaksperiodeIder = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
-                    HentForespoerselIderRequest.serializer(),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest.serializer(),
                 )
 
             val actualJson = response.bodyAsText()
@@ -61,19 +61,19 @@ class HentForespoerselIderRouteKtTest : ApiTest() {
     @Test
     fun `gir OK med tom liste av forespørsel-IDer`() =
         testApi {
-            val expectedForespoerselIder = Mock.mockResultatMedIngenForespoersler()
+            val mockResultat = Mock.mockResultatMedIngenForespoersler()
 
             coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
-                    Mock.successResult(expectedForespoerselIder),
+                    Mock.successResult(mockResultat),
                     harTilgangResultat,
                 )
 
             val response =
                 post(
                     path,
-                    HentForespoerselIderRequest(vedtaksperiodeIder = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
-                    HentForespoerselIderRequest.serializer(),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest.serializer(),
                 )
 
             val actualJson = response.bodyAsText()
@@ -85,19 +85,19 @@ class HentForespoerselIderRouteKtTest : ApiTest() {
     @Test
     fun `manglende tilgang til organisasjon gir 403 forbidden-feil`() =
         testApi {
-            val expectedForespoerselIder = Mock.mockResultat()
+            val mockResultat = Mock.mockResultat()
 
             coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
-                    Mock.successResult(expectedForespoerselIder),
+                    Mock.successResult(mockResultat),
                     ikkeTilgangResultat,
                 )
 
             val response =
                 post(
                     path,
-                    HentForespoerselIderRequest(vedtaksperiodeIder = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
-                    HentForespoerselIderRequest.serializer(),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest.serializer(),
                 )
 
             val actualJson = response.bodyAsText()
@@ -109,19 +109,19 @@ class HentForespoerselIderRouteKtTest : ApiTest() {
     @Test
     fun `vedtaksperiode-IDer som tilhører ulike organisasjoner gir 400-feil`() =
         testApi {
-            val expectedForespoerselIder = Mock.mockResultatMedUlikeOrgnr()
+            val mockResultat = Mock.mockResultatMedUlikeOrgnr()
 
             coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
-                    Mock.successResult(expectedForespoerselIder),
+                    Mock.successResult(mockResultat),
                     harTilgangResultat,
                 )
 
             val response =
                 post(
                     path,
-                    HentForespoerselIderRequest(vedtaksperiodeIder = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
-                    HentForespoerselIderRequest.serializer(),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest.serializer(),
                 )
 
             val actualJson = response.bodyAsText()
@@ -136,7 +136,7 @@ class HentForespoerselIderRouteKtTest : ApiTest() {
             val ugyldigRequest =
                 JsonObject(
                     mapOf(
-                        HentForespoerselIderRequest::vedtaksperiodeIder.name to
+                        HentForespoerslerRequest::vedtaksperiodeIdListe.name to
                             listOf(
                                 "ikke en uuid",
                                 Mock.vedtaksPeriodeId2.toString(),
@@ -170,8 +170,8 @@ class HentForespoerselIderRouteKtTest : ApiTest() {
             val response =
                 post(
                     path,
-                    HentForespoerselIderRequest(vedtaksperiodeIder = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
-                    HentForespoerselIderRequest.serializer(),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest.serializer(),
                 )
 
             val actualJson = response.bodyAsText()
@@ -194,8 +194,8 @@ class HentForespoerselIderRouteKtTest : ApiTest() {
             val response =
                 post(
                     path,
-                    HentForespoerselIderRequest(vedtaksperiodeIder = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
-                    HentForespoerselIderRequest.serializer(),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest.serializer(),
                 )
 
             val actualJson = response.bodyAsText()
@@ -214,8 +214,8 @@ class HentForespoerselIderRouteKtTest : ApiTest() {
             val response =
                 post(
                     path,
-                    HentForespoerselIderRequest(vedtaksperiodeIder = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
-                    HentForespoerselIderRequest.serializer(),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest.serializer(),
                 )
 
             val actualJson = response.bodyAsText()
@@ -234,8 +234,8 @@ class HentForespoerselIderRouteKtTest : ApiTest() {
             val response =
                 post(
                     path,
-                    HentForespoerselIderRequest(vedtaksperiodeIder = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
-                    HentForespoerselIderRequest.serializer(),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest.serializer(),
                 )
 
             val actualJson = response.bodyAsText()
@@ -253,8 +253,8 @@ class HentForespoerselIderRouteKtTest : ApiTest() {
             val response =
                 post(
                     path,
-                    HentForespoerselIderRequest(vedtaksperiodeIder = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
-                    HentForespoerselIderRequest.serializer(),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest.serializer(),
                 )
 
             val actualJson = response.bodyAsText()
@@ -272,8 +272,8 @@ private object Mock {
     val vedtaksPeriodeId2 = UUID.randomUUID()
     val forespoerselId2 = UUID.randomUUID()
 
-    fun mockResultat(): HentForespoerslerForVedtaksperiodeIderResultat =
-        HentForespoerslerForVedtaksperiodeIderResultat(
+    fun mockResultat(): HentForespoerslerForVedtaksperiodeIdListeResultat =
+        HentForespoerslerForVedtaksperiodeIdListeResultat(
             forespoersler =
                 mapOf(
                     forespoerselId1 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId1, orgnr = orgnr.toString()),
@@ -281,13 +281,13 @@ private object Mock {
                 ),
         )
 
-    fun mockResultatMedIngenForespoersler(): HentForespoerslerForVedtaksperiodeIderResultat =
-        HentForespoerslerForVedtaksperiodeIderResultat(
+    fun mockResultatMedIngenForespoersler(): HentForespoerslerForVedtaksperiodeIdListeResultat =
+        HentForespoerslerForVedtaksperiodeIdListeResultat(
             forespoersler = emptyMap(),
         )
 
-    fun mockResultatMedUlikeOrgnr(): HentForespoerslerForVedtaksperiodeIderResultat =
-        HentForespoerslerForVedtaksperiodeIderResultat(
+    fun mockResultatMedUlikeOrgnr(): HentForespoerslerForVedtaksperiodeIdListeResultat =
+        HentForespoerslerForVedtaksperiodeIdListeResultat(
             forespoersler =
                 mapOf(
                     forespoerselId1 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId1),
@@ -297,23 +297,22 @@ private object Mock {
 
     fun successResponseJson(): String =
         """
-    {
-        "ider": [{
-            "vedtaksperiodeId": "$vedtaksPeriodeId1",
-            "forespoerselId": "$forespoerselId1"
-        },
-        {
-            "vedtaksperiodeId": "$vedtaksPeriodeId2",
-            "forespoerselId": "$forespoerselId2"
-        }]
-    }
+    [
+      {
+        "vedtaksperiodeId": "$vedtaksPeriodeId1",
+        "forespoerselId": "$forespoerselId1"},
+      {
+        "vedtaksperiodeId": "$vedtaksPeriodeId2",
+        "forespoerselId": "$forespoerselId2"
+      }
+    ]
     """.removeJsonWhitespace()
 
-    fun successEmptyResponseJson(): String = """{"ider":[]}""".removeJsonWhitespace()
+    fun successEmptyResponseJson(): String = """[]""".removeJsonWhitespace()
 
-    fun successResult(hentForespoerslerForVedtaksperiodeIderResultat: HentForespoerslerForVedtaksperiodeIderResultat): String =
+    fun successResult(hentForespoerslerForVedtaksperiodeIdListeResultat: HentForespoerslerForVedtaksperiodeIdListeResultat): String =
         ResultJson(
-            success = hentForespoerslerForVedtaksperiodeIderResultat.toJson(HentForespoerslerForVedtaksperiodeIderResultat.serializer()),
+            success = hentForespoerslerForVedtaksperiodeIdListeResultat.toJson(HentForespoerslerForVedtaksperiodeIdListeResultat.serializer()),
         ).toJson(ResultJson.serializer())
             .toString()
 

@@ -32,11 +32,11 @@ fun RapidsConnection.createHentForespoerselService(redisConnection: RedisConnect
             ),
         ).connect(this)
 
-        logger.info("Starter ${HentForespoerslerForVedtaksperiodeIderService::class.simpleName}...")
+        logger.info("Starter ${HentForespoerslerForVedtaksperiodeIdListeService::class.simpleName}...")
         ServiceRiverStateful(
-            HentForespoerslerForVedtaksperiodeIderService(
+            HentForespoerslerForVedtaksperiodeIdListeService(
                 rapid = this,
-                redisStore = RedisStore(redisConnection, RedisPrefix.HentForespoerslerForeVedtaksperiodeIder),
+                redisStore = RedisStore(redisConnection, RedisPrefix.HentForespoerslerForeVedtaksperiodeIdListe),
             ),
         ).connect(this)
     }

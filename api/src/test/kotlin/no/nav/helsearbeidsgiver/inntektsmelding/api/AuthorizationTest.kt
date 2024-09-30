@@ -29,7 +29,7 @@ class AuthorizationTest : ApiTest() {
                 Routes.SELVBESTEMT_INNTEKTSMELDING + "/0" to ::getUtenAuth,
                 Routes.KVITTERING to ::getUtenAuth,
                 Routes.AKTIVEORGNR to ::postUtenAuth,
-                Routes.HENT_FORESPOERSEL_IDER to ::postUtenAuth,
+                Routes.HENT_FORESPOERSEL_ID_LISTE to ::postUtenAuth,
                 Routes.TILGANG_ORGNR to ::getUtenAuth,
             ).forEach { (path, callFn) ->
                 val response = callFn(Routes.PREFIX + path)

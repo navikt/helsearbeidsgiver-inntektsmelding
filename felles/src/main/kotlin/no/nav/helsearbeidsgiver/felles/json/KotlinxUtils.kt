@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.felles.json
 
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
@@ -13,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
-import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -30,11 +28,6 @@ val personMapSerializer =
     MapSerializer(
         Fnr.serializer(),
         Person.serializer(),
-    )
-
-val vedtaksperiodeListeSerializer =
-    ListSerializer(
-        UuidSerializer,
     )
 
 fun EventName.toJson(): JsonElement = toJson(EventName.serializer())

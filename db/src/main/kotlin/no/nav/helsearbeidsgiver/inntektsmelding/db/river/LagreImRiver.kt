@@ -2,7 +2,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -15,10 +16,12 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.erDuplikatAv
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.time.LocalDate
 import java.util.UUID
 
 data class LagreImMelding(
@@ -26,8 +29,8 @@ data class LagreImMelding(
     val behovType: BehovType,
     val transaksjonId: UUID,
     val data: Map<Key, JsonElement>,
-    val forespoerselId: UUID,
     val inntektsmelding: Inntektsmelding,
+    val bestemmendeFravaersdag: LocalDate,
     val innsendingId: Long,
 )
 
@@ -48,22 +51,24 @@ class LagreImRiver(
                 behovType = Key.BEHOV.krev(BehovType.LAGRE_IM, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
                 data = data,
-                forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
-                inntektsmelding = Key.INNTEKTSMELDING_DOKUMENT.les(Inntektsmelding.serializer(), data),
+                inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
+                bestemmendeFravaersdag = Key.BESTEMMENDE_FRAVAERSDAG.les(LocalDateSerializer, data),
                 innsendingId = Key.INNSENDING_ID.les(Long.serializer(), data),
             )
         }
 
     override fun LagreImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        val nyesteIm = imRepo.hentNyesteInntektsmelding(forespoerselId)
+        val inntektsmeldingGammeltFormat = inntektsmelding.convert().copy(bestemmendeFraværsdag = bestemmendeFravaersdag)
+
+        val nyesteIm = imRepo.hentNyesteInntektsmelding(inntektsmelding.type.id)
 
         // TODO: Fjernes etter at vi har gått i prod med den nye innsending-flyten
-        val erDuplikat = nyesteIm?.erDuplikatAv(inntektsmelding) ?: false
+        val erDuplikat = nyesteIm?.erDuplikatAv(inntektsmeldingGammeltFormat) ?: false
 
         if (erDuplikat) {
             sikkerLogger.warn("Fant duplikat av inntektsmelding.")
         } else {
-            imRepo.oppdaterMedBeriketDokument(forespoerselId, innsendingId, inntektsmelding)
+            imRepo.oppdaterMedBeriketDokument(inntektsmelding.type.id, innsendingId, inntektsmeldingGammeltFormat)
             sikkerLogger.info("Lagret inntektsmelding.")
         }
 
@@ -89,7 +94,7 @@ class LagreImRiver(
                 feilmelding = "Klarte ikke lagre inntektsmelding i database.",
                 event = eventName,
                 transaksjonId = transaksjonId,
-                forespoerselId = forespoerselId,
+                forespoerselId = inntektsmelding.type.id,
                 utloesendeMelding = json.toJson(),
             )
 
@@ -105,6 +110,6 @@ class LagreImRiver(
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),
-            Log.forespoerselId(forespoerselId),
+            Log.forespoerselId(inntektsmelding.type.id),
         )
 }

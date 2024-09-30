@@ -15,7 +15,7 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -26,16 +26,13 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.inntektsmelding.db.INNTEKTSMELDING_DOKUMENT
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.Mock.INNSENDING_ID
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.Mock.toMap
-import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import java.util.UUID
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
 
 class LagreJournalpostIdRiverTest :
     FunSpec({
@@ -56,12 +53,7 @@ class LagreJournalpostIdRiverTest :
                 every { mockImRepo.oppdaterJournalpostId(any(), any()) } just Runs
                 every { mockImRepo.hentNyesteBerikedeInnsendingId(any()) } returns INNSENDING_ID
 
-                val innkommendeMelding =
-                    Mock.innkommendeMelding(
-                        InntektsmeldingV1.Type.Forespurt(
-                            id = UUID.randomUUID(),
-                        ),
-                    )
+                val innkommendeMelding = Mock.innkommendeMelding()
 
                 testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -71,16 +63,14 @@ class LagreJournalpostIdRiverTest :
                     mapOf(
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
                         Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                        Key.BESTEMMENDE_FRAVAERSDAG to Mock.bestemmendeFravaersdag.toJson(),
                         Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
-                        Key.INNTEKTSMELDING to Mock.inntektsmelding.toJson(InntektsmeldingV1.serializer()),
-                        Key.BESTEMMENDE_FRAVAERSDAG to Mock.bestemmendeFravaersdag.toJson(LocalDateSerializer),
-                        Key.INNTEKTSMELDING_DOKUMENT to INNTEKTSMELDING_DOKUMENT.toJson(Inntektsmelding.serializer()),
-                        Key.FORESPOERSEL_ID to innkommendeMelding.inntektsmeldingType.id.toJson(),
                     )
 
                 verifySequence {
                     mockImRepo.oppdaterJournalpostId(INNSENDING_ID, innkommendeMelding.journalpostId)
-                    mockImRepo.hentNyesteBerikedeInnsendingId(innkommendeMelding.inntektsmeldingType.id)
+                    mockImRepo.hentNyesteBerikedeInnsendingId(innkommendeMelding.inntektsmelding.type.id)
                 }
                 verify(exactly = 0) {
                     mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
@@ -92,12 +82,20 @@ class LagreJournalpostIdRiverTest :
 
                 val innkommendeMelding =
                     Mock.innkommendeMelding(
-                        InntektsmeldingV1.Type.Selvbestemt(
-                            id = UUID.randomUUID(),
+                        mockInntektsmeldingV1().copy(
+                            type =
+                                Inntektsmelding.Type.Selvbestemt(
+                                    id = UUID.randomUUID(),
+                                ),
                         ),
                     )
 
-                testRapid.sendJson(innkommendeMelding.toMap())
+                testRapid.sendJson(
+                    innkommendeMelding
+                        .toMap()
+                        .minus(Key.BESTEMMENDE_FRAVAERSDAG)
+                        .minus(Key.INNSENDING_ID),
+                )
 
                 testRapid.inspektør.size shouldBeExactly 1
 
@@ -105,15 +103,12 @@ class LagreJournalpostIdRiverTest :
                     mapOf(
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
                         Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
                         Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
-                        Key.INNTEKTSMELDING to Mock.inntektsmelding.toJson(InntektsmeldingV1.serializer()),
-                        Key.BESTEMMENDE_FRAVAERSDAG to Mock.bestemmendeFravaersdag.toJson(LocalDateSerializer),
-                        Key.INNTEKTSMELDING_DOKUMENT to INNTEKTSMELDING_DOKUMENT.toJson(Inntektsmelding.serializer()),
-                        Key.SELVBESTEMT_ID to innkommendeMelding.inntektsmeldingType.id.toJson(),
                     )
 
                 verifySequence {
-                    mockSelvbestemtImRepo.oppdaterJournalpostId(innkommendeMelding.inntektsmeldingType.id, innkommendeMelding.journalpostId)
+                    mockSelvbestemtImRepo.oppdaterJournalpostId(innkommendeMelding.inntektsmelding.id, innkommendeMelding.journalpostId)
                 }
                 verify(exactly = 0) {
                     mockImRepo.oppdaterJournalpostId(any(), any())
@@ -125,12 +120,7 @@ class LagreJournalpostIdRiverTest :
             every { mockImRepo.oppdaterJournalpostId(any(), any()) } just Runs
             every { mockImRepo.hentNyesteBerikedeInnsendingId(any()) } returns INNSENDING_ID + 1L
 
-            val innkommendeMelding =
-                Mock.innkommendeMelding(
-                    InntektsmeldingV1.Type.Forespurt(
-                        id = UUID.randomUUID(),
-                    ),
-                )
+            val innkommendeMelding = Mock.innkommendeMelding()
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -138,7 +128,7 @@ class LagreJournalpostIdRiverTest :
 
             verifySequence {
                 mockImRepo.oppdaterJournalpostId(INNSENDING_ID, innkommendeMelding.journalpostId)
-                mockImRepo.hentNyesteBerikedeInnsendingId(innkommendeMelding.inntektsmeldingType.id)
+                mockImRepo.hentNyesteBerikedeInnsendingId(innkommendeMelding.inntektsmelding.type.id)
             }
             verify(exactly = 0) {
                 mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
@@ -149,19 +139,14 @@ class LagreJournalpostIdRiverTest :
             test("forespurt IM") {
                 every { mockImRepo.oppdaterJournalpostId(any(), any()) } throws Exception()
 
-                val innkommendeMelding =
-                    Mock.innkommendeMelding(
-                        InntektsmeldingV1.Type.Forespurt(
-                            id = UUID.randomUUID(),
-                        ),
-                    )
+                val innkommendeMelding = Mock.innkommendeMelding()
 
                 val forventetFail =
                     Fail(
                         feilmelding = "Klarte ikke lagre journalpost-ID '${innkommendeMelding.journalpostId}'.",
                         event = innkommendeMelding.eventName,
                         transaksjonId = innkommendeMelding.transaksjonId,
-                        forespoerselId = innkommendeMelding.inntektsmeldingType.id,
+                        forespoerselId = null,
                         utloesendeMelding = innkommendeMelding.toMap().toJson(),
                     )
 
@@ -169,10 +154,7 @@ class LagreJournalpostIdRiverTest :
 
                 testRapid.inspektør.size shouldBeExactly 1
 
-                testRapid.firstMessage().toMap() shouldContainExactly
-                    forventetFail
-                        .tilMelding()
-                        .plus(Key.FORESPOERSEL_ID to innkommendeMelding.inntektsmeldingType.id.toJson())
+                testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
                 verifySequence {
                     mockImRepo.oppdaterJournalpostId(any(), any())
@@ -187,8 +169,11 @@ class LagreJournalpostIdRiverTest :
 
                 val innkommendeMelding =
                     Mock.innkommendeMelding(
-                        InntektsmeldingV1.Type.Selvbestemt(
-                            id = UUID.randomUUID(),
+                        mockInntektsmeldingV1().copy(
+                            type =
+                                Inntektsmelding.Type.Selvbestemt(
+                                    id = UUID.randomUUID(),
+                                ),
                         ),
                     )
 
@@ -205,11 +190,7 @@ class LagreJournalpostIdRiverTest :
 
                 testRapid.inspektør.size shouldBeExactly 1
 
-                testRapid.firstMessage().toMap() shouldContainExactly
-                    forventetFail
-                        .tilMelding()
-                        .minus(Key.FORESPOERSEL_ID)
-                        .plus(Key.SELVBESTEMT_ID to innkommendeMelding.inntektsmeldingType.id.toJson())
+                testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
                 verifySequence {
                     mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
@@ -230,31 +211,9 @@ class LagreJournalpostIdRiverTest :
             ) { uoensketKeyMedVerdi ->
                 testRapid.sendJson(
                     Mock
-                        .innkommendeMelding(
-                            InntektsmeldingV1.Type.Forespurt(
-                                id = UUID.randomUUID(),
-                            ),
-                        ).toMap()
+                        .innkommendeMelding()
+                        .toMap()
                         .plus(uoensketKeyMedVerdi),
-                )
-
-                testRapid.inspektør.size shouldBeExactly 0
-
-                verify(exactly = 0) {
-                    mockImRepo.oppdaterJournalpostId(any(), any())
-                    mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
-                }
-            }
-
-            test("melding mangler både forespoerselId og selvbestemtId") {
-                testRapid.sendJson(
-                    Mock
-                        .innkommendeMelding(
-                            InntektsmeldingV1.Type.Selvbestemt(
-                                id = UUID.randomUUID(),
-                            ),
-                        ).toMap()
-                        .minus(Key.SELVBESTEMT_ID),
                 )
 
                 testRapid.inspektør.size shouldBeExactly 0
@@ -270,47 +229,28 @@ class LagreJournalpostIdRiverTest :
 private object Mock {
     const val INNSENDING_ID = 1L
 
-    val inntektsmelding = mockInntektsmeldingV1()
     val bestemmendeFravaersdag = 20.oktober
 
-    fun innkommendeMelding(inntektsmeldingType: InntektsmeldingV1.Type): LagreJournalpostIdMelding =
+    fun innkommendeMelding(inntektsmelding: Inntektsmelding = mockInntektsmeldingV1()): LagreJournalpostIdMelding =
         LagreJournalpostIdMelding(
             eventName = EventName.INNTEKTSMELDING_MOTTATT,
             behovType = BehovType.LAGRE_JOURNALPOST_ID,
             transaksjonId = UUID.randomUUID(),
-            inntektsmeldingType = inntektsmeldingType,
+            inntektsmelding = inntektsmelding,
             journalpostId = randomDigitString(10),
+            innsendingId = INNSENDING_ID,
         )
 
     fun LagreJournalpostIdMelding.toMap(): Map<Key, JsonElement> =
-        when (inntektsmeldingType) {
-            is InntektsmeldingV1.Type.Forespurt -> {
-                mapOf(
-                    Key.EVENT_NAME to eventName.toJson(),
-                    Key.BEHOV to behovType.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.JOURNALPOST_ID to journalpostId.toJson(),
-                    Key.INNTEKTSMELDING to inntektsmelding.toJson(InntektsmeldingV1.serializer()),
-                    Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag.toJson(LocalDateSerializer),
-                    Key.INNTEKTSMELDING_DOKUMENT to INNTEKTSMELDING_DOKUMENT.toJson(Inntektsmelding.serializer()),
-                    Key.FORESPOERSEL_ID to inntektsmeldingType.id.toJson(),
-                    Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
-                )
-            }
-
-            is InntektsmeldingV1.Type.Selvbestemt -> {
-                mapOf(
-                    Key.EVENT_NAME to eventName.toJson(),
-                    Key.BEHOV to behovType.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.JOURNALPOST_ID to journalpostId.toJson(),
-                    Key.INNTEKTSMELDING to inntektsmelding.toJson(InntektsmeldingV1.serializer()),
-                    Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag.toJson(LocalDateSerializer),
-                    Key.INNTEKTSMELDING_DOKUMENT to INNTEKTSMELDING_DOKUMENT.toJson(Inntektsmelding.serializer()),
-                    Key.SELVBESTEMT_ID to inntektsmeldingType.id.toJson(),
-                )
-            }
-        }
+        mapOf(
+            Key.EVENT_NAME to eventName.toJson(),
+            Key.BEHOV to behovType.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.JOURNALPOST_ID to journalpostId.toJson(),
+            Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+            Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag.toJson(),
+            Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
+        )
 
     val fail =
         Fail(

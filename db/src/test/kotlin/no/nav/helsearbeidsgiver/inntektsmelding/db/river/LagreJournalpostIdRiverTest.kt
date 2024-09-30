@@ -30,7 +30,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.Mock.INNSENDING_ID
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.Mock.toMap
-import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import java.util.UUID
@@ -65,7 +64,7 @@ class LagreJournalpostIdRiverTest :
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
                         Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                         Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                        Key.BESTEMMENDE_FRAVAERSDAG to Mock.bestemmendeFravaersdag.toJson(LocalDateSerializer),
+                        Key.BESTEMMENDE_FRAVAERSDAG to Mock.bestemmendeFravaersdag.toJson(),
                         Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
                     )
 
@@ -249,7 +248,7 @@ private object Mock {
             Key.UUID to transaksjonId.toJson(),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-            Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag.toJson(LocalDateSerializer),
+            Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag.toJson(),
             Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
         )
 

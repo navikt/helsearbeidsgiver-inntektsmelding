@@ -4,8 +4,8 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -32,7 +32,7 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
 import java.util.UUID
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding as InntektsmeldingGammel
 
 private const val UKJENT_NAVN = "Ukjent navn"
 private const val UKJENT_VIRKSOMHET = "Ukjent virksomhet"
@@ -57,9 +57,8 @@ data class Steg3(
 )
 
 data class Steg4(
-    val inntektsmeldingV1: InntektsmeldingV1,
-    val bestemmendeFravaersdag: LocalDate,
     val inntektsmelding: Inntektsmelding,
+    val bestemmendeFravaersdag: LocalDate,
     val erDuplikat: Boolean,
 )
 
@@ -96,9 +95,8 @@ class BerikInntektsmeldingService(
 
     override fun lesSteg4(melding: Map<Key, JsonElement>): Steg4 =
         Steg4(
-            inntektsmeldingV1 = Key.INNTEKTSMELDING.les(InntektsmeldingV1.serializer(), melding),
+            inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), melding),
             bestemmendeFravaersdag = Key.BESTEMMENDE_FRAVAERSDAG.les(LocalDateSerializer, melding),
-            inntektsmelding = Key.INNTEKTSMELDING_DOKUMENT.les(Inntektsmelding.serializer(), melding),
             erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
         )
 
@@ -201,11 +199,13 @@ class BerikInntektsmeldingService(
                     data
                         .plus(
                             mapOf(
+                                // TODO slett etter overgangsperiode
                                 Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
-                                Key.INNTEKTSMELDING to inntektsmelding.toJson(InntektsmeldingV1.serializer()),
-                                // TODO vurder å flytte denne inn i InntektsmeldingV1 (ikke sikker om det er en god idé, så avventer til v1 er brukt overalt)
+                                Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                                // TODO vurder å flytte denne inn i Inntektsmelding (ikke sikker om det er en god idé, så avventer til v1 er brukt overalt)
                                 Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag.toJson(),
-                                Key.INNTEKTSMELDING_DOKUMENT to inntektsmeldingGammeltFormat.toJson(Inntektsmelding.serializer()),
+                                // TODO slett etter overgangsperiode
+                                Key.INNTEKTSMELDING_DOKUMENT to inntektsmeldingGammeltFormat.toJson(InntektsmeldingGammel.serializer()),
                                 Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
                             ),
                         ).toJson(),
@@ -227,7 +227,7 @@ class BerikInntektsmeldingService(
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
                         Key.UUID to steg0.transaksjonId.toJson(),
                         Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
-                        Key.INNTEKTSMELDING to steg4.inntektsmeldingV1.toJson(InntektsmeldingV1.serializer()),
+                        Key.INNTEKTSMELDING to steg4.inntektsmelding.toJson(Inntektsmelding.serializer()),
                         Key.BESTEMMENDE_FRAVAERSDAG to steg4.bestemmendeFravaersdag.toJson(),
                         Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
                     ).mapValuesNotNull { it },

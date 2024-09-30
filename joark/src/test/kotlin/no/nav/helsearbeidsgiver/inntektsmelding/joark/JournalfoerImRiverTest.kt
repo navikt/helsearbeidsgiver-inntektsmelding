@@ -32,7 +32,6 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
-import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import java.time.LocalDate
@@ -321,7 +320,7 @@ private object Mock {
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),
             imKey to inntektsmelding.toJson(InntektsmeldingV1.serializer()),
-            Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag?.toJson(LocalDateSerializer),
+            Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag?.toJson(),
         ).mapValuesNotNull { it }
 
     fun opprettOgFerdigstillResponse(journalpostId: String): OpprettOgFerdigstillResponse =

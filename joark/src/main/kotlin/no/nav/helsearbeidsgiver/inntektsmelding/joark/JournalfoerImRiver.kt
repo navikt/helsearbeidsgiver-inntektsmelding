@@ -5,7 +5,7 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender
 import no.nav.helsearbeidsgiver.dokarkiv.domene.GjelderPerson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -19,7 +19,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -28,12 +27,12 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.time.LocalDate
 import java.util.UUID
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding as InntektsmeldingGammel
 
 data class JournalfoerImMelding(
     val eventName: EventName,
     val transaksjonId: UUID,
-    val inntektsmelding: InntektsmeldingV1,
+    val inntektsmelding: Inntektsmelding,
     val bestemmendeFravaersdag: LocalDate?,
 )
 
@@ -59,7 +58,7 @@ class JournalfoerImRiver(
                     JournalfoerImMelding(
                         eventName = eventName,
                         transaksjonId = transaksjonId,
-                        inntektsmelding = Key.INNTEKTSMELDING.les(InntektsmeldingV1.serializer(), json),
+                        inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), json),
                         bestemmendeFravaersdag = Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, json),
                     )
 
@@ -67,7 +66,7 @@ class JournalfoerImRiver(
                     JournalfoerImMelding(
                         eventName = eventName,
                         transaksjonId = transaksjonId,
-                        inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(InntektsmeldingV1.serializer(), json),
+                        inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), json),
                         bestemmendeFravaersdag = null,
                     )
 
@@ -101,11 +100,8 @@ class JournalfoerImRiver(
             Key.BEHOV to BehovType.LAGRE_JOURNALPOST_ID.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
-            Key.INNTEKTSMELDING to inntektsmelding.toJson(InntektsmeldingV1.serializer()),
+            Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag?.toJson(),
-            Key.INNTEKTSMELDING_DOKUMENT to inntektsmeldingGammeltFormat.toJson(Inntektsmelding.serializer()),
-            Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
-            Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
             Key.INNSENDING_ID to json[Key.INNSENDING_ID],
         ).mapValuesNotNull { it }
             .also {
@@ -127,7 +123,7 @@ class JournalfoerImRiver(
                 feilmelding = "Klarte ikke journalføre.",
                 event = eventName,
                 transaksjonId = transaksjonId,
-                forespoerselId = json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer),
+                forespoerselId = null,
                 utloesendeMelding =
                     json
                         .plus(
@@ -140,12 +136,8 @@ class JournalfoerImRiver(
 
         return fail
             .tilMelding()
-            .plus(
-                mapOf(
-                    Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
-                    Key.INNSENDING_ID to json[Key.INNSENDING_ID],
-                ),
-            ).mapValuesNotNull { it }
+            .plus(Key.INNSENDING_ID to json[Key.INNSENDING_ID])
+            .mapValuesNotNull { it }
     }
 
     override fun JournalfoerImMelding.loggfelt(): Map<String, String> =
@@ -154,14 +146,14 @@ class JournalfoerImRiver(
             Log.event(eventName),
             Log.transaksjonId(transaksjonId),
             when (inntektsmelding.type) {
-                is InntektsmeldingV1.Type.Forespurt -> Log.forespoerselId(inntektsmelding.type.id)
-                is InntektsmeldingV1.Type.Selvbestemt -> Log.selvbestemtId(inntektsmelding.type.id)
+                is Inntektsmelding.Type.Forespurt -> Log.forespoerselId(inntektsmelding.type.id)
+                is Inntektsmelding.Type.Selvbestemt -> Log.selvbestemtId(inntektsmelding.type.id)
             },
         )
 
     private fun opprettOgFerdigstillJournalpost(
         transaksjonId: UUID,
-        inntektsmelding: Inntektsmelding,
+        inntektsmelding: InntektsmeldingGammel,
     ): String {
         "Prøver å opprette og ferdigstille journalpost.".also {
             logger.info(it)

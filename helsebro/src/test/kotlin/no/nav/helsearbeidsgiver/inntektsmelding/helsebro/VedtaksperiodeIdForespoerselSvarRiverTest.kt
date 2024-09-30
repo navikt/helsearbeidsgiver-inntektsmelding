@@ -103,19 +103,6 @@ class VedtaksperiodeIdForespoerselSvarRiverTest :
                         ),
                 )
             }
-
-            private fun ForespoerselListeSvar.Forespoersel.toForespoersel(): Forespoersel =
-                Forespoersel(
-                    type = type,
-                    orgnr = orgnr.toString(),
-                    fnr = fnr,
-                    vedtaksperiodeId = vedtaksperiodeId,
-                    sykmeldingsperioder = sykmeldingsperioder,
-                    egenmeldingsperioder = egenmeldingsperioder,
-                    bestemmendeFravaersdager = bestemmendeFravaersdager.mapKeys { it.key.toString() },
-                    forespurtData = forespurtData,
-                    erBesvart = erBesvart,
-                )
         }
     }
 }

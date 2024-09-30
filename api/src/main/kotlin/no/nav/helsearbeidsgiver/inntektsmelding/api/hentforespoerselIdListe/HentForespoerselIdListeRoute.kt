@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselidListe
+package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIdListe
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call

@@ -1,6 +1,6 @@
 @file:UseSerializers(UuidSerializer::class)
 
-package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselidListe
+package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIdListe
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers

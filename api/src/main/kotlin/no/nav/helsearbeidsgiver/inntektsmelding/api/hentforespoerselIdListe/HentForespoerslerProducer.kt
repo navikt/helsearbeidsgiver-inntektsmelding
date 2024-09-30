@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselidListe
+package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIdListe
 
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.EventName

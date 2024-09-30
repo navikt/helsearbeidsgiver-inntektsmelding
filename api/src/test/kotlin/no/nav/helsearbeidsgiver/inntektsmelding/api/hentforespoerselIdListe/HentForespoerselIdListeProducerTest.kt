@@ -9,8 +9,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
-import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselidListe.HentForespoerslerProducer
-import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselidListe.HentForespoerslerRequest
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID

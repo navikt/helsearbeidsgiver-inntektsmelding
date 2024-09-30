@@ -36,7 +36,7 @@ fun Route.hentForespoerselIdListeRoute(
     redisConnection: RedisConnection,
 ) {
     val hentForespoerslerProducer = HentForespoerslerProducer(rapid)
-    val redisPoller = RedisStore(redisConnection, RedisPrefix.HentForespoerslerForeVedtaksperiodeIdListe).let(::RedisPoller)
+    val redisPoller = RedisStore(redisConnection, RedisPrefix.HentForespoerslerForVedtaksperiodeIdListe).let(::RedisPoller)
 
     val requestLatency =
         Summary

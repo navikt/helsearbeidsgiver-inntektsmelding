@@ -36,7 +36,7 @@ fun RapidsConnection.createHentForespoerselService(redisConnection: RedisConnect
         ServiceRiverStateful(
             HentForespoerslerForVedtaksperiodeIdListeService(
                 rapid = this,
-                redisStore = RedisStore(redisConnection, RedisPrefix.HentForespoerslerForeVedtaksperiodeIdListe),
+                redisStore = RedisStore(redisConnection, RedisPrefix.HentForespoerslerForVedtaksperiodeIdListe),
             ),
         ).connect(this)
     }

@@ -35,7 +35,7 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
     FunSpec({
 
         val testRapid = TestRapid()
-        val mockRedis = MockRedis(RedisPrefix.HentForespoerslerForeVedtaksperiodeIdListe)
+        val mockRedis = MockRedis(RedisPrefix.HentForespoerslerForVedtaksperiodeIdListe)
 
         ServiceRiverStateful(
             HentForespoerslerForVedtaksperiodeIdListeService(testRapid, mockRedis.store),

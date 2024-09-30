@@ -73,7 +73,7 @@ class HentForespoerslerForVedtaksperiodeIdListeIT : EndToEndTest() {
         // API besvart gjennom redis
         val resultJson =
             redisConnection
-                .get(RedisPrefix.HentForespoerslerForeVedtaksperiodeIdListe, transaksjonId)
+                .get(RedisPrefix.HentForespoerslerForVedtaksperiodeIdListe, transaksjonId)
                 ?.fromJson(ResultJson.serializer())
                 .shouldNotBeNull()
 

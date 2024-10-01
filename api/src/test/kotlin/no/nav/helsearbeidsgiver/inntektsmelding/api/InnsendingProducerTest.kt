@@ -36,7 +36,6 @@ class InnsendingProducerTest :
                     Key.UUID to transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
-                            Key.FORESPOERSEL_ID to skjema.forespoerselId.toJson(),
                             Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
                             Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
                         ).toJson(),

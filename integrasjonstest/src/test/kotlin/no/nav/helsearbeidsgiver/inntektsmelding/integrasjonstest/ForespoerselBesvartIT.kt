@@ -90,7 +90,7 @@ class ForespoerselBesvartIT : EndToEndTest() {
 
         messages
             .filter(EventName.FORESPOERSEL_BESVART)
-            .filter(Key.SAK_ID, utenDataKey = true)
+            .filter(Key.SAK_ID, nestedData = false, utenDataKey = true)
             .firstAsMap()
             .also {
                 it shouldNotContainKey Key.BEHOV
@@ -108,7 +108,7 @@ class ForespoerselBesvartIT : EndToEndTest() {
 
         messages
             .filter(EventName.FORESPOERSEL_BESVART)
-            .filter(Key.OPPGAVE_ID, utenDataKey = true)
+            .filter(Key.OPPGAVE_ID, nestedData = false, utenDataKey = true)
             .firstAsMap()
             .also {
                 it shouldNotContainKey Key.BEHOV
@@ -126,7 +126,7 @@ class ForespoerselBesvartIT : EndToEndTest() {
 
         messages
             .filter(EventName.SAK_FERDIGSTILT)
-            .filter(Key.SAK_ID, utenDataKey = true)
+            .filter(Key.SAK_ID, nestedData = false, utenDataKey = true)
             .firstAsMap()
             .also {
                 if (forventetTransaksjonId == null) {
@@ -142,7 +142,7 @@ class ForespoerselBesvartIT : EndToEndTest() {
 
         messages
             .filter(EventName.OPPGAVE_FERDIGSTILT)
-            .filter(Key.OPPGAVE_ID, utenDataKey = true)
+            .filter(Key.OPPGAVE_ID, nestedData = false, utenDataKey = true)
             .firstAsMap()
             .also {
                 if (forventetTransaksjonId == null) {

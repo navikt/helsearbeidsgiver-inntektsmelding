@@ -97,7 +97,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         // Data hentet
         serviceMessages
-            .filter(Key.VIRKSOMHETER, nestedData = true)
+            .filter(Key.VIRKSOMHETER)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -107,7 +107,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         // Data hentet
         serviceMessages
-            .filter(Key.PERSONER, nestedData = true)
+            .filter(Key.PERSONER)
             .firstAsMap()
             .also { melding ->
                 val data = melding[Key.DATA].shouldNotBeNull().toMap()
@@ -118,7 +118,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         // Data hentet
         serviceMessages
-            .filter(Key.ARBEIDSFORHOLD, nestedData = true)
+            .filter(Key.ARBEIDSFORHOLD)
             .firstAsMap()
             .also { melding ->
                 val data = melding[Key.DATA].shouldNotBeNull().toMap()
@@ -136,7 +136,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         // Lagring utført, uten duplikat
         serviceMessages
-            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
+            .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -154,7 +154,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         // Opprettelse av sak utført
         serviceMessages
-            .filter(Key.SAK_ID, nestedData = true)
+            .filter(Key.SAK_ID)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -215,7 +215,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         // Lagring utført, uten duplikat
         serviceMessages
-            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
+            .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -230,7 +230,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         // Opprettelse av sak _ikke_ utført
         serviceMessages
-            .filter(Key.SAK_ID, nestedData = true)
+            .filter(Key.SAK_ID)
             .all()
             .shouldBeEmpty()
 
@@ -283,7 +283,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         // Lagring utført, med duplikat
         serviceMessages
-            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
+            .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -291,7 +291,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
             }
 
         serviceMessages
-            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
+            .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -306,7 +306,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         // Opprettelse av sak _ikke_ utført
         serviceMessages
-            .filter(Key.SAK_ID, nestedData = true)
+            .filter(Key.SAK_ID)
             .all()
             .shouldBeEmpty()
 

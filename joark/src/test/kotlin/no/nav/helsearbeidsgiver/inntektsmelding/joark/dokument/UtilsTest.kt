@@ -1,19 +1,18 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.BegrunnelseIngenEllerRedusertUtbetalingKode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
-import java.lang.StringBuilder
 
 class UtilsTest {
     @Test
     fun `ingen eller redusert refusjon begrunnelsetekst`() {
-        BegrunnelseIngenEllerRedusertUtbetalingKode.entries.forEach {
+        RedusertLoennIAgp.Begrunnelse.entries.forEach {
             // sjekk at vi har lagt inn en fin tekst for alle koder:
-            assertNotEquals(it.name, it.tekst(), "Mangler verdi i tekst()-funksjon!")
+            assertNotEquals(it.name, it.tilTekst(), "Mangler verdi i tilTekst()-funksjon!")
         }
-        assertEquals("Lovlig fravær uten lønn", BegrunnelseIngenEllerRedusertUtbetalingKode.LovligFravaer.tekst())
+        assertEquals("Lovlig fravær uten lønn", RedusertLoennIAgp.Begrunnelse.LovligFravaer.tilTekst())
     }
 
     @Test

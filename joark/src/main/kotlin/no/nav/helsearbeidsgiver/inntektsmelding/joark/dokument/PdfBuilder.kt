@@ -38,18 +38,6 @@ class PdfBuilder(
         y: Int = 0,
     ): PdfBuilder = add(Text(sectionSize, title, bold = false, italic = false, x, y))
 
-    fun addBody(
-        title: String,
-        x: Int = 0,
-        y: Int = 0,
-    ): PdfBuilder = add(Text(bodySize, title, bold = false, italic = false, x, y))
-
-    fun addBold(
-        title: String,
-        x: Int = 0,
-        y: Int = 0,
-    ): PdfBuilder = add(Text(bodySize, title, bold = true, italic = false, x, y))
-
     fun addText(
         title: String,
         x: Int = 0,

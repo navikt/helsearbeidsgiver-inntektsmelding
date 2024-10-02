@@ -25,7 +25,7 @@ import java.util.UUID
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class HentForespoerselIT : EndToEndTest() {
     @Test
-    fun `Test trengerIM meldingsflyt`() {
+    fun `forespørsel hentes`() {
         val transaksjonId: UUID = UUID.randomUUID()
         val forespoerselId: UUID = UUID.randomUUID()
 

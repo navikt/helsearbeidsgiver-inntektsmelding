@@ -16,7 +16,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -30,9 +29,8 @@ import java.util.UUID
 
 class HentForespoerslerForVedtaksperiodeIdListeService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore,
-) : ServiceMed1Steg<HentForespoerslerForVedtaksperiodeIdListeService.Steg0, HentForespoerslerForVedtaksperiodeIdListeService.Steg1>(),
-    Service.MedRedis {
+    private val redisStore: RedisStore,
+) : ServiceMed1Steg<HentForespoerslerForVedtaksperiodeIdListeService.Steg0, HentForespoerslerForVedtaksperiodeIdListeService.Steg1>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 

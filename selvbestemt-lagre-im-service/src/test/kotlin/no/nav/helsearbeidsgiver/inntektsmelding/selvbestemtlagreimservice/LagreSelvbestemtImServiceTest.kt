@@ -104,11 +104,7 @@ class LagreSelvbestemtImServiceTest :
             mockStatic(OffsetDateTime::class) {
                 every { OffsetDateTime.now() } returns nyInntektsmelding.mottatt
 
-                testRapid.sendJson(
-                    Mock
-                        .steg1(transaksjonId)
-                        .minus(Key.SELVBESTEMT_ID),
-                )
+                testRapid.sendJson(Mock.steg1(transaksjonId))
             }
 
             testRapid.inspektør.size shouldBeExactly 4
@@ -123,20 +119,12 @@ class LagreSelvbestemtImServiceTest :
                 }
             }
 
-            testRapid.sendJson(
-                Mock
-                    .steg2(transaksjonId, nyInntektsmelding)
-                    .minus(Key.SELVBESTEMT_ID),
-            )
+            testRapid.sendJson(Mock.steg2(transaksjonId, nyInntektsmelding))
 
             testRapid.inspektør.size shouldBeExactly 5
             testRapid.message(4).lesBehov() shouldBe BehovType.OPPRETT_SELVBESTEMT_SAK
 
-            testRapid.sendJson(
-                Mock
-                    .steg3(transaksjonId)
-                    .minus(Key.SELVBESTEMT_ID),
-            )
+            testRapid.sendJson(Mock.steg3(transaksjonId))
 
             testRapid.inspektør.size shouldBeExactly 6
             testRapid.message(5).toMap().also {

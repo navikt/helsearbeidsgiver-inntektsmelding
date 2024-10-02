@@ -54,7 +54,7 @@ value class Messages(
 
     fun filter(
         dataFelt: Key,
-        nestedData: Boolean = false,
+        nestedData: Boolean = true,
         utenDataKey: Boolean = false,
     ): Messages =
         filter { msg ->

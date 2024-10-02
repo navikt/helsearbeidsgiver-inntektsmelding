@@ -64,7 +64,7 @@ class TilgangskontrollIT : EndToEndTest() {
         val result =
             messages
                 .filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
-                .filter(Key.TILGANG, nestedData = true)
+                .filter(Key.TILGANG)
                 .firstAsMap()
 
         val tilgang =
@@ -92,7 +92,7 @@ class TilgangskontrollIT : EndToEndTest() {
         val result =
             messages
                 .filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
-                .filter(Key.TILGANG, nestedData = true)
+                .filter(Key.TILGANG)
                 .firstAsMap()
 
         val tilgang =
@@ -112,7 +112,7 @@ class TilgangskontrollIT : EndToEndTest() {
         val result =
             messages
                 .filter(EventName.TILGANG_ORG_REQUESTED)
-                .filter(Key.TILGANG, nestedData = true)
+                .filter(Key.TILGANG)
                 .firstAsMap()
 
         val tilgang =
@@ -132,7 +132,7 @@ class TilgangskontrollIT : EndToEndTest() {
         val result =
             messages
                 .filter(EventName.TILGANG_ORG_REQUESTED)
-                .filter(Key.TILGANG, nestedData = true)
+                .filter(Key.TILGANG)
                 .firstAsMap()
 
         val tilgang =

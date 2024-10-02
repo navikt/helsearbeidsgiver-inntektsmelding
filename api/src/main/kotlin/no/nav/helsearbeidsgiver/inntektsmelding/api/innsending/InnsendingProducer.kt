@@ -31,8 +31,6 @@ class InnsendingProducer(
                 Key.UUID to transaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
-                        // TODO fjern i mottaker, så her
-                        Key.FORESPOERSEL_ID to skjemaInntektsmelding.forespoerselId.toJson(),
                         Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
                         Key.SKJEMA_INNTEKTSMELDING to skjemaInntektsmelding.toJson(SkjemaInntektsmelding.serializer()),
                     ).toJson(),

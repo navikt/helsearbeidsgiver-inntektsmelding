@@ -273,9 +273,6 @@ class LagreSelvbestemtImService(
                     rapid.publish(
                         Key.EVENT_NAME to EventName.SELVBESTEMT_IM_LAGRET.toJson(),
                         Key.UUID to steg0.transaksjonId.toJson(),
-                        Key.SELVBESTEMT_ID to
-                            steg2.inntektsmelding.type.id
-                                .toJson(),
                         Key.SELVBESTEMT_INNTEKTSMELDING to steg2.inntektsmelding.toJson(Inntektsmelding.serializer()),
                     )
 

@@ -48,8 +48,8 @@ class KvitteringIT : EndToEndTest() {
 
         messages
             .filter(EventName.KVITTERING_REQUESTED)
-            .filter(Key.LAGRET_INNTEKTSMELDING, nestedData = true)
-            .filter(Key.EKSTERN_INNTEKTSMELDING, nestedData = true)
+            .filter(Key.LAGRET_INNTEKTSMELDING)
+            .filter(Key.EKSTERN_INNTEKTSMELDING)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -85,8 +85,8 @@ class KvitteringIT : EndToEndTest() {
 
         messages
             .filter(EventName.KVITTERING_REQUESTED)
-            .filter(Key.LAGRET_INNTEKTSMELDING, nestedData = true)
-            .filter(Key.EKSTERN_INNTEKTSMELDING, nestedData = true)
+            .filter(Key.LAGRET_INNTEKTSMELDING)
+            .filter(Key.EKSTERN_INNTEKTSMELDING)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -115,8 +115,8 @@ class KvitteringIT : EndToEndTest() {
 
         messages
             .filter(EventName.KVITTERING_REQUESTED)
-            .filter(Key.LAGRET_INNTEKTSMELDING, nestedData = true)
-            .filter(Key.EKSTERN_INNTEKTSMELDING, nestedData = true)
+            .filter(Key.LAGRET_INNTEKTSMELDING)
+            .filter(Key.EKSTERN_INNTEKTSMELDING)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()

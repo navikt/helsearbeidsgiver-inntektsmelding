@@ -91,10 +91,9 @@ class InnsendingServiceIT : EndToEndTest() {
         // Inntektsmelding lagret
         messages
             .filter(EventName.INSENDING_STARTED)
-            .filter(Key.ER_DUPLIKAT_IM, nestedData = true)
+            .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .verifiserTransaksjonId(transaksjonId)
-            .verifiserForespoerselId()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
                 data[Key.ER_DUPLIKAT_IM]?.fromJson(Boolean.serializer()) shouldBe false
@@ -146,13 +145,6 @@ class InnsendingServiceIT : EndToEndTest() {
     private fun Map<Key, JsonElement>.verifiserTransaksjonId(transaksjonId: UUID): Map<Key, JsonElement> =
         also {
             Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
-        }
-
-    private fun Map<Key, JsonElement>.verifiserForespoerselId(): Map<Key, JsonElement> =
-        also {
-            val data = it[Key.DATA]?.toMap().orEmpty()
-            val forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data)
-            forespoerselId shouldBe Mock.skjema.forespoerselId
         }
 
     private fun Map<Key, JsonElement>.verifiserForespoerselIdFraSkjema(): Map<Key, JsonElement> =

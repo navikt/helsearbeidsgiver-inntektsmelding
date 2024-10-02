@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
@@ -32,7 +33,7 @@ fun mockForespoerselListeSvarMedSuksess(): ForespoerselListeSvar {
                 ForespoerselListeSvar.Forespoersel(
                     type = ForespoerselType.KOMPLETT,
                     orgnr = orgnr,
-                    fnr = "deputize-snowy-quirk",
+                    fnr = Fnr.genererGyldig().toString(),
                     vedtaksperiodeId = UUID.randomUUID(),
                     forespoerselId = UUID.randomUUID(),
                     skjaeringstidspunkt = 11.januar(2018),

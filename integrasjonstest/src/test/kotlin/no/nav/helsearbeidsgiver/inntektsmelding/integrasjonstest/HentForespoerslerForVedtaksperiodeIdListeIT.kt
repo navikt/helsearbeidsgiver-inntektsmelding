@@ -59,7 +59,7 @@ class HentForespoerslerForVedtaksperiodeIdListeIT : EndToEndTest() {
         // Forespørsler hentet
         messages
             .filter(EventName.FORESPOERSLER_REQUESTED)
-            .filter(Key.FORESPOERSLER_SVAR, nestedData = true)
+            .filter(Key.FORESPOERSLER_SVAR)
             .firstAsMap()
             .let {
                 // Verifiser transaksjon-ID

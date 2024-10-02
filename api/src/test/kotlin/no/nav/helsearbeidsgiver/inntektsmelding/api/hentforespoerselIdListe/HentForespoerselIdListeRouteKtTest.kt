@@ -126,7 +126,33 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
             val actualJson = response.bodyAsText()
 
             response.status shouldBe HttpStatusCode.BadRequest
-            actualJson shouldBe "\"Ikke tillat å hente forespoersler som tilhører ulike arbeidsgivere.\""
+            actualJson shouldBe "\"Ugyldig request.\""
+        }
+
+    @Test
+    fun `mer enn maks antall vedtaksperiode-IDer i request gir 400-feil`() =
+        testApi {
+            val mockResultat = Mock.mockResultat()
+
+            coEvery { mockRedisConnection.get(any()) } returnsMany
+                listOf(
+                    Mock.successResult(mockResultat),
+                    harTilgangResultat,
+                )
+
+            val response =
+                post(
+                    path,
+                    HentForespoerslerRequest(
+                        vedtaksperiodeIdListe = List(MAKS_ANTALL_VEDTAKSPERIODE_IDER + 1) { Mock.vedtaksPeriodeId1 },
+                    ),
+                    HentForespoerslerRequest.serializer(),
+                )
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.BadRequest
+            actualJson shouldBe "\"Ugyldig request.\""
         }
 
     @Test
@@ -299,7 +325,8 @@ private object Mock {
     [
       {
         "vedtaksperiodeId": "$vedtaksPeriodeId1",
-        "forespoerselId": "$forespoerselId1"},
+        "forespoerselId": "$forespoerselId1"
+      },
       {
         "vedtaksperiodeId": "$vedtaksPeriodeId2",
         "forespoerselId": "$forespoerselId2"

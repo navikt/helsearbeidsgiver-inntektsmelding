@@ -7,7 +7,6 @@ import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -116,16 +115,12 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         // Inntektsmelding lagret
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.INNTEKTSMELDING_DOKUMENT)
             .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
             .verifiserForespoerselIdFraSkjema()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-
-                data[Key.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull().fromJson(Inntektsmelding.serializer())
-
                 data[Key.ER_DUPLIKAT_IM]?.fromJson(Boolean.serializer()) shouldBe false
             }
 

@@ -9,7 +9,7 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -105,8 +105,8 @@ class BerikInntektsmeldingServiceTest :
                 it.lesBehov() shouldBe BehovType.LAGRE_IM
 
                 val data = it.lesData()
-                Key.INNTEKTSMELDING_DOKUMENT.lesOrNull(Inntektsmelding.serializer(), data) shouldNotBe null
-                Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data) shouldBe Mock.skjema.forespoerselId
+                Key.INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), data) shouldNotBe null
+                Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, data) shouldNotBe null
                 Key.INNSENDING_ID.lesOrNull(Long.serializer(), data) shouldBe Mock.INNSENDING_ID
             }
 

@@ -28,7 +28,7 @@ object Pri {
         FNR("fnr"),
         FORESPOERSEL_ID("forespoerselId"),
         SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
-        VEDTAKSPERIODE_ID_LISTE("vedtaksperiodeIdListe"),
+        VEDTAKSPERIODE_ID_LISTE("vedtaksperiode_id_liste"),
         ;
 
         override fun toString(): String = str

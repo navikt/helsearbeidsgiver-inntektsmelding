@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
@@ -32,7 +31,6 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
 import java.util.UUID
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding as InntektsmeldingGammel
 
 private const val UKJENT_NAVN = "Ukjent navn"
 private const val UKJENT_VIRKSOMHET = "Ukjent virksomhet"
@@ -188,8 +186,6 @@ class BerikInntektsmeldingService(
             }
         }
 
-        val inntektsmeldingGammeltFormat = inntektsmelding.convert().copy(bestemmendeFraværsdag = bestemmendeFravaersdag)
-
         rapid
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
@@ -199,13 +195,9 @@ class BerikInntektsmeldingService(
                     data
                         .plus(
                             mapOf(
-                                // TODO slett etter overgangsperiode
-                                Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
                                 Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
                                 // TODO vurder å flytte denne inn i Inntektsmelding (ikke sikker om det er en god idé, så avventer til v1 er brukt overalt)
                                 Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag.toJson(),
-                                // TODO slett etter overgangsperiode
-                                Key.INNTEKTSMELDING_DOKUMENT to inntektsmeldingGammeltFormat.toJson(InntektsmeldingGammel.serializer()),
                                 Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
                             ),
                         ).toJson(),

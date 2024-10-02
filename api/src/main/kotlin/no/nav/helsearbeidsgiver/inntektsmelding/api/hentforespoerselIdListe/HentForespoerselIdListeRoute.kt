@@ -7,11 +7,12 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.util.pipeline.PipelineContext
 import io.prometheus.client.Summary
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.Tekst.TEKNISK_FEIL_FORBIGAAENDE
 import no.nav.helsearbeidsgiver.felles.Tekst.UGYLDIG_REQUEST
-import no.nav.helsearbeidsgiver.felles.domene.HentForespoerslerForVedtaksperiodeIdListeResultat
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.domene.VedtaksperiodeIdForespoerselIdPar
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
@@ -31,6 +32,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import java.util.UUID
 
@@ -102,14 +104,14 @@ suspend fun PipelineContext<Unit, ApplicationCall>.hentForespoersler(
 
     sikkerLogger.info("Hentet forespørslene: $resultatJson")
 
-    when (val resultat = resultatJson.success?.fromJson(HentForespoerslerForVedtaksperiodeIdListeResultat.serializer())) {
+    when (val resultat = resultatJson.success?.fromJson(MapSerializer(UuidSerializer, Forespoersel.serializer()))) {
         null -> {
             val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: TEKNISK_FEIL_FORBIGAAENDE
             respondInternalServerError(feilmelding, String.serializer())
         }
 
         else -> {
-            val orgnrSet = resultat.forespoersler.map { it.value.orgnr }.toSet()
+            val orgnrSet = resultat.map { (_, forespoersel) -> forespoersel.orgnr }.toSet()
 
             when {
                 orgnrSet.size > 1 -> {
@@ -124,10 +126,10 @@ suspend fun PipelineContext<Unit, ApplicationCall>.hentForespoersler(
                     orgnrSet.firstOrNull()?.also { orgnr -> tilgangskontroll.validerTilgangTilOrg(call.request, orgnr) }
 
                     val respons =
-                        resultat.forespoersler.map {
+                        resultat.map { (id, forespoersel) ->
                             VedtaksperiodeIdForespoerselIdPar(
-                                forespoerselId = it.key,
-                                vedtaksperiodeId = it.value.vedtaksperiodeId,
+                                forespoerselId = id,
+                                vedtaksperiodeId = forespoersel.vedtaksperiodeId,
                             )
                         }
 

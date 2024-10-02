@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
-import no.nav.helsearbeidsgiver.felles.domene.HentForespoerslerForVedtaksperiodeIdListeResultat
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
@@ -79,10 +78,10 @@ class HentForespoerslerForVedtaksperiodeIdListeIT : EndToEndTest() {
 
         resultJson.failure.shouldBeNull()
 
-        val hentForespoerslerResultat = resultJson.success.shouldNotBeNull().fromJson(HentForespoerslerForVedtaksperiodeIdListeResultat.serializer())
+        val hentForespoerslerResultat = resultJson.success.shouldNotBeNull().fromJson(MapSerializer(UuidSerializer, Forespoersel.serializer()))
 
-        hentForespoerslerResultat.shouldNotBeNull().apply {
-            forespoersler.shouldNotBeNull() shouldBe forventetedeForespoersler
+        hentForespoerslerResultat.shouldNotBeNull().also {
+            it shouldBe forventetedeForespoersler
         }
     }
 }

@@ -13,13 +13,12 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
-import no.nav.helsearbeidsgiver.felles.domene.HentForespoerslerForVedtaksperiodeIdListeResultat
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
@@ -33,11 +32,10 @@ import java.util.UUID
 
 class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
     FunSpec({
-
         val testRapid = TestRapid()
         val mockRedis = MockRedis(RedisPrefix.HentForespoerslerForVedtaksperiodeIdListe)
 
-        ServiceRiverStateful(
+        ServiceRiverStateless(
             HentForespoerslerForVedtaksperiodeIdListeService(testRapid, mockRedis.store),
         ).connect(testRapid)
 
@@ -63,10 +61,7 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
                 mockRedis.store.set(
                     RedisKey.of(transaksjonId),
                     ResultJson(
-                        success =
-                            HentForespoerslerForVedtaksperiodeIdListeResultat(
-                                forespoersler,
-                            ).toJson(HentForespoerslerForVedtaksperiodeIdListeResultat.serializer()),
+                        success = forespoersler.toJson(MapSerializer(UuidSerializer, Forespoersel.serializer())),
                     ).toJson(ResultJson.serializer()),
                 )
             }
@@ -137,6 +132,7 @@ private object Mock {
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
+                    Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIdListe.toJson(UuidSerializer),
                     Key.FORESPOERSLER_SVAR to
                         forespoersler.toJson(
                             serializer = MapSerializer(UuidSerializer, Forespoersel.serializer()),

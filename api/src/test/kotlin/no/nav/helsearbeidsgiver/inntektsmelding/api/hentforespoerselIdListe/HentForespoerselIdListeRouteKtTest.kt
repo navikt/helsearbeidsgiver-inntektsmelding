@@ -5,10 +5,11 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
-import no.nav.helsearbeidsgiver.felles.domene.HentForespoerslerForVedtaksperiodeIdListeResultat
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -17,6 +18,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutRespons
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -60,7 +62,7 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
     @Test
     fun `gir OK med tom liste av forespørsel-IDer`() =
         testApi {
-            val mockResultat = Mock.mockResultatMedIngenForespoersler()
+            val mockResultat = emptyMap<UUID, Forespoersel>()
 
             coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
@@ -297,27 +299,16 @@ private object Mock {
     val vedtaksPeriodeId2 = UUID.randomUUID()
     val forespoerselId2 = UUID.randomUUID()
 
-    fun mockResultat(): HentForespoerslerForVedtaksperiodeIdListeResultat =
-        HentForespoerslerForVedtaksperiodeIdListeResultat(
-            forespoersler =
-                mapOf(
-                    forespoerselId1 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId1, orgnr = orgnr.toString()),
-                    forespoerselId2 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId2, orgnr = orgnr.toString()),
-                ),
+    fun mockResultat(): Map<UUID, Forespoersel> =
+        mapOf(
+            forespoerselId1 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId1, orgnr = orgnr.toString()),
+            forespoerselId2 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId2, orgnr = orgnr.toString()),
         )
 
-    fun mockResultatMedIngenForespoersler(): HentForespoerslerForVedtaksperiodeIdListeResultat =
-        HentForespoerslerForVedtaksperiodeIdListeResultat(
-            forespoersler = emptyMap(),
-        )
-
-    fun mockResultatMedUlikeOrgnr(): HentForespoerslerForVedtaksperiodeIdListeResultat =
-        HentForespoerslerForVedtaksperiodeIdListeResultat(
-            forespoersler =
-                mapOf(
-                    forespoerselId1 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId1),
-                    forespoerselId2 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId2),
-                ),
+    fun mockResultatMedUlikeOrgnr(): Map<UUID, Forespoersel> =
+        mapOf(
+            forespoerselId1 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId1),
+            forespoerselId2 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId2),
         )
 
     fun successResponseJson(): String =
@@ -336,9 +327,9 @@ private object Mock {
 
     fun successEmptyResponseJson(): String = """[]""".removeJsonWhitespace()
 
-    fun successResult(hentForespoerslerForVedtaksperiodeIdListeResultat: HentForespoerslerForVedtaksperiodeIdListeResultat): String =
+    fun successResult(resultat: Map<UUID, Forespoersel>): String =
         ResultJson(
-            success = hentForespoerslerForVedtaksperiodeIdListeResultat.toJson(HentForespoerslerForVedtaksperiodeIdListeResultat.serializer()),
+            success = resultat.toJson(MapSerializer(UuidSerializer, Forespoersel.serializer())),
         ).toJson(ResultJson.serializer())
             .toString()
 

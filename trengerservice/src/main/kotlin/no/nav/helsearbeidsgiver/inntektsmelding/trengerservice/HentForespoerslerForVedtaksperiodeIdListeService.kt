@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
-import no.nav.helsearbeidsgiver.felles.domene.HentForespoerslerForVedtaksperiodeIdListeResultat
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -79,10 +78,7 @@ class HentForespoerslerForVedtaksperiodeIdListeService(
     ) {
         val resultJson =
             ResultJson(
-                success =
-                    HentForespoerslerForVedtaksperiodeIdListeResultat(
-                        forespoersler = steg1.forespoersler,
-                    ).toJson(HentForespoerslerForVedtaksperiodeIdListeResultat.serializer()),
+                success = steg1.forespoersler.toJson(MapSerializer(UuidSerializer, Forespoersel.serializer())),
             ).toJson(ResultJson.serializer())
 
         redisStore.set(RedisKey.of(steg0.transaksjonId), resultJson)

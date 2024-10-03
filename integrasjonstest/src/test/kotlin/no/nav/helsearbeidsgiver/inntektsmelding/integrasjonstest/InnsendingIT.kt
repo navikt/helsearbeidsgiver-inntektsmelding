@@ -23,7 +23,6 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
@@ -34,11 +33,13 @@ import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.Forespoersel as ForespoerselBro
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class InnsendingIT : EndToEndTest() {
@@ -289,15 +290,15 @@ class InnsendingIT : EndToEndTest() {
             )
 
         val forespoerselSvar =
-            ForespoerselSvar.Suksess(
+            ForespoerselBro(
                 type = ForespoerselType.KOMPLETT,
-                orgnr = forespoersel.orgnr,
-                fnr = forespoersel.fnr,
+                orgnr = Orgnr(forespoersel.orgnr),
+                fnr = Fnr(forespoersel.fnr),
+                forespoerselId = forespoerselId,
                 vedtaksperiodeId = forespoersel.vedtaksperiodeId,
                 egenmeldingsperioder = forespoersel.egenmeldingsperioder,
                 sykmeldingsperioder = forespoersel.sykmeldingsperioder,
-                skjaeringstidspunkt = null,
-                bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager,
+                bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager.mapKeys { Orgnr(it.key) },
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
             )

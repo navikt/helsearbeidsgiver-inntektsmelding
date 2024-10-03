@@ -20,7 +20,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.Forespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -165,12 +165,12 @@ class InnsendingServiceIT : EndToEndTest() {
         val vedtaksperiodeId: UUID = UUID.randomUUID()
 
         val forespoerselSvar =
-            ForespoerselSvar.Suksess(
+            Forespoersel(
                 type = ForespoerselType.KOMPLETT,
-                orgnr = orgnr.verdi,
-                fnr = Fnr.genererGyldig().verdi,
+                orgnr = orgnr,
+                fnr = Fnr.genererGyldig(),
+                forespoerselId = skjema.forespoerselId,
                 vedtaksperiodeId = vedtaksperiodeId,
-                skjaeringstidspunkt = 17.mars,
                 sykmeldingsperioder =
                     listOf(
                         3.mars til 13.mars,
@@ -181,7 +181,7 @@ class InnsendingServiceIT : EndToEndTest() {
                         24.februar til 26.februar,
                         1.mars til 1.mars,
                     ),
-                bestemmendeFravaersdager = mapOf(orgnr.verdi to 17.mars),
+                bestemmendeFravaersdager = mapOf(orgnr to 17.mars),
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
             )

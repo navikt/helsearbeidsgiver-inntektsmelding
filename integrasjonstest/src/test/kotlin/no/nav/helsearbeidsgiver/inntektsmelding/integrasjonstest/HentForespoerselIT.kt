@@ -31,7 +31,7 @@ class HentForespoerselIT : EndToEndTest() {
 
         mockForespoerselSvarFraHelsebro(
             forespoerselId = forespoerselId,
-            forespoerselSvar = mockForespoerselSvarSuksess(),
+            forespoerselSvar = mockForespoerselSvarSuksess().copy(forespoerselId = forespoerselId),
         )
 
         publish(

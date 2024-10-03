@@ -119,17 +119,4 @@ class ForespoerselSvarRiver : PriObjectRiver<ForespoerselSvarMelding>() {
         )
 }
 
-fun ForespoerselSvar.Suksess.toForespoersel(): Forespoersel =
-    Forespoersel(
-        type = type,
-        orgnr = orgnr,
-        fnr = fnr,
-        vedtaksperiodeId = vedtaksperiodeId,
-        sykmeldingsperioder = sykmeldingsperioder,
-        egenmeldingsperioder = egenmeldingsperioder,
-        bestemmendeFravaersdager = bestemmendeFravaersdager,
-        forespurtData = forespurtData,
-        erBesvart = erBesvart,
-    )
-
 private class ForespoerselManglerException : RuntimeException()

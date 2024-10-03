@@ -133,7 +133,7 @@ private object Mock {
             Key.DATA to
                 mapOf(
                     Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIdListe.toJson(UuidSerializer),
-                    Key.FORESPOERSLER_SVAR to
+                    Key.FORESPOERSEL_MAP to
                         forespoersler.toJson(
                             serializer = MapSerializer(UuidSerializer, Forespoersel.serializer()),
                         ),

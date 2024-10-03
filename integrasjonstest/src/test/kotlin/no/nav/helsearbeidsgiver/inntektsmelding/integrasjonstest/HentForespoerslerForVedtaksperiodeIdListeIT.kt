@@ -58,7 +58,7 @@ class HentForespoerslerForVedtaksperiodeIdListeIT : EndToEndTest() {
         // Forespørsler hentet
         messages
             .filter(EventName.FORESPOERSLER_REQUESTED)
-            .filter(Key.FORESPOERSLER_SVAR)
+            .filter(Key.FORESPOERSEL_MAP)
             .firstAsMap()
             .let {
                 // Verifiser transaksjon-ID
@@ -66,7 +66,7 @@ class HentForespoerslerForVedtaksperiodeIdListeIT : EndToEndTest() {
 
                 // Verifiser forespoersler
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-                data[Key.FORESPOERSLER_SVAR]?.fromJson(MapSerializer(UuidSerializer, Forespoersel.serializer())) shouldBe forventetedeForespoersler
+                data[Key.FORESPOERSEL_MAP]?.fromJson(MapSerializer(UuidSerializer, Forespoersel.serializer())) shouldBe forventetedeForespoersler
             }
 
         // API besvart gjennom redis

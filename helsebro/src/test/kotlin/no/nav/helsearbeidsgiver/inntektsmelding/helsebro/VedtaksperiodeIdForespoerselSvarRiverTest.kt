@@ -51,7 +51,7 @@ class VedtaksperiodeIdForespoerselSvarRiverTest :
                     Key.DATA to
                         data
                             .plus(
-                                Key.FORESPOERSLER_SVAR to
+                                Key.FORESPOERSEL_MAP to
                                     forespoersler.toJson(
                                         serializer = MapSerializer(UuidSerializer, Forespoersel.serializer()),
                                     ),

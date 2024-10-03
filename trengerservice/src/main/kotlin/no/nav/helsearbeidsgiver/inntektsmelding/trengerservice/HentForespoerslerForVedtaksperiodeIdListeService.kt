@@ -52,7 +52,7 @@ class HentForespoerslerForVedtaksperiodeIdListeService(
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
         Steg1(
-            forespoersler = Key.FORESPOERSLER_SVAR.les(serializer = MapSerializer(UuidSerializer, Forespoersel.serializer()), melding = melding),
+            forespoersler = Key.FORESPOERSEL_MAP.les(serializer = MapSerializer(UuidSerializer, Forespoersel.serializer()), melding = melding),
         )
 
     override fun utfoerSteg0(

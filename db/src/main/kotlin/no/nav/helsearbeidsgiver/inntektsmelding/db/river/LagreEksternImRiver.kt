@@ -48,7 +48,7 @@ class LagreEksternImRiver(
             )
         }
 
-    override fun LagreEksternImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
+    override fun LagreEksternImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         imRepo.lagreEksternInntektsmelding(forespoerselId, eksternInntektsmelding)
 
         "Lagret ekstern inntektsmelding med arkiv referanse ${eksternInntektsmelding.arkivreferanse} i database.".also {
@@ -66,7 +66,7 @@ class LagreEksternImRiver(
     override fun LagreEksternImMelding.haandterFeil(
         json: Map<Key, JsonElement>,
         error: Throwable,
-    ): Map<Key, JsonElement>? {
+    ): Map<Key, JsonElement> {
         val fail =
             Fail(
                 feilmelding = "Klarte ikke lagre ekstern inntektsmelding i database.",

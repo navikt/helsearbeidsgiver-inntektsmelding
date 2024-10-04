@@ -110,8 +110,6 @@ private fun HentForespoerselResultat.toResponse(): HentForespoerselResponse {
             eksternBestemmendeFravaersdag = forespoersel.eksternBestemmendeFravaersdag(),
             bruttoinntekt = inntekt?.gjennomsnitt(),
             tidligereinntekter = inntekt?.maanedOversikt.orEmpty(),
-            behandlingsperiode = null,
-            behandlingsdager = emptyList(),
             forespurtData = forespoersel.forespurtData,
             erBesvart = forespoersel.erBesvart,
             feilReport =

@@ -35,7 +35,7 @@ class ForespoerselBesvartFraSimbaRiver : ObjectRiver<BesvartSimbaMelding>() {
             )
         }
 
-    override fun BesvartSimbaMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
+    override fun BesvartSimbaMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         Metrics.forespoerslerBesvartFraSimba.inc()
 
         return notifikasjonHentIdMelding(transaksjonId, forespoerselId)

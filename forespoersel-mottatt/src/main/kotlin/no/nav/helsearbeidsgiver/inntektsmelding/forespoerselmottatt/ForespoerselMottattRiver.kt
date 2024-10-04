@@ -42,7 +42,7 @@ class ForespoerselMottattRiver : PriObjectRiver<Melding>() {
             fnr = Pri.Key.FNR.les(Fnr.serializer(), json),
         )
 
-    override fun Melding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement>? {
+    override fun Melding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok melding på pri-topic om ${Pri.NotisType.FORESPØRSEL_MOTTATT}.")
         sikkerLogger.info("Mottok melding på pri-topic:\n${json.toPretty()}")
 

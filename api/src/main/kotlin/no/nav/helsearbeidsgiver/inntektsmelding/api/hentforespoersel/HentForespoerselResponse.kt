@@ -27,10 +27,6 @@ data class HentForespoerselResponse(
     val eksternBestemmendeFravaersdag: LocalDate?,
     val bruttoinntekt: Double?,
     val tidligereinntekter: List<InntektPerMaaned>,
-    @Deprecated("fjern når det ikke lenger brukes i frontend")
-    val behandlingsperiode: Periode?,
-    @Deprecated("fjern når det ikke lenger brukes i frontend")
-    val behandlingsdager: List<LocalDate>,
     val forespurtData: ForespurtData?,
     val erBesvart: Boolean,
     val feilReport: FeilReport? = null,

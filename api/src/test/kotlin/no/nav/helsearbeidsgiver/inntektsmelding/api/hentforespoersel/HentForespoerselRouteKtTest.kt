@@ -236,8 +236,6 @@ private object Mock {
             "eksternBestemmendeFravaersdag": ${forespoersel.eksternBestemmendeFravaersdag().jsonStrOrNull()},
             "bruttoinntekt": ${inntekt.gjennomsnitt()},
             "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
-            "behandlingsperiode": null,
-            "behandlingsdager": [],
             "forespurtData": ${forespoersel.forespurtData.hardcodedJson()},
             "erBesvart": ${forespoersel.erBesvart},
             "success": {
@@ -253,8 +251,6 @@ private object Mock {
                 "eksternBestemmendeFravaersdag": ${forespoersel.eksternBestemmendeFravaersdag().jsonStrOrNull()},
                 "bruttoinntekt": ${inntekt.gjennomsnitt()},
                 "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
-                "behandlingsperiode": null,
-                "behandlingsdager": [],
                 "forespurtData": ${forespoersel.forespurtData.hardcodedJson()},
                 "erBesvart": ${forespoersel.erBesvart}
             }
@@ -276,8 +272,6 @@ private object Mock {
             "eksternBestemmendeFravaersdag": ${forespoersel.eksternBestemmendeFravaersdag().jsonStrOrNull()},
             "bruttoinntekt": ${inntekt.gjennomsnitt()},
             "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
-            "behandlingsperiode": null,
-            "behandlingsdager": [],
             "forespurtData": ${mockForespurtDataMedForrigeInntekt().hardcodedJson()},
             "erBesvart": ${forespoersel.erBesvart},
             "success": {
@@ -293,8 +287,6 @@ private object Mock {
                 "eksternBestemmendeFravaersdag": ${forespoersel.eksternBestemmendeFravaersdag().jsonStrOrNull()},
                 "bruttoinntekt": ${inntekt.gjennomsnitt()},
                 "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
-                "behandlingsperiode": null,
-                "behandlingsdager": [],
                 "forespurtData": ${mockForespurtDataMedForrigeInntekt().hardcodedJson()},
                 "erBesvart": ${forespoersel.erBesvart}
             }

@@ -1,14 +1,12 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
-import io.ktor.http.ContentType
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
 import io.ktor.server.response.respondText
 import io.ktor.server.response.respondTextWriter
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
-import io.prometheus.client.CollectorRegistry
-import io.prometheus.client.exporter.common.TextFormat
+import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 
 fun Application.helsesjekkerRouting() {
     routing {
@@ -25,8 +23,8 @@ fun Application.helsesjekkerRouting() {
                     ?.toSet()
                     .orEmpty()
 
-            call.respondTextWriter(ContentType.parse(TextFormat.CONTENT_TYPE_004)) {
-                TextFormat.write004(this, CollectorRegistry.defaultRegistry.filteredMetricFamilySamples(names))
+            call.respondTextWriter(Metrics.Expose.contentType004) {
+                Metrics.Expose.filteredMetricsWrite004(this, names)
             }
         }
     }

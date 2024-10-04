@@ -1,11 +1,27 @@
 package no.nav.helsearbeidsgiver.felles.metrics
 
+import io.ktor.http.ContentType
+import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.Counter
 import io.prometheus.client.Summary
+import io.prometheus.client.exporter.common.TextFormat
 import kotlinx.coroutines.runBlocking
+import java.io.Writer
 import kotlin.reflect.KFunction
 
 object Metrics {
+    val hentForespoerselEndpoint = endpointMetric("hent forespoersel")
+
+    val hentForespoerselIdListeEndpoint = endpointMetric("hent forespoersel ID liste")
+
+    val innsendingEndpoint = endpointMetric("innsending")
+
+    val kvitteringEndpoint = endpointMetric("kvittering")
+
+    val dbInntektsmelding = databaseMetric("inntektsmelding", "inntektsmelding")
+
+    val dbForespoersel = databaseMetric("inntektsmelding", "forespoersel")
+
     val dbSelvbestemtIm = databaseMetric("inntektsmelding", "selvbestemt_inntektsmelding")
 
     val dbSelvbestemtSak = databaseMetric("notifikasjon", "selvbestemt_sak")
@@ -27,6 +43,17 @@ object Metrics {
     val forespoerslerBesvartFraSimba = counterMetric("forespoersler besvart fra Simba")
 
     val forespoerslerBesvartFraSpleis = counterMetric("forespoersler besvart fra Spleis")
+
+    object Expose {
+        val contentType004 = ContentType.parse(TextFormat.CONTENT_TYPE_004)
+
+        fun filteredMetricsWrite004(
+            writer: Writer,
+            metricNames: Set<String>,
+        ) {
+            TextFormat.write004(writer, CollectorRegistry.defaultRegistry.filteredMetricFamilySamples(metricNames))
+        }
+    }
 }
 
 fun <T> Summary.recordTime(
@@ -40,6 +67,12 @@ fun <T> Summary.recordTime(
             requestTimer.observeDuration()
         }
 }
+
+private fun endpointMetric(endpointName: String): Summary =
+    latencyMetric(
+        name = endpointName,
+        description = "$endpointName endpoint",
+    )
 
 private fun databaseMetric(
     dbName: String,

@@ -67,11 +67,7 @@ class InnsendingService(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.LAGRE_IM_SKJEMA.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
-                Key.DATA to
-                    mapOf(
-                        Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
-                        Key.SKJEMA_INNTEKTSMELDING to steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
-                    ).toJson(),
+                Key.DATA to data.toJson(),
             ).also { loggBehovPublisert(BehovType.LAGRE_IM_SKJEMA, it) }
     }
 
@@ -94,11 +90,9 @@ class InnsendingService(
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
                         Key.UUID to steg0.transaksjonId.toJson(),
                         Key.DATA to
-                            mapOf(
-                                Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
-                                Key.SKJEMA_INNTEKTSMELDING to steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
-                                Key.INNSENDING_ID to steg1.innsendingId.toJson(Long.serializer()),
-                            ).toJson(),
+                            data
+                                .plus(Key.INNSENDING_ID to steg1.innsendingId.toJson(Long.serializer()))
+                                .toJson(),
                     )
 
             MdcUtils.withLogFields(

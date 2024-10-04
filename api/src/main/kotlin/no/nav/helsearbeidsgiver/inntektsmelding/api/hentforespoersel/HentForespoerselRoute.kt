@@ -4,11 +4,12 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import io.prometheus.client.Summary
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.domene.HentForespoerselResultat
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.metrics.Metrics
+import no.nav.helsearbeidsgiver.felles.metrics.recordTime
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -30,7 +31,7 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-fun Route.hentForespoerselRoute(
+fun Route.hentForespoersel(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
     redisConnection: RedisConnection,
@@ -38,66 +39,58 @@ fun Route.hentForespoerselRoute(
     val hentForespoerselProducer = HentForespoerselProducer(rapid)
     val redisPoller = RedisStore(redisConnection, RedisPrefix.HentForespoersel).let(::RedisPoller)
 
-    val requestLatency =
-        Summary
-            .build()
-            .name("simba_hent_forespoersel_latency_seconds")
-            .help("hent forespoersel endpoint latency in seconds")
-            .register()
-
     post(Routes.HENT_FORESPOERSEL) {
         val transaksjonId = UUID.randomUUID()
 
-        val requestTimer = requestLatency.startTimer()
-        runCatching {
-            receive(HentForespoerselRequest.serializer())
-        }.onSuccess { request ->
-            logger.info("Henter data for uuid: ${request.uuid}")
-            try {
-                tilgangskontroll.validerTilgangTilForespoersel(call.request, request.uuid)
+        Metrics.hentForespoerselEndpoint.recordTime(Route::hentForespoersel) {
+            runCatching {
+                receive(HentForespoerselRequest.serializer())
+            }.onSuccess { request ->
+                logger.info("Henter data for uuid: ${request.uuid}")
+                try {
+                    tilgangskontroll.validerTilgangTilForespoersel(call.request, request.uuid)
 
-                val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
+                    val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
 
-                hentForespoerselProducer.publish(transaksjonId, request, arbeidsgiverFnr)
+                    hentForespoerselProducer.publish(transaksjonId, request, arbeidsgiverFnr)
 
-                val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
+                    val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
 
-                sikkerLogger.info("Hentet forespørsel: $resultatJson")
+                    sikkerLogger.info("Hentet forespørsel: $resultatJson")
 
-                val resultat = resultatJson.success?.fromJson(HentForespoerselResultat.serializer())
-                if (resultat != null) {
-                    respond(HttpStatusCode.Created, resultat.toResponse(), HentForespoerselResponse.serializer())
-                } else {
-                    val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: "Teknisk feil, prøv igjen senere."
+                    val resultat = resultatJson.success?.fromJson(HentForespoerselResultat.serializer())
+                    if (resultat != null) {
+                        respond(HttpStatusCode.Created, resultat.toResponse(), HentForespoerselResponse.serializer())
+                    } else {
+                        val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: "Teknisk feil, prøv igjen senere."
+                        val response =
+                            ResultJson(
+                                failure = feilmelding.toJson(),
+                            )
+                        respond(HttpStatusCode.ServiceUnavailable, response, ResultJson.serializer())
+                    }
+                } catch (e: ManglerAltinnRettigheterException) {
                     val response =
                         ResultJson(
-                            failure = feilmelding.toJson(),
+                            failure = "Du har ikke rettigheter for organisasjon.".toJson(),
                         )
-                    respond(HttpStatusCode.ServiceUnavailable, response, ResultJson.serializer())
+                    respondForbidden(response, ResultJson.serializer())
+                } catch (_: RedisPollerTimeoutException) {
+                    logger.info("Fikk timeout for ${request.uuid}")
+                    val response =
+                        ResultJson(
+                            failure = RedisTimeoutResponse(request.uuid).toJson(RedisTimeoutResponse.serializer()),
+                        )
+                    respondInternalServerError(response, ResultJson.serializer())
                 }
-            } catch (e: ManglerAltinnRettigheterException) {
+            }.onFailure {
+                logger.error("Klarte ikke lese request.", it)
                 val response =
                     ResultJson(
-                        failure = "Du har ikke rettigheter for organisasjon.".toJson(),
+                        failure = "Mangler forespørsel-ID for å hente forespørsel.".toJson(),
                     )
-                respondForbidden(response, ResultJson.serializer())
-            } catch (_: RedisPollerTimeoutException) {
-                logger.info("Fikk timeout for ${request.uuid}")
-                val response =
-                    ResultJson(
-                        failure = RedisTimeoutResponse(request.uuid).toJson(RedisTimeoutResponse.serializer()),
-                    )
-                respondInternalServerError(response, ResultJson.serializer())
+                respondBadRequest(response, ResultJson.serializer())
             }
-        }.also {
-            requestTimer.observeDuration()
-        }.onFailure {
-            logger.error("Klarte ikke lese request.", it)
-            val response =
-                ResultJson(
-                    failure = "Mangler forespørsel-ID for å hente forespørsel.".toJson(),
-                )
-            respondBadRequest(response, ResultJson.serializer())
         }
     }
 }

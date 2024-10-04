@@ -9,7 +9,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
-import io.prometheus.client.CollectorRegistry
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -45,7 +44,6 @@ class HentPersonerRiverTest :
         beforeTest {
             testRapid.reset()
             clearAllMocks()
-            CollectorRegistry.defaultRegistry.clear()
         }
 
         test("finner én person") {

@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
-import io.prometheus.client.Summary
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.metrics.recordTime
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -26,16 +26,8 @@ class InntektsmeldingRepository(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    private val requestLatency =
-        Summary
-            .build()
-            .name("simba_db_inntektsmelding_repo_latency_seconds")
-            .help("database inntektsmeldingRepo latency in seconds")
-            .labelNames("method")
-            .register()
-
     fun hentNyesteInntektsmelding(forespoerselId: UUID): Inntektsmelding? =
-        requestLatency.recordTime(InntektsmeldingRepository::hentNyesteInntektsmelding) {
+        Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::hentNyesteInntektsmelding) {
             transaction(db) {
                 hentNyesteImQuery(forespoerselId)
                     .firstOrNull()
@@ -44,7 +36,7 @@ class InntektsmeldingRepository(
         }
 
     fun hentNyesteEksternEllerInternInntektsmelding(forespoerselId: UUID): Pair<Inntektsmelding?, EksternInntektsmelding?> =
-        requestLatency.recordTime(InntektsmeldingRepository::hentNyesteEksternEllerInternInntektsmelding) {
+        Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::hentNyesteEksternEllerInternInntektsmelding) {
             transaction(db) {
                 InntektsmeldingEntitet
                     .select(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.eksternInntektsmelding)
@@ -64,7 +56,7 @@ class InntektsmeldingRepository(
         innsendingId: Long,
         journalpostId: String,
     ) {
-        requestLatency.recordTime(InntektsmeldingRepository::oppdaterJournalpostId) {
+        Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::oppdaterJournalpostId) {
             val antallOppdatert =
                 transaction(db) {
                     InntektsmeldingEntitet.update(
@@ -102,7 +94,7 @@ class InntektsmeldingRepository(
     }
 
     fun hentNyesteBerikedeInnsendingId(forespoerselId: UUID): Long? =
-        requestLatency.recordTime(InntektsmeldingRepository::hentNyesteBerikedeInnsendingId) {
+        Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::hentNyesteBerikedeInnsendingId) {
             transaction(db) {
                 hentNyesteImQuery(forespoerselId)
                     .firstOrNull()
@@ -111,7 +103,7 @@ class InntektsmeldingRepository(
         }
 
     fun lagreInntektsmeldingSkjema(inntektsmeldingSkjema: SkjemaInntektsmelding): Long =
-        requestLatency.recordTime(InntektsmeldingRepository::lagreInntektsmeldingSkjema) {
+        Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::lagreInntektsmeldingSkjema) {
             transaction(db) {
                 InntektsmeldingEntitet.insert {
                     it[this.forespoerselId] = inntektsmeldingSkjema.forespoerselId.toString()
@@ -122,7 +114,7 @@ class InntektsmeldingRepository(
         }
 
     fun hentNyesteInntektsmeldingSkjema(forespoerselId: UUID): SkjemaInntektsmelding? =
-        requestLatency.recordTime(InntektsmeldingRepository::hentNyesteInntektsmeldingSkjema) {
+        Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::hentNyesteInntektsmeldingSkjema) {
             transaction(db) {
                 hentNyesteImSkjemaQuery(forespoerselId)
                     .firstOrNull()
@@ -136,7 +128,7 @@ class InntektsmeldingRepository(
         inntektsmeldingDokument: Inntektsmelding,
     ) {
         val antallOppdatert =
-            requestLatency.recordTime(InntektsmeldingRepository::oppdaterMedBeriketDokument) {
+            Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::oppdaterMedBeriketDokument) {
                 transaction(db) {
                     InntektsmeldingEntitet.update(
                         where = {

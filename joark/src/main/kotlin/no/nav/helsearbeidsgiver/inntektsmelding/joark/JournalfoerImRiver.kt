@@ -4,7 +4,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender
 import no.nav.helsearbeidsgiver.dokarkiv.domene.GjelderPerson
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -27,7 +26,6 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.time.LocalDate
 import java.util.UUID
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding as InntektsmeldingGammel
 
 data class JournalfoerImMelding(
     val eventName: EventName,
@@ -82,18 +80,7 @@ class JournalfoerImRiver(
             sikkerLogger.info("$it Innkommende melding:\n${json.toPretty()}")
         }
 
-        val inntektsmeldingGammeltFormat =
-            inntektsmelding
-                .convert()
-                .let {
-                    if (bestemmendeFravaersdag != null) {
-                        it.copy(bestemmendeFraværsdag = bestemmendeFravaersdag)
-                    } else {
-                        it
-                    }
-                }
-
-        val journalpostId = opprettOgFerdigstillJournalpost(transaksjonId, inntektsmeldingGammeltFormat)
+        val journalpostId = opprettOgFerdigstillJournalpost(transaksjonId, inntektsmelding, bestemmendeFravaersdag)
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
@@ -153,7 +140,8 @@ class JournalfoerImRiver(
 
     private fun opprettOgFerdigstillJournalpost(
         transaksjonId: UUID,
-        inntektsmelding: InntektsmeldingGammel,
+        inntektsmelding: Inntektsmelding,
+        bestemmendeFravaersdag: LocalDate?,
     ): String {
         "Prøver å opprette og ferdigstille journalpost.".also {
             logger.info(it)
@@ -164,14 +152,14 @@ class JournalfoerImRiver(
             Metrics.dokArkivRequest.recordTime(dokArkivClient::opprettOgFerdigstillJournalpost) {
                 dokArkivClient.opprettOgFerdigstillJournalpost(
                     tittel = "Inntektsmelding",
-                    gjelderPerson = GjelderPerson(inntektsmelding.identitetsnummer),
+                    gjelderPerson = GjelderPerson(inntektsmelding.sykmeldt.fnr.verdi),
                     avsender =
                         Avsender.Organisasjon(
-                            orgnr = inntektsmelding.orgnrUnderenhet,
-                            navn = inntektsmelding.virksomhetNavn,
+                            orgnr = inntektsmelding.avsender.orgnr.verdi,
+                            navn = inntektsmelding.avsender.orgNavn,
                         ),
                     datoMottatt = LocalDate.now(),
-                    dokumenter = tilDokumenter(transaksjonId, inntektsmelding),
+                    dokumenter = tilDokumenter(transaksjonId, inntektsmelding, bestemmendeFravaersdag),
                     eksternReferanseId = "ARI-$transaksjonId",
                     callId = "callId_$transaksjonId",
                 )

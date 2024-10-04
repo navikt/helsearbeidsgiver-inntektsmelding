@@ -5,12 +5,13 @@ import io.ktor.server.application.call
 import io.ktor.server.request.receiveText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import io.prometheus.client.Summary
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.metrics.Metrics
+import no.nav.helsearbeidsgiver.felles.metrics.recordTime
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -29,9 +30,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerE
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import java.util.UUID
-import kotlin.system.measureTimeMillis
 
-fun Route.innsendingRoute(
+fun Route.innsending(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
     redisConnection: RedisConnection,
@@ -39,17 +39,9 @@ fun Route.innsendingRoute(
     val producer = InnsendingProducer(rapid)
     val redisPoller = RedisStore(redisConnection, RedisPrefix.Innsending).let(::RedisPoller)
 
-    val requestLatency =
-        Summary
-            .build()
-            .name("simba_innsending_latency_seconds")
-            .help("innsending endpoint latency in seconds")
-            .register()
-
     // TODO ubrukt path param satt til optional. fjern i frontend, så her.
     post(Routes.INNSENDING + "/{forespoerselId?}") {
-        val requestTimer = requestLatency.startTimer()
-        measureTimeMillis {
+        Metrics.innsendingEndpoint.recordTime(Route::innsending) {
             val transaksjonId = UUID.randomUUID()
 
             val skjema =
@@ -119,9 +111,6 @@ fun Route.innsendingRoute(
                         }
                 }
             }
-        }.also {
-            requestTimer.observeDuration()
-            logger.info("Api call to ${Routes.INNSENDING} took $it ms")
         }
     }
 }

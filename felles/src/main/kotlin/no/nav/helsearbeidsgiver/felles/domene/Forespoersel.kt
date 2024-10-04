@@ -23,39 +23,42 @@ data class Forespoersel(
     val forespurtData: ForespurtData,
     val erBesvart: Boolean,
 ) {
-    fun forslagBestemmendeFravaersdag(): LocalDate =
-        finnTidligste(
-            spleisForslag = bestemmendeFravaersdager[orgnr],
-            beregnet =
-                bestemmendeFravaersdag(
-                    arbeidsgiverperioder = emptyList(),
-                    sykefravaersperioder = sykmeldingsperioder + egenmeldingsperioder,
-                ),
-        )
+    fun forslagBestemmendeFravaersdag(): LocalDate {
+        val forslag = bestemmendeFravaersdager[orgnr]
+        return brukForslagEllerUtled(forslag)
+    }
 
-    fun forslagInntektsdato(): LocalDate =
-        finnTidligste(
-            spleisForslag = bestemmendeFravaersdager.minOfOrNull { it.value },
-            beregnet =
-                bestemmendeFravaersdag(
-                    arbeidsgiverperioder = emptyList(),
-                    sykefravaersperioder = sykmeldingsperioder + egenmeldingsperioder,
-                ),
-        )
+    fun forslagInntektsdato(): LocalDate {
+        val forslag = bestemmendeFravaersdager.minOfOrNull { it.value }
+        return brukForslagEllerUtled(forslag)
+    }
 
     fun eksternBestemmendeFravaersdag(): LocalDate? =
         bestemmendeFravaersdager.minus(orgnr).minOfOrNull {
             it.value
         }
 
-    private fun finnTidligste(
-        spleisForslag: LocalDate?,
-        beregnet: LocalDate,
-    ): LocalDate = listOfNotNull(spleisForslag, beregnet).min()
+    private fun brukForslagEllerUtled(forslag: LocalDate?): LocalDate {
+        val utledet =
+            bestemmendeFravaersdag(
+                arbeidsgiverperioder = emptyList(),
+                sykefravaersperioder = egenmeldingsperioder.plus(sykmeldingsperioder).sortedBy { it.fom },
+            )
+
+        return if (forslag == null) {
+            utledet
+        } else {
+            // Spleis hensyntar ikke sykmeldtes rapporterte egenmeldinger når de utleder forslaget sitt
+            if (egenmeldingsperioder.isEmpty()) {
+                forslag
+            } else {
+                minOf(forslag, utledet)
+            }
+        }
+    }
 }
 
 enum class ForespoerselType {
     KOMPLETT,
     BEGRENSET,
-    POTENSIELL,
 }

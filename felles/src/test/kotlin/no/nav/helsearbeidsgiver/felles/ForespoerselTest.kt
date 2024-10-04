@@ -60,6 +60,27 @@ class ForespoerselTest :
                 forespoersel.forslagBestemmendeFravaersdag() shouldBe 1.juli
             }
 
+            test("bestemmende fraværsdag-forslaget fra Spleis brukes dersom det ikke finnes egenmeldinger") {
+                val orgnr = "555898023"
+
+                val forespoersel =
+                    mockForespoersel().copy(
+                        orgnr = orgnr,
+                        sykmeldingsperioder =
+                            listOf(
+                                15.juni til 15.juli,
+                            ),
+                        egenmeldingsperioder = emptyList(),
+                        bestemmendeFravaersdager =
+                            mapOf(
+                                orgnr to 1.juli,
+                                "444707112" to 13.mai,
+                            ),
+                    )
+
+                forespoersel.forslagBestemmendeFravaersdag() shouldBe 1.juli
+            }
+
             test("beregner bestemmende fraværsdag dersom det mangler for eget orgnr") {
                 val forespoersel =
                     mockForespoersel().copy(
@@ -141,6 +162,28 @@ class ForespoerselTest :
                     )
 
                 forespoersel.forslagInntektsdato() shouldBe 5.juni
+            }
+
+            test("gir minste bestemmende fraværsdag dersom det ikke finnes egenmeldinger") {
+                val orgnr = "333848343"
+
+                val forespoersel =
+                    mockForespoersel().copy(
+                        orgnr = orgnr,
+                        sykmeldingsperioder =
+                            listOf(
+                                1.desember til 31.desember,
+                            ),
+                        egenmeldingsperioder = emptyList(),
+                        bestemmendeFravaersdager =
+                            mapOf(
+                                orgnr to 11.desember,
+                                "851993994" to 8.desember,
+                                "900505434" to 7.desember,
+                            ),
+                    )
+
+                forespoersel.forslagInntektsdato() shouldBe 7.desember
             }
 
             test("beregner bestemmende fraværsdag fra sykmelding + egenmelding dersom de kommer tidligere enn bestemmende fraværsdager fra Spleis") {

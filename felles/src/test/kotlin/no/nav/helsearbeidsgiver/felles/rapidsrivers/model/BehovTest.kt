@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.model
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key

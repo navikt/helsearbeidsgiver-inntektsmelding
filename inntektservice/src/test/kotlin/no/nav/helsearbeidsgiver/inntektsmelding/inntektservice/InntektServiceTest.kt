@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.inntektservice
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.result.shouldBeSuccess
 import io.mockk.clearAllMocks
@@ -7,7 +8,6 @@ import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonObject
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key

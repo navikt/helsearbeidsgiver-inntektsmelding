@@ -1,8 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.prosessor
 
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.hag.utils.bakgrunnsjobb.Bakgrunnsjobb
 import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbProsesserer
-import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class FeilProsessor(

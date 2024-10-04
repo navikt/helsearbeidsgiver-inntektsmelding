@@ -2,12 +2,12 @@ package no.nav.helsearbeidsgiver.felles.metrics
 
 import io.ktor.http.ContentType
 import io.prometheus.client.CollectorRegistry
-import io.prometheus.client.Counter
-import io.prometheus.client.Summary
 import io.prometheus.client.exporter.common.TextFormat
 import kotlinx.coroutines.runBlocking
 import java.io.Writer
 import kotlin.reflect.KFunction
+import io.prometheus.client.Counter as PrometheusCounter
+import io.prometheus.client.Summary as PrometheusSummary
 
 object Metrics {
     val hentForespoerselEndpoint = endpointMetric("hent forespoersel")
@@ -56,16 +56,28 @@ object Metrics {
     }
 }
 
-fun <T> Summary.recordTime(
-    fnToRecord: KFunction<*>,
-    block: suspend () -> T,
-): T {
-    val requestTimer: Summary.Timer = labels(fnToRecord.name).startTimer()
+class Summary internal constructor(
+    private val summary: PrometheusSummary,
+) {
+    fun <T> recordTime(
+        fnToRecord: KFunction<*>,
+        block: suspend () -> T,
+    ): T {
+        val requestTimer: PrometheusSummary.Timer = summary.labels(fnToRecord.name).startTimer()
 
-    return runBlocking { block() }
-        .also {
-            requestTimer.observeDuration()
-        }
+        return runBlocking { block() }
+            .also {
+                requestTimer.observeDuration()
+            }
+    }
+}
+
+class Counter internal constructor(
+    private val counter: PrometheusCounter,
+) {
+    fun inc() {
+        counter.inc()
+    }
 }
 
 private fun endpointMetric(endpointName: String): Summary =
@@ -93,18 +105,20 @@ private fun latencyMetric(
     name: String,
     description: String,
 ): Summary =
-    Summary
+    PrometheusSummary
         .build()
         .name("simba_${name.toSnake()}_latency_seconds")
         .help("Latency (i sek.) for $description.")
         .labelNames("method")
         .register()
+        .let(::Summary)
 
 private fun counterMetric(description: String): Counter =
-    Counter
+    PrometheusCounter
         .build()
         .name("simba_${description.toSnake()}_counter")
         .help("Antall $description.")
         .register()
+        .let(::Counter)
 
 private fun String.toSnake(): String = replace(Regex("[ -]"), "_").lowercase()

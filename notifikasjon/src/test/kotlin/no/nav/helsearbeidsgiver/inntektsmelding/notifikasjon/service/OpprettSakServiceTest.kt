@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.mockk.clearAllMocks
 import io.mockk.verify
 import kotlinx.serialization.json.JsonObject
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key

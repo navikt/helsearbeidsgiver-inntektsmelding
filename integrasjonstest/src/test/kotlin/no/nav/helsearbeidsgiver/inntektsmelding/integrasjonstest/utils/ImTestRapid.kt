@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.json.JsonObject
-import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 
 class ImTestRapid : RapidsConnection() {

@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt
 
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "im-forespoersel-mottatt".logger()

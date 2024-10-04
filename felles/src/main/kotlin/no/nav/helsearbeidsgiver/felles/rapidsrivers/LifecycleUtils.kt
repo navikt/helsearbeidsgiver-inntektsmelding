@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers
 
-import no.nav.helse.rapids_rivers.RapidsConnection
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 
 fun RapidsConnection.registerShutdownLifecycle(onShutdown: () -> Unit): RapidsConnection =
     also {

@@ -80,8 +80,6 @@ class HentForespoerslerForVedtaksperiodeIdListeIT : EndToEndTest() {
 
         val hentForespoerslerResultat = resultJson.success.shouldNotBeNull().fromJson(MapSerializer(UuidSerializer, Forespoersel.serializer()))
 
-        hentForespoerslerResultat.shouldNotBeNull().also {
-            it shouldBe forventetedeForespoersler
-        }
+        hentForespoerslerResultat shouldBe forventetedeForespoersler
     }
 }

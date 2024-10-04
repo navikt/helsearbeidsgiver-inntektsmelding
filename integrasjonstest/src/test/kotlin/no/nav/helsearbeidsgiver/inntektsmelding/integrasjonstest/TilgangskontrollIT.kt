@@ -85,6 +85,7 @@ class TilgangskontrollIT : EndToEndTest() {
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar =
                 mockForespoerselSvarSuksess().copy(
+                    forespoerselId = Mock.forespoerselId,
                     orgnr = Mock.orgnrUtenTilgang,
                 ),
         )

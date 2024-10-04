@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -28,11 +29,11 @@ class TilgangskontrollIT : EndToEndTest() {
         clearAllMocks()
 
         coEvery {
-            altinnClient.harRettighetForOrganisasjon(Mock.innloggetFnr.verdi, Mock.ORGNR_MED_TILGANG)
+            altinnClient.harRettighetForOrganisasjon(Mock.innloggetFnr.verdi, Mock.orgnrMedTilgang.verdi)
         } returns true
 
         coEvery {
-            altinnClient.harRettighetForOrganisasjon(Mock.innloggetFnr.verdi, Mock.ORGNR_UTEN_TILGANG)
+            altinnClient.harRettighetForOrganisasjon(Mock.innloggetFnr.verdi, Mock.orgnrUtenTilgang.verdi)
         } returns false
     }
 
@@ -44,7 +45,8 @@ class TilgangskontrollIT : EndToEndTest() {
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar =
                 mockForespoerselSvarSuksess().copy(
-                    orgnr = Mock.ORGNR_MED_TILGANG,
+                    forespoerselId = Mock.forespoerselId,
+                    orgnr = Mock.orgnrMedTilgang,
                 ),
         )
 
@@ -83,7 +85,8 @@ class TilgangskontrollIT : EndToEndTest() {
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar =
                 mockForespoerselSvarSuksess().copy(
-                    orgnr = Mock.ORGNR_UTEN_TILGANG,
+                    forespoerselId = Mock.forespoerselId,
+                    orgnr = Mock.orgnrUtenTilgang,
                 ),
         )
 
@@ -107,7 +110,7 @@ class TilgangskontrollIT : EndToEndTest() {
 
     @Test
     fun `organisasjon - skal få tilgang`() {
-        tilgangProducer.publishOrgnr(UUID.randomUUID(), Mock.innloggetFnr, Mock.ORGNR_MED_TILGANG)
+        tilgangProducer.publishOrgnr(UUID.randomUUID(), Mock.innloggetFnr, Mock.orgnrMedTilgang.verdi)
 
         val result =
             messages
@@ -127,7 +130,7 @@ class TilgangskontrollIT : EndToEndTest() {
 
     @Test
     fun `organisasjon - skal bli nektet tilgang`() {
-        tilgangProducer.publishOrgnr(UUID.randomUUID(), Mock.innloggetFnr, Mock.ORGNR_UTEN_TILGANG)
+        tilgangProducer.publishOrgnr(UUID.randomUUID(), Mock.innloggetFnr, Mock.orgnrUtenTilgang.verdi)
 
         val result =
             messages
@@ -148,8 +151,8 @@ class TilgangskontrollIT : EndToEndTest() {
     private object Mock {
         val innloggetFnr = Fnr.genererGyldig()
 
-        const val ORGNR_MED_TILGANG = "654654654"
-        const val ORGNR_UTEN_TILGANG = "789789789"
+        val orgnrMedTilgang = Orgnr.genererGyldig()
+        val orgnrUtenTilgang = Orgnr.genererGyldig()
 
         val forespoerselId: UUID = UUID.randomUUID()
     }

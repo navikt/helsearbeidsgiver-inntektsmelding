@@ -23,7 +23,6 @@ import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.maxMekker
@@ -43,6 +42,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.Forespoersel as ForespoerselBro
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BerikInntektsmeldingServiceIT : EndToEndTest() {
@@ -357,15 +357,15 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             )
 
         val forespoerselSvar =
-            ForespoerselSvar.Suksess(
+            ForespoerselBro(
                 type = ForespoerselType.KOMPLETT,
-                orgnr = forespoersel.orgnr,
-                fnr = forespoersel.fnr,
+                orgnr = Orgnr(forespoersel.orgnr),
+                fnr = Fnr(forespoersel.fnr),
+                forespoerselId = forespoerselId,
                 vedtaksperiodeId = forespoersel.vedtaksperiodeId,
                 egenmeldingsperioder = forespoersel.egenmeldingsperioder,
                 sykmeldingsperioder = forespoersel.sykmeldingsperioder,
-                skjaeringstidspunkt = null,
-                bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager,
+                bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager.mapKeys { Orgnr(it.key) },
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
             )

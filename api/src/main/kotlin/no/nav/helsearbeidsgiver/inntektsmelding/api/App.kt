@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr.aktiveOrgnrRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoersel.hentForespoerselRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIdListe.hentForespoerselIdListeRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.hentselvbestemtim.hentSelvbestemtImRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.innsendingRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.inntektRoute
@@ -44,6 +45,7 @@ object Routes {
     const val PREFIX = "/api/v1"
 
     const val HENT_FORESPOERSEL = "/hent-forespoersel"
+    const val HENT_FORESPOERSEL_ID_LISTE = "/hent-forespoersel-id-liste"
     const val INNTEKT = "/inntekt"
     const val INNTEKT_SELVBESTEMT = "/inntekt-selvbestemt"
     const val INNSENDING = "/inntektsmelding"
@@ -115,6 +117,7 @@ fun Application.apiModule(
         authenticate {
             route(Routes.PREFIX) {
                 hentForespoerselRoute(rapid, tilgangskontroll, redisConnection)
+                hentForespoerselIdListeRoute(rapid, tilgangskontroll, redisConnection)
                 inntektRoute(rapid, tilgangskontroll, redisConnection)
                 inntektSelvbestemtRoute(rapid, tilgangskontroll, redisConnection)
                 innsendingRoute(rapid, tilgangskontroll, redisConnection)

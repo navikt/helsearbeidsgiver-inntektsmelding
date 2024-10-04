@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -13,91 +14,76 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.PriObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselListeSvar
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-data class ForespoerselSvarMelding(
+data class VedtaksperiodeIdForespoerselSvarMelding(
     val eventName: EventName,
     val behovType: Pri.BehovType,
     val transaksjonId: UUID,
     val data: Map<Key, JsonElement>,
-    val forespoerselSvar: ForespoerselSvar,
+    val forespoerselSvar: ForespoerselListeSvar,
 )
 
-class ForespoerselSvarRiver : PriObjectRiver<ForespoerselSvarMelding>() {
+class VedtaksperiodeIdForespoerselSvarRiver : PriObjectRiver<VedtaksperiodeIdForespoerselSvarMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun les(json: Map<Pri.Key, JsonElement>): ForespoerselSvarMelding {
-        val forespoerselSvar = Pri.Key.LØSNING.les(ForespoerselSvar.serializer(), json)
+    override fun les(json: Map<Pri.Key, JsonElement>): VedtaksperiodeIdForespoerselSvarMelding {
+        val forespoerselSvar = Pri.Key.LØSNING.les(ForespoerselListeSvar.serializer(), json)
         val boomerang = forespoerselSvar.boomerang.toMap()
 
-        return ForespoerselSvarMelding(
+        return VedtaksperiodeIdForespoerselSvarMelding(
             eventName = Key.EVENT_NAME.les(EventName.serializer(), boomerang),
-            behovType = Pri.Key.BEHOV.krev(Pri.BehovType.TRENGER_FORESPØRSEL, Pri.BehovType.serializer(), json),
+            behovType = Pri.Key.BEHOV.krev(Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE, Pri.BehovType.serializer(), json),
             transaksjonId = Key.UUID.les(UuidSerializer, boomerang),
             data = boomerang[Key.DATA]?.toMap().orEmpty(),
             forespoerselSvar = forespoerselSvar,
         )
     }
 
-    override fun ForespoerselSvarMelding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
+    override fun VedtaksperiodeIdForespoerselSvarMelding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok løsning på pri-topic om $behovType.")
         sikkerLogger.info("Mottok løsning på pri-topic:\n$json")
 
-        return if (forespoerselSvar.resultat != null) {
-            val forespoersel = forespoerselSvar.resultat.toForespoersel()
+        val forespoersler = forespoerselSvar.resultat.associate { it.forespoerselId to it.toForespoersel() }
 
+        return if (forespoerselSvar.feil == null) {
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.DATA to
                     data
                         .plus(
-                            mapOf(
-                                Key.FORESPOERSEL_ID to forespoerselSvar.forespoerselId.toJson(),
-                                Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
-                            ),
+                            Key.FORESPOERSEL_MAP to
+                                forespoersler.toJson(
+                                    serializer = MapSerializer(UuidSerializer, Forespoersel.serializer()),
+                                ),
                         ).toJson(),
             )
         } else {
-            throw ForespoerselManglerException()
+            throw ForespoerselFraVedtaksperiodeIdException()
         }
     }
 
-    override fun ForespoerselSvarMelding.haandterFeil(
+    override fun VedtaksperiodeIdForespoerselSvarMelding.haandterFeil(
         json: Map<Pri.Key, JsonElement>,
         error: Throwable,
     ): Map<Key, JsonElement> {
-        val feilmelding =
-            when (error) {
-                is ForespoerselManglerException -> {
-                    if (forespoerselSvar.feil != null) {
-                        "Klarte ikke hente forespørsel. Feilet med kode '${forespoerselSvar.feil}'."
-                    } else {
-                        "Svar fra bro-appen har hverken resultat eller feil."
-                    }
-                }
-
-                else -> {
-                    "Klarte ikke hente forespørsel. Ukjent feil."
-                }
-            }
-
         val fail =
             Fail(
-                feilmelding = feilmelding,
+                feilmelding = "Klarte ikke hente forespørsler for vedtaksperiode-IDer. Ukjent feil.",
                 event = eventName,
                 transaksjonId = transaksjonId,
-                forespoerselId = forespoerselSvar.forespoerselId,
+                forespoerselId = null,
                 utloesendeMelding =
                     mapOf(
                         Key.EVENT_NAME to eventName.toJson(),
-                        Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
+                        Key.BEHOV to BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(),
                         Key.UUID to transaksjonId.toJson(),
                         Key.DATA to data.toJson(),
                     ).toJson(),
@@ -109,14 +95,13 @@ class ForespoerselSvarRiver : PriObjectRiver<ForespoerselSvarMelding>() {
         return fail.tilMelding()
     }
 
-    override fun ForespoerselSvarMelding.loggfelt(): Map<String, String> =
+    override fun VedtaksperiodeIdForespoerselSvarMelding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this@ForespoerselSvarRiver),
+            Log.klasse(this@VedtaksperiodeIdForespoerselSvarRiver),
             Log.event(eventName),
-            Log.behov(BehovType.HENT_TRENGER_IM),
+            Log.behov(BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE),
             Log.transaksjonId(transaksjonId),
-            Log.forespoerselId(forespoerselSvar.forespoerselId),
         )
 }
 
-private class ForespoerselManglerException : RuntimeException()
+private class ForespoerselFraVedtaksperiodeIdException : RuntimeException()

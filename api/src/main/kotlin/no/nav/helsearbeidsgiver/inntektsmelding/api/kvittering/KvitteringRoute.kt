@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import io.prometheus.client.Summary
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -16,6 +15,8 @@ import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.InnsendtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.metrics.Metrics
+import no.nav.helsearbeidsgiver.felles.metrics.recordTime
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -38,22 +39,14 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.time.ZoneId
 import java.util.UUID
-import kotlin.system.measureTimeMillis
 
-fun Route.kvitteringRoute(
+fun Route.kvittering(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
     redisConnection: RedisConnection,
 ) {
     val kvitteringProducer = KvitteringProducer(rapid)
     val redisPoller = RedisStore(redisConnection, RedisPrefix.Kvittering).let(::RedisPoller)
-
-    val requestLatency =
-        Summary
-            .build()
-            .name("simba_kvittering_latency_seconds")
-            .help("kvittering endpoint latency in seconds")
-            .register()
 
     get(Routes.KVITTERING) {
         val transaksjonId = UUID.randomUUID()
@@ -71,14 +64,9 @@ fun Route.kvitteringRoute(
             }
         } else {
             logger.info("Henter data for forespørselId: $forespoerselId")
-            val requestTimer = requestLatency.startTimer()
-            measureTimeMillis {
+            Metrics.kvitteringEndpoint.recordTime(Route::kvittering) {
                 try {
-                    measureTimeMillis {
-                        tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
-                    }.also {
-                        logger.info("Authorize took $it")
-                    }
+                    tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
 
                     kvitteringProducer.publish(transaksjonId, forespoerselId)
                     val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
@@ -108,9 +96,6 @@ fun Route.kvitteringRoute(
                     logger.error("Fikk timeout for forespørselId: $forespoerselId")
                     respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
                 }
-            }.also {
-                requestTimer.observeDuration()
-                logger.info("api call took $it")
             }
         }
     }

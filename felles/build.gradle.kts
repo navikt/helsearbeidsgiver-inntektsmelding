@@ -2,6 +2,7 @@ val kotestVersion: String by project
 val lettuceVersion: String by project
 val mockkVersion: String by project
 val rapidsAndRiversVersion: String by project
+val prometheusVersion: String by project
 val slf4jVersion: String by project
 val utilsVersion: String by project
 
@@ -14,6 +15,7 @@ dependencies {
     api("org.slf4j:slf4j-api:$slf4jVersion")
 
     implementation("io.lettuce:lettuce-core:$lettuceVersion")
+    implementation("io.prometheus:simpleclient:$prometheusVersion")
 
     testFixturesApi("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
     testFixturesApi("io.lettuce:lettuce-core:$lettuceVersion")

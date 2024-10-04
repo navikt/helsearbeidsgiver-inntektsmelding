@@ -6,7 +6,6 @@ import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.util.pipeline.PipelineContext
-import io.prometheus.client.Summary
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -15,6 +14,8 @@ import no.nav.helsearbeidsgiver.felles.Tekst.UGYLDIG_REQUEST
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.domene.VedtaksperiodeIdForespoerselIdPar
+import no.nav.helsearbeidsgiver.felles.metrics.Metrics
+import no.nav.helsearbeidsgiver.felles.metrics.recordTime
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -38,7 +39,7 @@ import java.util.UUID
 
 const val MAKS_ANTALL_VEDTAKSPERIODE_IDER = 100
 
-fun Route.hentForespoerselIdListeRoute(
+fun Route.hentForespoerselIdListe(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
     redisConnection: RedisConnection,
@@ -46,43 +47,34 @@ fun Route.hentForespoerselIdListeRoute(
     val hentForespoerslerProducer = HentForespoerslerProducer(rapid)
     val redisPoller = RedisStore(redisConnection, RedisPrefix.HentForespoerslerForVedtaksperiodeIdListe).let(::RedisPoller)
 
-    val requestLatency =
-        Summary
-            .build()
-            .name("simba_hent_forespoersel_id_liste_latency_seconds")
-            .help("hent forespoersel id liste endpoint latency in seconds")
-            .register()
-
     post(Routes.HENT_FORESPOERSEL_ID_LISTE) {
-        val requestTimer = requestLatency.startTimer()
-
-        runCatching {
-            receive(HentForespoerslerRequest.serializer())
-        }.onSuccess { request ->
-            if (request.vedtaksperiodeIdListe.size > MAKS_ANTALL_VEDTAKSPERIODE_IDER) {
-                loggErrorSikkerOgUsikker(
-                    "Stopper forsøk på å hente forespørsler for mer enn $MAKS_ANTALL_VEDTAKSPERIODE_IDER vedtaksperiode-IDer på en gang.",
-                )
-                respondBadRequest(UGYLDIG_REQUEST, String.serializer())
-            } else {
-                try {
-                    hentForespoersler(request, hentForespoerslerProducer, redisPoller, tilgangskontroll)
-                } catch (_: ManglerAltinnRettigheterException) {
-                    respondForbidden("Mangler rettigheter for organisasjon.", String.serializer())
-                } catch (e: RedisPollerTimeoutException) {
-                    loggErrorSikkerOgUsikker("Fikk timeout ved henting av forespørselIDer for vedtaksperiodeIDene: ${request.vedtaksperiodeIdListe}", e)
-                    respondInternalServerError(RedisTimeoutResponse(), RedisTimeoutResponse.serializer())
-                } catch (e: Exception) {
-                    loggErrorSikkerOgUsikker("Ukjent feil ved henting av forespørselIDer for vedtaksperiodeIDene: ${request.vedtaksperiodeIdListe}", e)
-                    respondInternalServerError(TEKNISK_FEIL_FORBIGAAENDE, String.serializer())
+        Metrics.hentForespoerselIdListeEndpoint.recordTime(Route::hentForespoerselIdListe) {
+            runCatching {
+                receive(HentForespoerslerRequest.serializer())
+            }.onSuccess { request ->
+                if (request.vedtaksperiodeIdListe.size > MAKS_ANTALL_VEDTAKSPERIODE_IDER) {
+                    loggErrorSikkerOgUsikker(
+                        "Stopper forsøk på å hente forespørsler for mer enn $MAKS_ANTALL_VEDTAKSPERIODE_IDER vedtaksperiode-IDer på en gang.",
+                    )
+                    respondBadRequest(UGYLDIG_REQUEST, String.serializer())
+                } else {
+                    try {
+                        hentForespoersler(request, hentForespoerslerProducer, redisPoller, tilgangskontroll)
+                    } catch (_: ManglerAltinnRettigheterException) {
+                        respondForbidden("Mangler rettigheter for organisasjon.", String.serializer())
+                    } catch (e: RedisPollerTimeoutException) {
+                        loggErrorSikkerOgUsikker("Fikk timeout ved henting av forespørselIDer for vedtaksperiodeIDene: ${request.vedtaksperiodeIdListe}", e)
+                        respondInternalServerError(RedisTimeoutResponse(), RedisTimeoutResponse.serializer())
+                    } catch (e: Exception) {
+                        loggErrorSikkerOgUsikker("Ukjent feil ved henting av forespørselIDer for vedtaksperiodeIDene: ${request.vedtaksperiodeIdListe}", e)
+                        respondInternalServerError(TEKNISK_FEIL_FORBIGAAENDE, String.serializer())
+                    }
                 }
-            }
-        }.also {
-            requestTimer.observeDuration()
-        }.onFailure {
-            "Klarte ikke lese request.".let { feilMelding ->
-                loggErrorSikkerOgUsikker(feilMelding, it)
-                respondBadRequest(feilMelding, String.serializer())
+            }.onFailure {
+                "Klarte ikke lese request.".let { feilMelding ->
+                    loggErrorSikkerOgUsikker(feilMelding, it)
+                    respondBadRequest(feilMelding, String.serializer())
+                }
             }
         }
     }

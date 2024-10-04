@@ -5,7 +5,6 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import io.prometheus.client.CollectorRegistry
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
@@ -263,8 +262,6 @@ abstract class EndToEndTest : ContainerTest() {
 
     @AfterAll
     fun afterAllEndToEnd() {
-        // Prometheus-metrikker spenner bein på testene uten denne
-        CollectorRegistry.defaultRegistry.clear()
         redisConnection.close()
         inntektsmeldingDatabase.dataSource.close()
         notifikasjonDatabase.dataSource.close()

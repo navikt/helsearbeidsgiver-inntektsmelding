@@ -21,13 +21,13 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr.aktiveOrgnrRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
-import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoersel.hentForespoerselRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIdListe.hentForespoerselIdListeRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoersel.hentForespoersel
+import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIdListe.hentForespoerselIdListe
 import no.nav.helsearbeidsgiver.inntektsmelding.api.hentselvbestemtim.hentSelvbestemtImRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.innsendingRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.innsending
 import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.inntektRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.inntektselvbestemt.inntektSelvbestemtRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.kvitteringRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.kvittering
 import no.nav.helsearbeidsgiver.inntektsmelding.api.lagreselvbestemtim.lagreSelvbestemtImRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgangorgnr.tilgangOrgnrRoute
@@ -116,12 +116,12 @@ fun Application.apiModule(
 
         authenticate {
             route(Routes.PREFIX) {
-                hentForespoerselRoute(rapid, tilgangskontroll, redisConnection)
-                hentForespoerselIdListeRoute(rapid, tilgangskontroll, redisConnection)
+                hentForespoersel(rapid, tilgangskontroll, redisConnection)
+                hentForespoerselIdListe(rapid, tilgangskontroll, redisConnection)
                 inntektRoute(rapid, tilgangskontroll, redisConnection)
                 inntektSelvbestemtRoute(rapid, tilgangskontroll, redisConnection)
-                innsendingRoute(rapid, tilgangskontroll, redisConnection)
-                kvitteringRoute(rapid, tilgangskontroll, redisConnection)
+                innsending(rapid, tilgangskontroll, redisConnection)
+                kvittering(rapid, tilgangskontroll, redisConnection)
                 lagreSelvbestemtImRoute(rapid, tilgangskontroll, redisConnection)
                 hentSelvbestemtImRoute(rapid, tilgangskontroll, redisConnection)
                 aktiveOrgnrRoute(rapid, redisConnection)

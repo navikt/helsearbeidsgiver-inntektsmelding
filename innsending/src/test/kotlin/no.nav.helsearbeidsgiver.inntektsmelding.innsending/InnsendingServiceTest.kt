@@ -23,7 +23,7 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.json.plusData
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
@@ -43,7 +43,7 @@ class InnsendingServiceTest :
         val testRapid = TestRapid()
         val mockRedis = MockRedis(RedisPrefix.Innsending)
 
-        ServiceRiverStateful(
+        ServiceRiverStateless(
             InnsendingService(testRapid, mockRedis.store),
         ).connect(testRapid)
 
@@ -81,7 +81,11 @@ class InnsendingServiceTest :
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.message(0).lesBehov() shouldBe BehovType.LAGRE_IM_SKJEMA
 
-            testRapid.sendJson(Mock.steg1(transaksjonId))
+            testRapid.sendJson(
+                Mock.steg1(transaksjonId).plusData(
+                    Key.SKJEMA_INNTEKTSMELDING to nyttSkjema.toJson(SkjemaInntektsmelding.serializer()),
+                ),
+            )
 
             testRapid.inspektør.size shouldBeExactly 2
             testRapid.message(1).toMap().also {
@@ -211,6 +215,8 @@ private object Mock {
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
+                    Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
+                    Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
                     Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
                     Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
                 ).toJson(),

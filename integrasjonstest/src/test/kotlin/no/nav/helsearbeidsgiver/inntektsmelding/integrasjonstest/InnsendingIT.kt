@@ -74,7 +74,6 @@ class InnsendingIT : EndToEndTest() {
             Key.UUID to UUID.randomUUID().toJson(),
             Key.DATA to
                 mapOf(
-                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                     Key.ARBEIDSGIVER_FNR to Mock.forespoersel.fnr.toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
                 ).toJson(),

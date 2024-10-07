@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -39,9 +38,8 @@ data class Steg1(
 
 class InnsendingService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore,
-) : ServiceMed1Steg<Steg0, Steg1>(),
-    Service.MedRedis {
+    private val redisStore: RedisStore,
+) : ServiceMed1Steg<Steg0, Steg1>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
@@ -69,10 +67,7 @@ class InnsendingService(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.LAGRE_IM_SKJEMA.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
-                Key.DATA to
-                    mapOf(
-                        Key.SKJEMA_INNTEKTSMELDING to steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
-                    ).toJson(),
+                Key.DATA to data.toJson(),
             ).also { loggBehovPublisert(BehovType.LAGRE_IM_SKJEMA, it) }
     }
 
@@ -95,11 +90,9 @@ class InnsendingService(
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
                         Key.UUID to steg0.transaksjonId.toJson(),
                         Key.DATA to
-                            mapOf(
-                                Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
-                                Key.SKJEMA_INNTEKTSMELDING to steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
-                                Key.INNSENDING_ID to steg1.innsendingId.toJson(Long.serializer()),
-                            ).toJson(),
+                            data
+                                .plus(Key.INNSENDING_ID to steg1.innsendingId.toJson(Long.serializer()))
+                                .toJson(),
                     )
 
             MdcUtils.withLogFields(

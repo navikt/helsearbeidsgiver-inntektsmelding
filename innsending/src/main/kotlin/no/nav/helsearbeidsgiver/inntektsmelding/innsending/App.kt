@@ -6,7 +6,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.utils.log.logger
 
@@ -26,7 +25,7 @@ fun main() {
 fun RapidsConnection.createInnsending(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${InnsendingService::class.simpleName}...")
-        ServiceRiverStateful(
+        ServiceRiverStateless(
             InnsendingService(
                 rapid = this,
                 redisStore = RedisStore(redisConnection, RedisPrefix.Innsending),

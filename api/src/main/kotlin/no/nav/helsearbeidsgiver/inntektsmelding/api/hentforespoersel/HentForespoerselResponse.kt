@@ -19,8 +19,6 @@ data class HentForespoerselResponse(
     val innsenderNavn: String,
     val identitetsnummer: String,
     val orgnrUnderenhet: String,
-    @Deprecated("fjern når det ikke lenger brukes i frontend")
-    val skjaeringstidspunkt: LocalDate?,
     val fravaersperioder: List<Periode>,
     val egenmeldingsperioder: List<Periode>,
     val bestemmendeFravaersdag: LocalDate,

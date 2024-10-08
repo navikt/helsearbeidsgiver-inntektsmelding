@@ -103,7 +103,6 @@ private fun HentForespoerselResultat.toResponse(): HentForespoerselResponse {
             orgNavn = orgNavn,
             identitetsnummer = forespoersel.fnr,
             orgnrUnderenhet = forespoersel.orgnr,
-            skjaeringstidspunkt = forespoersel.eksternBestemmendeFravaersdag(),
             fravaersperioder = forespoersel.sykmeldingsperioder,
             egenmeldingsperioder = forespoersel.egenmeldingsperioder,
             bestemmendeFravaersdag = forespoersel.forslagBestemmendeFravaersdag(),

@@ -4,7 +4,7 @@ azure:
 database:
   - name: notifikasjon
 logical_decoding: true
-dbTier: db-f1-micro
+dbTier: db-custom-1-3840
 envFrom:
   - type: secret
     name: google-sql-im-notifikasjon

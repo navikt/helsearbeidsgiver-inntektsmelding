@@ -19,18 +19,12 @@ data class HentForespoerselResponse(
     val innsenderNavn: String,
     val identitetsnummer: String,
     val orgnrUnderenhet: String,
-    @Deprecated("fjern når det ikke lenger brukes i frontend")
-    val skjaeringstidspunkt: LocalDate?,
     val fravaersperioder: List<Periode>,
     val egenmeldingsperioder: List<Periode>,
     val bestemmendeFravaersdag: LocalDate,
     val eksternBestemmendeFravaersdag: LocalDate?,
     val bruttoinntekt: Double?,
     val tidligereinntekter: List<InntektPerMaaned>,
-    @Deprecated("fjern når det ikke lenger brukes i frontend")
-    val behandlingsperiode: Periode?,
-    @Deprecated("fjern når det ikke lenger brukes i frontend")
-    val behandlingsdager: List<LocalDate>,
     val forespurtData: ForespurtData?,
     val erBesvart: Boolean,
     val feilReport: FeilReport? = null,

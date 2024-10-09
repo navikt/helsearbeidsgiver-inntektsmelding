@@ -23,10 +23,9 @@ import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 class InnsendingRouteKtTest : ApiTest() {
-    private val path = Routes.PREFIX + Routes.INNSENDING + "/${UUID.randomUUID()}"
+    private val path = Routes.PREFIX + Routes.INNSENDING
 
     @BeforeEach
     fun setup() {

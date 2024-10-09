@@ -41,7 +41,6 @@ Content-Type: application/json
     "utbetalerHeleEllerDeler": false
   },
   "bekreftOpplysninger": true,
-  "behandlingsdager": [],
   "årsakInnsending": "NY"
 }
 

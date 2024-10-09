@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db
 
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
-import no.nav.helsearbeidsgiver.felles.metrics.recordTime
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakLevetid
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger

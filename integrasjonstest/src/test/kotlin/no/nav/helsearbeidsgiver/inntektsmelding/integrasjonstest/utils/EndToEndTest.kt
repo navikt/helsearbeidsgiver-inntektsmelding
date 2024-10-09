@@ -1,6 +1,10 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
@@ -10,8 +14,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import no.nav.hag.utils.bakgrunnsjobb.PostgresBakgrunnsjobbRepository
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
@@ -281,7 +283,12 @@ abstract class EndToEndTest : ContainerTest() {
             .toJson()
             .toString()
             .let {
-                JsonMessage(it, MessageProblems(it), null)
+                JsonMessage(
+                    originalMessage = it,
+                    problems = MessageProblems(it),
+                    metrics = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
+                    randomIdGenerator = null,
+                )
             }.toJson()
             .also(imTestRapid::publish)
             .parseJson()

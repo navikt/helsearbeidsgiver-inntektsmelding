@@ -1,8 +1,8 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.river
 
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
-import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils

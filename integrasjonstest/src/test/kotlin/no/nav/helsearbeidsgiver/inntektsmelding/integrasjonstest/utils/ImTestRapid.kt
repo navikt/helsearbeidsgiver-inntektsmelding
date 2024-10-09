@@ -1,7 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import kotlinx.serialization.json.JsonObject
-import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 
 class ImTestRapid : RapidsConnection() {
@@ -38,7 +40,11 @@ class ImTestRapid : RapidsConnection() {
 
         println("Rapid: $message")
 
-        notifyMessage(message, this)
+        notifyMessage(
+            message = message,
+            context = this,
+            metrics = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
+        )
     }
 }
 

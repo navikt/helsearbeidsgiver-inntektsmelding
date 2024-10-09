@@ -1,5 +1,4 @@
 val ktorVersion: String by project
-val lettuceVersion: String by project
 val mockOauth2ServerVersion: String by project
 val tokenSupportVersion: String by project
 

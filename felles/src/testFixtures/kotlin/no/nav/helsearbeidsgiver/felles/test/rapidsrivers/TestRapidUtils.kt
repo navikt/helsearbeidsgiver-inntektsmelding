@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.felles.test.rapidsrivers
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import kotlinx.serialization.json.JsonElement
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson

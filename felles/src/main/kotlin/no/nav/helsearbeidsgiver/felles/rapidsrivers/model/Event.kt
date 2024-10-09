@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.model
 
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import kotlinx.serialization.json.JsonElement
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson

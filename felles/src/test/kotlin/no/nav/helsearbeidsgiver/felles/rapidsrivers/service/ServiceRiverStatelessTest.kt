@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.service
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
@@ -7,7 +8,6 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key

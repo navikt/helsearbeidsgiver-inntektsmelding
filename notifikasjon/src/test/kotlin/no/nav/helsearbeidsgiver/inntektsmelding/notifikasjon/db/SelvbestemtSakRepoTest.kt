@@ -14,20 +14,20 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 import java.util.UUID
 
-class SelvbestemtRepoTest :
+class SelvbestemtSakRepoTest :
     FunSpecWithDb(listOf(SelvbestemtSak), { db ->
 
-        val selvbestemtRepo = SelvbestemtRepo(db)
+        val selvbestemtSakRepo = SelvbestemtSakRepo(db)
 
         test("lagrer sak-ID") {
             val selvbestemtId = UUID.randomUUID()
             val sakId = "trallende-sarkofag"
 
-            val antallLagret = selvbestemtRepo.lagreSakId(selvbestemtId, sakId)
+            val antallLagret = selvbestemtSakRepo.lagreSakId(selvbestemtId, sakId)
 
             antallLagret shouldBeExactly 1
 
-            val alleSaker = lesAlleSaker(db)
+            val alleSaker = db.lesAlleSaker()
 
             alleSaker shouldHaveSize 1
             alleSaker.first().also { lagret ->
@@ -42,12 +42,12 @@ class SelvbestemtRepoTest :
             val sakId1 = "sensitiv-xylofon"
             val sakId2 = "kampklar-banan"
 
-            selvbestemtRepo.lagreSakId(selvbestemtId, sakId1)
+            selvbestemtSakRepo.lagreSakId(selvbestemtId, sakId1)
 
-            lesAlleSaker(db) shouldHaveSize 1
+            db.lesAlleSaker() shouldHaveSize 1
 
             shouldThrowExactly<ExposedSQLException> {
-                selvbestemtRepo.lagreSakId(selvbestemtId, sakId2)
+                selvbestemtSakRepo.lagreSakId(selvbestemtId, sakId2)
             }
         }
 
@@ -56,17 +56,17 @@ class SelvbestemtRepoTest :
             val selvbestemtId2 = UUID.randomUUID()
             val sakId = "brautende-flaske"
 
-            selvbestemtRepo.lagreSakId(selvbestemtId1, sakId)
+            selvbestemtSakRepo.lagreSakId(selvbestemtId1, sakId)
 
-            lesAlleSaker(db) shouldHaveSize 1
+            db.lesAlleSaker() shouldHaveSize 1
 
             shouldThrowExactly<ExposedSQLException> {
-                selvbestemtRepo.lagreSakId(selvbestemtId2, sakId)
+                selvbestemtSakRepo.lagreSakId(selvbestemtId2, sakId)
             }
         }
     })
 
-private fun lesAlleSaker(db: Database): List<ResultRow> =
-    transaction(db) {
+private fun Database.lesAlleSaker(): List<ResultRow> =
+    transaction(this) {
         SelvbestemtSak.selectAll().toList()
     }

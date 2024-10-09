@@ -26,7 +26,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtSakRepo
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
@@ -35,10 +35,10 @@ class OpprettSelvbestemtSakRiverTest :
 
         val testRapid = TestRapid()
         val mockUrl = "selvbestemt-lenke"
-        val mockSelvbestemtRepo = mockk<SelvbestemtRepo>()
         val mockagNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
+        val mockSelvbestemtSakRepo = mockk<SelvbestemtSakRepo>()
 
-        OpprettSelvbestemtSakRiver(mockUrl, mockSelvbestemtRepo, mockagNotifikasjonKlient).connect(testRapid)
+        OpprettSelvbestemtSakRiver(mockUrl, mockagNotifikasjonKlient, mockSelvbestemtSakRepo).connect(testRapid)
 
         beforeTest {
             testRapid.reset()
@@ -50,7 +50,7 @@ class OpprettSelvbestemtSakRiverTest :
             val innkommendeMelding = innkommendeMelding()
 
             coEvery { mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any()) } returns sakId
-            every { mockSelvbestemtRepo.lagreSakId(any(), any()) } returns 1
+            every { mockSelvbestemtSakRepo.lagreSakId(any(), any()) } returns 1
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -82,7 +82,7 @@ class OpprettSelvbestemtSakRiverTest :
                     initiellStatus = SaksStatus.FERDIG,
                     harddeleteOm = any(),
                 )
-                mockSelvbestemtRepo.lagreSakId(innkommendeMelding.inntektsmelding.type.id, sakId)
+                mockSelvbestemtSakRepo.lagreSakId(innkommendeMelding.inntektsmelding.type.id, sakId)
             }
         }
 
@@ -113,7 +113,7 @@ class OpprettSelvbestemtSakRiverTest :
                     mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
                 }
                 verify(exactly = 0) {
-                    mockSelvbestemtRepo.lagreSakId(any(), any())
+                    mockSelvbestemtSakRepo.lagreSakId(any(), any())
                 }
             }
 
@@ -122,7 +122,7 @@ class OpprettSelvbestemtSakRiverTest :
                 val forventetFail = innkommendeMelding.toFail()
 
                 coEvery { mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any()) } returns UUID.randomUUID().toString()
-                every { mockSelvbestemtRepo.lagreSakId(any(), any()) } throws RuntimeException("RIPperoni")
+                every { mockSelvbestemtSakRepo.lagreSakId(any(), any()) } throws RuntimeException("RIPperoni")
 
                 testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -140,7 +140,7 @@ class OpprettSelvbestemtSakRiverTest :
 
                 coVerifySequence {
                     mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
-                    mockSelvbestemtRepo.lagreSakId(any(), any())
+                    mockSelvbestemtSakRepo.lagreSakId(any(), any())
                 }
             }
         }
@@ -163,7 +163,7 @@ class OpprettSelvbestemtSakRiverTest :
 
                 coVerify(exactly = 0) {
                     mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
-                    mockSelvbestemtRepo.lagreSakId(any(), any())
+                    mockSelvbestemtSakRepo.lagreSakId(any(), any())
                 }
             }
         }
@@ -194,7 +194,7 @@ private fun OpprettSelvbestemtSakMelding.toMap(): Map<Key, JsonElement> =
 
 private fun OpprettSelvbestemtSakMelding.toFail(): Fail =
     Fail(
-        feilmelding = "Klarte ikke lagre sak for selvbestemt inntektsmelding.",
+        feilmelding = "Klarte ikke opprette/lagre sak for selvbestemt inntektsmelding.",
         event = EventName.SELVBESTEMT_IM_MOTTATT,
         transaksjonId = transaksjonId,
         forespoerselId = null,

@@ -10,7 +10,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtSakRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.ForespoerselLagretRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OppgaveFerdigLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettOppgaveLoeser
@@ -18,7 +18,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSakLoe
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSelvbestemtSakRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.SakFerdigLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.SlettSakLoeser
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service.ManuellOpprettSakService
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service.OpprettOppgaveService
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service.OpprettSakService
 import no.nav.helsearbeidsgiver.tokenprovider.oauth2ClientCredentialsTokenGetter
@@ -35,15 +34,15 @@ fun main() {
     database.migrate()
     logger.info("Migrering ferdig.")
 
-    val selvbestemtRepo = SelvbestemtRepo(database.db)
+    val selvbestemtSakRepo = SelvbestemtSakRepo(database.db)
 
     RapidApplication
         .create(System.getenv())
         .createNotifikasjonServices(redisConnection)
         .createNotifikasjonRivers(
             Env.linkUrl,
-            selvbestemtRepo,
             buildClient(),
+            selvbestemtSakRepo,
         ).registerShutdownLifecycle {
             redisConnection.close()
 
@@ -66,21 +65,12 @@ fun RapidsConnection.createNotifikasjonServices(redisConnection: RedisConnection
         ServiceRiverStateless(
             OpprettOppgaveService(this),
         ).connect(this)
-
-        logger.info("Starter ${ManuellOpprettSakService::class.simpleName}...")
-        // TODO kandidat for stateless
-        ServiceRiverStateful(
-            ManuellOpprettSakService(
-                rapid = this,
-                redisStore = RedisStore(redisConnection, RedisPrefix.ManuellOpprettSak),
-            ),
-        ).connect(this)
     }
 
 fun RapidsConnection.createNotifikasjonRivers(
     linkUrl: String,
-    selvbestemtRepo: SelvbestemtRepo,
     arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
+    selvbestemtSakRepo: SelvbestemtSakRepo,
 ): RapidsConnection =
     also {
         logger.info("Starter ${ForespoerselLagretRiver::class.simpleName}...")
@@ -102,7 +92,7 @@ fun RapidsConnection.createNotifikasjonRivers(
         SlettSakLoeser(this, arbeidsgiverNotifikasjonKlient)
 
         logger.info("Starter ${OpprettSelvbestemtSakRiver::class.simpleName}...")
-        OpprettSelvbestemtSakRiver(linkUrl, selvbestemtRepo, arbeidsgiverNotifikasjonKlient).connect(this)
+        OpprettSelvbestemtSakRiver(linkUrl, arbeidsgiverNotifikasjonKlient, selvbestemtSakRepo).connect(this)
     }
 
 private fun buildClient(): ArbeidsgiverNotifikasjonKlient {

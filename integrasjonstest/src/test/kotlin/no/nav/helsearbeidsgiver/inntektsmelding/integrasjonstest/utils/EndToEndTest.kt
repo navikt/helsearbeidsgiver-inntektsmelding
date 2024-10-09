@@ -57,7 +57,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektServ
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJournalfoerImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonServices
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtSakRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdlRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.selvbestemthentimservice.createHentSelvbestemtImService
 import no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice.createLagreSelvbestemtImService
@@ -180,7 +180,7 @@ abstract class EndToEndTest : ContainerTest() {
     val selvbestemtImRepo by lazy { SelvbestemtImRepo(inntektsmeldingDatabase.db) }
     val forespoerselRepository by lazy { ForespoerselRepository(inntektsmeldingDatabase.db) }
 
-    private val selvbestemtRepo by lazy { SelvbestemtRepo(notifikasjonDatabase.db) }
+    private val selvbestemtSakRepo by lazy { SelvbestemtSakRepo(notifikasjonDatabase.db) }
 
     val bakgrunnsjobbRepository by lazy { PostgresBakgrunnsjobbRepository(bakgrunnsjobbDatabase.dataSource) }
 
@@ -256,7 +256,7 @@ abstract class EndToEndTest : ContainerTest() {
             createHentInntektRiver(inntektClient)
             createJournalfoerImRiver(dokarkivClient)
             createMarkerForespoerselBesvart(mockPriProducer)
-            createNotifikasjonRivers(NOTIFIKASJON_LINK, selvbestemtRepo, arbeidsgiverNotifikasjonKlient)
+            createNotifikasjonRivers(NOTIFIKASJON_LINK, arbeidsgiverNotifikasjonKlient, selvbestemtSakRepo)
             createPdlRiver(pdlKlient)
             createFeilLytter(bakgrunnsjobbRepository)
         }

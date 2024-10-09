@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
-import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
@@ -28,18 +27,16 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
         }
 
     return Metrics.agNotifikasjonRequest.recordTime(::opprettNySak) {
-        runBlocking {
-            opprettNySak(
-                virksomhetsnummer = orgnr,
-                merkelapp = "Inntektsmelding sykepenger",
-                grupperingsid = inntektsmeldingTypeId.toString(),
-                lenke = lenke,
-                tittel = "Inntektsmelding for $sykmeldtNavn: f. $sykmeldtFoedselsdato",
-                statusTekst = statusTekst,
-                initiellStatus = initiellStatus,
-                harddeleteOm = sakLevetid,
-            )
-        }
+        opprettNySak(
+            virksomhetsnummer = orgnr,
+            merkelapp = "Inntektsmelding sykepenger",
+            grupperingsid = inntektsmeldingTypeId.toString(),
+            lenke = lenke,
+            tittel = "Inntektsmelding for $sykmeldtNavn: f. $sykmeldtFoedselsdato",
+            statusTekst = statusTekst,
+            initiellStatus = initiellStatus,
+            harddeleteOm = sakLevetid,
+        )
     }
 }
 
@@ -48,13 +45,11 @@ fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(
     nyLenkeTilSak: String,
 ) {
     Metrics.agNotifikasjonRequest.recordTime(::nyStatusSak) {
-        runBlocking {
-            nyStatusSak(
-                id = sakId,
-                status = SaksStatus.FERDIG,
-                statusTekst = STATUS_TEKST_FERDIG,
-                nyLenkeTilSak = nyLenkeTilSak,
-            )
-        }
+        nyStatusSak(
+            id = sakId,
+            status = SaksStatus.FERDIG,
+            statusTekst = STATUS_TEKST_FERDIG,
+            nyLenkeTilSak = nyLenkeTilSak,
+        )
     }
 }

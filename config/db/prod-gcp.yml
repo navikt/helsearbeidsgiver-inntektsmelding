@@ -5,7 +5,7 @@ database:
   - name: inntektsmelding
     users: [ simba_datastream_bruker ]
 logical_decoding: true
-dbTier: db-f1-micro
+dbTier: db-custom-1-3840
 envFrom:
   - type: secret
     name: google-sql-im-db

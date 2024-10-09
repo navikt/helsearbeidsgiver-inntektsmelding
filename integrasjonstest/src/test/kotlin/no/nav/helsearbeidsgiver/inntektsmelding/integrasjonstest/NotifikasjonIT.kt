@@ -7,12 +7,9 @@ import io.mockk.coVerify
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -147,95 +144,6 @@ class NotifikasjonIT : EndToEndTest() {
                 val oppgaveId = it[Key.OPPGAVE_ID]?.fromJsonToString()
 
                 oppgaveId shouldBe Mock.OPPGAVE_ID
-            }
-    }
-
-    @Test
-    fun `Oppretter og lagrer sak ved manuell rekjøring`() {
-        val transaksjonId: UUID = UUID.randomUUID()
-
-        coEvery {
-            arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
-        } returns Mock.SAK_ID
-
-        publish(
-            Key.EVENT_NAME to EventName.MANUELL_OPPRETT_SAK_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.DATA to
-                mapOf(
-                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                ).toJson(),
-        )
-
-        messages
-            .filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
-            .filter(BehovType.HENT_TRENGER_IM)
-            .firstAsMap()
-            .also {
-                val data = it[Key.DATA].shouldNotBeNull().toMap()
-                Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data) shouldBe Mock.forespoerselId
-            }
-
-        publish(
-            Key.EVENT_NAME to EventName.MANUELL_OPPRETT_SAK_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.DATA to
-                mapOf(
-                    Key.FORESPOERSEL_SVAR to
-                        mockForespoersel().copy(fnr = Mock.fnr.verdi, orgnr = Mock.orgnr.verdi).toJson(
-                            Forespoersel.serializer(),
-                        ),
-                ).toJson(),
-        )
-
-        messages
-            .filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
-            .filter(BehovType.HENT_PERSONER)
-            .firstAsMap()
-            .also {
-                val data = it[Key.DATA].shouldNotBeNull().toMap()
-                data[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-                data[Key.FNR_LISTE]?.fromJson(Fnr.serializer().set()) shouldBe setOf(Mock.fnr)
-            }
-
-        messages
-            .filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
-            .filter(Key.PERSONER)
-            .firstAsMap()
-            .also {
-                val data = it[Key.DATA].shouldNotBeNull().toMap()
-                data[Key.PERSONER]
-                    ?.fromJson(personMapSerializer)
-                    .shouldNotBeNull()
-            }
-
-        messages
-            .filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
-            .filter(BehovType.OPPRETT_SAK)
-            .firstAsMap()
-            .also {
-                it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-            }
-
-        messages
-            .filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
-            .filter(Key.SAK_ID, nestedData = false)
-            .firstAsMap()
-            .also {
-                val sakId = it[Key.SAK_ID]?.fromJsonToString()
-
-                sakId shouldBe Mock.SAK_ID
-
-                val forespoerselId = it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer)
-
-                forespoerselId shouldBe Mock.forespoerselId
-            }
-
-        messages
-            .filter(EventName.SAK_OPPRETTET)
-            .firstAsMap()
-            .also {
-                it[Key.SAK_ID]?.fromJsonToString() shouldBe Mock.SAK_ID
             }
     }
 

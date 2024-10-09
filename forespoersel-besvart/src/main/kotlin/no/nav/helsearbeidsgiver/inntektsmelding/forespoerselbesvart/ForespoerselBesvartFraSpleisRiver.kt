@@ -44,7 +44,7 @@ class ForespoerselBesvartFraSpleisRiver(
             spinnInntektsmeldingId = Pri.Key.SPINN_INNTEKTSMELDING_ID.lesOrNull(UuidSerializer, json),
         )
 
-    override fun BesvartSpleisMelding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement>? {
+    override fun BesvartSpleisMelding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok melding på pri-topic om ${Pri.NotisType.FORESPOERSEL_BESVART}.")
         sikkerLogger.info("Mottok melding på pri-topic:\n${json.toPretty()}")
 

@@ -24,7 +24,7 @@ class AuthorizationTest : ApiTest() {
                 Routes.HENT_FORESPOERSEL to ::postUtenAuth,
                 Routes.INNTEKT to ::postUtenAuth,
                 Routes.INNTEKT_SELVBESTEMT to ::postUtenAuth,
-                Routes.INNSENDING + "/0" to ::postUtenAuth,
+                Routes.INNSENDING to ::postUtenAuth,
                 Routes.SELVBESTEMT_INNTEKTSMELDING to ::postUtenAuth,
                 Routes.SELVBESTEMT_INNTEKTSMELDING + "/0" to ::getUtenAuth,
                 Routes.KVITTERING to ::getUtenAuth,

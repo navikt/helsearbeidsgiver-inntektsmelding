@@ -38,8 +38,7 @@ fun Route.innsending(
     val producer = InnsendingProducer(rapid)
     val redisPoller = RedisStore(redisConnection, RedisPrefix.Innsending).let(::RedisPoller)
 
-    // TODO ubrukt path param satt til optional. fjern i frontend, så her.
-    post(Routes.INNSENDING + "/{forespoerselId?}") {
+    post(Routes.INNSENDING) {
         Metrics.innsendingEndpoint.recordTime(Route::innsending) {
             val transaksjonId = UUID.randomUUID()
 

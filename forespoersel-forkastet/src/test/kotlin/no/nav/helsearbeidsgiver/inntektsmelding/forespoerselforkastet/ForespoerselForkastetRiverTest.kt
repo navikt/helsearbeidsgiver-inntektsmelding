@@ -6,7 +6,9 @@ import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldContainKey
 import io.mockk.clearAllMocks
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
@@ -18,7 +20,7 @@ class ForespoerselForkastetRiverTest :
     FunSpec({
         val testRapid = TestRapid()
 
-        ForespoerselForkastetRiver(testRapid).connect(testRapid)
+        ForespoerselForkastetRiver().connect(testRapid)
 
         beforeEach {
             testRapid.reset()
@@ -27,10 +29,14 @@ class ForespoerselForkastetRiverTest :
 
         test("Ved notis om forkastet forespørsel publiseres event om at oppgave settes til utgått") {
             val forespoerselId = UUID.randomUUID()
-            val forventetPublisert = notifikasjonHentIdMelding(UUID.randomUUID(), forespoerselId)
+            val forventetPublisert = mapOf(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_FORKASTET.toJson(),
+                Key.UUID to UUID.randomUUID().toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            )
 
             testRapid.sendJson(
-                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
+                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FORKASTET.toJson(Pri.NotisType.serializer()),
                 Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             )
 

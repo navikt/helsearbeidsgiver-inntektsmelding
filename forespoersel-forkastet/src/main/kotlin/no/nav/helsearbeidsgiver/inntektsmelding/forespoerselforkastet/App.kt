@@ -20,5 +20,5 @@ fun main() {
 fun RapidsConnection.createForespoerselForkastetRiver(): RapidsConnection =
     also {
         logger.info("Starter ${ForespoerselForkastetRiver::class.simpleName}...")
-        ForespoerselForkastetRiver(this).connect(this)
+        ForespoerselForkastetRiver().connect(this)
     }

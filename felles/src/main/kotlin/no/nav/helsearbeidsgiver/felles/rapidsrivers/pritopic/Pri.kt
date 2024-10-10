@@ -59,6 +59,7 @@ object Pri {
         FORESPØRSEL_MOTTATT,
         FORESPOERSEL_BESVART,
         FORESPOERSEL_BESVART_SIMBA,
+        FORESPOERSEL_FORKASTET,
     }
 
     internal object KeySerializer : AsStringSerializer<Key>(

@@ -52,7 +52,7 @@ class ForespoerselForkastetRiver : PriObjectRiver<ForkastetMelding>() {
         json: Map<Pri.Key, JsonElement>,
         error: Throwable,
     ): Map<Key, JsonElement>? {
-        "Klarte ikke markere forespørsel som forkastet. Arbeidsgiver kan ha åpen sak og oppgave.".also {
+        "Klarte ikke videresendre beskjed om forkastet forespørsel. Arbeidsgiver kan ha åpen sak og oppgave.".also {
             logger.error("$it Se sikker logg for mer info.")
             sikkerLogger.error(it, error)
         }

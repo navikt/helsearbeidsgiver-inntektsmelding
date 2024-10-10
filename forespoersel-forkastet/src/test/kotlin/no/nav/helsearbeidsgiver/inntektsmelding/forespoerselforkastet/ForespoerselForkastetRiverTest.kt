@@ -27,7 +27,7 @@ class ForespoerselForkastetRiverTest :
             clearAllMocks()
         }
 
-        test("Ved notis om forkastet forespørsel publiseres event om at oppgave settes til utgått") {
+        test("Ved notis om forkastet forespørsel publiseres event om forkastet forespørsel") {
             val forespoerselId = UUID.randomUUID()
             val forventetPublisert =
                 mapOf(

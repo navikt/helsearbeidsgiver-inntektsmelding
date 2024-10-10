@@ -6,7 +6,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.toPretty
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.PriObjectRiver
@@ -24,7 +23,7 @@ data class ForkastetMelding(
 )
 
 /** Tar imot notifikasjon om at en forespørsel om arbeidsgiveropplysninger er forkastet. */
-class ForespoerselForkastetRiver() : PriObjectRiver<ForkastetMelding>() {
+class ForespoerselForkastetRiver : PriObjectRiver<ForkastetMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -40,7 +39,7 @@ class ForespoerselForkastetRiver() : PriObjectRiver<ForkastetMelding>() {
         sikkerLogger.info("Mottok melding på pri-topic:\n${json.toPretty()}")
 
         // lag ny metrikk for forespørsler forkastet fra spleis
-        //Metrics.forespoerslerBesvartFraSpleis.inc()
+        // Metrics.forespoerslerBesvartFraSpleis.inc()
 
         return mapOf(
             Key.EVENT_NAME to EventName.FORESPOERSEL_FORKASTET.toJson(),

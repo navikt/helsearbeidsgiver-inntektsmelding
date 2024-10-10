@@ -29,11 +29,12 @@ class ForespoerselForkastetRiverTest :
 
         test("Ved notis om forkastet forespørsel publiseres event om at oppgave settes til utgått") {
             val forespoerselId = UUID.randomUUID()
-            val forventetPublisert = mapOf(
-                Key.EVENT_NAME to EventName.FORESPOERSEL_FORKASTET.toJson(),
-                Key.UUID to UUID.randomUUID().toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            )
+            val forventetPublisert =
+                mapOf(
+                    Key.EVENT_NAME to EventName.FORESPOERSEL_FORKASTET.toJson(),
+                    Key.UUID to UUID.randomUUID().toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                )
 
             testRapid.sendJson(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FORKASTET.toJson(Pri.NotisType.serializer()),

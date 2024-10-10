@@ -20,6 +20,7 @@ dependencies {
     testImplementation(project(":db"))
     testImplementation(project(":distribusjon"))
     testImplementation(project(":forespoersel-besvart"))
+    testImplementation(project(":forespoersel-forkastet"))
     testImplementation(project(":forespoersel-marker-besvart"))
     testImplementation(project(":forespoersel-mottatt"))
     testImplementation(project(":helsebro"))

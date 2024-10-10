@@ -20,37 +20,33 @@ class SelvbestemtSakRepo(
     fun lagreSakId(
         selvbestemtId: UUID,
         sakId: String,
-    ): Int {
+    ) {
         "Skal lagre sak-ID for selvbestemt inntektsmelding.".also {
             logger.info(it)
             sikkerLogger.info(it)
         }
 
-        val antallLagret =
-            Metrics.dbSelvbestemtSak
-                .recordTime(::lagreSakId) {
-                    transaction(db) {
-                        SelvbestemtSak
-                            .insert {
-                                it[this.selvbestemtId] = selvbestemtId
-                                it[this.sakId] = sakId
-                                it[slettes] = LocalDateTime.now().plus(sakLevetid.toJavaDuration())
-                            }.insertedCount
-                    }
+        runCatching {
+            Metrics.dbSelvbestemtSak.recordTime(::lagreSakId) {
+                transaction(db) {
+                    SelvbestemtSak
+                        .insert {
+                            it[this.selvbestemtId] = selvbestemtId
+                            it[this.sakId] = sakId
+                            it[slettes] = LocalDateTime.now().plus(sakLevetid.toJavaDuration())
+                        }
                 }
-
-        if (antallLagret == 1) {
-            "Lagret sak-ID for selvbestemt inntektsmelding.".also {
-                logger.info(it)
-                sikkerLogger.info(it)
             }
-        } else {
-            "Lagret uventet antall ($antallLagret) rader med sak-ID '$sakId' for selvbestemt inntektsmelding.".also {
-                logger.error(it)
-                sikkerLogger.error(it)
+        }.onSuccess {
+            "Lagret sak-ID for selvbestemt inntektsmelding.".also { msg ->
+                logger.info(msg)
+                sikkerLogger.info(msg)
+            }
+        }.onFailure { error ->
+            "Lagret _ikke_ sak-ID '$sakId' for selvbestemt inntektsmelding.".also { msg ->
+                logger.error(msg)
+                sikkerLogger.error(msg, error)
             }
         }
-
-        return antallLagret
     }
 }

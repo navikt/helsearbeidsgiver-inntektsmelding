@@ -1,12 +1,10 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db
 
-import io.kotest.assertions.throwables.shouldThrowExactly
+import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.felles.db.exposed.test.FunSpecWithDb
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakLevetid
-import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.selectAll
@@ -23,9 +21,7 @@ class SelvbestemtSakRepoTest :
             val selvbestemtId = UUID.randomUUID()
             val sakId = "trallende-sarkofag"
 
-            val antallLagret = selvbestemtSakRepo.lagreSakId(selvbestemtId, sakId)
-
-            antallLagret shouldBeExactly 1
+            selvbestemtSakRepo.lagreSakId(selvbestemtId, sakId)
 
             val alleSaker = db.lesAlleSaker()
 
@@ -37,7 +33,7 @@ class SelvbestemtSakRepoTest :
             }
         }
 
-        test("lagrer ikke sak-ID ved konflikt på selvbestemt-ID") {
+        test("lagrer ikke sak-ID ved konflikt på selvbestemt-ID, men kaster ikke feil") {
             val selvbestemtId = UUID.randomUUID()
             val sakId1 = "sensitiv-xylofon"
             val sakId2 = "kampklar-banan"
@@ -46,12 +42,12 @@ class SelvbestemtSakRepoTest :
 
             db.lesAlleSaker() shouldHaveSize 1
 
-            shouldThrowExactly<ExposedSQLException> {
+            shouldNotThrowAny {
                 selvbestemtSakRepo.lagreSakId(selvbestemtId, sakId2)
             }
         }
 
-        test("lagrer ikke sak-ID ved konflikt på sak-ID") {
+        test("lagrer ikke sak-ID ved konflikt på sak-ID, men kaster ikke feil") {
             val selvbestemtId1 = UUID.randomUUID()
             val selvbestemtId2 = UUID.randomUUID()
             val sakId = "brautende-flaske"
@@ -60,7 +56,7 @@ class SelvbestemtSakRepoTest :
 
             db.lesAlleSaker() shouldHaveSize 1
 
-            shouldThrowExactly<ExposedSQLException> {
+            shouldNotThrowAny {
                 selvbestemtSakRepo.lagreSakId(selvbestemtId2, sakId)
             }
         }

@@ -5,11 +5,13 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
+import io.mockk.Runs
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
@@ -50,7 +52,7 @@ class OpprettSelvbestemtSakRiverTest :
             val innkommendeMelding = innkommendeMelding()
 
             coEvery { mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any()) } returns sakId
-            every { mockSelvbestemtSakRepo.lagreSakId(any(), any()) } returns 1
+            every { mockSelvbestemtSakRepo.lagreSakId(any(), any()) } just Runs
 
             testRapid.sendJson(innkommendeMelding.toMap())
 

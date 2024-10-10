@@ -5,7 +5,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
-import io.mockk.coVerifySequence
 import io.mockk.mockk
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -50,9 +49,10 @@ class OppgaveUtgaattLoeserTest :
 
             actual shouldBe expected
 
-            coVerifySequence {
-                mockAgNotifikasjonKlient.oppgaveUtgaatt(Mock.oppgaveId)
-            }
+            // TODO: Ta med igjen i testen når vi har hentet oppgaveId fra ny notifikasjonsdatabase.
+            // coVerifySequence {
+            //    mockAgNotifikasjonKlient.oppgaveUtgaatt(Mock.oppgaveId)
+            // }
         }
     })
 

@@ -9,15 +9,12 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
-import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -97,17 +94,17 @@ class OppgaveUtgaattLoeser(
         transaksjonId: UUID,
         context: MessageContext,
     ) {
-        // TODO: Erstatt logg med kall til agNotifikasjonKlient.oppgaveUtgaatt(oppgaveId) når vi har hentet oppgaveId fra ny notifikasjonsdatabase.
+//        TODO: Erstatt logg med kall til agNotifikasjonKlient.oppgaveUtgaatt(oppgaveId) når vi har hentet oppgaveId fra ny notifikasjonsdatabase.
         logger.info("Kall til agNotifikasjonKlient for å sette oppgave utgått ikke implementert ennå.")
-        // Metrics.agNotifikasjonRequest.recordTime(agNotifikasjonKlient::oppgaveUtgaatt) {
-        //    agNotifikasjonKlient.oppgaveUtgaatt(oppgaveId)
-        // }
+//         Metrics.agNotifikasjonRequest.recordTime(agNotifikasjonKlient::oppgaveUtgaatt) {
+//            agNotifikasjonKlient.oppgaveUtgaatt(oppgaveId)
+//         }
 
-        context.publish(
-            Key.EVENT_NAME to EventName.OPPGAVE_UTGAATT.toJson(),
-            Key.OPPGAVE_ID to oppgaveId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-        )
+//        context.publish(
+//            Key.EVENT_NAME to EventName.OPPGAVE_UTGAATT.toJson(),
+//            Key.OPPGAVE_ID to oppgaveId.toJson(),
+//            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+//            Key.UUID to transaksjonId.toJson(),
+//        )
     }
 }

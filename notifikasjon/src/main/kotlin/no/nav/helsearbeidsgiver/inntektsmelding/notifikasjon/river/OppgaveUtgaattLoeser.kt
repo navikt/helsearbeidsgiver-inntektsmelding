@@ -9,12 +9,16 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -76,35 +80,33 @@ class OppgaveUtgaattLoeser(
         context: MessageContext,
     ) {
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-        val oppgaveId = "" // TODO: Hent oppgaveId fra ny notifikasjonsdatabase.
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
-            Log.oppgaveId(oppgaveId),
             Log.forespoerselId(forespoerselId),
             Log.transaksjonId(transaksjonId),
         ) {
-            settOppgaveUtgaatt(oppgaveId, forespoerselId, transaksjonId, context)
+            settOppgaveUtgaatt(forespoerselId, transaksjonId, context)
         }
     }
 
     private fun settOppgaveUtgaatt(
-        oppgaveId: String,
         forespoerselId: UUID,
         transaksjonId: UUID,
         context: MessageContext,
     ) {
-//        TODO: Erstatt logg med kall til agNotifikasjonKlient.oppgaveUtgaatt(oppgaveId) når vi har hentet oppgaveId fra ny notifikasjonsdatabase.
-        logger.info("Kall til agNotifikasjonKlient for å sette oppgave utgått ikke implementert ennå.")
-//         Metrics.agNotifikasjonRequest.recordTime(agNotifikasjonKlient::oppgaveUtgaatt) {
-//            agNotifikasjonKlient.oppgaveUtgaatt(oppgaveId)
-//         }
+        Metrics.agNotifikasjonRequest.recordTime(agNotifikasjonKlient::oppgaveUtgaattByEksternId) {
+            agNotifikasjonKlient.oppgaveUtgaattByEksternId(
+                merkelapp = "Inntektsmelding sykepenger",
+                eksternId = forespoerselId.toString(),
+                nyLenke = "https://arbeidsgiver.intern.dev.nav.no/im-dialog/not-found/not-found",
+            )
+        }
 
-//        context.publish(
-//            Key.EVENT_NAME to EventName.OPPGAVE_UTGAATT.toJson(),
-//            Key.OPPGAVE_ID to oppgaveId.toJson(),
-//            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-//            Key.UUID to transaksjonId.toJson(),
-//        )
+        context.publish(
+            Key.EVENT_NAME to EventName.OPPGAVE_UTGAATT.toJson(),
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+        )
     }
 }

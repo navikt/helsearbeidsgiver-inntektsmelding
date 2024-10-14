@@ -1,26 +1,22 @@
-@file:UseSerializers(UuidSerializer::class)
-
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
-import io.kotest.matchers.shouldBe
+import io.kotest.matchers.maps.shouldContainExactly
 import io.mockk.clearAllMocks
+import io.mockk.coEvery
 import io.mockk.coVerifySequence
 import io.mockk.mockk
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
@@ -28,58 +24,90 @@ class SakFerdigLoeserTest :
     FunSpec({
         val testRapid = TestRapid()
         val mockAgNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
-        val linkUrl = "dummyurl"
-        SakFerdigLoeser(testRapid, mockAgNotifikasjonKlient, linkUrl)
+        val mockLinkUrl = "mock-url"
+        SakFerdigLoeser(testRapid, mockAgNotifikasjonKlient, mockLinkUrl)
 
         beforeEach {
             testRapid.reset()
             clearAllMocks()
         }
 
-        test("Ved besvart forespørsel med sak-ID så ferdigstilles saken") {
-            val expected = PublishedSak.mock()
+        test("Ved besvart forespørsel så ferdigstilles saken") {
+            val sakId = UUID.randomUUID().toString()
+            val forespoerselId = UUID.randomUUID()
+            val transaksjonId = UUID.randomUUID()
 
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.SAK_ID to expected.sakId.toJson(),
-                Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
-                Key.UUID to expected.transaksjonId.toJson(),
+                Key.SAK_ID to sakId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.UUID to transaksjonId.toJson(),
             )
-
-            val actual = testRapid.firstMessage().fromJson(PublishedSak.serializer())
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            actual shouldBe expected
+            testRapid.firstMessage().toMap() shouldContainExactly
+                mapOf(
+                    Key.EVENT_NAME to EventName.SAK_FERDIGSTILT.toJson(),
+                    Key.SAK_ID to sakId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                )
 
             coVerifySequence {
-                mockAgNotifikasjonKlient.nyStatusSak(
-                    id = expected.sakId,
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
+                    grupperingsid = forespoerselId.toString(),
+                    merkelapp = "Inntektsmelding sykepenger",
                     status = SaksStatus.FERDIG,
-                    statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding",
-                    nyLenkeTilSak = "$linkUrl/im-dialog/kvittering/${expected.forespoerselId}",
+                    statusTekst = "Mottatt – Se kvittering eller korriger inntektsmelding",
+                    nyLenke = "$mockLinkUrl/im-dialog/kvittering/$forespoerselId",
+                )
+            }
+        }
+
+        test("Ved besvart forespørsel med gammel merkelapp så ferdigstilles saken") {
+            val sakId = UUID.randomUUID().toString()
+            val forespoerselId = UUID.randomUUID()
+            val transaksjonId = UUID.randomUUID()
+
+            coEvery {
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), NotifikasjonTekst.MERKELAPP, any(), any(), any())
+            } throws NullPointerException("'Tis but a scratch")
+
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                Key.SAK_ID to sakId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            testRapid.firstMessage().toMap() shouldContainExactly
+                mapOf(
+                    Key.EVENT_NAME to EventName.SAK_FERDIGSTILT.toJson(),
+                    Key.SAK_ID to sakId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                )
+
+            coVerifySequence {
+                // Feiler
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
+                    grupperingsid = forespoerselId.toString(),
+                    merkelapp = "Inntektsmelding sykepenger",
+                    status = SaksStatus.FERDIG,
+                    statusTekst = "Mottatt – Se kvittering eller korriger inntektsmelding",
+                    nyLenke = "$mockLinkUrl/im-dialog/kvittering/$forespoerselId",
+                )
+                // Feiler ikke
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
+                    grupperingsid = forespoerselId.toString(),
+                    merkelapp = "Inntektsmelding",
+                    status = SaksStatus.FERDIG,
+                    statusTekst = "Mottatt – Se kvittering eller korriger inntektsmelding",
+                    nyLenke = "$mockLinkUrl/im-dialog/kvittering/$forespoerselId",
                 )
             }
         }
     })
-
-@Serializable
-private data class PublishedSak(
-    @SerialName("@event_name")
-    val eventName: EventName,
-    @SerialName("sak_id")
-    val sakId: String,
-    val forespoerselId: UUID,
-    @SerialName("uuid")
-    val transaksjonId: UUID,
-) {
-    companion object {
-        fun mock(): PublishedSak =
-            PublishedSak(
-                eventName = EventName.SAK_FERDIGSTILT,
-                sakId = "sulten-kalamari",
-                forespoerselId = UUID.randomUUID(),
-                transaksjonId = UUID.randomUUID(),
-            )
-    }
-}

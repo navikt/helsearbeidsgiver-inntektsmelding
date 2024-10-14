@@ -49,9 +49,6 @@ spec:
   azure:
     application:
       enabled: {{ azure.enabled }}
-      {{#if azure.tenant}}
-      tenant: {{ azure.tenant }}
-      {{/if}}
   {{/if}}
   {{#if database}}
   gcp:
@@ -74,21 +71,15 @@ spec:
             value: "on"
         {{/if}}
   {{/if}}
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
   prometheus:
     enabled: true
     path: /metrics
-  webproxy: true
   secureLogs:
     enabled: true
-  vault:
-    enabled: true
-    {{#if mountPaths}}
-    paths:
-    {{# each mountPaths as |item| }}
-      - mountPath: {{ item.mountPath }}
-        kvPath: {{ item.kvPath }}
-    {{/each}}
-    {{/if}}
   {{#if envFrom}}
   envFrom:
   {{# each envFrom as |item| }}
@@ -96,7 +87,7 @@ spec:
   {{/each}}{{/if}}
   env:
     - name: KAFKA_CONSUMER_GROUP_ID
-      value: {{#if kafkaConsumerGroup }}{{ kafkaConsumerGroup }}{{else}}helsearbeidsgiver-im-{{app}}-v1{{/if}}
+      value: helsearbeidsgiver-im-{{app}}-v1
     - name: KAFKA_RAPID_TOPIC
       value: helsearbeidsgiver.rapid
     {{#if env}}{{# each env as |item| }}

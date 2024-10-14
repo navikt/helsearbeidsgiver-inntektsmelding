@@ -6,6 +6,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -100,6 +101,15 @@ class OppgaveUtgaattLoeser(
                 merkelapp = "Inntektsmelding sykepenger",
                 eksternId = forespoerselId.toString(),
                 nyLenke = "https://arbeidsgiver.intern.dev.nav.no/im-dialog/utgatt",
+            )
+        }
+
+        Metrics.agNotifikasjonRequest.recordTime(agNotifikasjonKlient::nyStatusSakByGrupperingsid) {
+            agNotifikasjonKlient.nyStatusSakByGrupperingsid(
+                grupperingsid = forespoerselId.toString(),
+                merkelapp = "Inntektsmelding sykepenger",
+                nyStatus = SaksStatus.FERDIG,
+                tidspunkt = null,
             )
         }
 

@@ -6,7 +6,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
-import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -17,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.avbrytSak
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -105,15 +105,7 @@ class UtgaattLoeser(
             )
         }
 
-        Metrics.agNotifikasjonRequest.recordTime(agNotifikasjonKlient::nyStatusSakByGrupperingsid) {
-            agNotifikasjonKlient.nyStatusSakByGrupperingsid(
-                grupperingsid = forespoerselId.toString(),
-                merkelapp = "Inntektsmelding sykepenger",
-                status = SaksStatus.FERDIG,
-                statusTekst = "Avbrutt av NAV",
-                nyLenke = "$linkUrl/im-dialog/utgatt",
-            )
-        }
+        agNotifikasjonKlient.avbrytSak(forespoerselId, "$linkUrl/im-dialog/utgatt")
 
         context.publish(
             Key.EVENT_NAME to EventName.OPPGAVE_UTGAATT.toJson(),

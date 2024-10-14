@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst.MERKELAPP
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.avbrytSak
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -99,7 +100,7 @@ class UtgaattLoeser(
     ) {
         Metrics.agNotifikasjonRequest.recordTime(agNotifikasjonKlient::oppgaveUtgaattByEksternId) {
             agNotifikasjonKlient.oppgaveUtgaattByEksternId(
-                merkelapp = "Inntektsmelding sykepenger",
+                merkelapp = MERKELAPP,
                 eksternId = forespoerselId.toString(),
                 nyLenke = "$linkUrl/im-dialog/utgatt",
             )
@@ -108,7 +109,7 @@ class UtgaattLoeser(
         agNotifikasjonKlient.avbrytSak(forespoerselId, "$linkUrl/im-dialog/utgatt")
 
         context.publish(
-            Key.EVENT_NAME to EventName.OPPGAVE_UTGAATT.toJson(),
+            Key.EVENT_NAME to EventName.OPPGAVE_OG_SAK_UTGAATT.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.UUID to transaksjonId.toJson(),
         )

@@ -8,6 +8,7 @@ import io.mockk.clearAllMocks
 import io.mockk.coVerifySequence
 import io.mockk.mockk
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -52,7 +53,13 @@ class OppgaveUtgaattLoeserTest :
                 mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
                     merkelapp = "Inntektsmelding sykepenger",
                     eksternId = Mock.forespoerselId.toString(),
-                    nyLenke = "https://arbeidsgiver.intern.dev.nav.no/im-dialog/not-found/not-found",
+                    nyLenke = "https://arbeidsgiver.intern.dev.nav.no/im-dialog/utgatt",
+                )
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
+                    grupperingsid = Mock.forespoerselId.toString(),
+                    merkelapp = "Inntektsmelding sykepenger",
+                    nyStatus = SaksStatus.FERDIG,
+                    tidspunkt = null,
                 )
             }
         }

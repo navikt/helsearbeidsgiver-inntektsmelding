@@ -99,7 +99,7 @@ class OppgaveUtgaattLoeser(
             agNotifikasjonKlient.oppgaveUtgaattByEksternId(
                 merkelapp = "Inntektsmelding sykepenger",
                 eksternId = forespoerselId.toString(),
-                nyLenke = "https://arbeidsgiver.intern.dev.nav.no/im-dialog/not-found/not-found",
+                nyLenke = "https://arbeidsgiver.intern.dev.nav.no/im-dialog/utgatt",
             )
         }
 

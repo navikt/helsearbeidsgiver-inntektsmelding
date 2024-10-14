@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
+import io.mockk.coVerifySequence
 import io.mockk.mockk
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -47,13 +48,13 @@ class OppgaveUtgaattLoeserTest :
             val actual = testRapid.firstMessage().toMap()
 
             actual shouldBe expected
-//            coVerifySequence {
-//                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
-//                    merkelapp = "Inntektsmelding sykepenger",
-//                    eksternId = Mock.forespoerselId.toString(),
-//                    nyLenke = "https://arbeidsgiver.intern.dev.nav.no/im-dialog/not-found/not-found",
-//                )
-//            }
+            coVerifySequence {
+                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
+                    merkelapp = "Inntektsmelding sykepenger",
+                    eksternId = Mock.forespoerselId.toString(),
+                    nyLenke = "https://arbeidsgiver.intern.dev.nav.no/im-dialog/not-found/not-found",
+                )
+            }
         }
     })
 

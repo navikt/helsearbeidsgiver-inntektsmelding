@@ -97,7 +97,7 @@ class OppgaveUtgaattLoeser(
     ) {
         Metrics.agNotifikasjonRequest.recordTime(agNotifikasjonKlient::oppgaveUtgaattByEksternId) {
             agNotifikasjonKlient.oppgaveUtgaattByEksternId(
-                merkelapp = "Ugyldig merkelapp", // TODO: Endre tilbake til "Inntektsmelding sykepenger"
+                merkelapp = "Inntektsmelding sykepenger",
                 eksternId = forespoerselId.toString(),
                 nyLenke = "https://arbeidsgiver.intern.dev.nav.no/im-dialog/utgatt",
             )

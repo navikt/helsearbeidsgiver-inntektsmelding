@@ -23,7 +23,7 @@ class OppgaveUtgaattLoeserTest :
         val testRapid = TestRapid()
         val mockAgNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
 
-        OppgaveUtgaattLoeser(testRapid, mockAgNotifikasjonKlient)
+        OppgaveUtgaattLoeser(testRapid, mockAgNotifikasjonKlient, Mock.linkUrl)
 
         beforeEach {
             testRapid.reset()
@@ -53,7 +53,7 @@ class OppgaveUtgaattLoeserTest :
                 mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
                     merkelapp = "Inntektsmelding sykepenger",
                     eksternId = Mock.forespoerselId.toString(),
-                    nyLenke = "https://arbeidsgiver.intern.dev.nav.no/im-dialog/utgatt",
+                    nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
                 )
                 mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
                     grupperingsid = Mock.forespoerselId.toString(),
@@ -66,6 +66,7 @@ class OppgaveUtgaattLoeserTest :
     })
 
 private object Mock {
+    val linkUrl = "enSlagsUrl"
     val forespoerselId = UUID.randomUUID()
     val transaksjonId = UUID.randomUUID()
 }

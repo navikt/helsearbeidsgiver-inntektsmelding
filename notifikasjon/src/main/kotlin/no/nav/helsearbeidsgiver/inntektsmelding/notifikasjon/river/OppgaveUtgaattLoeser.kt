@@ -29,6 +29,7 @@ import java.util.UUID
 class OppgaveUtgaattLoeser(
     rapid: RapidsConnection,
     private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
+    private val linkUrl: String,
 ) : River.PacketListener {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -100,7 +101,7 @@ class OppgaveUtgaattLoeser(
             agNotifikasjonKlient.oppgaveUtgaattByEksternId(
                 merkelapp = "Inntektsmelding sykepenger",
                 eksternId = forespoerselId.toString(),
-                nyLenke = "https://arbeidsgiver.intern.dev.nav.no/im-dialog/utgatt",
+                nyLenke = "$linkUrl/im-dialog/utgatt",
             )
         }
 

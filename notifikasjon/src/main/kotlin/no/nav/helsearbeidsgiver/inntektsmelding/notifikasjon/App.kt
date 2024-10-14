@@ -13,12 +13,12 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateles
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.ForespoerselLagretRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OppgaveFerdigLoeser
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OppgaveUtgaattLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettOppgaveLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSakLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSelvbestemtSakRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.SakFerdigLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.SlettSakLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.UtgaattLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service.ManuellOpprettSakService
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service.OpprettOppgaveService
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service.OpprettSakService
@@ -99,8 +99,8 @@ fun RapidsConnection.createNotifikasjonRivers(
         logger.info("Starter ${OppgaveFerdigLoeser::class.simpleName}...")
         OppgaveFerdigLoeser(this, arbeidsgiverNotifikasjonKlient)
 
-        logger.info("Starter ${OppgaveUtgaattLoeser::class.simpleName}...")
-        OppgaveUtgaattLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
+        logger.info("Starter ${UtgaattLoeser::class.simpleName}...")
+        UtgaattLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
 
         logger.info("Starter ${SlettSakLoeser::class.simpleName}...")
         SlettSakLoeser(this, arbeidsgiverNotifikasjonKlient)

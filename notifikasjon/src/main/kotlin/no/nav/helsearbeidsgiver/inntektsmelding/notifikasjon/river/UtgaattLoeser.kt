@@ -26,7 +26,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-class OppgaveUtgaattLoeser(
+class UtgaattLoeser(
     rapid: RapidsConnection,
     private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
     private val linkUrl: String,
@@ -88,11 +88,11 @@ class OppgaveUtgaattLoeser(
             Log.forespoerselId(forespoerselId),
             Log.transaksjonId(transaksjonId),
         ) {
-            settOppgaveUtgaatt(forespoerselId, transaksjonId, context)
+            settUtgaatt(forespoerselId, transaksjonId, context)
         }
     }
 
-    private fun settOppgaveUtgaatt(
+    private fun settUtgaatt(
         forespoerselId: UUID,
         transaksjonId: UUID,
         context: MessageContext,
@@ -109,8 +109,9 @@ class OppgaveUtgaattLoeser(
             agNotifikasjonKlient.nyStatusSakByGrupperingsid(
                 grupperingsid = forespoerselId.toString(),
                 merkelapp = "Inntektsmelding sykepenger",
-                nyStatus = SaksStatus.FERDIG,
-                tidspunkt = null,
+                status = SaksStatus.FERDIG,
+                statusTekst = "Avbrutt av NAV",
+                nyLenke = "$linkUrl/im-dialog/utgatt",
             )
         }
 

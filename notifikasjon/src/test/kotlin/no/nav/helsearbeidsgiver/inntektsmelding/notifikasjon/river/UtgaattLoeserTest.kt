@@ -18,12 +18,12 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class OppgaveUtgaattLoeserTest :
+class UtgaattLoeserTest :
     FunSpec({
         val testRapid = TestRapid()
         val mockAgNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
 
-        OppgaveUtgaattLoeser(testRapid, mockAgNotifikasjonKlient, Mock.linkUrl)
+        UtgaattLoeser(testRapid, mockAgNotifikasjonKlient, Mock.linkUrl)
 
         beforeEach {
             testRapid.reset()
@@ -58,8 +58,10 @@ class OppgaveUtgaattLoeserTest :
                 mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
                     grupperingsid = Mock.forespoerselId.toString(),
                     merkelapp = "Inntektsmelding sykepenger",
-                    nyStatus = SaksStatus.FERDIG,
+                    status = SaksStatus.FERDIG,
                     tidspunkt = null,
+                    statusTekst = "Avbrutt av NAV",
+                    nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
                 )
             }
         }

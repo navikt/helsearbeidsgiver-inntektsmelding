@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -29,6 +30,7 @@ import java.util.UUID
 class OppgaveFerdigLoeser(
     rapid: RapidsConnection,
     private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
+    private val linkUrl: String,
 ) : River.PacketListener {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -101,7 +103,19 @@ class OppgaveFerdigLoeser(
         context: MessageContext,
     ) {
         Metrics.agNotifikasjonRequest.recordTime(agNotifikasjonKlient::oppgaveUtfoert) {
-            agNotifikasjonKlient.oppgaveUtfoert(oppgaveId)
+            runCatching {
+                agNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(
+                    eksternId = forespoerselId.toString(),
+                    merkelapp = NotifikasjonTekst.MERKELAPP,
+                    nyLenke = NotifikasjonTekst.lenkeFerdigstilt(linkUrl, forespoerselId),
+                )
+            }.onFailure {
+                agNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(
+                    eksternId = forespoerselId.toString(),
+                    merkelapp = NotifikasjonTekst.MERKELAPP_GAMMEL,
+                    nyLenke = NotifikasjonTekst.lenkeFerdigstilt(linkUrl, forespoerselId),
+                )
+            }
         }
 
         context.publish(

@@ -18,6 +18,7 @@ object NotifikasjonTekst {
     const val OPPGAVE_TEKST = "Innsending av inntektsmelding"
     const val STATUS_TEKST_UNDER_BEHANDLING = "NAV trenger inntektsmelding"
     const val STATUS_TEKST_FERDIG = "Mottatt – Se kvittering eller korriger inntektsmelding"
+    const val STATUS_TEKST_AVBRUTT = "Avbrutt av NAV"
 
     fun lenkeFerdigstilt(
         linkUrl: String,
@@ -91,6 +92,30 @@ fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(
                 merkelapp = NotifikasjonTekst.MERKELAPP_GAMMEL,
                 status = SaksStatus.FERDIG,
                 statusTekst = NotifikasjonTekst.STATUS_TEKST_FERDIG,
+                nyLenke = nyLenke,
+            )
+        }
+    }
+
+fun ArbeidsgiverNotifikasjonKlient.avbrytSak(
+    forespoerselId: UUID,
+    nyLenke: String,
+): Result<Unit> =
+    Metrics.agNotifikasjonRequest.recordTime(::nyStatusSakByGrupperingsid) {
+        runCatching {
+            nyStatusSakByGrupperingsid(
+                grupperingsid = forespoerselId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP,
+                status = SaksStatus.FERDIG,
+                statusTekst = NotifikasjonTekst.STATUS_TEKST_AVBRUTT,
+                nyLenke = nyLenke,
+            )
+        }.recoverCatching {
+            nyStatusSakByGrupperingsid(
+                grupperingsid = forespoerselId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP_GAMMEL,
+                status = SaksStatus.FERDIG,
+                statusTekst = NotifikasjonTekst.STATUS_TEKST_AVBRUTT,
                 nyLenke = nyLenke,
             )
         }

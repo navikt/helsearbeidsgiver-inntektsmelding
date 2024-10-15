@@ -18,6 +18,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSakLoe
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSelvbestemtSakRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.SakFerdigLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.SlettSakLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.UtgaattLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service.ManuellOpprettSakService
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service.OpprettOppgaveService
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service.OpprettSakService
@@ -97,6 +98,9 @@ fun RapidsConnection.createNotifikasjonRivers(
 
         logger.info("Starter ${OppgaveFerdigLoeser::class.simpleName}...")
         OppgaveFerdigLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
+
+        logger.info("Starter ${UtgaattLoeser::class.simpleName}...")
+        UtgaattLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
 
         logger.info("Starter ${SlettSakLoeser::class.simpleName}...")
         SlettSakLoeser(this, arbeidsgiverNotifikasjonKlient)

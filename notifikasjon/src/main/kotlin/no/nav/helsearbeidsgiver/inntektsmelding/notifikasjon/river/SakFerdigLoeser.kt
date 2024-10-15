@@ -7,6 +7,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -91,10 +92,18 @@ class SakFerdigLoeser(
             Log.forespoerselId(forespoerselId),
             Log.transaksjonId(transaksjonId),
         ) {
-            agNotifikasjonKlient.ferdigstillSak(
-                forespoerselId = forespoerselId,
-                nyLenke = NotifikasjonTekst.lenkeFerdigstilt(linkUrl, forespoerselId),
-            )
+            agNotifikasjonKlient
+                .ferdigstillSak(
+                    forespoerselId = forespoerselId,
+                    nyLenke = NotifikasjonTekst.lenkeFerdigstilt(linkUrl, forespoerselId),
+                ).onFailure {
+                    if (it is SakEllerOppgaveFinnesIkkeException) {
+                        logger.warn(it.message)
+                        sikkerLogger.warn(it.message)
+                    } else {
+                        throw it
+                    }
+                }
 
             context.publish(
                 Key.EVENT_NAME to EventName.SAK_FERDIGSTILT.toJson(),

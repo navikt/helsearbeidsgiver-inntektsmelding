@@ -7,6 +7,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -109,12 +110,19 @@ class OppgaveFerdigLoeser(
                     merkelapp = NotifikasjonTekst.MERKELAPP,
                     nyLenke = NotifikasjonTekst.lenkeFerdigstilt(linkUrl, forespoerselId),
                 )
-            }.onFailure {
+            }.recoverCatching {
                 agNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(
                     eksternId = forespoerselId.toString(),
                     merkelapp = NotifikasjonTekst.MERKELAPP_GAMMEL,
                     nyLenke = NotifikasjonTekst.lenkeFerdigstilt(linkUrl, forespoerselId),
                 )
+            }.onFailure {
+                if (it is SakEllerOppgaveFinnesIkkeException) {
+                    logger.warn(it.message)
+                    sikkerLogger.warn(it.message)
+                } else {
+                    throw it
+                }
             }
         }
 

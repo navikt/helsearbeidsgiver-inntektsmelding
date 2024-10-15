@@ -68,52 +68,10 @@ class UtgaattLoeserTest :
                 )
             }
         }
-        test("Ved feil ved oppgaveUtgaattByEksternId settes oppgaven til utgått med gammel merkelapp") {
+        test("Hvis oppdatering av oppgave og sak feiler med SakEllerOppgaveFinnesIkkeException skal oppgaven og saken oppdateres med gammel merkelapp") {
             coEvery {
                 mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId("Inntektsmelding sykepenger", any(), any())
             } throws SakEllerOppgaveFinnesIkkeException("Feil fra agNotikitasjonKlient")
-
-            val expected =
-                mapOf(
-                    Key.EVENT_NAME to EventName.OPPGAVE_OG_SAK_UTGAATT.toJson(),
-                    Key.UUID to Mock.transaksjonId.toJson(),
-                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                )
-
-            testRapid.sendJson(
-                Key.EVENT_NAME to EventName.FORESPOERSEL_FORKASTET.toJson(),
-                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                Key.UUID to Mock.transaksjonId.toJson(),
-            )
-
-            testRapid.inspektør.size shouldBeExactly 1
-
-            val actual = testRapid.firstMessage().toMap()
-
-            actual shouldBe expected
-
-            coVerifySequence {
-                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
-                    merkelapp = "Inntektsmelding sykepenger",
-                    eksternId = Mock.forespoerselId.toString(),
-                    nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
-                )
-                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
-                    merkelapp = "Inntektsmelding",
-                    eksternId = Mock.forespoerselId.toString(),
-                    nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
-                )
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
-                    grupperingsid = Mock.forespoerselId.toString(),
-                    merkelapp = "Inntektsmelding sykepenger",
-                    status = SaksStatus.FERDIG,
-                    statusTekst = "Avbrutt av NAV",
-                    nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
-                )
-            }
-        }
-
-        test("Ved feil ved avbrytSakk settes blir saken avbrutt med gammel merkelapp") {
             coEvery {
                 mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), "Inntektsmelding sykepenger", any(), any(), any(), any())
             } throws SakEllerOppgaveFinnesIkkeException("Feil fra agNotikitasjonKlient")
@@ -138,11 +96,19 @@ class UtgaattLoeserTest :
             actual shouldBe expected
 
             coVerifySequence {
+                // Feiler
                 mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
                     merkelapp = "Inntektsmelding sykepenger",
                     eksternId = Mock.forespoerselId.toString(),
                     nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
                 )
+                // Feiler ikke
+                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
+                    merkelapp = "Inntektsmelding",
+                    eksternId = Mock.forespoerselId.toString(),
+                    nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
+                )
+                // Feiler
                 mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
                     grupperingsid = Mock.forespoerselId.toString(),
                     merkelapp = "Inntektsmelding sykepenger",
@@ -150,11 +116,88 @@ class UtgaattLoeserTest :
                     statusTekst = "Avbrutt av NAV",
                     nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
                 )
+                // Feiler ikke
                 mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
                     grupperingsid = Mock.forespoerselId.toString(),
                     merkelapp = "Inntektsmelding",
                     status = SaksStatus.FERDIG,
                     statusTekst = "Avbrutt av NAV",
+                    nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
+                )
+            }
+        }
+
+        test("Hvis oppgaveUtgaattByEksternId med ny og gammel merkelapp feiler med SakEllerOppgaveFinnesIkkeException skal saken avbrytes likevel") {
+            coEvery {
+                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(any(), any(), any())
+            } throws SakEllerOppgaveFinnesIkkeException("Feil fra agNotikitasjonKlient")
+
+            val expected =
+                mapOf(
+                    Key.EVENT_NAME to EventName.OPPGAVE_OG_SAK_UTGAATT.toJson(),
+                    Key.UUID to Mock.transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                )
+
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_FORKASTET.toJson(),
+                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                Key.UUID to Mock.transaksjonId.toJson(),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            val actual = testRapid.firstMessage().toMap()
+
+            actual shouldBe expected
+
+            coVerifySequence {
+                // Feiler
+                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
+                    merkelapp = "Inntektsmelding sykepenger",
+                    eksternId = Mock.forespoerselId.toString(),
+                    nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
+                )
+                // Feiler
+                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
+                    merkelapp = "Inntektsmelding",
+                    eksternId = Mock.forespoerselId.toString(),
+                    nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
+                )
+                // Feiler ikke
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
+                    grupperingsid = Mock.forespoerselId.toString(),
+                    merkelapp = "Inntektsmelding sykepenger",
+                    status = SaksStatus.FERDIG,
+                    statusTekst = "Avbrutt av NAV",
+                    nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
+                )
+            }
+        }
+        test("Ved feil ved oppgaveUtgaattByEksternId med ny og gammel merkelapp skal saken ikke avbrytes") {
+            coEvery {
+                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(any(), any(), any())
+            } throws Exception("Feil fra agNotikitasjonKlient")
+
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_FORKASTET.toJson(),
+                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                Key.UUID to Mock.transaksjonId.toJson(),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 0
+
+            coVerifySequence {
+                // Feiler
+                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
+                    merkelapp = "Inntektsmelding sykepenger",
+                    eksternId = Mock.forespoerselId.toString(),
+                    nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
+                )
+                // Feiler
+                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
+                    merkelapp = "Inntektsmelding",
+                    eksternId = Mock.forespoerselId.toString(),
                     nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
                 )
             }

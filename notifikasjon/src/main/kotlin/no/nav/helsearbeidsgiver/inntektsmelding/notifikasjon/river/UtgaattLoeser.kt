@@ -6,6 +6,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -106,16 +107,30 @@ class UtgaattLoeser(
                     eksternId = forespoerselId.toString(),
                     nyLenke = "$linkUrl/im-dialog/utgatt",
                 )
-            }.onFailure {
+            }.recoverCatching {
                 agNotifikasjonKlient.oppgaveUtgaattByEksternId(
                     merkelapp = MERKELAPP_GAMMEL,
                     eksternId = forespoerselId.toString(),
                     nyLenke = "$linkUrl/im-dialog/utgatt",
                 )
+            }.onFailure {
+                if (it is SakEllerOppgaveFinnesIkkeException) {
+                    logger.warn(it.message)
+                    sikkerLogger.warn(it.message)
+                } else {
+                    throw it
+                }
             }
         }
 
-        agNotifikasjonKlient.avbrytSak(forespoerselId, "$linkUrl/im-dialog/utgatt")
+        agNotifikasjonKlient.avbrytSak(forespoerselId, "$linkUrl/im-dialog/utgatt").onFailure {
+            if (it is SakEllerOppgaveFinnesIkkeException) {
+                logger.warn(it.message)
+                sikkerLogger.warn(it.message)
+            } else {
+                throw it
+            }
+        }
 
         context.publish(
             Key.EVENT_NAME to EventName.OPPGAVE_OG_SAK_UTGAATT.toJson(),

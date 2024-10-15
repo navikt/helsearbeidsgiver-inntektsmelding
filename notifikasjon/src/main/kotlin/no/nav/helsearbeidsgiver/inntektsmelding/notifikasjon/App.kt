@@ -18,7 +18,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSakLoe
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSelvbestemtSakRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.SakFerdigLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.SlettSakLoeser
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service.ManuellOpprettSakService
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service.OpprettOppgaveService
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service.OpprettSakService
 import no.nav.helsearbeidsgiver.tokenprovider.oauth2ClientCredentialsTokenGetter
@@ -65,15 +64,6 @@ fun RapidsConnection.createNotifikasjonServices(redisConnection: RedisConnection
         logger.info("Starter ${OpprettOppgaveService::class.simpleName}...")
         ServiceRiverStateless(
             OpprettOppgaveService(this),
-        ).connect(this)
-
-        logger.info("Starter ${ManuellOpprettSakService::class.simpleName}...")
-        // TODO kandidat for stateless
-        ServiceRiverStateful(
-            ManuellOpprettSakService(
-                rapid = this,
-                redisStore = RedisStore(redisConnection, RedisPrefix.ManuellOpprettSak),
-            ),
         ).connect(this)
     }
 

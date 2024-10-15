@@ -45,7 +45,7 @@ class FailTest :
 private fun mockFail(): Fail =
     Fail(
         feilmelding = "Det skukke verra mulig",
-        event = EventName.MANUELL_SLETT_SAK_REQUESTED,
+        event = EventName.TILGANG_FORESPOERSEL_REQUESTED,
         transaksjonId = UUID.randomUUID(),
         forespoerselId = UUID.randomUUID(),
         utloesendeMelding =

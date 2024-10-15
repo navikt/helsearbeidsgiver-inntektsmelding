@@ -7,11 +7,41 @@ import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import java.util.UUID
 import kotlin.time.Duration.Companion.days
 
-private const val STATUS_TEKST_UNDER_BEHANDLING = "NAV trenger inntektsmelding"
-private const val STATUS_TEKST_FERDIG = "Mottatt - Se kvittering eller korriger inntektsmelding"
-
 // 13x30 dager
 val sakLevetid = 390.days
+
+object NotifikasjonTekst {
+    const val MERKELAPP = "Inntektsmelding sykepenger"
+
+    @Deprecated("Bruk NotifikasjonTekst.MERKELAPP. Utdatert siden 21.05.2024.")
+    const val MERKELAPP_GAMMEL = "Inntektsmelding"
+    const val OPPGAVE_TEKST = "Innsending av inntektsmelding"
+    const val STATUS_TEKST_UNDER_BEHANDLING = "NAV trenger inntektsmelding"
+    const val STATUS_TEKST_FERDIG = "Mottatt – Se kvittering eller korriger inntektsmelding"
+    const val STATUS_TEKST_AVBRUTT = "Avbrutt av NAV"
+
+    fun lenkeFerdigstilt(
+        linkUrl: String,
+        forespoerselId: UUID,
+    ): String = "$linkUrl/im-dialog/kvittering/$forespoerselId"
+
+    fun sakTittel(
+        sykmeldtNavn: String,
+        sykmeldtFoedselsdato: String,
+    ): String = "Inntektsmelding for $sykmeldtNavn: f. $sykmeldtFoedselsdato"
+
+    fun oppgaveInnhold(
+        orgnr: String,
+        orgNavn: String,
+    ): String =
+        listOf(
+            "$orgNavn - orgnr $orgnr: En av dine ansatte har søkt om sykepenger",
+            "og vi trenger inntektsmelding for å behandle søknaden.",
+            "Logg inn på Min side – arbeidsgiver hos NAV.",
+            "Hvis dere sender inntektsmelding via lønnssystem kan dere fortsatt gjøre dette,",
+            "og trenger ikke sende inn via Min side – arbeidsgiver.",
+        ).joinToString(separator = " ")
+}
 
 fun ArbeidsgiverNotifikasjonKlient.opprettSak(
     lenke: String,
@@ -23,18 +53,18 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
 ): String {
     val statusTekst =
         when (initiellStatus) {
-            SaksStatus.FERDIG -> STATUS_TEKST_FERDIG
-            else -> STATUS_TEKST_UNDER_BEHANDLING
+            SaksStatus.FERDIG -> NotifikasjonTekst.STATUS_TEKST_FERDIG
+            else -> NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING
         }
 
     return Metrics.agNotifikasjonRequest.recordTime(::opprettNySak) {
         runBlocking {
             opprettNySak(
                 virksomhetsnummer = orgnr,
-                merkelapp = "Inntektsmelding sykepenger",
+                merkelapp = NotifikasjonTekst.MERKELAPP,
                 grupperingsid = inntektsmeldingTypeId.toString(),
                 lenke = lenke,
-                tittel = "Inntektsmelding for $sykmeldtNavn: f. $sykmeldtFoedselsdato",
+                tittel = NotifikasjonTekst.sakTittel(sykmeldtNavn, sykmeldtFoedselsdato),
                 statusTekst = statusTekst,
                 initiellStatus = initiellStatus,
                 harddeleteOm = sakLevetid,
@@ -44,17 +74,49 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
 }
 
 fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(
-    sakId: String,
-    nyLenkeTilSak: String,
-) {
+    forespoerselId: UUID,
+    nyLenke: String,
+): Result<Unit> =
     Metrics.agNotifikasjonRequest.recordTime(::nyStatusSak) {
-        runBlocking {
-            nyStatusSak(
-                id = sakId,
+        runCatching {
+            nyStatusSakByGrupperingsid(
+                grupperingsid = forespoerselId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP,
                 status = SaksStatus.FERDIG,
-                statusTekst = STATUS_TEKST_FERDIG,
-                nyLenkeTilSak = nyLenkeTilSak,
+                statusTekst = NotifikasjonTekst.STATUS_TEKST_FERDIG,
+                nyLenke = nyLenke,
+            )
+        }.recoverCatching {
+            nyStatusSakByGrupperingsid(
+                grupperingsid = forespoerselId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP_GAMMEL,
+                status = SaksStatus.FERDIG,
+                statusTekst = NotifikasjonTekst.STATUS_TEKST_FERDIG,
+                nyLenke = nyLenke,
             )
         }
     }
-}
+
+fun ArbeidsgiverNotifikasjonKlient.avbrytSak(
+    forespoerselId: UUID,
+    nyLenke: String,
+): Result<Unit> =
+    Metrics.agNotifikasjonRequest.recordTime(::nyStatusSakByGrupperingsid) {
+        runCatching {
+            nyStatusSakByGrupperingsid(
+                grupperingsid = forespoerselId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP,
+                status = SaksStatus.FERDIG,
+                statusTekst = NotifikasjonTekst.STATUS_TEKST_AVBRUTT,
+                nyLenke = nyLenke,
+            )
+        }.recoverCatching {
+            nyStatusSakByGrupperingsid(
+                grupperingsid = forespoerselId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP_GAMMEL,
+                status = SaksStatus.FERDIG,
+                statusTekst = NotifikasjonTekst.STATUS_TEKST_AVBRUTT,
+                nyLenke = nyLenke,
+            )
+        }
+    }

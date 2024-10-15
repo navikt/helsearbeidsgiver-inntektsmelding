@@ -39,6 +39,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt as InntektV1
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse as NaturalytelseV1
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon as RefusjonV1
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RefusjonEndring as RefusjonEndringV1
 
 private val dag = 24.desember(2022)
 private const val INNTEKT = 25_000.0
@@ -139,7 +140,21 @@ fun mockInntektsmeldingV1(): InntektsmeldingV1 =
         refusjon =
             RefusjonV1(
                 beloepPerMaaned = 150.2,
-                endringer = listOf(),
+                endringer =
+                    listOf(
+                        RefusjonEndringV1(
+                            140.9,
+                            14.oktober,
+                        ),
+                        RefusjonEndringV1(
+                            130.8,
+                            18.oktober,
+                        ),
+                        RefusjonEndringV1(
+                            120.7,
+                            21.oktober,
+                        ),
+                    ),
                 sluttdato = 31.oktober,
             ),
         aarsakInnsending = AarsakInnsendingV1.Endring,

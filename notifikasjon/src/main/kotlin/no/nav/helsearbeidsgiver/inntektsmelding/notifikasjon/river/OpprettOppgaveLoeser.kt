@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -113,17 +114,13 @@ class OpprettOppgaveLoeser(
                 arbeidsgiverNotifikasjonKlient.opprettNyOppgave(
                     eksternId = forespoerselId.toString(),
                     lenke = "$linkUrl/im-dialog/$forespoerselId",
-                    tekst = "Innsending av inntektsmelding",
+                    tekst = NotifikasjonTekst.OPPGAVE_TEKST,
                     virksomhetsnummer = orgnr,
-                    merkelapp = "Inntektsmelding sykepenger",
+                    merkelapp = NotifikasjonTekst.MERKELAPP,
                     tidspunkt = null,
                     grupperingsid = forespoerselId.toString(),
-                    varslingTittel = "Nav trenger inntektsmelding",
-                    varslingInnhold = """$virksomhetnavn - orgnr $orgnr: En av dine ansatte har søkt om sykepenger
-                    og vi trenger inntektsmelding for å behandle søknaden.
-                    Logg inn på Min side – arbeidsgiver hos NAV.
-                    Hvis dere sender inntektsmelding via lønnssystem kan dere fortsatt gjøre dette,
-                    og trenger ikke sende inn via Min side – arbeidsgiver.""",
+                    varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
+                    varslingInnhold = NotifikasjonTekst.oppgaveInnhold(orgnr, virksomhetnavn),
                 )
             }
         } catch (e: OpprettNyOppgaveException) {

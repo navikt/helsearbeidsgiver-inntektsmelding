@@ -75,7 +75,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
 fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(
     forespoerselId: UUID,
     nyLenke: String,
-) {
+): Result<Unit> =
     Metrics.agNotifikasjonRequest.recordTime(::nyStatusSak) {
         runCatching {
             nyStatusSakByGrupperingsid(
@@ -85,7 +85,7 @@ fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(
                 statusTekst = NotifikasjonTekst.STATUS_TEKST_FERDIG,
                 nyLenke = nyLenke,
             )
-        }.onFailure {
+        }.recoverCatching {
             nyStatusSakByGrupperingsid(
                 grupperingsid = forespoerselId.toString(),
                 merkelapp = NotifikasjonTekst.MERKELAPP_GAMMEL,
@@ -95,4 +95,3 @@ fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(
             )
         }
     }
-}

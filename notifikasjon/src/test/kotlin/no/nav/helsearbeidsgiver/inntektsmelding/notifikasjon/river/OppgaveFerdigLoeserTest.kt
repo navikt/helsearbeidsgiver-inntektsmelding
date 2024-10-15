@@ -9,6 +9,7 @@ import io.mockk.coEvery
 import io.mockk.coVerifySequence
 import io.mockk.mockk
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -102,6 +103,70 @@ class OppgaveFerdigLoeserTest :
                     merkelapp = "Inntektsmelding",
                     nyLenke = "$mockLinkUrl/im-dialog/kvittering/$forespoerselId",
                 )
+            }
+        }
+
+        test("Ved besvart forespørsel på oppgave som ikke finnes så ignoreres exception") {
+            val oppgaveId = UUID.randomUUID().toString()
+            val forespoerselId = UUID.randomUUID()
+            val transaksjonId = UUID.randomUUID()
+
+            coEvery {
+                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), NotifikasjonTekst.MERKELAPP, any())
+            } throws NullPointerException("We are the knights who say 'Ni!'")
+
+            coEvery {
+                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), NotifikasjonTekst.MERKELAPP_GAMMEL, any())
+            } throws SakEllerOppgaveFinnesIkkeException("We are no longer the knights who say 'Ni!'")
+
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                Key.OPPGAVE_ID to oppgaveId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            testRapid.firstMessage().toMap() shouldContainExactly
+                mapOf(
+                    Key.EVENT_NAME to EventName.OPPGAVE_FERDIGSTILT.toJson(),
+                    Key.OPPGAVE_ID to oppgaveId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                )
+
+            coVerifySequence {
+                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), "Inntektsmelding sykepenger", any())
+                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), "Inntektsmelding", any())
+            }
+        }
+
+        test("Ukjent feil håndteres") {
+            val oppgaveId = UUID.randomUUID().toString()
+            val forespoerselId = UUID.randomUUID()
+            val transaksjonId = UUID.randomUUID()
+
+            coEvery {
+                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), NotifikasjonTekst.MERKELAPP, any())
+            } throws NullPointerException("We are the knights who say 'Ni!'")
+
+            coEvery {
+                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), NotifikasjonTekst.MERKELAPP_GAMMEL, any())
+            } throws NullPointerException("We are no longer the knights who say 'Ni!'")
+
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                Key.OPPGAVE_ID to oppgaveId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 0
+
+            coVerifySequence {
+                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), "Inntektsmelding sykepenger", any())
+                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), "Inntektsmelding", any())
             }
         }
     })

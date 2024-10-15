@@ -35,7 +35,7 @@ class UtgaattLoeserTest :
         test("Ved forkastet forespørsel med forespørsel-ID settes oppgaven til utgått og sak til ferdig") {
             val expected =
                 mapOf(
-                    Key.EVENT_NAME to EventName.OPPGAVE_OG_SAK_UTGAATT.toJson(),
+                    Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_UTGAATT.toJson(),
                     Key.UUID to Mock.transaksjonId.toJson(),
                     Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                 )
@@ -78,7 +78,7 @@ class UtgaattLoeserTest :
 
             val expected =
                 mapOf(
-                    Key.EVENT_NAME to EventName.OPPGAVE_OG_SAK_UTGAATT.toJson(),
+                    Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_UTGAATT.toJson(),
                     Key.UUID to Mock.transaksjonId.toJson(),
                     Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                 )
@@ -134,7 +134,7 @@ class UtgaattLoeserTest :
 
             val expected =
                 mapOf(
-                    Key.EVENT_NAME to EventName.OPPGAVE_OG_SAK_UTGAATT.toJson(),
+                    Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_UTGAATT.toJson(),
                     Key.UUID to Mock.transaksjonId.toJson(),
                     Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                 )

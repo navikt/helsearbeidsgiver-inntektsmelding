@@ -133,7 +133,7 @@ class UtgaattLoeser(
         }
 
         context.publish(
-            Key.EVENT_NAME to EventName.OPPGAVE_OG_SAK_UTGAATT.toJson(),
+            Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_UTGAATT.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.UUID to transaksjonId.toJson(),
         )

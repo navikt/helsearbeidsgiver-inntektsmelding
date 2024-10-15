@@ -17,6 +17,7 @@ dependencies {
 
     implementation("io.lettuce:lettuce-core:$lettuceVersion")
     implementation("io.prometheus:simpleclient_common:$prometheusVersion")
+    implementation("io.prometheus:prometheus-metrics-core:1.3.1")
 
     testFixturesApi("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
     testFixturesApi("com.github.navikt.tbd-libs:rapids-and-rivers-test:$rapidsAndRiversTestVersion")

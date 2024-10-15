@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst.MERKELAPP
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst.MERKELAPP_GAMMEL
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.avbrytSak
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -99,11 +100,19 @@ class UtgaattLoeser(
         context: MessageContext,
     ) {
         Metrics.agNotifikasjonRequest.recordTime(agNotifikasjonKlient::oppgaveUtgaattByEksternId) {
-            agNotifikasjonKlient.oppgaveUtgaattByEksternId(
-                merkelapp = MERKELAPP,
-                eksternId = forespoerselId.toString(),
-                nyLenke = "$linkUrl/im-dialog/utgatt",
-            )
+            runCatching {
+                agNotifikasjonKlient.oppgaveUtgaattByEksternId(
+                    merkelapp = MERKELAPP,
+                    eksternId = forespoerselId.toString(),
+                    nyLenke = "$linkUrl/im-dialog/utgatt",
+                )
+            }.onFailure {
+                agNotifikasjonKlient.oppgaveUtgaattByEksternId(
+                    merkelapp = MERKELAPP_GAMMEL,
+                    eksternId = forespoerselId.toString(),
+                    nyLenke = "$linkUrl/im-dialog/utgatt",
+                )
+            }
         }
 
         agNotifikasjonKlient.avbrytSak(forespoerselId, "$linkUrl/im-dialog/utgatt")

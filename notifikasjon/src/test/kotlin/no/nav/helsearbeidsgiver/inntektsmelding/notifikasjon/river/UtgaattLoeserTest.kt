@@ -5,9 +5,11 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
+import io.mockk.coEvery
 import io.mockk.coVerifySequence
 import io.mockk.mockk
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -30,7 +32,7 @@ class UtgaattLoeserTest :
             clearAllMocks()
         }
 
-        test("Ved forkastet forespørsel med forespørsel-ID settes oppgaven til utgått") {
+        test("Ved forkastet forespørsel med forespørsel-ID settes oppgaven til utgått og sak til ferdig") {
             val expected =
                 mapOf(
                     Key.EVENT_NAME to EventName.OPPGAVE_OG_SAK_UTGAATT.toJson(),
@@ -49,6 +51,7 @@ class UtgaattLoeserTest :
             val actual = testRapid.firstMessage().toMap()
 
             actual shouldBe expected
+
             coVerifySequence {
                 mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
                     merkelapp = "Inntektsmelding sykepenger",
@@ -60,6 +63,97 @@ class UtgaattLoeserTest :
                     merkelapp = "Inntektsmelding sykepenger",
                     status = SaksStatus.FERDIG,
                     tidspunkt = null,
+                    statusTekst = "Avbrutt av NAV",
+                    nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
+                )
+            }
+        }
+        test("Ved feil ved oppgaveUtgaattByEksternId settes oppgaven til utgått med gammel merkelapp") {
+            coEvery {
+                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId("Inntektsmelding sykepenger", any(), any())
+            } throws SakEllerOppgaveFinnesIkkeException("Feil fra agNotikitasjonKlient")
+
+            val expected =
+                mapOf(
+                    Key.EVENT_NAME to EventName.OPPGAVE_OG_SAK_UTGAATT.toJson(),
+                    Key.UUID to Mock.transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                )
+
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_FORKASTET.toJson(),
+                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                Key.UUID to Mock.transaksjonId.toJson(),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            val actual = testRapid.firstMessage().toMap()
+
+            actual shouldBe expected
+
+            coVerifySequence {
+                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
+                    merkelapp = "Inntektsmelding sykepenger",
+                    eksternId = Mock.forespoerselId.toString(),
+                    nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
+                )
+                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
+                    merkelapp = "Inntektsmelding",
+                    eksternId = Mock.forespoerselId.toString(),
+                    nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
+                )
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
+                    grupperingsid = Mock.forespoerselId.toString(),
+                    merkelapp = "Inntektsmelding sykepenger",
+                    status = SaksStatus.FERDIG,
+                    statusTekst = "Avbrutt av NAV",
+                    nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
+                )
+            }
+        }
+
+        test("Ved feil ved avbrytSakk settes blir saken avbrutt med gammel merkelapp") {
+            coEvery {
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), "Inntektsmelding sykepenger", any(), any(), any(), any())
+            } throws SakEllerOppgaveFinnesIkkeException("Feil fra agNotikitasjonKlient")
+
+            val expected =
+                mapOf(
+                    Key.EVENT_NAME to EventName.OPPGAVE_OG_SAK_UTGAATT.toJson(),
+                    Key.UUID to Mock.transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                )
+
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_FORKASTET.toJson(),
+                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                Key.UUID to Mock.transaksjonId.toJson(),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            val actual = testRapid.firstMessage().toMap()
+
+            actual shouldBe expected
+
+            coVerifySequence {
+                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
+                    merkelapp = "Inntektsmelding sykepenger",
+                    eksternId = Mock.forespoerselId.toString(),
+                    nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
+                )
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
+                    grupperingsid = Mock.forespoerselId.toString(),
+                    merkelapp = "Inntektsmelding sykepenger",
+                    status = SaksStatus.FERDIG,
+                    statusTekst = "Avbrutt av NAV",
+                    nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
+                )
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
+                    grupperingsid = Mock.forespoerselId.toString(),
+                    merkelapp = "Inntektsmelding",
+                    status = SaksStatus.FERDIG,
                     statusTekst = "Avbrutt av NAV",
                     nyLenke = "${Mock.linkUrl}/im-dialog/utgatt",
                 )

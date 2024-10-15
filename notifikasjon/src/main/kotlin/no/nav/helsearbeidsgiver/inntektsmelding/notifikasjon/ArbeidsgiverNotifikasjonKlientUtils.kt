@@ -103,12 +103,22 @@ fun ArbeidsgiverNotifikasjonKlient.avbrytSak(
     nyLenke: String,
 ) {
     Metrics.agNotifikasjonRequest.recordTime(::nyStatusSakByGrupperingsid) {
-        nyStatusSakByGrupperingsid(
-            grupperingsid = forespoerselId.toString(),
-            merkelapp = NotifikasjonTekst.MERKELAPP,
-            status = SaksStatus.FERDIG,
-            statusTekst = NotifikasjonTekst.STATUS_TEKST_AVBRUTT,
-            nyLenke = nyLenke,
-        )
+        runCatching {
+            nyStatusSakByGrupperingsid(
+                grupperingsid = forespoerselId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP,
+                status = SaksStatus.FERDIG,
+                statusTekst = NotifikasjonTekst.STATUS_TEKST_AVBRUTT,
+                nyLenke = nyLenke,
+            )
+        }.onFailure {
+            nyStatusSakByGrupperingsid(
+                grupperingsid = forespoerselId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP_GAMMEL,
+                status = SaksStatus.FERDIG,
+                statusTekst = NotifikasjonTekst.STATUS_TEKST_AVBRUTT,
+                nyLenke = nyLenke,
+            )
+        }
     }
 }

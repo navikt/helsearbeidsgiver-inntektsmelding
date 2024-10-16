@@ -28,7 +28,7 @@ class ForespoerselBesvartFraSimbaRiverTest :
         test("Ved mottatt inntektsmelding publiseres behov om å hente notifikasjon-ID-er") {
             val transaksjonId = UUID.randomUUID()
             val forespoerselId = UUID.randomUUID()
-            val forventetPublisert = notifikasjonHentIdMelding(transaksjonId, forespoerselId)
+            val forventetPublisert = forespoerselBesvartMelding(transaksjonId, forespoerselId)
 
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),

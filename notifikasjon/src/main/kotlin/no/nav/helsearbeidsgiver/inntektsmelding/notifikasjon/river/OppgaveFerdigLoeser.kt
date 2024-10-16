@@ -4,7 +4,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
@@ -46,7 +45,6 @@ class OppgaveFerdigLoeser(
                     it.requireKeys(
                         Key.UUID,
                         Key.FORESPOERSEL_ID,
-                        Key.OPPGAVE_ID,
                     )
                 }
             }.register(this)
@@ -84,21 +82,18 @@ class OppgaveFerdigLoeser(
         melding: Map<Key, JsonElement>,
         context: MessageContext,
     ) {
-        val oppgaveId = Key.OPPGAVE_ID.les(String.serializer(), melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
-            Log.oppgaveId(oppgaveId),
             Log.forespoerselId(forespoerselId),
             Log.transaksjonId(transaksjonId),
         ) {
-            ferdigstillOppgave(oppgaveId, forespoerselId, transaksjonId, context)
+            ferdigstillOppgave(forespoerselId, transaksjonId, context)
         }
     }
 
     private fun ferdigstillOppgave(
-        oppgaveId: String,
         forespoerselId: UUID,
         transaksjonId: UUID,
         context: MessageContext,
@@ -128,9 +123,8 @@ class OppgaveFerdigLoeser(
 
         context.publish(
             Key.EVENT_NAME to EventName.OPPGAVE_FERDIGSTILT.toJson(),
-            Key.OPPGAVE_ID to oppgaveId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.UUID to transaksjonId.toJson(),
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
     }
 }

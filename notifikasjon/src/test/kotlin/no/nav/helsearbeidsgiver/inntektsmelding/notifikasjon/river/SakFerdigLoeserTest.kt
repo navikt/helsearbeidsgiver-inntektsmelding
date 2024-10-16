@@ -34,15 +34,13 @@ class SakFerdigLoeserTest :
         }
 
         test("Ved besvart forespørsel så ferdigstilles saken") {
-            val sakId = UUID.randomUUID().toString()
             val forespoerselId = UUID.randomUUID()
             val transaksjonId = UUID.randomUUID()
 
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.SAK_ID to sakId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
@@ -50,9 +48,8 @@ class SakFerdigLoeserTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.SAK_FERDIGSTILT.toJson(),
-                    Key.SAK_ID to sakId.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.UUID to transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 )
 
             coVerifySequence {
@@ -67,7 +64,6 @@ class SakFerdigLoeserTest :
         }
 
         test("Ved besvart forespørsel med gammel merkelapp så ferdigstilles saken") {
-            val sakId = UUID.randomUUID().toString()
             val forespoerselId = UUID.randomUUID()
             val transaksjonId = UUID.randomUUID()
 
@@ -77,9 +73,8 @@ class SakFerdigLoeserTest :
 
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.SAK_ID to sakId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
@@ -87,9 +82,8 @@ class SakFerdigLoeserTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.SAK_FERDIGSTILT.toJson(),
-                    Key.SAK_ID to sakId.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.UUID to transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 )
 
             coVerifySequence {
@@ -113,7 +107,6 @@ class SakFerdigLoeserTest :
         }
 
         test("Ved besvart forespørsel på sak som ikke finnes så ignoreres exception") {
-            val sakId = UUID.randomUUID().toString()
             val forespoerselId = UUID.randomUUID()
             val transaksjonId = UUID.randomUUID()
 
@@ -127,9 +120,8 @@ class SakFerdigLoeserTest :
 
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.SAK_ID to sakId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
@@ -137,9 +129,8 @@ class SakFerdigLoeserTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.SAK_FERDIGSTILT.toJson(),
-                    Key.SAK_ID to sakId.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.UUID to transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 )
 
             coVerifySequence {
@@ -149,7 +140,6 @@ class SakFerdigLoeserTest :
         }
 
         test("Ukjent feil håndteres") {
-            val sakId = UUID.randomUUID().toString()
             val forespoerselId = UUID.randomUUID()
             val transaksjonId = UUID.randomUUID()
 
@@ -163,9 +153,8 @@ class SakFerdigLoeserTest :
 
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.SAK_ID to sakId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             )
 
             testRapid.inspektør.size shouldBeExactly 0

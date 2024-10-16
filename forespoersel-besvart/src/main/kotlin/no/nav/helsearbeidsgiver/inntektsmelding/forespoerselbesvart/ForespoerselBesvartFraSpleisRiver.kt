@@ -70,7 +70,7 @@ class ForespoerselBesvartFraSpleisRiver(
 
         Metrics.forespoerslerBesvartFraSpleis.inc()
 
-        return notifikasjonHentIdMelding(transaksjonId, forespoerselId)
+        return forespoerselBesvartMelding(transaksjonId, forespoerselId)
     }
 
     override fun BesvartSpleisMelding.haandterFeil(

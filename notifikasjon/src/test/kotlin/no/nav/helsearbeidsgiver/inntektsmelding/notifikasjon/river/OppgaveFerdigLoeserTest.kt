@@ -34,15 +34,13 @@ class OppgaveFerdigLoeserTest :
         }
 
         test("Ved besvart forespørsel så ferdigstilles oppgaven") {
-            val oppgaveId = UUID.randomUUID().toString()
             val forespoerselId = UUID.randomUUID()
             val transaksjonId = UUID.randomUUID()
 
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.OPPGAVE_ID to oppgaveId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
@@ -50,9 +48,8 @@ class OppgaveFerdigLoeserTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.OPPGAVE_FERDIGSTILT.toJson(),
-                    Key.OPPGAVE_ID to oppgaveId.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.UUID to transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 )
 
             coVerifySequence {
@@ -65,7 +62,6 @@ class OppgaveFerdigLoeserTest :
         }
 
         test("Ved besvart forespørsel med gammel merkelapp så ferdigstilles oppgaven") {
-            val oppgaveId = UUID.randomUUID().toString()
             val forespoerselId = UUID.randomUUID()
             val transaksjonId = UUID.randomUUID()
 
@@ -75,9 +71,8 @@ class OppgaveFerdigLoeserTest :
 
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.OPPGAVE_ID to oppgaveId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
@@ -85,9 +80,8 @@ class OppgaveFerdigLoeserTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.OPPGAVE_FERDIGSTILT.toJson(),
-                    Key.OPPGAVE_ID to oppgaveId.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.UUID to transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 )
 
             coVerifySequence {
@@ -107,7 +101,6 @@ class OppgaveFerdigLoeserTest :
         }
 
         test("Ved besvart forespørsel på oppgave som ikke finnes så ignoreres exception") {
-            val oppgaveId = UUID.randomUUID().toString()
             val forespoerselId = UUID.randomUUID()
             val transaksjonId = UUID.randomUUID()
 
@@ -121,9 +114,8 @@ class OppgaveFerdigLoeserTest :
 
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.OPPGAVE_ID to oppgaveId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
@@ -131,9 +123,8 @@ class OppgaveFerdigLoeserTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.OPPGAVE_FERDIGSTILT.toJson(),
-                    Key.OPPGAVE_ID to oppgaveId.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.UUID to transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 )
 
             coVerifySequence {
@@ -143,7 +134,6 @@ class OppgaveFerdigLoeserTest :
         }
 
         test("Ukjent feil håndteres") {
-            val oppgaveId = UUID.randomUUID().toString()
             val forespoerselId = UUID.randomUUID()
             val transaksjonId = UUID.randomUUID()
 
@@ -157,9 +147,8 @@ class OppgaveFerdigLoeserTest :
 
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.OPPGAVE_ID to oppgaveId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             )
 
             testRapid.inspektør.size shouldBeExactly 0

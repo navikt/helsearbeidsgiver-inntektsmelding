@@ -102,7 +102,7 @@ class InnsendingServiceTest :
                 mockRedis.store.set(
                     RedisKey.of(transaksjonId),
                     ResultJson(
-                        success = nyttSkjema.toJson(SkjemaInntektsmelding.serializer()),
+                        success = nyttSkjema.forespoerselId.toJson(),
                     ).toJson(ResultJson.serializer()),
                 )
             }
@@ -128,7 +128,7 @@ class InnsendingServiceTest :
                 mockRedis.store.set(
                     RedisKey.of(transaksjonId),
                     ResultJson(
-                        success = Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                        success = Mock.skjema.forespoerselId.toJson(),
                     ).toJson(ResultJson.serializer()),
                 )
             }

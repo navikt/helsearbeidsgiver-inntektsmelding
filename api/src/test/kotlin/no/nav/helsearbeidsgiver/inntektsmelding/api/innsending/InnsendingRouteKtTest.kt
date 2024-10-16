@@ -5,11 +5,8 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
-import no.nav.helsearbeidsgiver.felles.test.mock.mockDelvisInntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -41,7 +38,7 @@ class InnsendingRouteKtTest : ApiTest() {
                 listOf(
                     harTilgangResultat,
                     ResultJson(
-                        success = mockInntektsmelding().toJson(Inntektsmelding.serializer()),
+                        success = skjema.forespoerselId.toJson(),
                     ).toJson(ResultJson.serializer())
                         .toString(),
                 )
@@ -61,7 +58,7 @@ class InnsendingRouteKtTest : ApiTest() {
                 listOf(
                     harTilgangResultat,
                     ResultJson(
-                        success = mockDelvisInntektsmeldingDokument().toJson(Inntektsmelding.serializer()),
+                        success = delvisSkjema.forespoerselId.toJson(),
                     ).toJson(ResultJson.serializer())
                         .toString(),
                 )

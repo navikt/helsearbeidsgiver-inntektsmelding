@@ -223,7 +223,7 @@ class ServiceRiverStatefulTest :
                     mapOf(
                         "med uønsket event" to
                             mapOf(
-                                Key.EVENT_NAME to EventName.MANUELL_SLETT_SAK_REQUESTED.toJson(),
+                                Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
                                 Key.UUID to UUID.randomUUID().toJson(),
                                 Key.FAIL to Mock.fail.toJson(Fail.serializer()),
                             ),
@@ -268,7 +268,7 @@ class ServiceRiverStatefulTest :
                             ),
                         "med uønsket event" to
                             mapOf(
-                                Key.EVENT_NAME to EventName.MANUELL_SLETT_SAK_REQUESTED.toJson(),
+                                Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
                                 Key.UUID to UUID.randomUUID().toJson(),
                                 Key.DATA to
                                     mapOf(

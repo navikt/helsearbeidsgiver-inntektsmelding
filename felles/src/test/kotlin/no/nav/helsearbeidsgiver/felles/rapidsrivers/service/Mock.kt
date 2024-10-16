@@ -27,7 +27,7 @@ open class MockService : ServiceMed1Steg<MockService.Steg0, MockService.Steg1>()
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val eventName = EventName.MANUELL_OPPRETT_SAK_REQUESTED
+    override val eventName = EventName.TILGANG_ORG_REQUESTED
 
     fun mockSteg0Data(): Map<Key, JsonElement> =
         setOf(

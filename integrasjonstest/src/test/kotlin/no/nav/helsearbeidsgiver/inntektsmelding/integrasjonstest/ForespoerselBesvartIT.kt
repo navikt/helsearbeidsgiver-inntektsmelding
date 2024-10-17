@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import io.kotest.matchers.maps.shouldContainKey
-import io.kotest.matchers.maps.shouldNotContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.builtins.serializer
@@ -74,7 +73,6 @@ class ForespoerselBesvartIT : EndToEndTest() {
     private fun bekreftForventedeMeldinger(forventetTransaksjonId: UUID?) {
         messages
             .filter(EventName.FORESPOERSEL_BESVART)
-            .filter(BehovType.NOTIFIKASJON_HENT_ID)
             .firstAsMap()
             .also {
                 if (forventetTransaksjonId == null) {
@@ -84,49 +82,11 @@ class ForespoerselBesvartIT : EndToEndTest() {
                 }
 
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.FORESPOERSEL_BESVART
-                Key.BEHOV.les(BehovType.serializer(), it) shouldBe BehovType.NOTIFIKASJON_HENT_ID
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-            }
-
-        messages
-            .filter(EventName.FORESPOERSEL_BESVART)
-            .filter(Key.SAK_ID, nestedData = false, utenDataKey = true)
-            .firstAsMap()
-            .also {
-                it shouldNotContainKey Key.BEHOV
-
-                if (forventetTransaksjonId == null) {
-                    it shouldContainKey Key.UUID
-                } else {
-                    Key.UUID.les(UuidSerializer, it) shouldBe forventetTransaksjonId
-                }
-
-                Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.FORESPOERSEL_BESVART
-                Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.sakId
-            }
-
-        messages
-            .filter(EventName.FORESPOERSEL_BESVART)
-            .filter(Key.OPPGAVE_ID, nestedData = false, utenDataKey = true)
-            .firstAsMap()
-            .also {
-                it shouldNotContainKey Key.BEHOV
-
-                if (forventetTransaksjonId == null) {
-                    it shouldContainKey Key.UUID
-                } else {
-                    Key.UUID.les(UuidSerializer, it) shouldBe forventetTransaksjonId
-                }
-
-                Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.FORESPOERSEL_BESVART
-                Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.oppgaveId
             }
 
         messages
             .filter(EventName.SAK_FERDIGSTILT)
-            .filter(Key.SAK_ID, nestedData = false, utenDataKey = true)
             .firstAsMap()
             .also {
                 if (forventetTransaksjonId == null) {
@@ -137,12 +97,10 @@ class ForespoerselBesvartIT : EndToEndTest() {
 
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.SAK_FERDIGSTILT
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.sakId
             }
 
         messages
             .filter(EventName.OPPGAVE_FERDIGSTILT)
-            .filter(Key.OPPGAVE_ID, nestedData = false, utenDataKey = true)
             .firstAsMap()
             .also {
                 if (forventetTransaksjonId == null) {
@@ -153,7 +111,6 @@ class ForespoerselBesvartIT : EndToEndTest() {
 
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.OPPGAVE_FERDIGSTILT
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.oppgaveId
             }
     }
 

@@ -206,28 +206,9 @@ class InnsendingIT : EndToEndTest() {
     private fun bekreftForventedeMeldingerForFerdigstilligAvOppgaveOgSak() {
         messages
             .filter(EventName.FORESPOERSEL_BESVART)
-            .filter(BehovType.NOTIFIKASJON_HENT_ID)
             .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-            }
-
-        messages
-            .filter(EventName.FORESPOERSEL_BESVART)
-            .filter(Key.SAK_ID, nestedData = false, utenDataKey = true)
-            .firstAsMap()
-            .also {
-                Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
-            }
-
-        messages
-            .filter(EventName.FORESPOERSEL_BESVART)
-            .filter(Key.OPPGAVE_ID, nestedData = false, utenDataKey = true)
-            .firstAsMap()
-            .also {
-                Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
             }
 
         messages
@@ -235,7 +216,6 @@ class InnsendingIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
             }
 
         messages
@@ -243,7 +223,6 @@ class InnsendingIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
             }
     }
 

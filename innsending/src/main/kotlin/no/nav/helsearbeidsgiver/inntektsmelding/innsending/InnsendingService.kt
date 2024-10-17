@@ -78,7 +78,7 @@ class InnsendingService(
     ) {
         val resultJson =
             ResultJson(
-                success = steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                success = steg0.skjema.forespoerselId.toJson(),
             ).toJson(ResultJson.serializer())
 
         redisStore.set(RedisKey.of(steg0.transaksjonId), resultJson)

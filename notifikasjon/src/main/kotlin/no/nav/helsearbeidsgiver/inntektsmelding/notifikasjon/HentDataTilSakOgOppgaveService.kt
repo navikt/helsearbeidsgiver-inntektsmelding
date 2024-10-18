@@ -109,7 +109,7 @@ class HentDataTilSakOgOppgaveService(
         steg1: Steg1,
         steg2: Steg2,
     ) {
-        "Data hentet for å opprette sak og oppgave. Sender events å starte opprettelse.".also {
+        "Data hentet. Sender events for å opprette sak og oppgave.".also {
             logger.info(it)
             sikkerLogger.info(it)
         }

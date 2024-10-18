@@ -185,7 +185,7 @@ class DistribusjonRiverTest :
         context("ignorerer melding") {
             withData(
                 mapOf(
-                    "melding med ukjent event" to Pair(Key.EVENT_NAME, EventName.MANUELL_OPPRETT_SAK_REQUESTED.toJson()),
+                    "melding med ukjent event" to Pair(Key.EVENT_NAME, EventName.TILGANG_ORG_REQUESTED.toJson()),
                     "melding med behov" to Pair(Key.BEHOV, BehovType.HENT_VIRKSOMHET_NAVN.toJson()),
                     "melding med data" to Pair(Key.DATA, "".toJson()),
                     "melding med fail" to Pair(Key.FAIL, Mock.fail.toJson(Fail.serializer())),

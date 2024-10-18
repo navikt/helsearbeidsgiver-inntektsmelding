@@ -78,7 +78,7 @@ class OpprettSelvbestemtSakRiverTest :
                     tittel =
                         "Inntektsmelding for ${innkommendeMelding.inntektsmelding.sykmeldt.navn}: " +
                             "f. ${innkommendeMelding.inntektsmelding.sykmeldt.fnr.verdi.take(6)}",
-                    statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding",
+                    statusTekst = "Mottatt – Se kvittering eller korriger inntektsmelding",
                     initiellStatus = SaksStatus.FERDIG,
                     harddeleteOm = any(),
                 )

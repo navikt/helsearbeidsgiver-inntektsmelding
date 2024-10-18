@@ -40,11 +40,11 @@ class FeilLytter(
             BehovType.PERSISTER_SAK_ID,
             BehovType.JOURNALFOER,
             BehovType.LAGRE_JOURNALPOST_ID,
-            BehovType.NOTIFIKASJON_HENT_ID,
         )
     val eventerSomHaandteres =
         listOf(
             EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
+            EventName.FORESPOERSEL_BESVART,
         )
 
     init {

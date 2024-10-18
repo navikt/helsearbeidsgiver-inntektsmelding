@@ -17,7 +17,9 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst.MERKELAPP
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst.MERKELAPP_GAMMEL
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.avbrytSak
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -27,7 +29,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-class OppgaveFerdigLoeser(
+class UtgaattLoeser(
     rapid: RapidsConnection,
     private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
     private val linkUrl: String,
@@ -40,7 +42,7 @@ class OppgaveFerdigLoeser(
             .apply {
                 validate {
                     it.demandValues(
-                        Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.name,
+                        Key.EVENT_NAME to EventName.FORESPOERSEL_FORKASTET.name,
                     )
                     it.requireKeys(
                         Key.UUID,
@@ -60,12 +62,12 @@ class OppgaveFerdigLoeser(
         }
         val json = packet.toJson().parseJson()
 
-        logger.info("Mottok melding med event '${EventName.FORESPOERSEL_BESVART}'.")
+        logger.info("Mottok melding med event '${EventName.FORESPOERSEL_FORKASTET}'.")
         sikkerLogger.info("Mottok melding:\n${json.toPretty()}")
 
         MdcUtils.withLogFields(
             Log.klasse(this),
-            Log.event(EventName.FORESPOERSEL_BESVART),
+            Log.event(EventName.FORESPOERSEL_FORKASTET),
         ) {
             runCatching {
                 haandterMelding(json.toMap(), context)
@@ -89,27 +91,27 @@ class OppgaveFerdigLoeser(
             Log.forespoerselId(forespoerselId),
             Log.transaksjonId(transaksjonId),
         ) {
-            ferdigstillOppgave(forespoerselId, transaksjonId, context)
+            settUtgaatt(forespoerselId, transaksjonId, context)
         }
     }
 
-    private fun ferdigstillOppgave(
+    private fun settUtgaatt(
         forespoerselId: UUID,
         transaksjonId: UUID,
         context: MessageContext,
     ) {
-        Metrics.agNotifikasjonRequest.recordTime(agNotifikasjonKlient::oppgaveUtfoert) {
+        Metrics.agNotifikasjonRequest.recordTime(agNotifikasjonKlient::oppgaveUtgaattByEksternId) {
             runCatching {
-                agNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(
+                agNotifikasjonKlient.oppgaveUtgaattByEksternId(
+                    merkelapp = MERKELAPP,
                     eksternId = forespoerselId.toString(),
-                    merkelapp = NotifikasjonTekst.MERKELAPP,
-                    nyLenke = NotifikasjonTekst.lenkeFerdigstilt(linkUrl, forespoerselId),
+                    nyLenke = "$linkUrl/im-dialog/utgatt",
                 )
             }.recoverCatching {
-                agNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(
+                agNotifikasjonKlient.oppgaveUtgaattByEksternId(
+                    merkelapp = MERKELAPP_GAMMEL,
                     eksternId = forespoerselId.toString(),
-                    merkelapp = NotifikasjonTekst.MERKELAPP_GAMMEL,
-                    nyLenke = NotifikasjonTekst.lenkeFerdigstilt(linkUrl, forespoerselId),
+                    nyLenke = "$linkUrl/im-dialog/utgatt",
                 )
             }.onFailure {
                 if (it is SakEllerOppgaveFinnesIkkeException) {
@@ -121,10 +123,19 @@ class OppgaveFerdigLoeser(
             }
         }
 
+        agNotifikasjonKlient.avbrytSak(forespoerselId, "$linkUrl/im-dialog/utgatt").onFailure {
+            if (it is SakEllerOppgaveFinnesIkkeException) {
+                logger.warn(it.message)
+                sikkerLogger.warn(it.message)
+            } else {
+                throw it
+            }
+        }
+
         context.publish(
-            Key.EVENT_NAME to EventName.OPPGAVE_FERDIGSTILT.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_UTGAATT.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            Key.UUID to transaksjonId.toJson(),
         )
     }
 }

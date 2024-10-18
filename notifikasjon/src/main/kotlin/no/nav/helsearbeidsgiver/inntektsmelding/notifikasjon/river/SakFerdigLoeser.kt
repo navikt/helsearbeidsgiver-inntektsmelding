@@ -4,9 +4,9 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.ferdigstillSak
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -43,7 +44,6 @@ class SakFerdigLoeser(
                     it.requireKeys(
                         Key.UUID,
                         Key.FORESPOERSEL_ID,
-                        Key.SAK_ID,
                     )
                 }
             }.register(this)
@@ -81,23 +81,30 @@ class SakFerdigLoeser(
         melding: Map<Key, JsonElement>,
         context: MessageContext,
     ) {
-        val sakId = Key.SAK_ID.les(String.serializer(), melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val nyLenkeTilSak = "$linkUrl/im-dialog/kvittering/$forespoerselId"
 
         MdcUtils.withLogFields(
-            Log.sakId(sakId),
             Log.forespoerselId(forespoerselId),
             Log.transaksjonId(transaksjonId),
         ) {
-            agNotifikasjonKlient.ferdigstillSak(sakId = sakId, nyLenkeTilSak = nyLenkeTilSak)
+            agNotifikasjonKlient
+                .ferdigstillSak(
+                    forespoerselId = forespoerselId,
+                    nyLenke = NotifikasjonTekst.lenkeFerdigstilt(linkUrl, forespoerselId),
+                ).onFailure {
+                    if (it is SakEllerOppgaveFinnesIkkeException) {
+                        logger.warn(it.message)
+                        sikkerLogger.warn(it.message)
+                    } else {
+                        throw it
+                    }
+                }
 
             context.publish(
                 Key.EVENT_NAME to EventName.SAK_FERDIGSTILT.toJson(),
-                Key.SAK_ID to sakId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             )
         }
     }

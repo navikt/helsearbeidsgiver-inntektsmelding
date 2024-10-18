@@ -1,10 +1,10 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
-import no.nav.helsearbeidsgiver.inntektsmelding.joark.mappers.InntektDokumentTilSkjemainnholdMapper
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.tilXmlInntektsmelding
+import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import org.junit.jupiter.api.Test
-import org.mapstruct.factory.Mappers
 import java.io.StringReader
 import javax.xml.XMLConstants
 import javax.xml.validation.SchemaFactory
@@ -12,7 +12,7 @@ import javax.xml.validation.SchemaFactory
 class XMLMapperTest {
     @Test
     fun `Bør generere xml fra InnsendingM dokument`() {
-        val mockInntektsmelding = mockInntektsmelding()
+        val mockInntektsmelding = mockInntektsmeldingV1()
         mapToXML(mockInntektsmelding)
     }
 
@@ -22,11 +22,10 @@ class XMLMapperTest {
     }
 
     private fun mapToXML(mockInntektsmelding: Inntektsmelding) {
-        val mapper = Mappers.getMapper(InntektDokumentTilSkjemainnholdMapper::class.java)
+        val inntektM = tilXmlInntektsmelding(mockInntektsmelding, 20.oktober)
         val sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
-        val inntektM = mapper.inntektDokumentTilInntekstmeldingM(mockInntektsmelding)
         val xsdSchema = sf.newSchema(inntektM.javaClass.classLoader.getResource("xsd/Inntektsmelding20181211_V7.xsd"))
-        val xml = transformToXML(mockInntektsmelding)
+        val xml = transformToXML(mockInntektsmelding, 20.oktober)
         val stringReader = StringReader(xml)
         val unmarshaller = CONTEXT.createUnmarshaller()
         unmarshaller.schema = xsdSchema
@@ -34,3 +33,23 @@ class XMLMapperTest {
         println(xml)
     }
 }
+
+private fun mockInntektsmeldingDokumentMedTommeLister(): Inntektsmelding =
+    mockInntektsmeldingV1().let {
+        it.copy(
+            sykmeldingsperioder = emptyList(),
+            agp =
+                it.agp?.copy(
+                    perioder = emptyList(),
+                    egenmeldinger = emptyList(),
+                ),
+            inntekt =
+                it.inntekt?.copy(
+                    naturalytelser = emptyList(),
+                ),
+            refusjon =
+                it.refusjon?.copy(
+                    endringer = emptyList(),
+                ),
+        )
+    }

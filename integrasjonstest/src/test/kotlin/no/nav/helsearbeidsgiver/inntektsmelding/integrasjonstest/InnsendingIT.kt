@@ -212,14 +212,7 @@ class InnsendingIT : EndToEndTest() {
             }
 
         messages
-            .filter(EventName.SAK_FERDIGSTILT)
-            .firstAsMap()
-            .also {
-                Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-            }
-
-        messages
-            .filter(EventName.OPPGAVE_FERDIGSTILT)
+            .filter(EventName.SAK_OG_OPPGAVE_FERDIGSTILT)
             .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId

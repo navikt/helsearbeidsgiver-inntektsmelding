@@ -81,12 +81,11 @@ class ForespoerselBesvartIT : EndToEndTest() {
                     Key.UUID.les(UuidSerializer, it) shouldBe forventetTransaksjonId
                 }
 
-                Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.FORESPOERSEL_BESVART
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
             }
 
         messages
-            .filter(EventName.SAK_FERDIGSTILT)
+            .filter(EventName.SAK_OG_OPPGAVE_FERDIGSTILT)
             .firstAsMap()
             .also {
                 if (forventetTransaksjonId == null) {
@@ -95,21 +94,6 @@ class ForespoerselBesvartIT : EndToEndTest() {
                     Key.UUID.les(UuidSerializer, it) shouldBe forventetTransaksjonId
                 }
 
-                Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.SAK_FERDIGSTILT
-                Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-            }
-
-        messages
-            .filter(EventName.OPPGAVE_FERDIGSTILT)
-            .firstAsMap()
-            .also {
-                if (forventetTransaksjonId == null) {
-                    it shouldContainKey Key.UUID
-                } else {
-                    Key.UUID.les(UuidSerializer, it) shouldBe forventetTransaksjonId
-                }
-
-                Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.OPPGAVE_FERDIGSTILT
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
             }
     }

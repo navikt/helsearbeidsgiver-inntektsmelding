@@ -2,13 +2,14 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.maps.shouldContainKey
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
@@ -27,7 +28,7 @@ class MessagesTest :
 
         test("finner ikke manglende melding for event") {
             Mock.meldinger
-                .filter(EventName.FORESPØRSEL_MOTTATT)
+                .filter(EventName.FORESPOERSEL_MOTTATT)
                 .all()
                 .shouldBeEmpty()
         }
@@ -50,17 +51,17 @@ class MessagesTest :
         }
 
         test("finner korrekt melding for key") {
-            val funnetMelding = Mock.meldinger.filter(Key.VIRKSOMHET, nestedData = false).firstAsMap()
+            val funnetMelding = Mock.meldinger.filter(Key.VIRKSOMHET).firstAsMap()
 
             funnetMelding.also {
-                it shouldContainKey Key.DATA
-                it[Key.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe Mock.ORGNR
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe Mock.ORGNR
             }
         }
 
         test("finner ikke manglende melding for key") {
             Mock.meldinger
-                .filter(Key.ARBEIDSFORHOLD, nestedData = false)
+                .filter(Key.ARBEIDSFORHOLD)
                 .all()
                 .shouldBeEmpty()
         }
@@ -73,8 +74,10 @@ private object Mock {
         mapOf(
             Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
             Key.BEHOV.str to BehovType.HENT_VIRKSOMHET_NAVN.toJson(BehovType.serializer()),
-            Key.DATA.str to "".toJson(),
-            Key.VIRKSOMHET.str to ORGNR.toJson(),
+            Key.DATA.str to
+                mapOf(
+                    Key.VIRKSOMHET.str to ORGNR.toJson(),
+                ).toJson(),
         ).toJson()
             .toMessages()
 

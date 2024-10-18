@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt
 
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
@@ -47,12 +46,14 @@ class ForespoerselMottattRiver : PriObjectRiver<Melding>() {
         sikkerLogger.info("Mottok melding på pri-topic:\n${json.toPretty()}")
 
         return mapOf(
-            Key.EVENT_NAME to EventName.FORESPØRSEL_MOTTATT.toJson(EventName.serializer()),
-            Key.BEHOV to BehovType.LAGRE_FORESPOERSEL.toJson(BehovType.serializer()),
+            Key.EVENT_NAME to EventName.FORESPOERSEL_MOTTATT.toJson(EventName.serializer()),
             Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.ORGNRUNDERENHET to orgnr.toJson(),
-            Key.IDENTITETSNUMMER to fnr.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.ORGNRUNDERENHET to orgnr.toJson(),
+                    Key.FNR to fnr.toJson(),
+                ).toJson(),
         )
     }
 

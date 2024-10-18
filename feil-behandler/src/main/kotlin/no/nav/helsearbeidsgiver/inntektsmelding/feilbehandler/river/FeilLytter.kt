@@ -44,6 +44,7 @@ class FeilLytter(
     val eventerSomHaandteres =
         listOf(
             EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
+            EventName.FORESPOERSEL_MOTTATT,
             EventName.FORESPOERSEL_BESVART,
         )
 

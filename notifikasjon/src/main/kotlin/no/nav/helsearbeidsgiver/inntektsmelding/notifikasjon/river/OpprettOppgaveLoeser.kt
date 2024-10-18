@@ -6,6 +6,7 @@ import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettNyOppgaveException
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
@@ -89,12 +90,13 @@ class OpprettOppgaveLoeser(
         } else {
             rapidsConnection
                 .publish(
-                    Key.EVENT_NAME to behov.event.toJson(),
-                    Key.BEHOV to BehovType.PERSISTER_OPPGAVE_ID.toJson(),
+                    Key.EVENT_NAME to EventName.OPPGAVE_OPPRETTET.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.ORGNRUNDERENHET to orgnr.toJson(),
-                    Key.OPPGAVE_ID to oppgaveId.toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                            Key.OPPGAVE_ID to oppgaveId.toJson(),
+                        ).toJson(),
                 ).also {
                     logger.info("Publiserte behov for '${behov.event}' med transaksjonId '$transaksjonId'.")
                     sikkerLogger.info("Publiserte behov:\n${it.toPretty()}")

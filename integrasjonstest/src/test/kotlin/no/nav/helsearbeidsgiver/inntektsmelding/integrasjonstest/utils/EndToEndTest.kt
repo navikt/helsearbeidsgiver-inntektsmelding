@@ -57,7 +57,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.inntektselvbestemtservice.create
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJournalfoerImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonRivers
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonServices
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonService
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdlRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.selvbestemthentimservice.createHentSelvbestemtImService
@@ -237,7 +237,7 @@ abstract class EndToEndTest : ContainerTest() {
             createInntektService(redisConnection)
             createInntektSelvbestemtService(redisConnection)
             createLagreSelvbestemtImService(redisConnection)
-            createNotifikasjonServices(redisConnection)
+            createNotifikasjonService()
             createSpinnService()
             createTilgangService(redisConnection)
             createHentForespoerselService(redisConnection)

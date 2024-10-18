@@ -4,13 +4,15 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.PersonDato
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.publishData
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.opprettSak
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -95,11 +97,14 @@ class OpprettSakLoeser(
         } else {
             logger.info("OpprettSakLøser fikk opprettet sak for forespørselId: ${behov.forespoerselId}")
 
-            rapidsConnection.publishData(
-                eventName = behov.event,
-                transaksjonId = transaksjonId,
-                forespoerselId = forespoerselId,
-                Key.SAK_ID to sakId.toJson(),
+            rapidsConnection.publish(
+                Key.EVENT_NAME to EventName.SAK_OPPRETTET.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                        Key.SAK_ID to sakId.toJson(),
+                    ).toJson(),
             )
 
             sikkerLogger.info("OpprettSakLøser publiserte med sakId=$sakId og forespoerselId=${behov.forespoerselId}")

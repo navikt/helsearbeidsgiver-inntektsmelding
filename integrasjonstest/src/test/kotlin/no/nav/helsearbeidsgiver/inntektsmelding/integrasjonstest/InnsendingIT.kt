@@ -25,7 +25,6 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -103,7 +102,7 @@ class InnsendingIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 // Journalført i dokarkiv
-                it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
+                it[Key.JOURNALPOST_ID]?.fromJson(String.serializer()) shouldBe Mock.JOURNALPOST_ID
             }
 
         messages
@@ -111,7 +110,7 @@ class InnsendingIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 it shouldContainKey Key.INNTEKTSMELDING
-                it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
+                it[Key.JOURNALPOST_ID]?.fromJson(String.serializer()) shouldBe Mock.JOURNALPOST_ID
             }
 
         messages
@@ -119,7 +118,7 @@ class InnsendingIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 // Verifiser at inntektsmelding er distribuert på ekstern kafka
-                it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
+                it[Key.JOURNALPOST_ID]?.fromJson(String.serializer()) shouldBe Mock.JOURNALPOST_ID
 
                 it[Key.INNTEKTSMELDING].shouldNotBeNull()
             }

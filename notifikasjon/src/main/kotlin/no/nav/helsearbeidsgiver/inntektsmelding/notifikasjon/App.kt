@@ -4,11 +4,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.felles.db.exposed.Database
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.ForespoerselLagretRiver
@@ -19,16 +15,12 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSelvbe
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.SakFerdigLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.SlettSakLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.UtgaattLoeser
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service.OpprettOppgaveService
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service.OpprettSakService
 import no.nav.helsearbeidsgiver.tokenprovider.oauth2ClientCredentialsTokenGetter
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "im-notifikasjon".logger()
 
 fun main() {
-    val redisConnection = RedisConnection(Env.redisUrl)
-
     val database = Database("NAIS_DATABASE_IM_NOTIFIKASJON_NOTIFIKASJON")
 
     logger.info("Migrering starter...")
@@ -39,32 +31,22 @@ fun main() {
 
     RapidApplication
         .create(System.getenv())
-        .createNotifikasjonServices(redisConnection)
+        .createNotifikasjonService()
         .createNotifikasjonRivers(
             Env.linkUrl,
             selvbestemtRepo,
             buildClient(),
         ).registerShutdownLifecycle {
-            redisConnection.close()
-
             logger.info("Stoppsignal mottatt, lukker databasetilkobling.")
             database.dataSource.close()
         }.start()
 }
 
-fun RapidsConnection.createNotifikasjonServices(redisConnection: RedisConnection): RapidsConnection =
+fun RapidsConnection.createNotifikasjonService(): RapidsConnection =
     also {
-        logger.info("Starter ${OpprettSakService::class.simpleName}...")
-        ServiceRiverStateful(
-            OpprettSakService(
-                rapid = this,
-                redisStore = RedisStore(redisConnection, RedisPrefix.OpprettSak),
-            ),
-        ).connect(this)
-
-        logger.info("Starter ${OpprettOppgaveService::class.simpleName}...")
+        logger.info("Starter ${HentDataTilSakOgOppgaveService::class.simpleName}...")
         ServiceRiverStateless(
-            OpprettOppgaveService(this),
+            HentDataTilSakOgOppgaveService(this),
         ).connect(this)
     }
 

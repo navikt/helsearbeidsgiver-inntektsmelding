@@ -45,9 +45,12 @@ class ForespoerselMottattRiverTest :
             publisert.minus(Key.UUID) shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.FORESPOERSEL_MOTTATT.toJson(EventName.serializer()),
-                    Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
-                    Key.ORGNRUNDERENHET to innkommendeMelding.orgnr.toJson(),
-                    Key.FNR to innkommendeMelding.fnr.toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
+                            Key.ORGNRUNDERENHET to innkommendeMelding.orgnr.toJson(),
+                            Key.FNR to innkommendeMelding.fnr.toJson(),
+                        ).toJson(),
                 )
         }
     })

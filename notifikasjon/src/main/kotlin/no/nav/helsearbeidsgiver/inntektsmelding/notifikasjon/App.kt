@@ -7,12 +7,11 @@ import no.nav.helsearbeidsgiver.felles.db.exposed.Database
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FerdigstillForespoerselSakOgOppgaveRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.ForespoerselLagretRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OppgaveFerdigLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettOppgaveLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSakLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSelvbestemtSakRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.SakFerdigLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.SlettSakLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.UtgaattLoeser
 import no.nav.helsearbeidsgiver.tokenprovider.oauth2ClientCredentialsTokenGetter
@@ -56,20 +55,17 @@ fun RapidsConnection.createNotifikasjonRivers(
     arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
 ): RapidsConnection =
     also {
+        logger.info("Starter ${FerdigstillForespoerselSakOgOppgaveRiver::class.simpleName}...")
+        FerdigstillForespoerselSakOgOppgaveRiver(linkUrl, arbeidsgiverNotifikasjonKlient).connect(this)
+
         logger.info("Starter ${ForespoerselLagretRiver::class.simpleName}...")
         ForespoerselLagretRiver(this)
 
         logger.info("Starter ${OpprettSakLoeser::class.simpleName}...")
         OpprettSakLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
 
-        logger.info("Starter ${SakFerdigLoeser::class.simpleName}...")
-        SakFerdigLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
-
         logger.info("Starter ${OpprettOppgaveLoeser::class.simpleName}...")
         OpprettOppgaveLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
-
-        logger.info("Starter ${OppgaveFerdigLoeser::class.simpleName}...")
-        OppgaveFerdigLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
 
         logger.info("Starter ${UtgaattLoeser::class.simpleName}...")
         UtgaattLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)

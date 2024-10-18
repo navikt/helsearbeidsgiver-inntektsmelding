@@ -138,7 +138,7 @@ class InnsendingServiceIT : EndToEndTest() {
                 .fromJson(ResultJson.serializer())
                 .success
                 .shouldNotBeNull()
-                .fromJson(SkjemaInntektsmelding.serializer())
+                .fromJson(UuidSerializer)
         }
     }
 

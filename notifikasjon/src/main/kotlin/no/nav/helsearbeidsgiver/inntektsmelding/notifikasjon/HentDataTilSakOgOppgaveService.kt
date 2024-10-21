@@ -73,6 +73,14 @@ class HentDataTilSakOgOppgaveService(
             sikkerLogger.info(it)
         }
 
+        // Brukes midlertidig til å lagre forspørsel, til tabellen fjernes
+        rapid.publish(
+            Key.EVENT_NAME to eventName.toJson(),
+            Key.BEHOV to BehovType.LAGRE_FORESPOERSEL.toJson(BehovType.serializer()),
+            Key.UUID to steg0.transaksjonId.toJson(),
+            Key.DATA to data.toJson(),
+        )
+
         rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),

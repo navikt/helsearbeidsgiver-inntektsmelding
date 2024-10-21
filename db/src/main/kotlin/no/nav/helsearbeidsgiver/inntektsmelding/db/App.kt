@@ -7,7 +7,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentLagretImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentSelvbestemtImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreEksternImRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreForespoerselLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreForespoerselRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreImSkjemaRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreJournalpostIdRiver
@@ -44,8 +44,8 @@ fun RapidsConnection.createDbRivers(
     forespoerselRepo: ForespoerselRepository,
 ): RapidsConnection =
     also {
-        logger.info("Starter ${LagreForespoerselLoeser::class.simpleName}...")
-        LagreForespoerselLoeser(this, forespoerselRepo)
+        logger.info("Starter ${LagreForespoerselRiver::class.simpleName}...")
+        LagreForespoerselRiver(forespoerselRepo).connect(this)
 
         logger.info("Starter ${LagreImSkjemaRiver::class.simpleName}...")
         LagreImSkjemaRiver(imRepo).connect(this)

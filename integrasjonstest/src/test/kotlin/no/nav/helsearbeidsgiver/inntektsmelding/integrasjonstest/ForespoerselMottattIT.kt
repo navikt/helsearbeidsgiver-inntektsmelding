@@ -63,6 +63,15 @@ class ForespoerselMottattIT : EndToEndTest() {
             }
 
         messagesFilteredForespoerselMottatt
+            .filter(BehovType.LAGRE_FORESPOERSEL)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
+                data[Key.ORGNRUNDERENHET]?.fromJson(Orgnr.serializer()) shouldBe Mock.orgnr
+            }
+
+        messagesFilteredForespoerselMottatt
             .filter(BehovType.HENT_VIRKSOMHET_NAVN)
             .firstAsMap()
             .also {

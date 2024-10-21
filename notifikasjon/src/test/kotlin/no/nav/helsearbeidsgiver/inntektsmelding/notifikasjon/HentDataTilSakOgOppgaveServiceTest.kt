@@ -46,19 +46,20 @@ class HentDataTilSakOgOppgaveServiceTest :
 
             testRapid.sendJson(Mock.steg0())
 
-            testRapid.inspektør.size shouldBeExactly 1
-            testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
+            testRapid.inspektør.size shouldBeExactly 2
+            testRapid.firstMessage().lesBehov() shouldBe BehovType.LAGRE_FORESPOERSEL
+            testRapid.message(1).lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
 
             testRapid.sendJson(Mock.steg1())
 
-            testRapid.inspektør.size shouldBeExactly 2
-            testRapid.message(1).lesBehov() shouldBe BehovType.HENT_PERSONER
+            testRapid.inspektør.size shouldBeExactly 3
+            testRapid.message(2).lesBehov() shouldBe BehovType.HENT_PERSONER
 
             testRapid.sendJson(Mock.steg2())
 
-            testRapid.inspektør.size shouldBeExactly 4
+            testRapid.inspektør.size shouldBeExactly 5
 
-            testRapid.message(2).toMap() shouldContainExactly
+            testRapid.message(3).toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.FORESPOERSEL_MOTTATT.toJson(),
                     Key.BEHOV to BehovType.OPPRETT_SAK.toJson(),
@@ -77,7 +78,7 @@ class HentDataTilSakOgOppgaveServiceTest :
                             .toJson(Person.serializer()),
                 )
 
-            testRapid.message(3).toMap() shouldContainExactly
+            testRapid.message(4).toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.FORESPOERSEL_MOTTATT.toJson(),
                     Key.BEHOV to BehovType.OPPRETT_OPPGAVE.toJson(),
@@ -108,12 +109,13 @@ class HentDataTilSakOgOppgaveServiceTest :
 
             testRapid.sendJson(Mock.steg0())
 
-            testRapid.inspektør.size shouldBeExactly 1
-            testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
+            testRapid.inspektør.size shouldBeExactly 2
+            testRapid.firstMessage().lesBehov() shouldBe BehovType.LAGRE_FORESPOERSEL
+            testRapid.message(1).lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
 
             testRapid.sendJson(fail.tilMelding())
 
-            testRapid.inspektør.size shouldBeExactly 1
+            testRapid.inspektør.size shouldBeExactly 2
         }
     })
 

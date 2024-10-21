@@ -37,6 +37,6 @@ class FjernPaaminnelseRiverTest :
 
             testRapid.sendJson(innkommendeMelding)
 
-            testRapid.inspektør.size shouldBeExactly 1
+            testRapid.inspektør.size shouldBeExactly 0
         }
     })

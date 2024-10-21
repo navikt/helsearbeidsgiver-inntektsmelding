@@ -7,6 +7,8 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
 data class FjernPaaminnelseMelding(
@@ -16,7 +18,16 @@ data class FjernPaaminnelseMelding(
 )
 
 class FjernPaaminnelseRiver : ObjectRiver<FjernPaaminnelseMelding>() {
-    override fun FjernPaaminnelseMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? = null
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
+
+    override fun FjernPaaminnelseMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
+        "FjernPaaminnelseRiver skulle ha fjernet påminnelsen på oppgaven, men det er ikke implementert ennå.".also {
+            logger.info(it)
+            sikkerLogger.info(it)
+        }
+        return null
+    }
 
     override fun les(json: Map<Key, JsonElement>): FjernPaaminnelseMelding? =
         if (Key.FAIL in json) {
@@ -43,7 +54,7 @@ class FjernPaaminnelseRiver : ObjectRiver<FjernPaaminnelseMelding>() {
     ): Map<Key, JsonElement>? {
         // Sjekk error før vi logger
         // Vi forventer at mange oppgaver ikke er opprettet enda pga begrensede forespørsler
-        // disse vil feile med
+        // disse vil trolig feile med SakEllerOppgaveFinnesIkkeException
         TODO("Not yet implemented")
     }
 }

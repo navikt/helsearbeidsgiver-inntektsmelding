@@ -60,6 +60,7 @@ object Pri {
         FORESPOERSEL_BESVART,
         FORESPOERSEL_BESVART_SIMBA,
         FORESPOERSEL_FORKASTET,
+        FORESPOERSEL_KASTET_TIL_INFOTRYGD,
     }
 
     internal object KeySerializer : AsStringSerializer<Key>(

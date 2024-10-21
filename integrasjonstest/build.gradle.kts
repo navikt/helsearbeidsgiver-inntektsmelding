@@ -21,6 +21,7 @@ dependencies {
     testImplementation(project(":distribusjon"))
     testImplementation(project(":forespoersel-besvart"))
     testImplementation(project(":forespoersel-forkastet"))
+    testImplementation(project(":forespoersel-infotrygd"))
     testImplementation(project(":forespoersel-marker-besvart"))
     testImplementation(project(":forespoersel-mottatt"))
     testImplementation(project(":helsebro"))

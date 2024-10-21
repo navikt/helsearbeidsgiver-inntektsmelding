@@ -45,6 +45,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjonR
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.createFeilLytter
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselforkastet.createForespoerselForkastetRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselinfotrygd.createForespoerselKastetTilInfotrygdRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createMarkerForespoerselBesvart
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottattRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebroRivers
@@ -253,6 +254,7 @@ abstract class EndToEndTest : ContainerTest() {
             createForespoerselBesvartRivers()
             createForespoerselMottattRiver()
             createForespoerselForkastetRiver()
+            createForespoerselKastetTilInfotrygdRiver()
             createHelsebroRivers(mockPriProducer)
             createHentEksternImRiver(spinnKlient)
             createHentInntektRiver(inntektClient)

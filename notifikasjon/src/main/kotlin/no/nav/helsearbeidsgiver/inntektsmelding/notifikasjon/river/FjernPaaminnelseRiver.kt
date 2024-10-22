@@ -23,7 +23,7 @@ data class FjernPaaminnelseMelding(
 )
 
 class FjernPaaminnelseRiver(
-    agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
+    val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
 ) : ObjectRiver<FjernPaaminnelseMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -58,14 +58,6 @@ class FjernPaaminnelseRiver(
             )
         }
 
-    override fun FjernPaaminnelseMelding.loggfelt(): Map<String, String> =
-        mapOf(
-            Log.klasse(this@FjernPaaminnelseRiver),
-            Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
-            Log.forespoerselId(forespoerselId),
-        )
-
     override fun FjernPaaminnelseMelding.haandterFeil(
         json: Map<Key, JsonElement>,
         error: Throwable,
@@ -84,4 +76,12 @@ class FjernPaaminnelseRiver(
 
         return fail.tilMelding()
     }
+
+    override fun FjernPaaminnelseMelding.loggfelt(): Map<String, String> =
+        mapOf(
+            Log.klasse(this@FjernPaaminnelseRiver),
+            Log.event(eventName),
+            Log.transaksjonId(transaksjonId),
+            Log.forespoerselId(forespoerselId),
+        )
 }

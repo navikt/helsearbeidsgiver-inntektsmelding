@@ -19,8 +19,7 @@ class FjernPaaminnelseRiverTest :
         val testRapid = TestRapid()
         val mockagNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
 
-        // OpprettSelvbestemtSakRiver(mockUrl, mockSelvbestemtRepo, mockagNotifikasjonKlient).connect(testRapid)
-        FjernPaaminnelseRiver()
+        FjernPaaminnelseRiver(mockagNotifikasjonKlient)
 
         beforeTest {
             testRapid.reset()

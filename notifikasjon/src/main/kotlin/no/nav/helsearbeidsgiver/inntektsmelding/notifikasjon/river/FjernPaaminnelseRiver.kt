@@ -1,9 +1,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -17,15 +21,28 @@ data class FjernPaaminnelseMelding(
     val forespoerselId: UUID,
 )
 
-class FjernPaaminnelseRiver : ObjectRiver<FjernPaaminnelseMelding>() {
+class FjernPaaminnelseRiver(
+    agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
+) : ObjectRiver<FjernPaaminnelseMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override fun FjernPaaminnelseMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
-        "FjernPaaminnelseRiver skulle ha fjernet påminnelsen på oppgaven, men det er ikke implementert ennå.".also {
-            logger.info(it)
-            sikkerLogger.info(it)
+        runCatching {
+            "FjernPaaminnelseRiver skulle her ha fjernet påminnelsen på oppgaven, men det er ikke implementert ennå.".also {
+                logger.info(it)
+                sikkerLogger.info(it)
+            }
+        }.onFailure {
+            if (it is SakEllerOppgaveFinnesIkkeException) {
+                logger.warn(it.message)
+                sikkerLogger.warn(it.message)
+            } else {
+                throw it
+            }
         }
+
+        // TODO: Send melding når påminnelsen er fjernet
         return null
     }
 
@@ -51,10 +68,19 @@ class FjernPaaminnelseRiver : ObjectRiver<FjernPaaminnelseMelding>() {
     override fun FjernPaaminnelseMelding.haandterFeil(
         json: Map<Key, JsonElement>,
         error: Throwable,
-    ): Map<Key, JsonElement>? {
-        // Sjekk error før vi logger
-        // Vi forventer at mange oppgaver ikke er opprettet enda pga begrensede forespørsler
-        // disse vil trolig feile med SakEllerOppgaveFinnesIkkeException
-        TODO("Not yet implemented")
+    ): Map<Key, JsonElement> {
+        val fail =
+            Fail(
+                feilmelding = "Klarte ikke fjerne påminnelse fra oppgave.",
+                event = eventName,
+                transaksjonId = transaksjonId,
+                forespoerselId = forespoerselId,
+                utloesendeMelding = json.toJson(),
+            )
+
+        logger.error(fail.feilmelding)
+        sikkerLogger.error(fail.feilmelding, error)
+
+        return fail.tilMelding()
     }
 }

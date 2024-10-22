@@ -5,6 +5,7 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -51,7 +52,7 @@ class FjernPaaminnelseRiver(
             null
         } else {
             FjernPaaminnelseMelding(
-                eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
+                eventName = Key.EVENT_NAME.krev(EventName.FORESPOERSEL_KASTET_TIL_INFOTRYGD, EventName.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json),
             )

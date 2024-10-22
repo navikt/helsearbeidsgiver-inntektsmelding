@@ -113,7 +113,6 @@ class ForespoerselMottattIT : EndToEndTest() {
             .also {
                 it[Key.UUID]?.fromJson(UuidSerializer).shouldNotBeNull()
                 it[Key.ARBEIDSTAKER_INFORMASJON]?.fromJson(PersonDato.serializer()).shouldNotBeNull()
-                it[Key.PERSONER]?.fromJson(Person.serializer()).shouldNotBeNull()
 
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
                 it[Key.ORGNRUNDERENHET]?.fromJson(Orgnr.serializer()) shouldBe Mock.orgnr
@@ -128,6 +127,20 @@ class ForespoerselMottattIT : EndToEndTest() {
 
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
                 it[Key.ORGNRUNDERENHET]?.fromJson(Orgnr.serializer()) shouldBe Mock.orgnr
+            }
+
+        messages
+            .filter(EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED)
+            .firstAsMap()
+            .also {
+                it[Key.UUID]?.fromJson(UuidSerializer).shouldNotBeNull()
+
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.SYKMELDT]?.fromJson(Person.serializer()).shouldNotBeNull()
+                data[Key.VIRKSOMHET]?.fromJson(String.serializer()).shouldNotBeNull()
+
+                data[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
+                data[Key.ORGNRUNDERENHET]?.fromJson(Orgnr.serializer()) shouldBe Mock.orgnr
             }
 
         messages

@@ -138,9 +138,7 @@ class HentDataTilSakOgOppgaveService(
             Key.UUID to steg0.transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
             Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
-            // Send midlertidig, skal erstattes av Key.PERSONER
             Key.ARBEIDSTAKER_INFORMASJON to sykmeldtPersonDato.toJson(PersonDato.serializer()),
-            Key.PERSONER to sykmeldt.toJson(Person.serializer()),
         )
 
         rapid.publish(
@@ -150,6 +148,19 @@ class HentDataTilSakOgOppgaveService(
             Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
             Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
             Key.VIRKSOMHET to orgNavn.toJson(),
+        )
+
+        // Skal bli tatt imot av kommende river
+        rapid.publish(
+            Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED.toJson(),
+            Key.UUID to steg0.transaksjonId.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                    Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
+                    Key.SYKMELDT to sykmeldt.toJson(Person.serializer()),
+                    Key.VIRKSOMHET to orgNavn.toJson(),
+                ).toJson(),
         )
     }
 

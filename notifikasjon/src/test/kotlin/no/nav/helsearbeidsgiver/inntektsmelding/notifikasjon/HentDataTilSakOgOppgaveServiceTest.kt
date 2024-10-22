@@ -57,14 +57,14 @@ class HentDataTilSakOgOppgaveServiceTest :
 
             testRapid.sendJson(Mock.steg2())
 
-            testRapid.inspektør.size shouldBeExactly 5
+            testRapid.inspektør.size shouldBeExactly 6
 
             testRapid.message(3).toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.FORESPOERSEL_MOTTATT.toJson(),
                     Key.BEHOV to BehovType.OPPRETT_SAK.toJson(),
                     Key.UUID to Mock.transaksjonId.toJson(),
-                    Key.FORESPOERSEL_ID to Mock.forespoerelId.toJson(),
+                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                     Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
                     Key.ARBEIDSTAKER_INFORMASJON to
                         PersonDato(
@@ -72,10 +72,6 @@ class HentDataTilSakOgOppgaveServiceTest :
                             fødselsdato = 22.april,
                             ident = Mock.fnr.verdi,
                         ).toJson(PersonDato.serializer()),
-                    Key.PERSONER to
-                        Mock.personer.values
-                            .first()
-                            .toJson(Person.serializer()),
                 )
 
             testRapid.message(4).toMap() shouldContainExactly
@@ -83,12 +79,31 @@ class HentDataTilSakOgOppgaveServiceTest :
                     Key.EVENT_NAME to EventName.FORESPOERSEL_MOTTATT.toJson(),
                     Key.BEHOV to BehovType.OPPRETT_OPPGAVE.toJson(),
                     Key.UUID to Mock.transaksjonId.toJson(),
-                    Key.FORESPOERSEL_ID to Mock.forespoerelId.toJson(),
+                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                     Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
                     Key.VIRKSOMHET to
                         Mock.orgnrMedNavn.values
                             .first()
                             .toJson(),
+                )
+
+            testRapid.message(5).toMap() shouldContainExactly
+                mapOf(
+                    Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED.toJson(),
+                    Key.UUID to Mock.transaksjonId.toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                            Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
+                            Key.SYKMELDT to
+                                Mock.personer.values
+                                    .first()
+                                    .toJson(Person.serializer()),
+                            Key.VIRKSOMHET to
+                                Mock.orgnrMedNavn.values
+                                    .first()
+                                    .toJson(),
+                        ).toJson(),
                 )
         }
 
@@ -121,7 +136,7 @@ class HentDataTilSakOgOppgaveServiceTest :
 
 private object Mock {
     val transaksjonId: UUID = UUID.randomUUID()
-    val forespoerelId: UUID = UUID.randomUUID()
+    val forespoerselId: UUID = UUID.randomUUID()
     val orgnr = Orgnr.genererGyldig()
     val fnr = Fnr.genererGyldig()
     val orgnrMedNavn = mapOf(orgnr to "Kåre Conradis Kål og Kålrabi")
@@ -133,7 +148,7 @@ private object Mock {
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.FORESPOERSEL_ID to forespoerelId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.ORGNRUNDERENHET to orgnr.toJson(),
                     Key.FNR to fnr.toJson(),
                 ).toJson(),

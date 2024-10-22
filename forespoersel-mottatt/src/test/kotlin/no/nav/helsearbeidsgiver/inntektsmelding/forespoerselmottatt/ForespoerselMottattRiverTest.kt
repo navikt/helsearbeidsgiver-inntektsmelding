@@ -7,7 +7,6 @@ import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldContainKey
 import io.mockk.clearAllMocks
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -45,11 +44,13 @@ class ForespoerselMottattRiverTest :
 
             publisert.minus(Key.UUID) shouldContainExactly
                 mapOf(
-                    Key.EVENT_NAME to EventName.FORESPØRSEL_MOTTATT.toJson(EventName.serializer()),
-                    Key.BEHOV to BehovType.LAGRE_FORESPOERSEL.toJson(BehovType.serializer()),
-                    Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
-                    Key.ORGNRUNDERENHET to innkommendeMelding.orgnr.toJson(),
-                    Key.IDENTITETSNUMMER to innkommendeMelding.fnr.toJson(),
+                    Key.EVENT_NAME to EventName.FORESPOERSEL_MOTTATT.toJson(EventName.serializer()),
+                    Key.DATA to
+                        mapOf(
+                            Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
+                            Key.ORGNRUNDERENHET to innkommendeMelding.orgnr.toJson(),
+                            Key.FNR to innkommendeMelding.fnr.toJson(),
+                        ).toJson(),
                 )
         }
     })

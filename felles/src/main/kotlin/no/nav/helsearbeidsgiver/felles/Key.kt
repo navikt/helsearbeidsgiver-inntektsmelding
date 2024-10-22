@@ -29,8 +29,7 @@ enum class Key(
     INNTEKTSMELDING("inntektsmelding"),
     LAGRET_INNTEKTSMELDING("lagret_inntektsmelding"),
     SELVBESTEMT_INNTEKTSMELDING("selvbestemt_inntektsmelding"),
-
-    // Tidligere DataFelt
+    SYKMELDT("sykmeldt"),
     VIRKSOMHET("virksomhet"),
     VIRKSOMHETER("virksomheter"),
     ARBEIDSTAKER_INFORMASJON("arbeidstakerInformasjon"),

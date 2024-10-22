@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.maps.shouldContainKey
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -18,11 +19,11 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakLevetid
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import java.util.UUID
-import kotlin.time.Duration.Companion.days
 
 class OpprettSakLoeserTest :
     FunSpec({
@@ -48,7 +49,7 @@ class OpprettSakLoeserTest :
                     tittel = "Inntektsmelding for ${mockPersonDato().navn}: f. 050120",
                     statusTekst = "NAV trenger inntektsmelding",
                     initiellStatus = SaksStatus.UNDER_BEHANDLING,
-                    harddeleteOm = 390.days,
+                    harddeleteOm = sakLevetid,
                 )
             } returns expectedSakId
 
@@ -61,14 +62,11 @@ class OpprettSakLoeserTest :
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             )
 
-            val resultat = testRapid.firstMessage()
+            val resultat = testRapid.firstMessage().toMap()
 
-            resultat.toMap() shouldContainKey Key.DATA
-
-            resultat.toMap().let {
-                val actualSakId = it[Key.SAK_ID]?.fromJson(String.serializer())
-                actualSakId shouldBe expectedSakId
-            }
+            val data = resultat[Key.DATA].shouldNotBeNull().toMap()
+            val actualSakId = data[Key.SAK_ID]?.fromJson(String.serializer())
+            actualSakId shouldBe expectedSakId
         }
 
         test("skal håndtere duplikatFeil og publisere feil") {

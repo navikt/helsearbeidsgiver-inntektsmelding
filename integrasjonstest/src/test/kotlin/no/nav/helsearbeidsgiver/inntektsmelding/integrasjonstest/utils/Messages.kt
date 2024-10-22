@@ -52,18 +52,10 @@ value class Messages(
                 .orDefault(false)
         }
 
-    fun filter(
-        dataFelt: Key,
-        nestedData: Boolean = true,
-    ): Messages =
+    fun filter(dataKey: Key): Messages =
         filter { msg ->
-            if (nestedData) {
-                val data = msg.toMap()[Key.DATA]?.runCatching { toMap() }?.getOrNull()
-                data != null && dataFelt in data
-            } else {
-                msg.toMap().contains(Key.DATA) &&
-                    msg.toMap().contains(dataFelt)
-            }
+            val data = msg.toMap()[Key.DATA]?.runCatching { toMap() }?.getOrNull()
+            data != null && dataKey in data
         }
 
     fun filterFeil(): Messages =

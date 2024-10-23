@@ -43,9 +43,6 @@ class InnsendingServiceIT : EndToEndTest() {
         val transaksjonId: UUID = UUID.randomUUID()
         val tidligereInntektsmelding = mockInntektsmelding()
 
-        forespoerselRepository.lagreForespoersel(Mock.skjema.forespoerselId.toString(), Mock.orgnr.verdi)
-        forespoerselRepository.oppdaterSakId(Mock.skjema.forespoerselId.toString(), Mock.SAK_ID)
-        forespoerselRepository.oppdaterOppgaveId(Mock.skjema.forespoerselId.toString(), Mock.OPPGAVE_ID)
         val innsendingId = imRepository.lagreInntektsmeldingSkjema(Mock.skjema)
         imRepository.oppdaterMedBeriketDokument(Mock.skjema.forespoerselId, innsendingId, tidligereInntektsmelding)
 
@@ -155,9 +152,6 @@ class InnsendingServiceIT : EndToEndTest() {
         }
 
     private object Mock {
-        const val SAK_ID = "tjukk-kalender"
-        const val OPPGAVE_ID = "kunstig-demon"
-
         val skjema = mockSkjemaInntektsmelding()
 
         val orgnr = Orgnr.genererGyldig()

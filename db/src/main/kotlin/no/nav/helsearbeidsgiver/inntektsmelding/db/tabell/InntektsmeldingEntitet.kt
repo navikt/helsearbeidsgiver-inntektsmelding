@@ -13,7 +13,7 @@ object InntektsmeldingEntitet : Table("inntektsmelding") {
         long("id").autoIncrement(
             idSeqName = "inntektsmelding_id_seq",
         )
-    val forespoerselId = varchar(name = "forespoersel_id", length = 40) references ForespoerselEntitet.forespoerselId
+    val forespoerselId = varchar(name = "forespoersel_id", length = 40)
     val dokument =
         jsonb<Inntektsmelding>(
             name = "dokument",

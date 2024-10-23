@@ -12,8 +12,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreImSkjemaRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreJournalpostIdRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreSelvbestemtImRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterOppgaveLoeser
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterSakLoeser
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "helsearbeidsgiver-im-db".logger()
@@ -47,29 +45,23 @@ fun RapidsConnection.createDbRivers(
         logger.info("Starter ${LagreForespoerselRiver::class.simpleName}...")
         LagreForespoerselRiver(forespoerselRepo).connect(this)
 
-        logger.info("Starter ${LagreImSkjemaRiver::class.simpleName}...")
-        LagreImSkjemaRiver(imRepo).connect(this)
-
         logger.info("Starter ${HentLagretImRiver::class.simpleName}...")
         HentLagretImRiver(imRepo).connect(this)
+
+        logger.info("Starter ${HentSelvbestemtImRiver::class.simpleName}...")
+        HentSelvbestemtImRiver(selvbestemtImRepo).connect(this)
+
+        logger.info("Starter ${LagreImSkjemaRiver::class.simpleName}...")
+        LagreImSkjemaRiver(imRepo).connect(this)
 
         logger.info("Starter ${LagreImRiver::class.simpleName}...")
         LagreImRiver(imRepo).connect(this)
 
-        logger.info("Starter ${LagreEksternImRiver::class.simpleName}...")
-        LagreEksternImRiver(imRepo).connect(this)
-
         logger.info("Starter ${LagreJournalpostIdRiver::class.simpleName}...")
         LagreJournalpostIdRiver(imRepo, selvbestemtImRepo).connect(this)
 
-        logger.info("Starter ${PersisterSakLoeser::class.simpleName}...")
-        PersisterSakLoeser(this, forespoerselRepo)
-
-        logger.info("Starter ${PersisterOppgaveLoeser::class.simpleName}...")
-        PersisterOppgaveLoeser(this, forespoerselRepo)
-
-        logger.info("Starter ${HentSelvbestemtImRiver::class.simpleName}...")
-        HentSelvbestemtImRiver(selvbestemtImRepo).connect(this)
+        logger.info("Starter ${LagreEksternImRiver::class.simpleName}...")
+        LagreEksternImRiver(imRepo).connect(this)
 
         logger.info("Starter ${LagreSelvbestemtImRiver::class.simpleName}...")
         LagreSelvbestemtImRiver(selvbestemtImRepo).connect(this)

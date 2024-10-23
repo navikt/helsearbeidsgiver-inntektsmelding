@@ -1,11 +1,9 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic
 
-import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.IKey
-import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.AsStringSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -33,8 +31,6 @@ object Pri {
         ;
 
         override fun toString(): String = str
-
-        fun fra(message: JsonMessage): JsonElement = message[str].toString().parseJson()
 
         companion object {
             internal fun fromJson(json: String): Key =

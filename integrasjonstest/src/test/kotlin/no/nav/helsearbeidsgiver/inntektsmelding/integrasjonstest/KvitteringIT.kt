@@ -14,8 +14,6 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingGammeltForma
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -33,7 +31,6 @@ class KvitteringIT : EndToEndTest() {
         val transaksjonId = UUID.randomUUID()
         val skjema = mockSkjemaInntektsmelding()
 
-        forespoerselRepository.lagreForespoersel(skjema.forespoerselId.toString(), Mock.orgnr)
         val innsendingId = imRepository.lagreInntektsmeldingSkjema(skjema)
         imRepository.oppdaterMedBeriketDokument(skjema.forespoerselId, innsendingId, mockInntektsmeldingGammeltFormat())
 
@@ -71,7 +68,6 @@ class KvitteringIT : EndToEndTest() {
         val transaksjonId = UUID.randomUUID()
         val forespoerselId = UUID.randomUUID()
 
-        forespoerselRepository.lagreForespoersel(forespoerselId.toString(), Mock.orgnr)
         imRepository.lagreEksternInntektsmelding(forespoerselId, mockEksternInntektsmelding())
 
         publish(
@@ -128,8 +124,6 @@ class KvitteringIT : EndToEndTest() {
     }
 
     private object Mock {
-        val orgnr = Orgnr.genererGyldig().verdi
-
         val tomResultJson = ResultJson(success = null).toJson(ResultJson.serializer())
     }
 }

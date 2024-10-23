@@ -71,7 +71,7 @@ class FeilLytterTest :
             val now = LocalDateTime.now()
             rapid.sendTestMessage(lagRapidFeilmelding())
             repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 1
-            rapid.sendTestMessage(lagRapidFeilmelding(BehovType.LAGRE_FORESPOERSEL))
+            rapid.sendTestMessage(lagRapidFeilmelding(BehovType.JOURNALFOER))
             repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 2
         }
 
@@ -169,25 +169,25 @@ fun lagGyldigFeil(behov: BehovType): Fail {
     val forespoerselID = UUID.randomUUID()
     val jsonMessage =
         JsonMessage.newMessage(
-            EventName.OPPGAVE_OPPRETT_REQUESTED.name,
+            EventName.KVITTERING_REQUESTED.name,
             mapOf(
                 Key.BEHOV.str to behov,
                 Key.UUID.str to transaksjonId,
                 Key.FORESPOERSEL_ID.str to forespoerselID,
             ),
         )
-    return Fail("Feil", EventName.OPPGAVE_OPPRETT_REQUESTED, transaksjonId, forespoerselID, jsonMessage.toJson().parseJson())
+    return Fail("Feil", EventName.KVITTERING_REQUESTED, transaksjonId, forespoerselID, jsonMessage.toJson().parseJson())
 }
 
 fun lagGyldigFeilUtenForespoerselId(behov: BehovType): Fail {
     val transaksjonId = UUID.randomUUID()
     val jsonMessage =
         JsonMessage.newMessage(
-            EventName.OPPGAVE_OPPRETT_REQUESTED.name,
+            EventName.KVITTERING_REQUESTED.name,
             mapOf(
                 Key.BEHOV.str to behov,
                 Key.UUID.str to transaksjonId,
             ),
         )
-    return Fail("Feil", EventName.OPPGAVE_OPPRETT_REQUESTED, transaksjonId, null, jsonMessage.toJson().parseJson())
+    return Fail("Feil", EventName.KVITTERING_REQUESTED, transaksjonId, null, jsonMessage.toJson().parseJson())
 }

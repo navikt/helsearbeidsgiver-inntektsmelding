@@ -20,8 +20,6 @@ object Metrics {
 
     val dbInntektsmelding = databaseMetric("inntektsmelding", "inntektsmelding")
 
-    val dbForespoersel = databaseMetric("inntektsmelding", "forespoersel")
-
     val dbSelvbestemtIm = databaseMetric("inntektsmelding", "selvbestemt_inntektsmelding")
 
     val dbSelvbestemtSak = databaseMetric("notifikasjon", "selvbestemt_sak")

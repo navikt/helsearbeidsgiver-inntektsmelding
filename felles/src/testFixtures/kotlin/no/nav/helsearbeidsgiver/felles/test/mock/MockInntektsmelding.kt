@@ -168,6 +168,7 @@ fun mockInntektsmelding(): Inntektsmelding =
     Inntektsmelding(
         orgnrUnderenhet = Orgnr.genererGyldig().verdi,
         identitetsnummer = Fnr.genererGyldig().verdi,
+        vedtaksperiodeId = UUID.randomUUID(),
         fulltNavn = "Ola Normann",
         virksomhetNavn = "Norge AS",
         behandlingsdager = listOf(dag),
@@ -232,37 +233,6 @@ fun mockInntektsmelding(): Inntektsmelding =
         årsakInnsending = AarsakInnsending.NY,
         innsenderNavn = "Snill Arbeidsgiver",
         telefonnummer = "22222222",
-    )
-
-fun mockDelvisInntektsmeldingDokument() =
-    mockInntektsmelding().copy(
-        // Nullstill alle unødige felter, sett inntekt og refusjon
-        behandlingsdager = emptyList(),
-        egenmeldingsperioder = emptyList(),
-        fraværsperioder = emptyList(),
-        arbeidsgiverperioder = emptyList(),
-        fullLønnIArbeidsgiverPerioden = null,
-        naturalytelser = null,
-        inntekt =
-            Inntekt(
-                bekreftet = true,
-                beregnetInntekt = INNTEKT,
-                endringÅrsak = Tariffendring(dag, dag),
-                manueltKorrigert = false,
-            ),
-        refusjon =
-            Refusjon(
-                utbetalerHeleEllerDeler = true,
-                refusjonPrMnd = INNTEKT,
-                refusjonOpphører = dag.plusDays(3),
-                refusjonEndringer =
-                    listOf(
-                        RefusjonEndring(140.0, dag.minusDays(4)),
-                        RefusjonEndring(150.0, dag.minusDays(5)),
-                        RefusjonEndring(160.0, dag.minusDays(6)),
-                    ),
-            ),
-        forespurtData = listOf("inntekt", "refusjon"),
     )
 
 fun mockEksternInntektsmelding(): EksternInntektsmelding =

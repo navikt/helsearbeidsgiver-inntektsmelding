@@ -34,8 +34,6 @@ class FeilLytter(
     val behovSomHaandteres =
         listOf(
             BehovType.LAGRE_FORESPOERSEL,
-            BehovType.PERSISTER_OPPGAVE_ID,
-            BehovType.PERSISTER_SAK_ID,
             BehovType.JOURNALFOER,
             BehovType.LAGRE_JOURNALPOST_ID,
         )

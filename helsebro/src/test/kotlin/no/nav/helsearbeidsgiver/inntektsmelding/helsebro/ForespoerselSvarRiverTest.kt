@@ -22,7 +22,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.test.json.readFail
+import no.nav.helsearbeidsgiver.felles.test.json.lesFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
@@ -71,7 +71,7 @@ class ForespoerselSvarRiverTest :
                 Pri.Key.LØSNING to expectedIncoming.toJson(ForespoerselSvar.serializer()),
             )
 
-            val actual = testRapid.firstMessage().readFail()
+            val actual = testRapid.firstMessage().lesFail()
 
             testRapid.inspektør.size shouldBeExactly 1
 

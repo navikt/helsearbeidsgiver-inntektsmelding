@@ -20,11 +20,5 @@ object Log {
 
     fun selvbestemtId(value: UUID) = "selvbestemt_id" to value.toString()
 
-    fun sakId(value: String) = "sak_id" to value
-
-    fun oppgaveId(value: String) = "oppgave_id" to value
-
     fun apiRoute(value: String) = "api_route" to value
-
-    fun ukjentType(value: String) = "ukjent_type" to value
 }

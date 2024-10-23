@@ -55,10 +55,6 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
     fun `skal berike og lagre inntektsmeldinger`() {
         val tidligereInntektsmelding = mockInntektsmelding()
 
-        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.orgnr.toString())
-        forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
-        forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
-
         val innsendingId = imRepository.lagreInntektsmeldingSkjema(Mock.skjema)
         imRepository.oppdaterMedBeriketDokument(Mock.forespoerselId, innsendingId, tidligereInntektsmelding)
 
@@ -175,9 +171,6 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
     fun `skal opprette en bakgrunnsjobb som gjenopptar berikelsen av inntektsmeldingen senere dersom oppslaget mot pdl feiler`() {
         val tidligereInntektsmelding = mockInntektsmelding()
 
-        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.orgnr.toString())
-        forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
-        forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
         val innsendingId = imRepository.lagreInntektsmeldingSkjema(Mock.skjema)
         imRepository.oppdaterMedBeriketDokument(Mock.forespoerselId, innsendingId, tidligereInntektsmelding)
 
@@ -252,9 +245,9 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
         bakgrunnsjobb.also {
             it.shouldNotBeNull()
-            it.data.parseJson().also {
-                it.lesBehov() shouldBe BehovType.HENT_PERSONER
-                it.toMap().verifiserForespoerselId().verifiserTransaksjonId(Mock.transaksjonId)
+            it.data.parseJson().also { data ->
+                data.lesBehov() shouldBe BehovType.HENT_PERSONER
+                data.toMap().verifiserForespoerselId().verifiserTransaksjonId(Mock.transaksjonId)
             }
         }
 
@@ -328,8 +321,6 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         val fnrAg = Fnr.genererGyldig()
         val orgnr = Orgnr.genererGyldig()
         val transaksjonId: UUID = UUID.randomUUID()
-        const val SAK_ID = "tjukk-kalender"
-        const val OPPGAVE_ID = "kunstig-demon"
 
         val skjema = mockSkjemaInntektsmelding()
 

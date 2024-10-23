@@ -16,7 +16,7 @@ abstract class MockAuthToken {
     fun mockAuthToken(): String =
         mockOAuth2Server
             .issueToken(
-                issuerId = Auth.ISSUER,
+                issuerId = Auth.IDPORTEN_ISSUER,
                 subject = "mockSubject",
                 audience = "aud-localhost",
                 claims =

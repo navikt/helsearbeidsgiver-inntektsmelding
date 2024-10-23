@@ -16,7 +16,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
-class LagreForespoerselMelding(
+data class LagreForespoerselMelding(
     val eventName: EventName,
     val behovType: BehovType,
     val transaksjonId: UUID,

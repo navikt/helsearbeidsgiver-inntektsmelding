@@ -34,8 +34,6 @@ class FeilLytter(
     val behovSomHaandteres =
         listOf(
             BehovType.LAGRE_FORESPOERSEL,
-            BehovType.OPPRETT_OPPGAVE,
-            BehovType.OPPRETT_SAK,
             BehovType.PERSISTER_OPPGAVE_ID,
             BehovType.PERSISTER_SAK_ID,
             BehovType.JOURNALFOER,
@@ -43,9 +41,10 @@ class FeilLytter(
         )
     val eventerSomHaandteres =
         listOf(
-            EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
             EventName.FORESPOERSEL_MOTTATT,
             EventName.FORESPOERSEL_BESVART,
+            EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED,
+            EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
         )
 
     init {

@@ -12,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Person
-import no.nav.helsearbeidsgiver.felles.domene.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -58,37 +57,8 @@ class HentDataTilSakOgOppgaveServiceTest :
 
             testRapid.sendJson(Mock.steg2())
 
-            testRapid.inspektør.size shouldBeExactly 6
-
+            testRapid.inspektør.size shouldBeExactly 4
             testRapid.message(3).toMap() shouldContainExactly
-                mapOf(
-                    Key.EVENT_NAME to EventName.FORESPOERSEL_MOTTATT.toJson(),
-                    Key.BEHOV to BehovType.OPPRETT_SAK.toJson(),
-                    Key.UUID to Mock.transaksjonId.toJson(),
-                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                    Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
-                    Key.ARBEIDSTAKER_INFORMASJON to
-                        PersonDato(
-                            navn = "Kåre Conradi",
-                            fødselsdato = 22.april,
-                            ident = Mock.fnr.verdi,
-                        ).toJson(PersonDato.serializer()),
-                )
-
-            testRapid.message(4).toMap() shouldContainExactly
-                mapOf(
-                    Key.EVENT_NAME to EventName.FORESPOERSEL_MOTTATT.toJson(),
-                    Key.BEHOV to BehovType.OPPRETT_OPPGAVE.toJson(),
-                    Key.UUID to Mock.transaksjonId.toJson(),
-                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                    Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
-                    Key.VIRKSOMHET to
-                        Mock.orgnrMedNavn.values
-                            .first()
-                            .toJson(),
-                )
-
-            testRapid.message(5).toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED.toJson(),
                     Key.UUID to Mock.transaksjonId.toJson(),

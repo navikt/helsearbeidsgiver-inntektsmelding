@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -14,6 +15,7 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.opprettSak
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -57,13 +59,10 @@ class OpprettSelvbestemtSakRiver(
     override fun OpprettSelvbestemtSakMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val sakId =
             agNotifikasjonKlient.opprettSak(
-                lenke = "$linkUrl/im-dialog/kvittering/agi/${inntektsmelding.type.id}",
+                lenke = NotifikasjonTekst.lenkeFerdigstiltSelvbestemt(linkUrl, inntektsmelding.type.id),
                 inntektsmeldingTypeId = inntektsmelding.type.id,
-                orgnr = inntektsmelding.avsender.orgnr.verdi,
-                sykmeldtNavn = inntektsmelding.sykmeldt.navn,
-                sykmeldtFoedselsdato =
-                    inntektsmelding.sykmeldt.fnr.verdi
-                        .take(6),
+                orgnr = inntektsmelding.avsender.orgnr,
+                sykmeldt = inntektsmelding.sykmeldt.let { Person(it.fnr, it.navn, Person.foedselsdato(it.fnr)) },
                 initiellStatus = SaksStatus.FERDIG,
             )
 

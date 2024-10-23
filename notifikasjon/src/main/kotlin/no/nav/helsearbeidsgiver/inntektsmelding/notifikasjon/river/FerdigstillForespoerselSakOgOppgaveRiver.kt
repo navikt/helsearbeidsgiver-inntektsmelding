@@ -86,7 +86,7 @@ class FerdigstillForespoerselSakOgOppgaveRiver(
         agNotifikasjonKlient
             .ferdigstillSak(
                 forespoerselId = forespoerselId,
-                nyLenke = NotifikasjonTekst.lenkeFerdigstilt(linkUrl, forespoerselId),
+                nyLenke = NotifikasjonTekst.lenkeFerdigstiltForespoersel(linkUrl, forespoerselId),
             ).onFailure(::loggWarnIkkeFunnet)
     }
 
@@ -96,13 +96,13 @@ class FerdigstillForespoerselSakOgOppgaveRiver(
                 agNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(
                     eksternId = forespoerselId.toString(),
                     merkelapp = NotifikasjonTekst.MERKELAPP,
-                    nyLenke = NotifikasjonTekst.lenkeFerdigstilt(linkUrl, forespoerselId),
+                    nyLenke = NotifikasjonTekst.lenkeFerdigstiltForespoersel(linkUrl, forespoerselId),
                 )
             }.recoverCatching {
                 agNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(
                     eksternId = forespoerselId.toString(),
                     merkelapp = NotifikasjonTekst.MERKELAPP_GAMMEL,
-                    nyLenke = NotifikasjonTekst.lenkeFerdigstilt(linkUrl, forespoerselId),
+                    nyLenke = NotifikasjonTekst.lenkeFerdigstiltForespoersel(linkUrl, forespoerselId),
                 )
             }.onFailure(::loggWarnIkkeFunnet)
         }

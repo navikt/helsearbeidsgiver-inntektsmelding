@@ -6,7 +6,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import java.util.UUID
 
 object Log {
-    fun <T : Any> klasse(value: T) = "class" to value.simpleName()
+    fun <T : Any> klasse(value: T) = "class" to value::class.simpleName.orEmpty()
 
     fun event(value: EventName) = "event" to value.name
 

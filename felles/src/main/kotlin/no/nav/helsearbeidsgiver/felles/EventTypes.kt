@@ -22,14 +22,11 @@ enum class BehovType {
     LAGRE_SELVBESTEMT_IM,
     OPPRETT_SELVBESTEMT_SAK,
     LAGRE_IM_SKJEMA,
-    SLETT_SAK, // kun brukt ved manuell kjøring
 
     // Asynkrone endringer
     LAGRE_EKSTERN_INNTEKTSMELDING, // kan erstattes av event
     LAGRE_FORESPOERSEL, // kan erstattes av event
     LAGRE_JOURNALPOST_ID, // kan erstattes av event
-    OPPRETT_OPPGAVE, // blir overflødig ved flytting av notifikasjondatabase
-    OPPRETT_SAK, // blir overflødig ved flytting av notifikasjondatabase
     PERSISTER_OPPGAVE_ID, // kan erstattes av event
     PERSISTER_SAK_ID, // kan erstattes av event
 
@@ -72,14 +69,11 @@ enum class EventName {
     FORESPOERSEL_KASTET_TIL_INFOTRYGD,
 
     SAK_OPPRETT_REQUESTED,
-    SAK_OPPRETTET,
-    SAK_OG_OPPGAVE_FERDIGSTILT,
-
-    MANUELL_SLETT_SAK_REQUESTED,
 
     OPPGAVE_OPPRETT_REQUESTED,
     OPPGAVE_LAGRET,
-    OPPGAVE_OPPRETTET,
     SAK_OG_OPPGAVE_OPPRETT_REQUESTED,
+    SAK_OG_OPPGAVE_OPPRETTET,
+    SAK_OG_OPPGAVE_FERDIGSTILT,
     SAK_OG_OPPGAVE_UTGAATT,
 }

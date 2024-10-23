@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Person
-import no.nav.helsearbeidsgiver.felles.domene.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
@@ -126,32 +125,6 @@ class HentDataTilSakOgOppgaveService(
         val orgNavn = steg1.orgnrMedNavn[steg0.orgnr] ?: ORG_NAVN_DEFAULT
         val sykmeldt = steg2.personer[steg0.fnr] ?: personDefault(steg0.fnr)
 
-        val sykmeldtPersonDato =
-            PersonDato(
-                navn = sykmeldt.navn,
-                fødselsdato = sykmeldt.foedselsdato,
-                ident = sykmeldt.fnr.verdi,
-            )
-
-        rapid.publish(
-            Key.EVENT_NAME to eventName.toJson(),
-            Key.BEHOV to BehovType.OPPRETT_SAK.toJson(),
-            Key.UUID to steg0.transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-            Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
-            Key.ARBEIDSTAKER_INFORMASJON to sykmeldtPersonDato.toJson(PersonDato.serializer()),
-        )
-
-        rapid.publish(
-            Key.EVENT_NAME to eventName.toJson(),
-            Key.BEHOV to BehovType.OPPRETT_OPPGAVE.toJson(),
-            Key.UUID to steg0.transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-            Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
-            Key.VIRKSOMHET to orgNavn.toJson(),
-        )
-
-        // Skal bli tatt imot av kommende river
         rapid.publish(
             Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),

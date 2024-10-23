@@ -3,13 +3,11 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import io.mockk.coVerify
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Person
-import no.nav.helsearbeidsgiver.felles.domene.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
@@ -108,28 +106,6 @@ class ForespoerselMottattIT : EndToEndTest() {
                     .shouldNotBeNull()
             }
 
-        messagesFilteredForespoerselMottatt
-            .filter(BehovType.OPPRETT_SAK)
-            .firstAsMap()
-            .also {
-                it[Key.UUID]?.fromJson(UuidSerializer).shouldNotBeNull()
-                it[Key.ARBEIDSTAKER_INFORMASJON]?.fromJson(PersonDato.serializer()).shouldNotBeNull()
-
-                it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-                it[Key.ORGNRUNDERENHET]?.fromJson(Orgnr.serializer()) shouldBe Mock.orgnr
-            }
-
-        messagesFilteredForespoerselMottatt
-            .filter(BehovType.OPPRETT_OPPGAVE)
-            .firstAsMap()
-            .also {
-                it[Key.UUID]?.fromJson(UuidSerializer).shouldNotBeNull()
-                it[Key.VIRKSOMHET]?.fromJson(String.serializer()).shouldNotBeNull()
-
-                it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-                it[Key.ORGNRUNDERENHET]?.fromJson(Orgnr.serializer()) shouldBe Mock.orgnr
-            }
-
         messages
             .filter(EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED)
             .firstAsMap()
@@ -146,36 +122,14 @@ class ForespoerselMottattIT : EndToEndTest() {
             }
 
         messages
-            .filter(EventName.SAK_OPPRETTET)
+            .filter(EventName.SAK_OG_OPPGAVE_OPPRETTET)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
                 data[Key.SAK_ID]?.fromJson(String.serializer()) shouldBe Mock.sakId
-            }
-
-        messages
-            .filter(EventName.OPPGAVE_OPPRETTET)
-            .firstAsMap()
-            .also {
-                val data = it[Key.DATA].shouldNotBeNull().toMap()
                 data[Key.OPPGAVE_ID]?.fromJson(String.serializer()) shouldBe Mock.oppgaveId
             }
-    }
-
-    @Test
-    fun `Slett sak loeser test`() {
-        coEvery {
-            arbeidsgiverNotifikasjonKlient.hardDeleteSak(any())
-        } returns Unit
-
-        publish(
-            Key.EVENT_NAME to EventName.MANUELL_SLETT_SAK_REQUESTED.toJson(),
-            Key.BEHOV to BehovType.SLETT_SAK.toJson(),
-            Key.SAK_ID to Mock.sakId.toJson(),
-        )
-
-        coVerify(exactly = 1) { arbeidsgiverNotifikasjonKlient.hardDeleteSak(Mock.sakId) }
-        messages.all().size shouldBe 1
     }
 
     private object Mock {

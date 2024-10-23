@@ -10,10 +10,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FerdigstillForespoerselSakOgOppgaveRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FjernPaaminnelseRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.ForespoerselLagretRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettOppgaveLoeser
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSakLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettForespoerselSakOgOppgaveRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSelvbestemtSakRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.SlettSakLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.UtgaattLoeser
 import no.nav.helsearbeidsgiver.tokenprovider.oauth2ClientCredentialsTokenGetter
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -56,26 +54,20 @@ fun RapidsConnection.createNotifikasjonRivers(
     arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
 ): RapidsConnection =
     also {
+        logger.info("Starter ${OpprettForespoerselSakOgOppgaveRiver::class.simpleName}...")
+        OpprettForespoerselSakOgOppgaveRiver(linkUrl, arbeidsgiverNotifikasjonKlient).connect(this)
+
+        logger.info("Starter ${OpprettSelvbestemtSakRiver::class.simpleName}...")
+        OpprettSelvbestemtSakRiver(linkUrl, selvbestemtRepo, arbeidsgiverNotifikasjonKlient).connect(this)
+
         logger.info("Starter ${FerdigstillForespoerselSakOgOppgaveRiver::class.simpleName}...")
         FerdigstillForespoerselSakOgOppgaveRiver(linkUrl, arbeidsgiverNotifikasjonKlient).connect(this)
 
         logger.info("Starter ${ForespoerselLagretRiver::class.simpleName}...")
         ForespoerselLagretRiver(this)
 
-        logger.info("Starter ${OpprettSakLoeser::class.simpleName}...")
-        OpprettSakLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
-
-        logger.info("Starter ${OpprettOppgaveLoeser::class.simpleName}...")
-        OpprettOppgaveLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
-
         logger.info("Starter ${UtgaattLoeser::class.simpleName}...")
         UtgaattLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
-
-        logger.info("Starter ${SlettSakLoeser::class.simpleName}...")
-        SlettSakLoeser(this, arbeidsgiverNotifikasjonKlient)
-
-        logger.info("Starter ${OpprettSelvbestemtSakRiver::class.simpleName}...")
-        OpprettSelvbestemtSakRiver(linkUrl, selvbestemtRepo, arbeidsgiverNotifikasjonKlient).connect(this)
 
         logger.info("Starter ${FjernPaaminnelseRiver::class.simpleName}...")
         FjernPaaminnelseRiver(arbeidsgiverNotifikasjonKlient).connect(this)

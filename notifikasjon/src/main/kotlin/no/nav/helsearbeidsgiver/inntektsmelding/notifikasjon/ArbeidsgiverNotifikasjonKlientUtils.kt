@@ -3,7 +3,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
+import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 import kotlin.time.Duration.Companion.days
 
@@ -20,18 +22,28 @@ object NotifikasjonTekst {
     const val STATUS_TEKST_FERDIG = "Mottatt – Se kvittering eller korriger inntektsmelding"
     const val STATUS_TEKST_AVBRUTT = "Avbrutt av NAV"
 
-    fun lenkeFerdigstilt(
+    fun lenkeAktivForespoersel(
+        linkUrl: String,
+        forespoerselId: UUID,
+    ): String = "$linkUrl/im-dialog/$forespoerselId"
+
+    fun lenkeFerdigstiltForespoersel(
         linkUrl: String,
         forespoerselId: UUID,
     ): String = "$linkUrl/im-dialog/kvittering/$forespoerselId"
 
-    fun sakTittel(
-        sykmeldtNavn: String,
-        sykmeldtFoedselsdato: String,
-    ): String = "Inntektsmelding for $sykmeldtNavn: f. $sykmeldtFoedselsdato"
+    fun lenkeFerdigstiltSelvbestemt(
+        linkUrl: String,
+        selvbestemtId: UUID,
+    ): String = "$linkUrl/im-dialog/kvittering/agi/$selvbestemtId"
+
+    fun sakTittel(sykmeldt: Person): String {
+        val foedselsdato = sykmeldt.fnr.verdi.take(6)
+        return "Inntektsmelding for ${sykmeldt.navn}: f. $foedselsdato"
+    }
 
     fun oppgaveInnhold(
-        orgnr: String,
+        orgnr: Orgnr,
         orgNavn: String,
     ): String =
         listOf(
@@ -46,9 +58,8 @@ object NotifikasjonTekst {
 fun ArbeidsgiverNotifikasjonKlient.opprettSak(
     lenke: String,
     inntektsmeldingTypeId: UUID,
-    orgnr: String,
-    sykmeldtNavn: String,
-    sykmeldtFoedselsdato: String,
+    orgnr: Orgnr,
+    sykmeldt: Person,
     initiellStatus: SaksStatus = SaksStatus.UNDER_BEHANDLING,
 ): String {
     val statusTekst =
@@ -60,11 +71,11 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
     return Metrics.agNotifikasjonRequest.recordTime(::opprettNySak) {
         runBlocking {
             opprettNySak(
-                virksomhetsnummer = orgnr,
-                merkelapp = NotifikasjonTekst.MERKELAPP,
+                virksomhetsnummer = orgnr.verdi,
                 grupperingsid = inntektsmeldingTypeId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP,
                 lenke = lenke,
-                tittel = NotifikasjonTekst.sakTittel(sykmeldtNavn, sykmeldtFoedselsdato),
+                tittel = NotifikasjonTekst.sakTittel(sykmeldt),
                 statusTekst = statusTekst,
                 initiellStatus = initiellStatus,
                 harddeleteOm = sakLevetid,
@@ -119,4 +130,24 @@ fun ArbeidsgiverNotifikasjonKlient.avbrytSak(
                 nyLenke = nyLenke,
             )
         }
+    }
+
+fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
+    lenke: String,
+    forespoerselId: UUID,
+    orgnr: Orgnr,
+    orgNavn: String,
+): String =
+    runBlocking {
+        opprettNyOppgave(
+            virksomhetsnummer = orgnr.verdi,
+            eksternId = forespoerselId.toString(),
+            grupperingsid = forespoerselId.toString(),
+            merkelapp = NotifikasjonTekst.MERKELAPP,
+            lenke = lenke,
+            tekst = NotifikasjonTekst.OPPGAVE_TEKST,
+            varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
+            varslingInnhold = NotifikasjonTekst.oppgaveInnhold(orgnr, orgNavn),
+            tidspunkt = null,
+        )
     }

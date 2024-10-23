@@ -32,7 +32,6 @@ enum class Key(
     SYKMELDT("sykmeldt"),
     VIRKSOMHET("virksomhet"),
     VIRKSOMHETER("virksomheter"),
-    ARBEIDSTAKER_INFORMASJON("arbeidstakerInformasjon"),
     ARBEIDSFORHOLD("arbeidsforhold"),
     SAK_ID("sak_id"),
     PERSISTERT_SAK_ID("persistert_sak_id"),

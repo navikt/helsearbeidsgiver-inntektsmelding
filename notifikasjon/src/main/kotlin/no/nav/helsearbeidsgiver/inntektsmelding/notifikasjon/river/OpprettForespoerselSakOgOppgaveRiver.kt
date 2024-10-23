@@ -56,7 +56,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
         }
 
     override fun OpprettForespoerselSakOgOppgaveMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        val lenke = NotifikasjonTekst.lenkeAktiv(lenkeBaseUrl, forespoerselId)
+        val lenke = NotifikasjonTekst.lenkeAktivForespoersel(lenkeBaseUrl, forespoerselId)
 
         val sakId =
             agNotifikasjonKlient.opprettSak(

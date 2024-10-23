@@ -22,7 +22,7 @@ object NotifikasjonTekst {
     const val STATUS_TEKST_FERDIG = "Mottatt – Se kvittering eller korriger inntektsmelding"
     const val STATUS_TEKST_AVBRUTT = "Avbrutt av NAV"
 
-    fun lenkeAktiv(
+    fun lenkeAktivForespoersel(
         linkUrl: String,
         forespoerselId: UUID,
     ): String = "$linkUrl/im-dialog/$forespoerselId"

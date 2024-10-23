@@ -164,7 +164,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             withData(
                 mapOf(
                     "melding med behov" to Pair(Key.BEHOV, BehovType.LAGRE_SELVBESTEMT_IM.toJson()),
-                    "melding med data" to Pair(Key.DATA, "".toJson()),
+                    "melding med data som flagg" to Pair(Key.DATA, "".toJson()),
                     "melding med fail" to Pair(Key.FAIL, forventetFail(innkommendeMelding()).toJson(Fail.serializer())),
                 ),
             ) { uoensketKeyMedVerdi ->

@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -103,6 +104,7 @@ class HentDataTilSakOgOppgaveServiceTest :
                                 Mock.orgnrMedNavn.values
                                     .first()
                                     .toJson(),
+                            Key.SKAL_HA_PAAMINNELSE to Mock.skalHaPaaminnelse.toJson(Boolean.serializer()),
                         ).toJson(),
                 )
         }
@@ -141,6 +143,7 @@ private object Mock {
     val fnr = Fnr.genererGyldig()
     val orgnrMedNavn = mapOf(orgnr to "Kåre Conradis Kål og Kålrabi")
     val personer = mapOf(fnr to Person(fnr, "Kåre Conradi", 22.april))
+    val skalHaPaaminnelse = false // TODO: Bytt ut default false
 
     fun steg0(): Map<Key, JsonElement> =
         mapOf(

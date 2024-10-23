@@ -45,6 +45,7 @@ class ForespoerselMottattIT : EndToEndTest() {
             Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
             Pri.Key.ORGNR to Mock.orgnr.toJson(),
             Pri.Key.FNR to Mock.fnr.toJson(),
+            Pri.Key.SKAL_HA_PAAMINNELSE to Mock.skalHaPaaminnelse.toJson(Boolean.serializer()),
         )
 
         val messagesFilteredForespoerselMottatt = messages.filter(EventName.FORESPOERSEL_MOTTATT)
@@ -141,6 +142,7 @@ class ForespoerselMottattIT : EndToEndTest() {
 
                 data[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
                 data[Key.ORGNRUNDERENHET]?.fromJson(Orgnr.serializer()) shouldBe Mock.orgnr
+                data[Key.SKAL_HA_PAAMINNELSE]?.fromJson(Boolean.serializer()) shouldBe Mock.skalHaPaaminnelse
             }
 
         messages
@@ -182,5 +184,6 @@ class ForespoerselMottattIT : EndToEndTest() {
         val fnr = Fnr.genererGyldig()
         val sakId = UUID.randomUUID().toString()
         val oppgaveId = UUID.randomUUID().toString()
+        val skalHaPaaminnelse = false
     }
 }

@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -73,7 +74,7 @@ class HentDataTilSakOgOppgaveService(
             sikkerLogger.info(it)
         }
 
-        // Brukes midlertidig til å lagre forspørsel, til tabellen fjernes
+        // Brukes midlertidig til å lagre forespørsel, til tabellen fjernes
         rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.LAGRE_FORESPOERSEL.toJson(BehovType.serializer()),
@@ -160,6 +161,7 @@ class HentDataTilSakOgOppgaveService(
                     Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
                     Key.SYKMELDT to sykmeldt.toJson(Person.serializer()),
                     Key.VIRKSOMHET to orgNavn.toJson(),
+                    Key.SKAL_HA_PAAMINNELSE to false.toJson(Boolean.serializer()), // TODO: Erstatt default false med SKAL_HA_PAAMINNELSE fra melding
                 ).toJson(),
         )
     }

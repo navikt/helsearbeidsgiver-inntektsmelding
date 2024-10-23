@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt
 
 import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -25,6 +26,7 @@ data class Melding(
     val forespoerselId: UUID,
     val orgnr: Orgnr,
     val fnr: Fnr,
+    val skalHaPaaminnelse: Boolean,
 )
 
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */
@@ -39,6 +41,7 @@ class ForespoerselMottattRiver : PriObjectRiver<Melding>() {
             forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, json),
             orgnr = Pri.Key.ORGNR.les(Orgnr.serializer(), json),
             fnr = Pri.Key.FNR.les(Fnr.serializer(), json),
+            skalHaPaaminnelse = Pri.Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), json),
         )
 
     override fun Melding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
@@ -53,6 +56,7 @@ class ForespoerselMottattRiver : PriObjectRiver<Melding>() {
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.ORGNRUNDERENHET to orgnr.toJson(),
                     Key.FNR to fnr.toJson(),
+                    Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
                 ).toJson(),
         )
     }

@@ -6,6 +6,7 @@ import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldContainKey
 import io.mockk.clearAllMocks
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -50,6 +51,7 @@ class ForespoerselMottattRiverTest :
                             Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
                             Key.ORGNRUNDERENHET to innkommendeMelding.orgnr.toJson(),
                             Key.FNR to innkommendeMelding.fnr.toJson(),
+                            Key.SKAL_HA_PAAMINNELSE to innkommendeMelding.skalHaPaaminnelse.toJson(Boolean.serializer()),
                         ).toJson(),
                 )
         }
@@ -62,6 +64,7 @@ private fun mockInnkommendeMelding(): Melding =
         forespoerselId = UUID.randomUUID(),
         orgnr = Orgnr.genererGyldig(),
         fnr = Fnr.genererGyldig(),
+        skalHaPaaminnelse = true,
     )
 
 private fun Melding.toMap(): Map<Pri.Key, JsonElement> =
@@ -70,4 +73,5 @@ private fun Melding.toMap(): Map<Pri.Key, JsonElement> =
         Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         Pri.Key.ORGNR to orgnr.toJson(),
         Pri.Key.FNR to fnr.toJson(),
+        Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
     )

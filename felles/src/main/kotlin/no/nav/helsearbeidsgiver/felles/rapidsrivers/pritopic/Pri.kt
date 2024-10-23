@@ -29,6 +29,7 @@ object Pri {
         FORESPOERSEL_ID("forespoerselId"),
         SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
         VEDTAKSPERIODE_ID_LISTE("vedtaksperiode_id_liste"),
+        SKAL_HA_PAAMINNELSE("skal_ha_paaminnelse"),
         ;
 
         override fun toString(): String = str

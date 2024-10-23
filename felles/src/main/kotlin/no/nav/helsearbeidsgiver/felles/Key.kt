@@ -53,6 +53,7 @@ enum class Key(
     EKSTERN_INNTEKTSMELDING("eksternInntektsmelding"),
     ER_DUPLIKAT_IM("er_duplikat_im"),
     INNSENDING_ID("innsending_id"),
+    SKAL_HA_PAAMINNELSE("skal_ha_paaminnelse"),
     ;
 
     override fun toString(): String = str

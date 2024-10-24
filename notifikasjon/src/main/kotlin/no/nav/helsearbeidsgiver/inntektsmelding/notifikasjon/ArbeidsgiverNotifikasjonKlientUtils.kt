@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
@@ -55,6 +56,18 @@ object NotifikasjonTekst {
             "Hvis dere sender inntektsmelding via lønnssystem kan dere fortsatt gjøre dette,",
             "og trenger ikke sende inn via Min side – arbeidsgiver.",
         ).joinToString(separator = " ")
+
+    fun purringInnhold(
+        orgnr: Orgnr,
+        orgNavn: String,
+    ): String =
+        listOf(
+            "Nav venter fortsatt på inntektsmelding for en av deres ansatte.",
+            "Vi trenger inntektsmeldingen så snart som mulig,",
+            "ellers kan vi ikke behandle søknaden om sykepenger.",
+            "Logg inn på Min side – arbeidsgiver på Nav for å finne ut hvilken inntektsmelding det gjelder.",
+            "Gjelder $orgNavn - orgnr $orgnr.",
+        ).joinToString(separator = " ")
 }
 
 fun ArbeidsgiverNotifikasjonKlient.opprettSak(
@@ -90,7 +103,7 @@ fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(
     forespoerselId: UUID,
     nyLenke: String,
 ): Result<Unit> =
-    Metrics.agNotifikasjonRequest.recordTime(::nyStatusSak) {
+    Metrics.agNotifikasjonRequest.recordTime(::nyStatusSakByGrupperingsid) {
         runCatching {
             nyStatusSakByGrupperingsid(
                 grupperingsid = forespoerselId.toString(),
@@ -139,6 +152,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
     forespoerselId: UUID,
     orgnr: Orgnr,
     orgNavn: String,
+    skalHaPaaminnelse: Boolean,
 ): String =
     runBlocking {
         opprettNyOppgave(
@@ -151,5 +165,15 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
             varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
             varslingInnhold = NotifikasjonTekst.oppgaveInnhold(orgnr, orgNavn),
             tidspunkt = null,
+            paaminnelse =
+                if (skalHaPaaminnelse && Env.oppgavePaaminnelseAktivert) {
+                    Paaminnelse(
+                        tittel = "Påminnelse: ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
+                        innhold = NotifikasjonTekst.purringInnhold(orgnr, orgNavn),
+                        tidMellomOppgaveopprettelseOgPaaminnelse = Env.tidMellomOppgaveopprettelseOgPaaminnelse,
+                    )
+                } else {
+                    null
+                },
         )
     }

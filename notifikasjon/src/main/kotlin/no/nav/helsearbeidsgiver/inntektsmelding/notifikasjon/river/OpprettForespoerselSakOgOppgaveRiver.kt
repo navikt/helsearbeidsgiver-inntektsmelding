@@ -30,6 +30,7 @@ data class OpprettForespoerselSakOgOppgaveMelding(
     val orgnr: Orgnr,
     val sykmeldt: Person,
     val orgNavn: String,
+    val skalHaPaaminnelse: Boolean,
 )
 
 class OpprettForespoerselSakOgOppgaveRiver(
@@ -52,6 +53,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
                 orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), data),
                 sykmeldt = Key.SYKMELDT.les(Person.serializer(), data),
                 orgNavn = Key.VIRKSOMHET.les(String.serializer(), data),
+                skalHaPaaminnelse = Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), data),
             )
         }
 
@@ -72,6 +74,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
                 forespoerselId = forespoerselId,
                 orgnr = orgnr,
                 orgNavn = orgNavn,
+                skalHaPaaminnelse = skalHaPaaminnelse,
             )
 
         return mapOf(

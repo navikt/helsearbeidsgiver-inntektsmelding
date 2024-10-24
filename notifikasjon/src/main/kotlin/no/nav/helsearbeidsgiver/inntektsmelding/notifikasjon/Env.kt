@@ -15,4 +15,6 @@ object Env {
             clientSecret = "AZURE_APP_CLIENT_SECRET".fromEnv(),
             clientJwk = "AZURE_APP_JWK".fromEnv(),
         )
+    val oppgavePaaminnelseAktivert: Boolean = "OPPGAVEPAAMINNELSER_AKTIVERT".fromEnv().toBoolean()
+    val tidMellomOppgaveopprettelseOgPaaminnelse = "TID_MELLOM_OPPGAVEOPPRETTELSE_OG_PAAMINNELSE".fromEnv()
 }

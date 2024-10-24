@@ -14,12 +14,12 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.prosessor.FeilProsessor
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.sql.SQLException
 import java.util.UUID
@@ -59,7 +59,7 @@ class FeilLytter(
         packet: JsonMessage,
         context: MessageContext,
     ) {
-        sikkerLogger.info("Mottok feil: ${packet.toPretty()}")
+        sikkerLogger.info("Mottok feil: ${packet.toJson().parseJson().toPretty()}")
         val fail = toFailOrNull(packet.toJson().parseJson().toMap())
         if (fail == null) {
             sikkerLogger.warn("Kunne ikke parse feil-objekt, ignorerer...")

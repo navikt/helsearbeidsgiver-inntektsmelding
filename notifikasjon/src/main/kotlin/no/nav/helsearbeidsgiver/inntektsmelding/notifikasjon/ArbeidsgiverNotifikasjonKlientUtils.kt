@@ -32,6 +32,8 @@ object NotifikasjonTekst {
         forespoerselId: UUID,
     ): String = "$linkUrl/im-dialog/kvittering/$forespoerselId"
 
+    fun lenkeUtgaattForespoersel(linkUrl: String): String = "$linkUrl/im-dialog/utgatt"
+
     fun lenkeFerdigstiltSelvbestemt(
         linkUrl: String,
         selvbestemtId: UUID,

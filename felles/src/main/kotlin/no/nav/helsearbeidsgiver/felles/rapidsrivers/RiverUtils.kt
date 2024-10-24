@@ -7,24 +7,9 @@ import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toPretty
-
-fun JsonMessage.toPretty(): String = toJson().parseJson().toPretty()
-
-fun JsonMessage.demandValues(vararg keyAndValuePairs: Pair<IKey, String>) {
-    keyAndValuePairs.forEach { (key, value) ->
-        demandValue(key.str, value)
-    }
-}
-
-fun JsonMessage.requireKeys(vararg keys: IKey) {
-    val keysAsStr = keys.map(IKey::str).toTypedArray()
-    requireKey(*keysAsStr)
-}
 
 fun MessageContext.publish(vararg messageFields: Pair<Key, JsonElement>): JsonElement = publish(messageFields.toMap())
 

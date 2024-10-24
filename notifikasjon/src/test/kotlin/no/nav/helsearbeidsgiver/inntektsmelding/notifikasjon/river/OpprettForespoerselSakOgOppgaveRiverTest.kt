@@ -117,7 +117,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                     varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
                     varslingInnhold = NotifikasjonTekst.oppgaveInnhold(innkommendeMelding.orgnr, innkommendeMelding.orgNavn),
                     tidspunkt = null,
-                    paaminnelse = Paaminnelse("mock tittel", "mock innhold", "P10D")
+                    paaminnelse = Paaminnelse("mock tittel", "mock innhold", "P10D"),
                 )
             }
         }

@@ -11,7 +11,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FerdigstillFo
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FjernPaaminnelseRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettForespoerselSakOgOppgaveRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSelvbestemtSakRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.UtgaattLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.UtgaattForespoerselRiver
 import no.nav.helsearbeidsgiver.tokenprovider.oauth2ClientCredentialsTokenGetter
 import no.nav.helsearbeidsgiver.utils.log.logger
 
@@ -50,23 +50,23 @@ fun RapidsConnection.createNotifikasjonService(): RapidsConnection =
 fun RapidsConnection.createNotifikasjonRivers(
     linkUrl: String,
     selvbestemtRepo: SelvbestemtRepo,
-    arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
+    agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
 ): RapidsConnection =
     also {
         logger.info("Starter ${OpprettForespoerselSakOgOppgaveRiver::class.simpleName}...")
-        OpprettForespoerselSakOgOppgaveRiver(linkUrl, arbeidsgiverNotifikasjonKlient).connect(this)
+        OpprettForespoerselSakOgOppgaveRiver(linkUrl, agNotifikasjonKlient).connect(this)
 
         logger.info("Starter ${OpprettSelvbestemtSakRiver::class.simpleName}...")
-        OpprettSelvbestemtSakRiver(linkUrl, selvbestemtRepo, arbeidsgiverNotifikasjonKlient).connect(this)
+        OpprettSelvbestemtSakRiver(linkUrl, selvbestemtRepo, agNotifikasjonKlient).connect(this)
 
         logger.info("Starter ${FerdigstillForespoerselSakOgOppgaveRiver::class.simpleName}...")
-        FerdigstillForespoerselSakOgOppgaveRiver(linkUrl, arbeidsgiverNotifikasjonKlient).connect(this)
+        FerdigstillForespoerselSakOgOppgaveRiver(linkUrl, agNotifikasjonKlient).connect(this)
 
-        logger.info("Starter ${UtgaattLoeser::class.simpleName}...")
-        UtgaattLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
+        logger.info("Starter ${UtgaattForespoerselRiver::class.simpleName}...")
+        UtgaattForespoerselRiver(linkUrl, agNotifikasjonKlient).connect(this)
 
         logger.info("Starter ${FjernPaaminnelseRiver::class.simpleName}...")
-        FjernPaaminnelseRiver(arbeidsgiverNotifikasjonKlient).connect(this)
+        FjernPaaminnelseRiver(agNotifikasjonKlient).connect(this)
     }
 
 private fun buildClient(): ArbeidsgiverNotifikasjonKlient {

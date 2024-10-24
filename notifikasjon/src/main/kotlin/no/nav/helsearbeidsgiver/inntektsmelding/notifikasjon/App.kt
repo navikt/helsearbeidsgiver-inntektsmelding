@@ -9,7 +9,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateles
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FerdigstillForespoerselSakOgOppgaveRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FjernPaaminnelseRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.ForespoerselLagretRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettForespoerselSakOgOppgaveRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSelvbestemtSakRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.UtgaattLoeser
@@ -62,9 +61,6 @@ fun RapidsConnection.createNotifikasjonRivers(
 
         logger.info("Starter ${FerdigstillForespoerselSakOgOppgaveRiver::class.simpleName}...")
         FerdigstillForespoerselSakOgOppgaveRiver(linkUrl, arbeidsgiverNotifikasjonKlient).connect(this)
-
-        logger.info("Starter ${ForespoerselLagretRiver::class.simpleName}...")
-        ForespoerselLagretRiver(this)
 
         logger.info("Starter ${UtgaattLoeser::class.simpleName}...")
         UtgaattLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)

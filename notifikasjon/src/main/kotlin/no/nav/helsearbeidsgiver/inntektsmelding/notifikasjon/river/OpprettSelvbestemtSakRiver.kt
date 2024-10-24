@@ -20,7 +20,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.opprettSak
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
@@ -66,21 +65,17 @@ class OpprettSelvbestemtSakRiver(
                 initiellStatus = SaksStatus.FERDIG,
             )
 
-        return MdcUtils.withLogFields(
-            Log.sakId(sakId),
-        ) {
-            selvbestemtRepo.lagreSakId(inntektsmelding.type.id, sakId)
+        selvbestemtRepo.lagreSakId(inntektsmelding.type.id, sakId)
 
-            mapOf(
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.DATA to
-                    data
-                        .plus(
-                            Key.SAK_ID to sakId.toJson(),
-                        ).toJson(),
-            )
-        }
+        return mapOf(
+            Key.EVENT_NAME to eventName.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to
+                data
+                    .plus(
+                        Key.SAK_ID to sakId.toJson(),
+                    ).toJson(),
+        )
     }
 
     override fun OpprettSelvbestemtSakMelding.haandterFeil(

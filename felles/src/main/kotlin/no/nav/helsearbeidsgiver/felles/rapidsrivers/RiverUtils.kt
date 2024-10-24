@@ -21,11 +21,6 @@ fun JsonMessage.demandValues(vararg keyAndValuePairs: Pair<IKey, String>) {
     }
 }
 
-fun JsonMessage.rejectKeys(vararg keys: IKey) {
-    val keysAsStr = keys.map(IKey::str).toTypedArray()
-    rejectKey(*keysAsStr)
-}
-
 fun JsonMessage.requireKeys(vararg keys: IKey) {
     val keysAsStr = keys.map(IKey::str).toTypedArray()
     requireKey(*keysAsStr)

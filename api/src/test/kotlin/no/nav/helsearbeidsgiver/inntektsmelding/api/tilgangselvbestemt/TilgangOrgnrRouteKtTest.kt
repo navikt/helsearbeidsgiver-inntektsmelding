@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.inntektselvbestemt
+package no.nav.helsearbeidsgiver.inntektsmelding.api.tilgangselvbestemt
 
 import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText

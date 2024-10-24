@@ -17,7 +17,6 @@ enum class Key(
 
     // Egendefinerte
     SELVBESTEMT_ID("selvbestemt_id"),
-    IDENTITETSNUMMER("identitetsnummer"),
     ARBEIDSGIVER_FNR("arbeidsgiver_fnr"),
     UUID("uuid"),
     FORESPOERSEL_ID("forespoerselId"),
@@ -34,7 +33,6 @@ enum class Key(
     VIRKSOMHETER("virksomheter"),
     ARBEIDSFORHOLD("arbeidsforhold"),
     SAK_ID("sak_id"),
-    PERSISTERT_SAK_ID("persistert_sak_id"),
     OPPGAVE_ID("oppgave_id"),
     ORGNRUNDERENHET("orgnrUnderenhet"),
     ORGNR_UNDERENHETER("orgnr_underenheter"),

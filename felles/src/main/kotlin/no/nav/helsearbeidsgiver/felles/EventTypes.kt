@@ -25,10 +25,8 @@ enum class BehovType {
 
     // Asynkrone endringer
     LAGRE_EKSTERN_INNTEKTSMELDING, // kan erstattes av event
-    LAGRE_FORESPOERSEL, // kan erstattes av event
+    LAGRE_FORESPOERSEL, // TODO slett etter databasen er flyttet
     LAGRE_JOURNALPOST_ID, // kan erstattes av event
-    PERSISTER_OPPGAVE_ID, // kan erstattes av event
-    PERSISTER_SAK_ID, // kan erstattes av event
 
     // Asynkrone endringer, men brukt til å prøve igjen ved feil
     JOURNALFOER,
@@ -61,17 +59,11 @@ enum class EventName {
     INNTEKTSMELDING_JOURNALFOERT,
     INNTEKTSMELDING_DISTRIBUERT,
 
-    FORESPØRSEL_MOTTATT,
     FORESPOERSEL_MOTTATT,
     FORESPOERSEL_BESVART,
-    FORESPØRSEL_LAGRET,
     FORESPOERSEL_FORKASTET,
     FORESPOERSEL_KASTET_TIL_INFOTRYGD,
 
-    SAK_OPPRETT_REQUESTED,
-
-    OPPGAVE_OPPRETT_REQUESTED,
-    OPPGAVE_LAGRET,
     SAK_OG_OPPGAVE_OPPRETT_REQUESTED,
     SAK_OG_OPPGAVE_OPPRETTET,
     SAK_OG_OPPGAVE_FERDIGSTILT,

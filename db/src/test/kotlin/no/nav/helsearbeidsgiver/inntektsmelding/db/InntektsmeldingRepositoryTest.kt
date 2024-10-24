@@ -1,9 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
-import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.comparables.shouldBeEqualComparingTo
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.equals.shouldNotBeEqual
 import io.kotest.matchers.nulls.shouldBeNull
@@ -14,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingGammeltFormat
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
-import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.ForespoerselEntitet
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
@@ -35,57 +32,20 @@ class TestRepo(
                     InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()
                 }.firstOrNull()
         }
-
-    fun hentRecordFraForespoersel(forespoerselId: UUID): ResultRow? =
-        transaction(db) {
-            ForespoerselEntitet
-                .selectAll()
-                .where {
-                    ForespoerselEntitet.forespoerselId eq forespoerselId.toString()
-                }.firstOrNull()
-        }
 }
 
-class RepositoryTest :
-    FunSpecWithDb(listOf(InntektsmeldingEntitet, ForespoerselEntitet), { db ->
+class InntektsmeldingRepositoryTest :
+    FunSpecWithDb(listOf(InntektsmeldingEntitet), { db ->
 
-        val foresporselRepo = ForespoerselRepository(db)
         val inntektsmeldingRepo = InntektsmeldingRepository(db)
         val testRepo = TestRepo(db)
-        val orgnr = "orgnr-456"
 
-        test("skal lagre forespørsel") {
+        test("skal lagre inntektsmeldingskjema og dokument") {
             transaction {
                 InntektsmeldingEntitet.selectAll().toList()
-            }.shouldBeEmpty()
-
-            val forespoerselId = "abc-123"
-
-            foresporselRepo.lagreForespoersel(forespoerselId, orgnr)
-
-            shouldNotThrowAny {
-                transaction {
-                    ForespoerselEntitet
-                        .selectAll()
-                        .where {
-                            (ForespoerselEntitet.forespoerselId eq forespoerselId) and
-                                (ForespoerselEntitet.orgnr eq orgnr)
-                        }.single()
-                }
-            }
-        }
-
-        test("skal lagre inntektsmeldingskjema og dokument med tilsvarende forespørsel") {
-            transaction {
-                InntektsmeldingEntitet.selectAll().toList()
-            }.shouldBeEmpty()
-            transaction {
-                ForespoerselEntitet.selectAll().toList()
             }.shouldBeEmpty()
 
             val skjema = mockSkjemaInntektsmelding()
-
-            foresporselRepo.lagreForespoersel(skjema.forespoerselId.toString(), orgnr)
 
             val innsendingId = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema)
 
@@ -117,17 +77,12 @@ class RepositoryTest :
             transaction {
                 InntektsmeldingEntitet.selectAll().toList()
             }.shouldBeEmpty()
-            transaction {
-                ForespoerselEntitet.selectAll().toList()
-            }.shouldBeEmpty()
 
             val skjema = mockSkjemaInntektsmelding()
 
-            foresporselRepo.lagreForespoersel(skjema.forespoerselId.toString(), orgnr)
-
             val innsendingId1 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema)
             val innsendingId2 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema)
-            val innsendingId3 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema)
+            inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema)
 
             innsendingId1 shouldNotBeEqual innsendingId2
 
@@ -144,25 +99,20 @@ class RepositoryTest :
             transaction {
                 InntektsmeldingEntitet.selectAll().toList()
             }.shouldBeEmpty()
-            transaction {
-                ForespoerselEntitet.selectAll().toList()
-            }.shouldBeEmpty()
 
             val skjema = mockSkjemaInntektsmelding()
-            val dok1 = INNTEKTSMELDING_DOKUMENT_GAMMELT_INNTEKTFORMAT
-
-            foresporselRepo.lagreForespoersel(skjema.forespoerselId.toString(), orgnr)
+            val inntektsmeldingGammeltFormat = mockInntektsmeldingGammeltFormat()
 
             val innsendingId = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema)
 
-            inntektsmeldingRepo.oppdaterMedBeriketDokument(skjema.forespoerselId, innsendingId, dok1)
+            inntektsmeldingRepo.oppdaterMedBeriketDokument(skjema.forespoerselId, innsendingId, inntektsmeldingGammeltFormat)
 
             transaction {
                 InntektsmeldingEntitet
                     .selectAll()
                     .where {
                         (InntektsmeldingEntitet.forespoerselId eq skjema.forespoerselId.toString()) and
-                            (InntektsmeldingEntitet.dokument eq dok1)
+                            (InntektsmeldingEntitet.dokument eq inntektsmeldingGammeltFormat)
                     }.single()
             }
         }
@@ -174,8 +124,6 @@ class RepositoryTest :
 
             val skjema = mockSkjemaInntektsmelding()
             val journalpost1 = randomDigitString(7)
-
-            foresporselRepo.lagreForespoersel(skjema.forespoerselId.toString(), orgnr)
 
             val innsendingId = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema)
             val beriketDokument = mockInntektsmeldingGammeltFormat().copy(tidspunkt = OffsetDateTime.now())
@@ -194,8 +142,6 @@ class RepositoryTest :
         test("skal oppdatere im med journalpostId") {
             val skjema = mockSkjemaInntektsmelding()
             val journalpostId = "jp-mollefonken-kjele"
-
-            foresporselRepo.lagreForespoersel(skjema.forespoerselId.toString(), orgnr)
 
             val innsendingId1 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema)
             val innsendingId2 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema)
@@ -232,8 +178,6 @@ class RepositoryTest :
             val skjema = mockSkjemaInntektsmelding()
             val gammelJournalpostId = "jp-traust-gevir"
             val nyJournalpostId = "jp-gallant-badehette"
-
-            foresporselRepo.lagreForespoersel(skjema.forespoerselId.toString(), orgnr)
 
             val innsendingId1 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema)
             val innsendingId2 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema)
@@ -292,7 +236,6 @@ class RepositoryTest :
             val skjema = mockSkjemaInntektsmelding()
             val journalpostId = "jp-slem-fryser"
 
-            foresporselRepo.lagreForespoersel(skjema.forespoerselId.toString(), orgnr)
             val innsendingId1 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema)
 
             val beriketDokument = mockInntektsmeldingGammeltFormat().copy(tidspunkt = OffsetDateTime.now())
@@ -320,39 +263,5 @@ class RepositoryTest :
                 resultat[1][eksternInntektsmelding].shouldNotBeNull()
                 resultat[1][this.journalpostId].shouldBeNull()
             }
-        }
-
-        test("skal oppdatere sakId") {
-            transaction {
-                InntektsmeldingEntitet.selectAll().toList()
-            }.shouldBeEmpty()
-
-            val forespoerselId = UUID.randomUUID()
-            val sakId1 = "sak1-1"
-
-            foresporselRepo.lagreForespoersel(forespoerselId.toString(), orgnr)
-            foresporselRepo.oppdaterSakId(forespoerselId.toString(), sakId1)
-            val record = testRepo.hentRecordFraForespoersel(forespoerselId)
-            record.shouldNotBeNull()
-            val sakId = record.getOrNull(ForespoerselEntitet.sakId)
-            sakId.shouldNotBeNull()
-            sakId.shouldBeEqualComparingTo(sakId1)
-        }
-
-        test("skal oppdatere oppgaveId") {
-            transaction {
-                InntektsmeldingEntitet.selectAll().toList()
-            }.shouldBeEmpty()
-
-            val forespoerselId = UUID.randomUUID()
-            val oppgaveId1 = "oppg-1"
-
-            foresporselRepo.lagreForespoersel(forespoerselId.toString(), orgnr)
-            foresporselRepo.oppdaterOppgaveId(forespoerselId.toString(), oppgaveId1)
-            val rad = testRepo.hentRecordFraForespoersel(forespoerselId)
-            rad.shouldNotBeNull()
-            val oppgaveId = rad.getOrNull(ForespoerselEntitet.oppgaveId)
-            oppgaveId.shouldNotBeNull()
-            oppgaveId.shouldBeEqualComparingTo(oppgaveId1)
         }
     })

@@ -180,7 +180,7 @@ abstract class EndToEndTest : ContainerTest() {
 
     val imRepository by lazy { InntektsmeldingRepository(inntektsmeldingDatabase.db) }
     val selvbestemtImRepo by lazy { SelvbestemtImRepo(inntektsmeldingDatabase.db) }
-    val forespoerselRepository by lazy { ForespoerselRepository(inntektsmeldingDatabase.db) }
+    private val forespoerselRepository by lazy { ForespoerselRepository(inntektsmeldingDatabase.db) }
 
     private val selvbestemtRepo by lazy { SelvbestemtRepo(notifikasjonDatabase.db) }
 

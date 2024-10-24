@@ -22,9 +22,6 @@ import java.util.UUID
 class EksternInntektsmeldingLagretIT : EndToEndTest() {
     @Test
     fun `lagre ekstern inntektsmelding hvis ikke fra nav_no`() {
-        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.ORGNR)
-        forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
-        forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
         every { spinnKlient.hentEksternInntektsmelding(any()) } returns mockEksternInntektsmelding()
 
         publish(
@@ -76,10 +73,6 @@ class EksternInntektsmeldingLagretIT : EndToEndTest() {
     }
 
     private object Mock {
-        const val ORGNR = "sur-gubbe"
-        const val SAK_ID = "tjukk-gubbe"
-        const val OPPGAVE_ID = "kunstig-gubbe"
-
         val forespoerselId: UUID = UUID.randomUUID()
         val transaksjonId: UUID = UUID.randomUUID()
         val spinnInntektsmeldingId: UUID = UUID.randomUUID()

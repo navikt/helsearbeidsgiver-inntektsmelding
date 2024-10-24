@@ -49,10 +49,6 @@ class InnsendingIT : EndToEndTest() {
 
     @Test
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
-        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.forespoersel.orgnr)
-        forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
-        forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
-
         mockForespoerselSvarFraHelsebro(
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar = Mock.forespoerselSvar,
@@ -130,10 +126,6 @@ class InnsendingIT : EndToEndTest() {
 
     @Test
     fun `skal ikke lagre duplikat inntektsmelding`() {
-        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.forespoersel.orgnr)
-        forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
-        forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
-
         imRepository.lagreInntektsmeldingSkjema(Mock.skjema)
 
         publish(
@@ -167,10 +159,6 @@ class InnsendingIT : EndToEndTest() {
 
     @Test
     fun `skal ikke lagre duplikat inntektsmeldingskjema`() {
-        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.forespoersel.orgnr)
-        forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
-        forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
-
         imRepository.lagreInntektsmeldingSkjema(Mock.skjema)
 
         publish(
@@ -229,8 +217,6 @@ class InnsendingIT : EndToEndTest() {
 
     private object Mock {
         const val JOURNALPOST_ID = "journalpost-id-skoleboller"
-        const val SAK_ID = "forundret-lysekrone"
-        const val OPPGAVE_ID = "neglisjert-sommer"
 
         val skjema = mockSkjemaInntektsmelding()
 

@@ -216,7 +216,7 @@ abstract class EndToEndTest : ContainerTest() {
                 )
             }
         }
-        coEvery { arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns "123456"
+        coEvery { arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns "123456"
         coEvery { arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any()) } returns "654321"
 
         mockPriProducer.apply {

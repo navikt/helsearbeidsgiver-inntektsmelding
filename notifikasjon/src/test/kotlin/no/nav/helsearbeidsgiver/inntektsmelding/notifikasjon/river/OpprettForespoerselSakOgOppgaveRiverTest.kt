@@ -11,6 +11,7 @@ import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -56,6 +57,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                         foedselsdato = 12.juli,
                     ),
                 orgNavn = "Peer Gynts Løgn og Bedrageri LTD",
+                skalHaPaaminnelse = true,
             )
 
         fun forventetFail(innkommendeMelding: OpprettForespoerselSakOgOppgaveMelding): Fail =
@@ -73,7 +75,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             } returns MOCK_SAK_ID
 
             coEvery {
-                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             } returns MOCK_OPPGAVE_ID
 
             val innkommendeMelding = innkommendeMelding()
@@ -115,6 +117,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                     varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
                     varslingInnhold = NotifikasjonTekst.oppgaveInnhold(innkommendeMelding.orgnr, innkommendeMelding.orgNavn),
                     tidspunkt = null,
+                    paaminnelse = Paaminnelse("mock tittel", "mock innhold", "P10D")
                 )
             }
         }
@@ -145,7 +148,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             } returns MOCK_SAK_ID
 
             coEvery {
-                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             } throws NullPointerException("Doing anything more than the minimum amount of work required is my definition of failing.")
 
             testRapid.sendJson(innkommendeMelding.toMap())
@@ -156,7 +159,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
 
             coVerifySequence {
                 mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
-                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
 
@@ -178,7 +181,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
 
                 coVerify(exactly = 0) {
                     mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
-                    mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                    mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
                 }
             }
         }

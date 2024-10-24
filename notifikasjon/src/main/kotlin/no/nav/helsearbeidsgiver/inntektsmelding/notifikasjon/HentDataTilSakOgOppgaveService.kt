@@ -28,6 +28,7 @@ data class Steg0(
     val forespoerselId: UUID,
     val orgnr: Orgnr,
     val fnr: Fnr,
+    val skalHaPaaminnelse: Boolean,
 )
 
 data class Steg1(
@@ -52,6 +53,7 @@ class HentDataTilSakOgOppgaveService(
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
             orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding),
             fnr = Key.FNR.les(Fnr.serializer(), melding),
+            skalHaPaaminnelse = Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), melding),
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
@@ -134,7 +136,7 @@ class HentDataTilSakOgOppgaveService(
                     Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
                     Key.SYKMELDT to sykmeldt.toJson(Person.serializer()),
                     Key.VIRKSOMHET to orgNavn.toJson(),
-                    Key.SKAL_HA_PAAMINNELSE to false.toJson(Boolean.serializer()), // TODO: Erstatt default false med SKAL_HA_PAAMINNELSE fra melding
+                    Key.SKAL_HA_PAAMINNELSE to steg0.skalHaPaaminnelse.toJson(Boolean.serializer()),
                 ).toJson(),
         )
     }

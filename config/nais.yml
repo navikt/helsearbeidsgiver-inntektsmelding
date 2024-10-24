@@ -15,31 +15,36 @@ metadata:
     team: helsearbeidsgiver
 spec:
   image: {{ image }}
-  port: 8080
-  idporten:
-    enabled: {{#if idportenEnabled}}true{{else}}false{{/if}}
-    sidecar:
-      enabled: {{#if sidecarEnabled}}true{{else}}false{{/if}}
+  resources:
+    requests:
+      cpu: 50m
+      memory: 512Mi
+    limits:
+      memory: 1024Mi
+  replicas:
+    min: {{#if replicasMin }}{{ replicasMin }}{{else}}1{{/if}}
+    max: {{#if replicasMax }}{{ replicasMax }}{{else}}1{{/if}}
+    scalingStrategy:
+      cpu:
+        thresholdPercentage: 75
+  liveness:
+    path: isalive
+    initialDelay: 10
+  readiness:
+    path: isready
+    initialDelay: 10
+  secureLogs:
+    enabled: true
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+  prometheus:
+    enabled: true
   {{#if ingress}}
   ingresses:
     - {{ ingress }}
   {{/if}}
-  liveness:
-    path: isalive
-    initialDelay: 5
-  readiness:
-    path: isready
-    initialDelay: 5
-  resources:
-    limits:
-      memory: 512Mi
-    requests:
-      cpu: 50m
-      memory: 128Mi
-  replicas:
-    min: {{#if replicasMin }}{{ replicasMin }}{{else}}1{{/if}}
-    max: {{#if replicasMax }}{{ replicasMax }}{{else}}1{{/if}}
-    cpuThresholdPercentage: 75
   {{#if kafkaPool}}
   kafka:
     pool: {{ kafkaPool }}
@@ -70,15 +75,6 @@ spec:
             value: "on"
         {{/if}}
   {{/if}}
-  observability:
-    autoInstrumentation:
-      enabled: true
-      runtime: java
-  prometheus:
-    enabled: true
-    path: /metrics
-  secureLogs:
-    enabled: true
   {{#if envFrom}}
   envFrom:
   {{# each envFrom as |item| }}
@@ -93,14 +89,21 @@ spec:
     - name: {{ item.name }}
       value: "{{ item.value }}"
     {{/each}}{{/if}}
-{{#if maskinporten}}
+  {{#if idportenEnabled}}
+  idporten:
+    enabled: true
+    sidecar:
+      enabled: true
+  {{/if}}
+  {{#if maskinporten}}
   maskinporten:
     enabled: true
     scopes:
-      consumes: {{#each maskinporten.consumes as |consume| }}
+      consumes:
+        {{#each maskinporten.consumes as |consume| }}
         - name: "{{ consume }}"
-  {{/each}}
-{{/if}}
+        {{/each}}
+  {{/if}}
   accessPolicy:
     outbound:
       external:

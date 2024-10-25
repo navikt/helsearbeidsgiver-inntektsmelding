@@ -7,16 +7,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonObject
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferie
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.InntektEndringAarsak
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Permisjon
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Permittering
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykefravaer
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
@@ -33,7 +24,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
-import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
@@ -103,10 +93,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendOkResponse(inntek
     }
     val response =
         ResultJson(
-            // Midlertidig, for å håndtere ulikt format på frontend og backend
-            success =
-                tilResponseMedEkstraFelt(inntektsmelding)
-                    ?: HentSelvbestemtImResponseSuccess(inntektsmelding).toJson(HentSelvbestemtImResponseSuccess.serializer()),
+            success = HentSelvbestemtImResponseSuccess(inntektsmelding).toJson(HentSelvbestemtImResponseSuccess.serializer()),
         )
     respondOk(response, ResultJson.serializer())
 }
@@ -147,51 +134,5 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendRedisErrorRespons
                 )
             respondInternalServerError(response, ResultJson.serializer())
         }
-    }
-}
-
-private fun tilResponseMedEkstraFelt(inntektsmelding: Inntektsmelding): JsonElement? {
-    val inntekt = inntektsmelding.inntekt
-    val endringAarsak = inntekt?.endringAarsak
-    val backendFelt =
-        when (endringAarsak) {
-            is Ferie -> Ferie::ferier.name
-            is Permisjon -> Permisjon::permisjoner.name
-            is Permittering -> Permittering::permitteringer.name
-            is Sykefravaer -> Sykefravaer::sykefravaer.name
-            else -> null
-        }
-
-    return if (inntekt != null && endringAarsak != null && backendFelt != null) {
-        val nyEndringAarsak =
-            endringAarsak
-                .toJson(InntektEndringAarsak.serializer())
-                .jsonObject
-                .let {
-                    it.plus("perioder" to it[backendFelt])
-                }.mapValuesNotNull { it }
-                .let(::JsonObject)
-
-        val nyInntektJson =
-            inntekt
-                .toJson(Inntekt.serializer())
-                .jsonObject
-                .plus(Inntekt::endringAarsak.name to nyEndringAarsak)
-                .let(::JsonObject)
-
-        val nyInntektsmeldingJson =
-            inntektsmelding
-                .toJson(Inntektsmelding.serializer())
-                .jsonObject
-                .plus(Inntektsmelding::inntekt.name to nyInntektJson)
-                .let(::JsonObject)
-
-        HentSelvbestemtImResponseSuccess(inntektsmelding)
-            .toJson(HentSelvbestemtImResponseSuccess.serializer())
-            .jsonObject
-            .plus(HentSelvbestemtImResponseSuccess::selvbestemtInntektsmelding.name to nyInntektsmeldingJson)
-            .let(::JsonObject)
-    } else {
-        null
     }
 }

@@ -7,17 +7,8 @@ import io.ktor.server.request.receiveText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.util.pipeline.PipelineContext
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonObject
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferie
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Permisjon
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Permittering
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykefravaer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
@@ -101,7 +92,6 @@ fun Route.lagreSelvbestemtImRoute(
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
 private suspend fun PipelineContext<Unit, ApplicationCall>.lesRequestOrNull(): SkjemaInntektsmeldingSelvbestemt? =
     call
         .receiveText()
@@ -112,12 +102,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.lesRequestOrNull(): S
                 sikkerLogger.info("$it:\n${json.toPretty()}")
             }
         }.runCatching {
-            try {
-                fromJson(SkjemaInntektsmeldingSelvbestemt.serializer())
-            } catch (e: MissingFieldException) {
-                // Midlertidig, for å håndtere ulikt format på frontend og backend
-                fromJsonBackup(e)
-            }
+            fromJson(SkjemaInntektsmeldingSelvbestemt.serializer())
         }.onFailure { e ->
             "Kunne ikke parse json.".let {
                 logger.error(it)
@@ -168,30 +153,4 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(resultat
                     respondInternalServerError(RedisPermanentErrorResponse(), RedisPermanentErrorResponse.serializer())
             }
         }
-}
-
-// TODO slett når frontend bruker korrekte navn
-private fun JsonElement.fromJsonBackup(error: Throwable): SkjemaInntektsmeldingSelvbestemt {
-    val skjemaJson = jsonObject
-    val inntektJson = skjemaJson[SkjemaInntektsmeldingSelvbestemt::inntekt.name]!!.jsonObject
-    val endringAarsakJson = inntektJson[Inntekt::endringAarsak.name]!!.jsonObject
-    val aarsak = endringAarsakJson["aarsak"]!!.fromJson(String.serializer())
-
-    val nyttFelt =
-        when (aarsak) {
-            "Ferie" -> Ferie::ferier.name
-            "Permisjon" -> Permisjon::permisjoner.name
-            "Permittering" -> Permittering::permitteringer.name
-            "Sykefravaer" -> Sykefravaer::sykefravaer.name
-            else -> throw error
-        }
-
-    val nyEndringAarsakJson = endringAarsakJson.plus(nyttFelt to endringAarsakJson["perioder"]!!).let(::JsonObject)
-
-    val nyInntektJson = inntektJson.plus(Inntekt::endringAarsak.name to nyEndringAarsakJson).let(::JsonObject)
-
-    return skjemaJson
-        .plus(SkjemaInntektsmeldingSelvbestemt::inntekt.name to nyInntektJson)
-        .let(::JsonObject)
-        .fromJson(SkjemaInntektsmeldingSelvbestemt.serializer())
 }

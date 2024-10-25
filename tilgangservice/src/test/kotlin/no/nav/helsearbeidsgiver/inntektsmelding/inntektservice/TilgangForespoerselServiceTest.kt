@@ -12,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.TilgangResultat
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
@@ -68,7 +67,7 @@ class TilgangForespoerselServiceTest {
             ).toJson(TilgangResultat.serializer())
 
         verify {
-            mockRedis.store.set(RedisKey.of(transaksjonId), expectedResultJson)
+            mockRedis.store.skrivResultat(transaksjonId, expectedResultJson)
         }
     }
 }

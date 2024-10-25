@@ -4,8 +4,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
-import io.kotest.matchers.maps.shouldNotContainValue
-import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.spyk
@@ -16,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -61,9 +58,7 @@ class ServiceRiverStatefulTest :
                 ),
             ) { innkommendeMelding ->
                 // For å passere sjekk for inaktivitet
-                every {
-                    mockRedis.store.getAll(any())
-                } returns mockService.mockSteg0Data().mapKeys { it.key.toString() }
+                every { mockRedis.store.lesAlleMellomlagrede(any()) } returns mockService.mockSteg0Data()
 
                 testRapid.sendJson(innkommendeMelding)
 
@@ -86,7 +81,7 @@ class ServiceRiverStatefulTest :
                     .plus(Key.PERSONER to "mock personer".toJson())
 
             eksisterendeRedisValues.forEach {
-                mockRedis.store.set(RedisKey.of(transaksjonId, it.key), it.value)
+                mockRedis.store.skrivMellomlagring(transaksjonId, it.key, it.value)
             }
 
             val data =
@@ -103,13 +98,11 @@ class ServiceRiverStatefulTest :
 
             testRapid.sendJson(innkommendeMelding)
 
-            val allKeys = Key.entries.map { RedisKey.of(transaksjonId, it) }.toSet()
-
             val beriketMelding = eksisterendeRedisValues + data + innkommendeMelding
 
             verifyOrder {
-                mockRedis.store.set(RedisKey.of(transaksjonId, Key.VIRKSOMHETER), virksomhetNavn.toJson())
-                mockRedis.store.getAll(allKeys)
+                mockRedis.store.skrivMellomlagring(transaksjonId, Key.VIRKSOMHETER, virksomhetNavn.toJson())
+                mockRedis.store.lesAlleMellomlagrede(transaksjonId)
                 mockService.onData(beriketMelding)
             }
             verify(exactly = 0) {
@@ -123,9 +116,7 @@ class ServiceRiverStatefulTest :
                     .mockSteg0Data()
                     .plus(Key.VIRKSOMHETER to "mock virksomheter".toJson())
 
-            every {
-                mockRedis.store.getAll(any())
-            } returns eksisterendeRedisValues.mapKeys { it.key.toString() }
+            every { mockRedis.store.lesAlleMellomlagrede(any()) } returns eksisterendeRedisValues
 
             val transaksjonId = UUID.randomUUID()
 
@@ -140,10 +131,8 @@ class ServiceRiverStatefulTest :
 
             val beriketMelding = eksisterendeRedisValues + innkommendeMelding
 
-            val allKeys = Key.entries.map { RedisKey.of(transaksjonId, it) }.toSet()
-
             verifyOrder {
-                mockRedis.store.getAll(allKeys)
+                mockRedis.store.lesAlleMellomlagrede(transaksjonId)
                 mockService.onError(beriketMelding, Mock.fail)
             }
             verify(exactly = 0) {
@@ -152,7 +141,7 @@ class ServiceRiverStatefulTest :
         }
 
         test("ved feil så publiseres ingenting") {
-            every { mockRedis.store.set(any(), any()) } throws NullPointerException()
+            every { mockRedis.store.skrivMellomlagring(any(), any(), any()) } throws NullPointerException()
 
             val innkommendeMelding =
                 mapOf(
@@ -169,51 +158,11 @@ class ServiceRiverStatefulTest :
             testRapid.inspektør.size shouldBeExactly 0
 
             verify {
-                mockRedis.store.set(any(), any())
+                mockRedis.store.skrivMellomlagring(any(), any(), any())
             }
             verify(exactly = 0) {
                 mockService.onData(any())
                 mockService.onError(any(), any())
-            }
-        }
-
-        test("redis-data med ugyldig key ignoreres") {
-            val validJson = "gyldig json pga. -->".toJson()
-
-            val validRedisValues = mockService.mockSteg0Data()
-            val invalidRedisValues =
-                mapOf(
-                    "ugyldig key" to validJson,
-                )
-
-            every {
-                mockRedis.store.getAll(any())
-            } returns validRedisValues.mapKeys { it.key.toString() }.plus(invalidRedisValues)
-
-            val transaksjonId = UUID.randomUUID()
-
-            val innkommendeMelding =
-                mapOf(
-                    Key.EVENT_NAME to mockService.eventName.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.FAIL to Mock.fail.toJson(Fail.serializer()),
-                )
-
-            testRapid.sendJson(innkommendeMelding)
-
-            val beriketMelding = validRedisValues.plus(innkommendeMelding)
-
-            verifyOrder {
-                mockService.onError(
-                    withArg {
-                        it shouldBe beriketMelding
-                        it shouldNotContainValue validJson
-                    },
-                    Mock.fail,
-                )
-            }
-            verify(exactly = 0) {
-                mockService.onData(any())
             }
         }
 

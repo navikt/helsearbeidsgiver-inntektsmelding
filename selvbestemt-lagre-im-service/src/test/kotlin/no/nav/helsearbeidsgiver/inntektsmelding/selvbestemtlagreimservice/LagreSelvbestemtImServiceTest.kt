@@ -41,7 +41,6 @@ import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
@@ -134,8 +133,8 @@ class LagreSelvbestemtImServiceTest :
             }
 
             verify {
-                mockRedis.store.set(
-                    RedisKey.of(transaksjonId),
+                mockRedis.store.skrivResultat(
+                    transaksjonId,
                     ResultJson(
                         success = nyInntektsmelding.type.id.toJson(),
                     ).toJson(ResultJson.serializer()),
@@ -182,8 +181,8 @@ class LagreSelvbestemtImServiceTest :
             }
 
             verify {
-                mockRedis.store.set(
-                    RedisKey.of(transaksjonId),
+                mockRedis.store.skrivResultat(
+                    transaksjonId,
                     ResultJson(
                         success = endretInntektsmelding.type.id.toJson(),
                     ).toJson(ResultJson.serializer()),
@@ -226,8 +225,8 @@ class LagreSelvbestemtImServiceTest :
             ) shouldNotBe EventName.SELVBESTEMT_IM_LAGRET
 
             verify {
-                mockRedis.store.set(
-                    RedisKey.of(transaksjonId),
+                mockRedis.store.skrivResultat(
+                    transaksjonId,
                     ResultJson(
                         success = duplikatInntektsmelding.type.id.toJson(),
                     ).toJson(ResultJson.serializer()),
@@ -315,18 +314,20 @@ class LagreSelvbestemtImServiceTest :
             }
 
             verify {
-                mockRedis.store.set(
-                    RedisKey.of(transaksjonId, Key.VIRKSOMHETER),
+                mockRedis.store.skrivMellomlagring(
+                    transaksjonId,
+                    Key.VIRKSOMHETER,
                     emptyMap<String, String>().toJson(),
                 )
 
-                mockRedis.store.set(
-                    RedisKey.of(transaksjonId, Key.PERSONER),
+                mockRedis.store.skrivMellomlagring(
+                    transaksjonId,
+                    Key.PERSONER,
                     emptyMap<String, JsonElement>().toJson(),
                 )
 
-                mockRedis.store.set(
-                    RedisKey.of(transaksjonId),
+                mockRedis.store.skrivResultat(
+                    transaksjonId,
                     ResultJson(
                         success = inntektsmeldingMedDefaults.type.id.toJson(),
                     ).toJson(ResultJson.serializer()),
@@ -374,8 +375,8 @@ class LagreSelvbestemtImServiceTest :
             }
 
             verify {
-                mockRedis.store.set(
-                    RedisKey.of(transaksjonId),
+                mockRedis.store.skrivResultat(
+                    transaksjonId,
                     ResultJson(
                         failure = feilmelding.toJson(),
                     ).toJson(ResultJson.serializer()),
@@ -404,8 +405,8 @@ class LagreSelvbestemtImServiceTest :
             testRapid.inspektør.size shouldBeExactly 3
 
             verify {
-                mockRedis.store.set(
-                    RedisKey.of(transaksjonId),
+                mockRedis.store.skrivResultat(
+                    transaksjonId,
                     ResultJson(
                         failure = "Mangler arbeidsforhold i perioden".toJson(),
                     ).toJson(ResultJson.serializer()),

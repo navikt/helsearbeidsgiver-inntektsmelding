@@ -13,7 +13,6 @@ import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.TilgangResultat
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.TilgangOrgService
@@ -67,7 +66,7 @@ class TilgangOrgServiceTest {
             ).toJson(TilgangResultat.serializer())
 
         verify {
-            mockRedisStore.set(RedisKey.of(transaksjonId), expectedResultJson)
+            mockRedisStore.skrivResultat(transaksjonId, expectedResultJson)
         }
     }
 }

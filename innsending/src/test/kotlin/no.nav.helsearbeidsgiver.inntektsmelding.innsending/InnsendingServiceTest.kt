@@ -21,7 +21,6 @@ import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
@@ -99,8 +98,8 @@ class InnsendingServiceTest :
             }
 
             verify {
-                mockRedis.store.set(
-                    RedisKey.of(transaksjonId),
+                mockRedis.store.skrivResultat(
+                    transaksjonId,
                     ResultJson(
                         success = nyttSkjema.forespoerselId.toJson(),
                     ).toJson(ResultJson.serializer()),
@@ -125,8 +124,8 @@ class InnsendingServiceTest :
             testRapid.inspektør.size shouldBeExactly 1
 
             verify {
-                mockRedis.store.set(
-                    RedisKey.of(transaksjonId),
+                mockRedis.store.skrivResultat(
+                    transaksjonId,
                     ResultJson(
                         success = Mock.skjema.forespoerselId.toJson(),
                     ).toJson(ResultJson.serializer()),
@@ -174,8 +173,8 @@ class InnsendingServiceTest :
             testRapid.inspektør.size shouldBeExactly 1
 
             verify {
-                mockRedis.store.set(
-                    RedisKey.of(transaksjonId),
+                mockRedis.store.skrivResultat(
+                    transaksjonId,
                     ResultJson(
                         failure = feilmelding.toJson(),
                     ).toJson(ResultJson.serializer()),

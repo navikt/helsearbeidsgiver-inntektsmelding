@@ -12,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -81,7 +80,7 @@ class InnsendingService(
                 success = steg0.skjema.forespoerselId.toJson(),
             ).toJson(ResultJson.serializer())
 
-        redisStore.set(RedisKey.of(steg0.transaksjonId), resultJson)
+        redisStore.skrivResultat(steg0.transaksjonId, resultJson)
 
         if (!steg1.erDuplikat) {
             val publisert =
@@ -132,6 +131,6 @@ class InnsendingService(
     ) {
         val resultJson = ResultJson(failure = fail.feilmelding.toJson())
 
-        redisStore.set(RedisKey.of(fail.transaksjonId), resultJson.toJson(ResultJson.serializer()))
+        redisStore.skrivResultat(fail.transaksjonId, resultJson.toJson(ResultJson.serializer()))
     }
 }

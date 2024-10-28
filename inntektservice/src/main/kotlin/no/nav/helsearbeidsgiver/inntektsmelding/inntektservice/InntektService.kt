@@ -76,9 +76,10 @@ class InntektService(
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
-                    mapOf(
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                    ).toJson(),
+                    data
+                        .plus(
+                            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                        ).toJson(),
             ).also {
                 MdcUtils.withLogFields(
                     Log.behov(BehovType.HENT_TRENGER_IM),
@@ -99,12 +100,15 @@ class InntektService(
                 Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
-                    mapOf(
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                        Key.ORGNRUNDERENHET to steg1.forespoersel.orgnr.toJson(),
-                        Key.FNR to steg1.forespoersel.fnr.toJson(),
-                        Key.INNTEKTSDATO to steg0.skjaeringstidspunkt.toJson(),
-                    ).toJson(),
+                    data
+                        .plus(
+                            mapOf(
+                                Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                                Key.ORGNRUNDERENHET to steg1.forespoersel.orgnr.toJson(),
+                                Key.FNR to steg1.forespoersel.fnr.toJson(),
+                                Key.INNTEKTSDATO to steg0.skjaeringstidspunkt.toJson(),
+                            ),
+                        ).toJson(),
             ).also {
                 MdcUtils.withLogFields(
                     Log.behov(BehovType.HENT_INNTEKT),

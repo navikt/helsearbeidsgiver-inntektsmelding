@@ -90,7 +90,7 @@ class RedisStore(
             }
 
     private fun String.skriv(value: JsonElement) {
-        sikkerLogger.debug("Setting in redis:\n$this -> ${value.toPretty()}")
+        sikkerLogger.debug("Skriver til redis:\n$this -> ${value.toPretty()}")
         redis.set(this, value.toString())
     }
 

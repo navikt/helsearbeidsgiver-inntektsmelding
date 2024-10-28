@@ -13,7 +13,6 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
@@ -128,7 +127,7 @@ class InntektService(
                 success = steg2.inntekt.toJson(Inntekt.serializer()),
             ).toJson(ResultJson.serializer())
 
-        redisStore.set(RedisKey.of(steg0.transaksjonId), resultJson)
+        redisStore.skrivResultat(steg0.transaksjonId, resultJson)
 
         sikkerLogger.info("$eventName fullført.")
     }
@@ -148,7 +147,7 @@ class InntektService(
             sikkerLogger.error(it)
         }
 
-        redisStore.set(RedisKey.of(fail.transaksjonId), resultJson)
+        redisStore.skrivResultat(fail.transaksjonId, resultJson)
 
         MdcUtils.withLogFields(
             Log.transaksjonId(fail.transaksjonId),

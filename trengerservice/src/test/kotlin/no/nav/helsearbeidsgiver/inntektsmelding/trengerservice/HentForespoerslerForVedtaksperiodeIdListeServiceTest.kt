@@ -16,7 +16,6 @@ import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
@@ -58,8 +57,8 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
             testRapid.inspektør.size shouldBeExactly 1
 
             verify {
-                mockRedis.store.set(
-                    RedisKey.of(transaksjonId),
+                mockRedis.store.skrivResultat(
+                    transaksjonId,
                     ResultJson(
                         success = forespoersler.toJson(MapSerializer(UuidSerializer, Forespoersel.serializer())),
                     ).toJson(ResultJson.serializer()),
@@ -92,8 +91,8 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
             testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE
 
             verify {
-                mockRedis.store.set(
-                    RedisKey.of(transaksjonId),
+                mockRedis.store.skrivResultat(
+                    transaksjonId,
                     ResultJson(
                         failure = feilmelding.toJson(),
                     ).toJson(ResultJson.serializer()),

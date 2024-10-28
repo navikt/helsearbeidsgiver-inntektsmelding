@@ -22,7 +22,6 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed3Steg
@@ -215,7 +214,7 @@ class LagreSelvbestemtImService(
                     logger.warn(feilmelding)
                     sikkerLogger.warn(feilmelding)
                     val resultJson = ResultJson(failure = feilmelding.toJson()).toJson(ResultJson.serializer())
-                    redisStore.set(RedisKey.of(steg0.transaksjonId), resultJson)
+                    redisStore.skrivResultat(steg0.transaksjonId, resultJson)
                 }
             }
         }
@@ -266,7 +265,7 @@ class LagreSelvbestemtImService(
                         steg2.inntektsmelding.type.id
                             .toJson(),
                 ).toJson(ResultJson.serializer())
-            redisStore.set(RedisKey.of(steg0.transaksjonId), resultJson)
+            redisStore.skrivResultat(steg0.transaksjonId, resultJson)
 
             if (!steg2.erDuplikat) {
                 val publisert =
@@ -307,14 +306,14 @@ class LagreSelvbestemtImService(
                 }
 
             if (datafeil != null) {
-                redisStore.set(RedisKey.of(fail.transaksjonId, datafeil.first), datafeil.second)
+                redisStore.skrivMellomlagring(fail.transaksjonId, datafeil.first, datafeil.second)
 
                 val meldingMedDefault = mapOf(datafeil) + melding
 
                 onData(meldingMedDefault)
             } else {
                 val resultJson = ResultJson(failure = fail.feilmelding.toJson()).toJson(ResultJson.serializer())
-                redisStore.set(RedisKey.of(fail.transaksjonId), resultJson)
+                redisStore.skrivResultat(fail.transaksjonId, resultJson)
             }
         }
     }

@@ -12,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -101,7 +100,7 @@ class InntektSelvbestemtService(
                 success = steg1.inntekt.toJson(Inntekt.serializer()),
             ).toJson(ResultJson.serializer())
 
-        redisStore.set(RedisKey.of(steg0.transaksjonId), resultJson)
+        redisStore.skrivResultat(steg0.transaksjonId, resultJson)
 
         sikkerLogger.info("$eventName fullført.")
     }
@@ -126,7 +125,7 @@ class InntektSelvbestemtService(
                 sikkerLogger.error(it)
             }
 
-            redisStore.set(RedisKey.of(fail.transaksjonId), resultJson)
+            redisStore.skrivResultat(fail.transaksjonId, resultJson)
 
             sikkerLogger.error("$eventName terminert.")
         }

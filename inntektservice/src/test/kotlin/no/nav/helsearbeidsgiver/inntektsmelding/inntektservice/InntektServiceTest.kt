@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
@@ -67,8 +66,8 @@ class InntektServiceTest {
         }
 
         verify {
-            mockRedis.store.set(
-                RedisKey.of(transaksjonId),
+            mockRedis.store.skrivResultat(
+                transaksjonId,
                 withArg {
                     runCatching {
                         it

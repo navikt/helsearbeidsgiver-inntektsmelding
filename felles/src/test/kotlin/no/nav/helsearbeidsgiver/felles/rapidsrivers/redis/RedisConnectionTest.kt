@@ -36,10 +36,12 @@ class RedisConnectionTest :
                 )
 
             redis.getAll(
-                "atreides",
-                "harkonnen",
-                "bene gesserit",
-                "fremen",
+                listOf(
+                    "atreides",
+                    "harkonnen",
+                    "bene gesserit",
+                    "fremen",
+                ),
             ) shouldContainExactly
                 mapOf(
                     "atreides" to "good guys",

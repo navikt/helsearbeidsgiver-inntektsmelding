@@ -13,7 +13,6 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -104,7 +103,7 @@ class KvitteringService(
                     ),
             ).toJson(ResultJson.serializer())
 
-        redisStore.set(RedisKey.of(steg0.transaksjonId), resultJson)
+        redisStore.skrivResultat(steg0.transaksjonId, resultJson)
     }
 
     override fun onError(
@@ -126,7 +125,7 @@ class KvitteringService(
                     failure = fail.feilmelding.toJson(),
                 ).toJson(ResultJson.serializer())
 
-            redisStore.set(RedisKey.of(fail.transaksjonId), resultJson)
+            redisStore.skrivResultat(fail.transaksjonId, resultJson)
         }
     }
 

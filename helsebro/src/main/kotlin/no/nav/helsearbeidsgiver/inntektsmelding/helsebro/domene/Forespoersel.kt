@@ -29,7 +29,6 @@ data class Forespoersel(
 ) {
     fun toForespoersel(): Forespoersel =
         Forespoersel(
-            type = type,
             orgnr = orgnr.verdi,
             fnr = fnr.verdi,
             vedtaksperiodeId = vedtaksperiodeId,

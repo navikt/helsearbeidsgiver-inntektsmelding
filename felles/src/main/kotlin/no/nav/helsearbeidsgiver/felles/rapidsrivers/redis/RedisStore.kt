@@ -86,7 +86,7 @@ class RedisStore(
             .get(this)
             ?.parseJson()
             .also { value ->
-                sikkerLogger.debug("Getting from redis:\n$this -> ${value?.toPretty()}")
+                sikkerLogger.debug("Leser fra redis:\n$this -> ${value?.toPretty()}")
             }
 
     private fun String.skriv(value: JsonElement) {

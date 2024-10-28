@@ -164,22 +164,16 @@ private object Mock {
     val inntektsmelding = mockInntektsmeldingV1()
 
     val avsender =
-        Fnr.genererGyldig().let {
-            Person(
-                fnr = it,
-                navn = "Skrue McDuck",
-                foedselsdato = Person.foedselsdato(it),
-            )
-        }
+        Person(
+            fnr = Fnr.genererGyldig(),
+            navn = "Skrue McDuck",
+        )
 
     val sykmeldt =
-        Fnr(forespoersel.fnr).let {
-            Person(
-                fnr = it,
-                navn = "Dolly Duck",
-                foedselsdato = Person.foedselsdato(it),
-            )
-        }
+        Person(
+            fnr = Fnr(forespoersel.fnr),
+            navn = "Dolly Duck",
+        )
 
     val orgnrMedNavn = mapOf(Orgnr(forespoersel.orgnr) to "Lasses kasserollesjappe")
 

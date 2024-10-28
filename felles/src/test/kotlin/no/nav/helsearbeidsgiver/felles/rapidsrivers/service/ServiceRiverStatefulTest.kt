@@ -57,9 +57,6 @@ class ServiceRiverStatefulTest :
                         ),
                 ),
             ) { innkommendeMelding ->
-                // For å passere sjekk for inaktivitet
-                every { mockRedis.store.lesAlleMellomlagrede(any()) } returns mockService.mockSteg0Data()
-
                 testRapid.sendJson(innkommendeMelding)
 
                 verify {

@@ -10,6 +10,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
+import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
@@ -37,7 +38,12 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
         val testRapid = TestRapid()
         val mockAgNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
 
-        OpprettForespoerselSakOgOppgaveRiver("en-slags-url", mockAgNotifikasjonKlient).connect(testRapid)
+        OpprettForespoerselSakOgOppgaveRiver(
+            lenkeBaseUrl = "en-slags-url",
+            agNotifikasjonKlient = mockAgNotifikasjonKlient,
+            paaminnelseAktivert = true,
+            tidMellomOppgaveopprettelseOgPaaminnelse = "P10M",
+        ).connect(testRapid)
 
         beforeTest {
             testRapid.reset()
@@ -117,7 +123,12 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                     varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
                     varslingInnhold = NotifikasjonTekst.oppgaveInnhold(innkommendeMelding.orgnr, innkommendeMelding.orgNavn),
                     tidspunkt = null,
-                    paaminnelse = Paaminnelse("mock tittel", "mock innhold", "P10D"),
+                    paaminnelse =
+                        Paaminnelse(
+                            tittel = "Påminnelse: ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
+                            innhold = NotifikasjonTekst.purringInnhold(innkommendeMelding.orgnr, innkommendeMelding.orgNavn),
+                            tidMellomOppgaveopprettelseOgPaaminnelse = "P10M",
+                        ),
                 )
             }
         }
@@ -200,5 +211,6 @@ private fun OpprettForespoerselSakOgOppgaveMelding.toMap() =
                 Key.ORGNRUNDERENHET to orgnr.toJson(),
                 Key.SYKMELDT to sykmeldt.toJson(Person.serializer()),
                 Key.VIRKSOMHET to orgNavn.toJson(),
+                Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
             ).toJson(),
     )

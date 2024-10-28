@@ -153,6 +153,8 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
     orgnr: Orgnr,
     orgNavn: String,
     skalHaPaaminnelse: Boolean,
+    paaminnelseAktivert: Boolean,
+    tidMellomOppgaveopprettelseOgPaaminnelse: String,
 ): String =
     runBlocking {
         opprettNyOppgave(
@@ -166,11 +168,11 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
             varslingInnhold = NotifikasjonTekst.oppgaveInnhold(orgnr, orgNavn),
             tidspunkt = null,
             paaminnelse =
-                if (skalHaPaaminnelse && Env.oppgavePaaminnelseAktivert) {
+                if (skalHaPaaminnelse && paaminnelseAktivert) {
                     Paaminnelse(
                         tittel = "Påminnelse: ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
                         innhold = NotifikasjonTekst.purringInnhold(orgnr, orgNavn),
-                        tidMellomOppgaveopprettelseOgPaaminnelse = Env.tidMellomOppgaveopprettelseOgPaaminnelse,
+                        tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveopprettelseOgPaaminnelse,
                     )
                 } else {
                     null

@@ -86,6 +86,8 @@ import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 
 private const val NOTIFIKASJON_LINK = "notifikasjonLink"
+private const val PAAMINNELSE_AKTIVERT = true
+private const val TID_MELLOM_OPPGAVEOPPRETTELSE_OG_PAAMINNELSE = "P10M"
 
 val bjarneBetjent =
     FullPerson(
@@ -260,7 +262,13 @@ abstract class EndToEndTest : ContainerTest() {
             createHentInntektRiver(inntektClient)
             createJournalfoerImRiver(dokarkivClient)
             createMarkerForespoerselBesvart(mockPriProducer)
-            createNotifikasjonRivers(NOTIFIKASJON_LINK, selvbestemtRepo, arbeidsgiverNotifikasjonKlient)
+            createNotifikasjonRivers(
+                NOTIFIKASJON_LINK,
+                PAAMINNELSE_AKTIVERT,
+                TID_MELLOM_OPPGAVEOPPRETTELSE_OG_PAAMINNELSE,
+                selvbestemtRepo,
+                arbeidsgiverNotifikasjonKlient,
+            )
             createPdlRiver(pdlKlient)
             createFeilLytter(bakgrunnsjobbRepository)
         }

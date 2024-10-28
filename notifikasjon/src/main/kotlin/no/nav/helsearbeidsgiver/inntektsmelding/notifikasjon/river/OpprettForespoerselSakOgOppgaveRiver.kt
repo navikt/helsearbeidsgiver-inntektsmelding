@@ -36,6 +36,8 @@ data class OpprettForespoerselSakOgOppgaveMelding(
 class OpprettForespoerselSakOgOppgaveRiver(
     private val lenkeBaseUrl: String,
     private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
+    private val paaminnelseAktivert: Boolean,
+    private val tidMellomOppgaveopprettelseOgPaaminnelse: String,
 ) : ObjectRiver<OpprettForespoerselSakOgOppgaveMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -75,6 +77,8 @@ class OpprettForespoerselSakOgOppgaveRiver(
                 orgnr = orgnr,
                 orgNavn = orgNavn,
                 skalHaPaaminnelse = skalHaPaaminnelse,
+                paaminnelseAktivert = paaminnelseAktivert,
+                tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveopprettelseOgPaaminnelse,
             )
 
         return mapOf(

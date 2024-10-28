@@ -6,6 +6,7 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
+import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 import kotlin.time.Duration.Companion.days
@@ -173,9 +174,9 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
                         tittel = "Påminnelse: ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
                         innhold = NotifikasjonTekst.purringInnhold(orgnr, orgNavn),
                         tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveopprettelseOgPaaminnelse,
-                    )
+                    ).also { logger().info("Satte påminnelse for forespørsel $forespoerselId") }
                 } else {
-                    null
+                    null.also { logger().info("Satte ikke påminnelse for forespørsel $forespoerselId") }
                 },
         )
     }

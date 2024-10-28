@@ -22,7 +22,7 @@ env:
   - name: OPPGAVEPAAMINNELSER_AKTIVERT
     value: "true"
   - name: TID_MELLOM_OPPGAVEOPPRETTELSE_OG_PAAMINNELSE
-    value: "P1M"
+    value: "P3M"
 apps:
   - name: helsearbeidsgiver-redis
   - name: notifikasjon-produsent-api

@@ -6,7 +6,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
-import no.nav.helsearbeidsgiver.felles.domene.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.domene.ForespurtData
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -17,7 +16,6 @@ import java.util.UUID
 
 @Serializable
 data class Forespoersel(
-    val type: ForespoerselType,
     val orgnr: Orgnr,
     val fnr: Fnr,
     /** Ikke bruk ved henting av én forespørsel (Storebror lekker feil id). */

@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
-import no.nav.helsearbeidsgiver.felles.domene.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.Forespoersel
 import no.nav.helsearbeidsgiver.utils.test.date.januar
@@ -13,7 +12,6 @@ import java.util.UUID
 fun mockForespoerselSvarSuksess(): Forespoersel {
     val orgnr = Orgnr.genererGyldig()
     return Forespoersel(
-        type = ForespoerselType.KOMPLETT,
         orgnr = orgnr,
         fnr = Fnr.genererGyldig(),
         forespoerselId = UUID.randomUUID(),
@@ -37,7 +35,6 @@ fun mockForespoerselListeSvarResultat(
     val orgnr = Orgnr.genererGyldig()
     val forespoersel =
         Forespoersel(
-            type = ForespoerselType.KOMPLETT,
             orgnr = orgnr,
             fnr = Fnr.genererGyldig(),
             forespoerselId = UUID.randomUUID(),

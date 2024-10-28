@@ -11,7 +11,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsm
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -160,7 +159,6 @@ class InnsendingServiceIT : EndToEndTest() {
 
         val forespoerselSvar =
             Forespoersel(
-                type = ForespoerselType.KOMPLETT,
                 orgnr = orgnr,
                 fnr = Fnr.genererGyldig(),
                 forespoerselId = skjema.forespoerselId,

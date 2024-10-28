@@ -4,7 +4,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntekt
@@ -34,7 +33,6 @@ fun mockForespoerselListeSvarMedSuksess(): ForespoerselListeSvar {
         resultat =
             listOf(
                 Forespoersel(
-                    type = ForespoerselType.KOMPLETT,
                     orgnr = orgnr,
                     fnr = Fnr.genererGyldig(),
                     vedtaksperiodeId = UUID.randomUUID(),
@@ -78,7 +76,6 @@ fun mockForespoerselListeSvarMedFeil(): ForespoerselListeSvar =
 fun mockForespoerselSvarSuksess(forespoerselId: UUID): Forespoersel {
     val orgnr = Orgnr.genererGyldig()
     return Forespoersel(
-        type = ForespoerselType.KOMPLETT,
         orgnr = orgnr,
         fnr = Fnr.genererGyldig(),
         forespoerselId = forespoerselId,
@@ -94,7 +91,6 @@ fun mockForespoerselSvarSuksess(forespoerselId: UUID): Forespoersel {
 fun mockForespoerselSvarSuksessMedFastsattInntekt(forespoerselId: UUID): Forespoersel {
     val orgnr = Orgnr.genererGyldig()
     return Forespoersel(
-        type = ForespoerselType.KOMPLETT,
         orgnr = orgnr,
         fnr = Fnr.genererGyldig(),
         forespoerselId = forespoerselId,

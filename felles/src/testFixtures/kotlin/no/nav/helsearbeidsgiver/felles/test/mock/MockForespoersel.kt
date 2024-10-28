@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.felles.test.mock
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
-import no.nav.helsearbeidsgiver.felles.domene.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.domene.ForespurtData
 import no.nav.helsearbeidsgiver.felles.domene.ForrigeInntekt
 import no.nav.helsearbeidsgiver.felles.domene.ForslagInntekt
@@ -17,7 +16,6 @@ import java.util.UUID
 fun mockForespoersel(): Forespoersel {
     val orgnr = Orgnr.genererGyldig()
     return Forespoersel(
-        type = ForespoerselType.KOMPLETT,
         orgnr = orgnr.verdi,
         fnr = Fnr.genererGyldig().verdi,
         vedtaksperiodeId = UUID.randomUUID(),

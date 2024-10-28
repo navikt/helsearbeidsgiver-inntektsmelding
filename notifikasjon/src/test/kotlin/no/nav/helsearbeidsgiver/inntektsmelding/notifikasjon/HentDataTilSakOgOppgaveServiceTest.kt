@@ -113,7 +113,7 @@ private object Mock {
     val fnr = Fnr.genererGyldig()
     val orgnrMedNavn = mapOf(orgnr to "Kåre Conradis Kål og Kålrabi")
     val personer = mapOf(fnr to Person(fnr, "Kåre Conradi", 22.april))
-    val skalHaPaaminnelse = false // TODO: Bytt ut default false
+    val skalHaPaaminnelse = true
 
     fun steg0(): Map<Key, JsonElement> =
         mapOf(
@@ -124,6 +124,7 @@ private object Mock {
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.ORGNRUNDERENHET to orgnr.toJson(),
                     Key.FNR to fnr.toJson(),
+                    Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
                 ).toJson(),
         )
 

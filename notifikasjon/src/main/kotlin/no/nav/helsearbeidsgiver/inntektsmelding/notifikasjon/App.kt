@@ -31,7 +31,7 @@ fun main() {
         .createNotifikasjonService()
         .createNotifikasjonRivers(
             linkUrl = Env.linkUrl,
-            paaminnelseToggle = Env.PaaminnelseToggle,
+            paaminnelseToggle = Env.paaminnelseToggle,
             selvbestemtRepo = selvbestemtRepo,
             agNotifikasjonKlient = buildClient(),
         ).registerShutdownLifecycle {
@@ -50,7 +50,7 @@ fun RapidsConnection.createNotifikasjonService(): RapidsConnection =
 
 fun RapidsConnection.createNotifikasjonRivers(
     linkUrl: String,
-    paaminnelseToggle: PaaminnelseToggleInterface,
+    paaminnelseToggle: PaaminnelseToggle,
     selvbestemtRepo: SelvbestemtRepo,
     agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
 ): RapidsConnection =

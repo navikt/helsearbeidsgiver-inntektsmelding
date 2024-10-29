@@ -24,7 +24,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggleInterface
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggle
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakLevetid
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -38,10 +38,10 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
         val testRapid = TestRapid()
         val mockAgNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
         val mockPaaminnelseToggle =
-            object : PaaminnelseToggleInterface {
-                override val oppgavePaaminnelseAktivert = true
-                override val tidMellomOppgaveopprettelseOgPaaminnelse = "P28D"
-            }
+            PaaminnelseToggle(
+                oppgavePaaminnelseAktivert = true,
+                tidMellomOppgaveopprettelseOgPaaminnelse = "P28D",
+            )
 
         OpprettForespoerselSakOgOppgaveRiver(
             lenkeBaseUrl = "en-slags-url",

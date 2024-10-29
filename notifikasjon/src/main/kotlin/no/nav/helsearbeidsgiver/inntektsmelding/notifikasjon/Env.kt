@@ -17,13 +17,14 @@ object Env {
             clientJwk = "AZURE_APP_JWK".fromEnv(),
         )
 
-    object PaaminnelseToggle : PaaminnelseToggleInterface {
-        override val oppgavePaaminnelseAktivert: Boolean = "OPPGAVEPAAMINNELSER_AKTIVERT".fromEnv().toBoolean()
-        override val tidMellomOppgaveopprettelseOgPaaminnelse = "TID_MELLOM_OPPGAVEOPPRETTELSE_OG_PAAMINNELSE".fromEnv()
-    }
+    val paaminnelseToggle =
+        PaaminnelseToggle(
+            oppgavePaaminnelseAktivert = "OPPGAVEPAAMINNELSER_AKTIVERT".fromEnv().toBoolean(),
+            tidMellomOppgaveopprettelseOgPaaminnelse = "TID_MELLOM_OPPGAVEOPPRETTELSE_OG_PAAMINNELSE".fromEnv(),
+        )
 }
 
-interface PaaminnelseToggleInterface {
-    val oppgavePaaminnelseAktivert: Boolean
-    val tidMellomOppgaveopprettelseOgPaaminnelse: ISO8601Duration
-}
+data class PaaminnelseToggle(
+    val oppgavePaaminnelseAktivert: Boolean,
+    val tidMellomOppgaveopprettelseOgPaaminnelse: ISO8601Duration,
+)

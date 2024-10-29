@@ -57,7 +57,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createHentInntektRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektselvbestemtservice.createInntektSelvbestemtService
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJournalfoerImRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggleInterface
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggle
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonService
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
@@ -88,10 +88,11 @@ import kotlin.io.path.absolutePathString
 
 private const val NOTIFIKASJON_LINK = "notifikasjonLink"
 
-private object PaaminnelseToggle : PaaminnelseToggleInterface {
-    override val oppgavePaaminnelseAktivert = true
-    override val tidMellomOppgaveopprettelseOgPaaminnelse = "P28D"
-}
+private val paaminnelseToggle =
+    PaaminnelseToggle(
+        oppgavePaaminnelseAktivert = true,
+        tidMellomOppgaveopprettelseOgPaaminnelse = "P28D",
+    )
 
 val bjarneBetjent =
     FullPerson(
@@ -268,7 +269,7 @@ abstract class EndToEndTest : ContainerTest() {
             createMarkerForespoerselBesvart(mockPriProducer)
             createNotifikasjonRivers(
                 NOTIFIKASJON_LINK,
-                PaaminnelseToggle,
+                paaminnelseToggle,
                 selvbestemtRepo,
                 arbeidsgiverNotifikasjonKlient,
             )

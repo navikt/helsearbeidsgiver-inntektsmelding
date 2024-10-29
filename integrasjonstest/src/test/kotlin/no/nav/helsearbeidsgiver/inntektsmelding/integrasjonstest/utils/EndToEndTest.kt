@@ -88,7 +88,7 @@ import kotlin.io.path.absolutePathString
 
 private const val NOTIFIKASJON_LINK = "notifikasjonLink"
 
-private object PAAMINNELSE_TOGGLE : PaaminnelseToggleInterface {
+private object PaaminnelseToggle : PaaminnelseToggleInterface {
     override val oppgavePaaminnelseAktivert = true
     override val tidMellomOppgaveopprettelseOgPaaminnelse = "P28D"
 }
@@ -268,7 +268,7 @@ abstract class EndToEndTest : ContainerTest() {
             createMarkerForespoerselBesvart(mockPriProducer)
             createNotifikasjonRivers(
                 NOTIFIKASJON_LINK,
-                PAAMINNELSE_TOGGLE,
+                PaaminnelseToggle,
                 selvbestemtRepo,
                 arbeidsgiverNotifikasjonKlient,
             )

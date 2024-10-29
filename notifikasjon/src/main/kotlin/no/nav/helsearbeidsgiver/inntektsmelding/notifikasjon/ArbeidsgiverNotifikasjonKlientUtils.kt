@@ -20,9 +20,9 @@ object NotifikasjonTekst {
     @Deprecated("Bruk NotifikasjonTekst.MERKELAPP. Utdatert siden 21.05.2024.")
     const val MERKELAPP_GAMMEL = "Inntektsmelding"
     const val OPPGAVE_TEKST = "Innsending av inntektsmelding"
-    const val STATUS_TEKST_UNDER_BEHANDLING = "NAV trenger inntektsmelding"
+    const val STATUS_TEKST_UNDER_BEHANDLING = "Nav trenger inntektsmelding"
     const val STATUS_TEKST_FERDIG = "Mottatt – Se kvittering eller korriger inntektsmelding"
-    const val STATUS_TEKST_AVBRUTT = "Avbrutt av NAV"
+    const val STATUS_TEKST_AVBRUTT = "Avbrutt av Nav"
 
     fun lenkeAktivForespoersel(
         linkUrl: String,
@@ -53,7 +53,7 @@ object NotifikasjonTekst {
         listOf(
             "$orgNavn - orgnr $orgnr: En av dine ansatte har søkt om sykepenger",
             "og vi trenger inntektsmelding for å behandle søknaden.",
-            "Logg inn på Min side – arbeidsgiver hos NAV.",
+            "Logg inn på Min side – arbeidsgiver hos Nav.",
             "Hvis dere sender inntektsmelding via lønnssystem kan dere fortsatt gjøre dette,",
             "og trenger ikke sende inn via Min side – arbeidsgiver.",
         ).joinToString(separator = " ")

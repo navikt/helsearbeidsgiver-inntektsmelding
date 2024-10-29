@@ -45,8 +45,8 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
 
         OpprettForespoerselSakOgOppgaveRiver(
             lenkeBaseUrl = "en-slags-url",
-            agNotifikasjonKlient = mockAgNotifikasjonKlient,
             paaminnelseToggle = mockPaaminnelseToggle,
+            agNotifikasjonKlient = mockAgNotifikasjonKlient,
         ).connect(testRapid)
 
         beforeTest {

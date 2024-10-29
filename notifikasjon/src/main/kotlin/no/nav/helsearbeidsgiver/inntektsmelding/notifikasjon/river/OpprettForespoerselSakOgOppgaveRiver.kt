@@ -36,8 +36,8 @@ data class OpprettForespoerselSakOgOppgaveMelding(
 
 class OpprettForespoerselSakOgOppgaveRiver(
     private val lenkeBaseUrl: String,
-    private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
     private val paaminnelseToggle: PaaminnelseToggleInterface,
+    private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
 ) : ObjectRiver<OpprettForespoerselSakOgOppgaveMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()

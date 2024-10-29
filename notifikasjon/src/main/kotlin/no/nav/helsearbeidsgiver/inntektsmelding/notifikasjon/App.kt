@@ -58,8 +58,8 @@ fun RapidsConnection.createNotifikasjonRivers(
         logger.info("Starter ${OpprettForespoerselSakOgOppgaveRiver::class.simpleName}...")
         OpprettForespoerselSakOgOppgaveRiver(
             lenkeBaseUrl = linkUrl,
-            agNotifikasjonKlient = agNotifikasjonKlient,
             paaminnelseToggle = paaminnelseToggle,
+            agNotifikasjonKlient = agNotifikasjonKlient,
         ).connect(this)
 
         logger.info("Starter ${OpprettSelvbestemtSakRiver::class.simpleName}...")

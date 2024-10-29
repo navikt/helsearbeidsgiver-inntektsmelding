@@ -14,6 +14,8 @@ import kotlin.time.Duration.Companion.days
 // 13x30 dager
 val sakLevetid = 390.days
 
+private val logger = "arbeidsgiver-notifikasjon-klient-utils".logger()
+
 object NotifikasjonTekst {
     const val MERKELAPP = "Inntektsmelding sykepenger"
 
@@ -67,7 +69,7 @@ object NotifikasjonTekst {
             "Vi trenger inntektsmeldingen så snart som mulig,",
             "ellers kan vi ikke behandle søknaden om sykepenger.",
             "Logg inn på Min side – arbeidsgiver på Nav for å finne ut hvilken inntektsmelding det gjelder.",
-            "Gjelder $orgNavn - orgnr $orgnr.",
+            "Gjelder $orgNavn – orgnr $orgnr.",
         ).joinToString(separator = " ")
 }
 
@@ -174,7 +176,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
                         tittel = "Påminnelse: ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
                         innhold = NotifikasjonTekst.paaminnelseInnhold(orgnr, orgNavn),
                         tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveopprettelseOgPaaminnelse,
-                    ).also { logger().info("Satte påminnelse for forespørsel $forespoerselId") }
+                    ).also { logger.info("Satte påminnelse for forespørsel $forespoerselId") }
                 } else {
                     null
                 },

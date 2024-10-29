@@ -73,7 +73,7 @@ class HentDataTilSakOgOppgaveServiceTest :
                                 Mock.orgnrMedNavn.values
                                     .first()
                                     .toJson(),
-                            Key.SKAL_HA_PAAMINNELSE to Mock.skalHaPaaminnelse.toJson(Boolean.serializer()),
+                            Key.SKAL_HA_PAAMINNELSE to Mock.SKAL_HA_PAAMINNELSE.toJson(Boolean.serializer()),
                         ).toJson(),
                 )
         }
@@ -106,13 +106,13 @@ class HentDataTilSakOgOppgaveServiceTest :
     })
 
 private object Mock {
+    const val SKAL_HA_PAAMINNELSE = true
     val transaksjonId: UUID = UUID.randomUUID()
     val forespoerselId: UUID = UUID.randomUUID()
     val orgnr = Orgnr.genererGyldig()
     val fnr = Fnr.genererGyldig()
     val orgnrMedNavn = mapOf(orgnr to "Kåre Conradis Kål og Kålrabi")
     val personer = mapOf(fnr to Person(fnr, "Kåre Conradi"))
-    val skalHaPaaminnelse = true
 
     fun steg0(): Map<Key, JsonElement> =
         mapOf(
@@ -123,7 +123,7 @@ private object Mock {
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.ORGNRUNDERENHET to orgnr.toJson(),
                     Key.FNR to fnr.toJson(),
-                    Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
+                    Key.SKAL_HA_PAAMINNELSE to SKAL_HA_PAAMINNELSE.toJson(Boolean.serializer()),
                 ).toJson(),
         )
 

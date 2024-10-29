@@ -204,7 +204,7 @@ class LagreJournalpostIdRiverTest :
         context("ignorerer melding") {
             withData(
                 mapOf(
-                    "melding med ukjent behov" to Pair(Key.BEHOV, BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson()),
+                    "melding med ukjent behov" to Pair(Key.BEHOV, BehovType.LAGRE_IM_SKJEMA.toJson()),
                     "melding med data" to Pair(Key.DATA, "".toJson()),
                     "melding med fail" to Pair(Key.FAIL, Mock.fail.toJson(Fail.serializer())),
                 ),

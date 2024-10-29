@@ -158,6 +158,6 @@ private fun Fnr.lesFoedselsdato(): String {
     return if (foersteSiffer < 4) {
         verdi.take(6)
     } else {
-        (foersteSiffer - 4).toString() + verdi.take(5)
+        (foersteSiffer - 4).toString() + verdi.substring(1, 6)
     }
 }

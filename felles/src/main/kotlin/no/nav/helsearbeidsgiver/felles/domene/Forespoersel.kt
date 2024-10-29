@@ -13,7 +13,6 @@ import java.util.UUID
 
 @Serializable
 data class Forespoersel(
-    val type: ForespoerselType,
     val orgnr: String,
     val fnr: String,
     val vedtaksperiodeId: UUID,
@@ -56,9 +55,4 @@ data class Forespoersel(
             }
         }
     }
-}
-
-enum class ForespoerselType {
-    KOMPLETT,
-    BEGRENSET,
 }

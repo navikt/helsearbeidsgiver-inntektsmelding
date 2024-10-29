@@ -10,7 +10,6 @@ import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
-import no.nav.helsearbeidsgiver.felles.domene.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.domene.ForespurtData
 import no.nav.helsearbeidsgiver.felles.domene.ForrigeInntekt
 import no.nav.helsearbeidsgiver.felles.domene.ForslagInntekt
@@ -153,7 +152,6 @@ private object Mock {
 
     private val forespoersel =
         Forespoersel(
-            type = ForespoerselType.KOMPLETT,
             orgnr = "123",
             fnr = "abc",
             sykmeldingsperioder =

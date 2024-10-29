@@ -59,7 +59,6 @@ class RedisPollerTest :
             val expectedJson =
                 """
                 {
-                    "type": "${expected.type}",
                     "orgnr": "${expected.orgnr}",
                     "fnr": "${expected.fnr}",
                     "vedtaksperiodeId": ${expected.vedtaksperiodeId.toJson()},

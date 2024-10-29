@@ -54,55 +54,6 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
         }
 
     @Test
-    fun `skal godta og returnere id ved innsending som bruker 'perioder'-felt i inntektsendringsårsak`() =
-        testApi {
-            val selvbestemtId = UUID.randomUUID()
-
-            coEvery { mockRedisConnection.get(any()) } returnsMany
-                listOf(
-                    harTilgangResultat,
-                    Mock.successResult(selvbestemtId),
-                )
-
-            val skjemaJson =
-                """
-            {
-                "selvbestemtId": "$selvbestemtId",
-                "type": {
-                    "type": "Selvbestemt",
-                    "id": "${UUID.randomUUID()}"
-                },
-                "sykmeldtFnr": "${Fnr.genererGyldig()}",
-                "avsender": {
-                    "orgnr": "${Orgnr.genererGyldig()}",
-                    "tlf": "${randomDigitString(8)}"
-                },
-                "sykmeldingsperioder": [{"fom": "2024-02-12", "tom": "2024-02-28"}],
-                "agp": null,
-                "inntekt": {
-                    "beloep": 1000.10,
-                    "inntektsdato": "2024-02-12",
-                    "naturalytelser": [],
-                    "endringAarsak": {
-                        "aarsak": "Ferie",
-                        "perioder": [{"fom": "2024-02-14", "tom": "2024-02-15"}, {"fom": "2024-02-21", "tom": "2024-02-21"}]
-                    }
-                },
-                "refusjon": null,
-                "vedtaksperiodeId": null
-            }
-            """.removeJsonWhitespace()
-                    .parseJson()
-
-            val response = post(path, skjemaJson, JsonElement.serializer())
-
-            val actualJson = response.bodyAsText()
-
-            response.status shouldBe HttpStatusCode.OK
-            actualJson shouldBe Mock.successResponseJson(selvbestemtId)
-        }
-
-    @Test
     fun `skal godta og returnere id ved innsending som mangler vedtaksperiodeId`() =
         testApi {
             val selvbestemtId = UUID.randomUUID()

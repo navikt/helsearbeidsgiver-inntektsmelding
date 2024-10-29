@@ -13,7 +13,6 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
-import no.nav.helsearbeidsgiver.felles.domene.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
@@ -328,7 +327,6 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
         val forespoersel =
             Forespoersel(
-                type = ForespoerselType.KOMPLETT,
                 orgnr = orgnr.verdi,
                 fnr = bjarneBetjent.ident!!,
                 vedtaksperiodeId = UUID.randomUUID(),
@@ -349,7 +347,6 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
         val forespoerselSvar =
             ForespoerselBro(
-                type = ForespoerselType.KOMPLETT,
                 orgnr = Orgnr(forespoersel.orgnr),
                 fnr = Fnr(forespoersel.fnr),
                 forespoerselId = forespoerselId,

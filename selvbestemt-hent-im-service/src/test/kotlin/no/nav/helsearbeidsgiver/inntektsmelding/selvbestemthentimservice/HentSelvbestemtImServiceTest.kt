@@ -16,7 +16,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
@@ -58,8 +57,8 @@ class HentSelvbestemtImServiceTest :
             testRapid.inspektør.size shouldBeExactly 1
 
             verify {
-                mockRedisStore.set(
-                    RedisKey.of(transaksjonId),
+                mockRedisStore.skrivResultat(
+                    transaksjonId,
                     ResultJson(
                         success = Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
                     ).toJson(ResultJson.serializer()),
@@ -94,8 +93,8 @@ class HentSelvbestemtImServiceTest :
             testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_SELVBESTEMT_IM
 
             verify {
-                mockRedisStore.set(
-                    RedisKey.of(transaksjonId),
+                mockRedisStore.skrivResultat(
+                    transaksjonId,
                     ResultJson(
                         failure = feilmelding.toJson(),
                     ).toJson(ResultJson.serializer()),

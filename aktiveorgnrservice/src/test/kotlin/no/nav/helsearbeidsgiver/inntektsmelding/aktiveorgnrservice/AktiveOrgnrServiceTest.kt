@@ -22,7 +22,6 @@ import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
@@ -80,7 +79,7 @@ class AktiveOrgnrServiceTest :
             )
 
             verify {
-                mockRedis.store.set(RedisKey.of(transaksjonId), expectedSuccess)
+                mockRedis.store.skrivResultat(transaksjonId, expectedSuccess)
             }
         }
 
@@ -105,7 +104,7 @@ class AktiveOrgnrServiceTest :
             testRapid.inspektør.size shouldBeExactly 3
 
             verify {
-                mockRedis.store.set(RedisKey.of(transaksjonId), expectedSuccess)
+                mockRedis.store.skrivResultat(transaksjonId, expectedSuccess)
             }
         }
 
@@ -130,7 +129,7 @@ class AktiveOrgnrServiceTest :
             testRapid.inspektør.size shouldBeExactly 3
 
             verify {
-                mockRedis.store.set(RedisKey.of(transaksjonId), expectedSuccess)
+                mockRedis.store.skrivResultat(transaksjonId, expectedSuccess)
             }
         }
 
@@ -156,7 +155,7 @@ class AktiveOrgnrServiceTest :
             testRapid.inspektør.size shouldBeExactly 3
 
             verify {
-                mockRedis.store.set(RedisKey.of(transaksjonId), expectedFailure)
+                mockRedis.store.skrivResultat(transaksjonId, expectedFailure)
             }
         }
 
@@ -185,7 +184,7 @@ class AktiveOrgnrServiceTest :
             )
 
             verify {
-                mockRedis.store.set(RedisKey.of(transaksjonId), expectedFailure)
+                mockRedis.store.skrivResultat(transaksjonId, expectedFailure)
             }
         }
     })
@@ -203,12 +202,7 @@ private object Mock {
             sykmeldtFnr to SYKMELDT_NAVN,
             avsenderFnr to AVSENDER_NAVN,
         ).associate { (fnr, navn) ->
-            fnr to
-                Person(
-                    fnr = fnr,
-                    navn = navn,
-                    foedselsdato = Person.foedselsdato(fnr),
-                )
+            fnr to Person(fnr, navn)
         }
 
     fun successResult(orgnr: Orgnr): JsonElement =

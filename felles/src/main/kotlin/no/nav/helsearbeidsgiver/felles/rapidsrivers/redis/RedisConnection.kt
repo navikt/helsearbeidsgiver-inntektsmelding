@@ -14,11 +14,13 @@ class RedisConnection(
 
     fun get(key: String): String? = syncCommands.get(key)
 
-    internal fun getAll(vararg keys: String): Map<String, String> =
-        syncCommands
-            .mget(*keys)
+    internal fun getAll(keys: List<String>): Map<String, String> {
+        val keysAsArray = keys.toSet().toTypedArray()
+        return syncCommands
+            .mget(*keysAsArray)
             .associate { it.key to it.getValueOrElse(null) }
             .mapValuesNotNull { it }
+    }
 
     internal fun set(
         key: String,

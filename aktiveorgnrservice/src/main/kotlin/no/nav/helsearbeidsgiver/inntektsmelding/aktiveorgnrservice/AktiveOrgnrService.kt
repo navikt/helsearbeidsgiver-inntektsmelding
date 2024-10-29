@@ -16,7 +16,6 @@ import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
@@ -185,7 +184,7 @@ class AktiveOrgnrService(
                         ).toJson(AktiveArbeidsgivere.serializer()),
                 ).toJson(ResultJson.serializer())
 
-            redisStore.set(RedisKey.of(steg0.transaksjonId), gyldigResponse)
+            redisStore.skrivResultat(steg0.transaksjonId, gyldigResponse)
         } else {
             "Steg 1 er ikke komplett under utførelse av steg 2.".also {
                 logger.error(it)
@@ -213,7 +212,7 @@ class AktiveOrgnrService(
                 failure = feilmelding.toJson(),
             ).toJson(ResultJson.serializer())
 
-        redisStore.set(RedisKey.of(transaksjonId), feilResponse)
+        redisStore.skrivResultat(transaksjonId, feilResponse)
     }
 
     override fun Steg0.loggfelt(): Map<String, String> =

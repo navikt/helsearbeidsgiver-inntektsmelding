@@ -26,7 +26,6 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
-import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -41,6 +40,8 @@ import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.april
+import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -390,7 +391,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
                             mellomnavn = null,
                             etternavn = "Aleksandersen",
                         ),
-                    foedselsdato = Person.foedselsdato(skjema.sykmeldtFnr),
+                    foedselsdato = 22.april,
                 ),
                 FullPerson(
                     ident = avsenderFnr.verdi,
@@ -400,7 +401,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
                             mellomnavn = null,
                             etternavn = "Eggum",
                         ),
-                    foedselsdato = Person.foedselsdato(avsenderFnr),
+                    foedselsdato = 30.august,
                 ),
             )
 

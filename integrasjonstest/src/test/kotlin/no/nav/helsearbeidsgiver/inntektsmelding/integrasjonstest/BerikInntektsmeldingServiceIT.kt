@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.Forespoersel as ForespoerselBro
+import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro as ForespoerselBro
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BerikInntektsmeldingServiceIT : EndToEndTest() {

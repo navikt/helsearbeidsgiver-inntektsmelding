@@ -7,7 +7,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntekt
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.Forespoersel
+import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselListeSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -32,7 +32,7 @@ fun mockForespoerselListeSvarMedSuksess(): ForespoerselListeSvar {
     return ForespoerselListeSvar(
         resultat =
             listOf(
-                Forespoersel(
+                ForespoerselFraBro(
                     orgnr = orgnr,
                     fnr = Fnr.genererGyldig(),
                     vedtaksperiodeId = UUID.randomUUID(),
@@ -73,9 +73,9 @@ fun mockForespoerselListeSvarMedFeil(): ForespoerselListeSvar =
         feil = ForespoerselListeSvar.Feil.FORESPOERSEL_FOR_VEDTAKSPERIODE_ID_LISTE_FEILET,
     )
 
-fun mockForespoerselSvarSuksess(forespoerselId: UUID): Forespoersel {
+fun mockForespoerselSvarSuksess(forespoerselId: UUID): ForespoerselFraBro {
     val orgnr = Orgnr.genererGyldig()
-    return Forespoersel(
+    return ForespoerselFraBro(
         orgnr = orgnr,
         fnr = Fnr.genererGyldig(),
         forespoerselId = forespoerselId,
@@ -88,9 +88,9 @@ fun mockForespoerselSvarSuksess(forespoerselId: UUID): Forespoersel {
     )
 }
 
-fun mockForespoerselSvarSuksessMedFastsattInntekt(forespoerselId: UUID): Forespoersel {
+fun mockForespoerselSvarSuksessMedFastsattInntekt(forespoerselId: UUID): ForespoerselFraBro {
     val orgnr = Orgnr.genererGyldig()
-    return Forespoersel(
+    return ForespoerselFraBro(
         orgnr = orgnr,
         fnr = Fnr.genererGyldig(),
         forespoerselId = forespoerselId,

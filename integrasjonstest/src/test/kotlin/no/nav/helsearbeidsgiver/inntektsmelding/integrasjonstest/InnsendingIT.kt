@@ -37,7 +37,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.Forespoersel as ForespoerselBro
+import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro as ForespoerselBro
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class InnsendingIT : EndToEndTest() {

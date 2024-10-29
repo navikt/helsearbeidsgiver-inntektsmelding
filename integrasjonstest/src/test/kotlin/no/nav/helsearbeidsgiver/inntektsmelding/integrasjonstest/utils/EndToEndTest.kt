@@ -49,7 +49,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselinfotrygd.createFore
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createMarkerForespoerselBesvart
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottattRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebroRivers
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.Forespoersel
+import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselListeSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
@@ -317,7 +317,7 @@ abstract class EndToEndTest : ContainerTest() {
 
     fun mockForespoerselSvarFraHelsebro(
         forespoerselId: UUID,
-        forespoerselSvar: Forespoersel,
+        forespoerselSvar: ForespoerselFraBro,
     ) {
         var boomerang: JsonElement? = null
 
@@ -351,7 +351,7 @@ abstract class EndToEndTest : ContainerTest() {
         }
     }
 
-    fun mockForespoerselSvarFraHelsebro(forespoerselListeSvar: List<Forespoersel>) {
+    fun mockForespoerselSvarFraHelsebro(forespoerselListeSvar: List<ForespoerselFraBro>) {
         var boomerang: JsonElement? = null
 
         every {

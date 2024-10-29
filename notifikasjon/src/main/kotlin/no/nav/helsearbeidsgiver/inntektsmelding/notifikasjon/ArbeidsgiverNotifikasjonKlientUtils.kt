@@ -2,9 +2,11 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
+import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
@@ -13,15 +15,17 @@ import kotlin.time.Duration.Companion.days
 // 13x30 dager
 val sakLevetid = 390.days
 
+private val logger = "arbeidsgiver-notifikasjon-klient-utils".logger()
+
 object NotifikasjonTekst {
     const val MERKELAPP = "Inntektsmelding sykepenger"
 
     @Deprecated("Bruk NotifikasjonTekst.MERKELAPP. Utdatert siden 21.05.2024.")
     const val MERKELAPP_GAMMEL = "Inntektsmelding"
     const val OPPGAVE_TEKST = "Innsending av inntektsmelding"
-    const val STATUS_TEKST_UNDER_BEHANDLING = "NAV trenger inntektsmelding"
+    const val STATUS_TEKST_UNDER_BEHANDLING = "Nav trenger inntektsmelding"
     const val STATUS_TEKST_FERDIG = "Mottatt – Se kvittering eller korriger inntektsmelding"
-    const val STATUS_TEKST_AVBRUTT = "Avbrutt av NAV"
+    const val STATUS_TEKST_AVBRUTT = "Avbrutt av Nav"
 
     fun lenkeAktivForespoersel(
         linkUrl: String,
@@ -49,9 +53,21 @@ object NotifikasjonTekst {
         listOf(
             "$orgNavn - orgnr $orgnr: En av dine ansatte har søkt om sykepenger",
             "og vi trenger inntektsmelding for å behandle søknaden.",
-            "Logg inn på Min side – arbeidsgiver hos NAV.",
+            "Logg inn på Min side – arbeidsgiver hos Nav.",
             "Hvis dere sender inntektsmelding via lønnssystem kan dere fortsatt gjøre dette,",
             "og trenger ikke sende inn via Min side – arbeidsgiver.",
+        ).joinToString(separator = " ")
+
+    fun paaminnelseInnhold(
+        orgnr: Orgnr,
+        orgNavn: String,
+    ): String =
+        listOf(
+            "Nav venter fortsatt på inntektsmelding for en av deres ansatte.",
+            "Vi trenger inntektsmeldingen så snart som mulig,",
+            "ellers kan vi ikke behandle søknaden om sykepenger.",
+            "Logg inn på Min side – arbeidsgiver på Nav for å finne ut hvilken inntektsmelding det gjelder.",
+            "Gjelder $orgNavn – orgnr $orgnr.",
         ).joinToString(separator = " ")
 }
 
@@ -88,7 +104,7 @@ fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(
     forespoerselId: UUID,
     nyLenke: String,
 ): Result<Unit> =
-    Metrics.agNotifikasjonRequest.recordTime(::nyStatusSak) {
+    Metrics.agNotifikasjonRequest.recordTime(::nyStatusSakByGrupperingsid) {
         runCatching {
             nyStatusSakByGrupperingsid(
                 grupperingsid = forespoerselId.toString(),
@@ -137,6 +153,9 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
     forespoerselId: UUID,
     orgnr: Orgnr,
     orgNavn: String,
+    skalHaPaaminnelse: Boolean,
+    paaminnelseAktivert: Boolean,
+    tidMellomOppgaveopprettelseOgPaaminnelse: String,
 ): String =
     runBlocking {
         opprettNyOppgave(
@@ -149,6 +168,16 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
             varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
             varslingInnhold = NotifikasjonTekst.oppgaveInnhold(orgnr, orgNavn),
             tidspunkt = null,
+            paaminnelse =
+                if (skalHaPaaminnelse && paaminnelseAktivert) {
+                    Paaminnelse(
+                        tittel = "Påminnelse: ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
+                        innhold = NotifikasjonTekst.paaminnelseInnhold(orgnr, orgNavn),
+                        tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveopprettelseOgPaaminnelse,
+                    ).also { logger.info("Satte påminnelse for forespørsel $forespoerselId") }
+                } else {
+                    null
+                },
         )
     }
 

@@ -19,6 +19,10 @@ env:
     value: "https://arbeidsgiver.intern.dev.nav.no"
   - name: REDIS_URL
     value: redis://helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local:6379/0
+  - name: OPPGAVEPAAMINNELSER_AKTIVERT
+    value: "true"
+  - name: TID_MELLOM_OPPGAVEOPPRETTELSE_OG_PAAMINNELSE
+    value: "PT1M"
 apps:
   - name: helsearbeidsgiver-redis
   - name: notifikasjon-produsent-api

@@ -35,7 +35,7 @@ class ForespoerselMottattIT : EndToEndTest() {
         } returns Mock.sakId
 
         coEvery {
-            arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any())
+            arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
         } returns Mock.oppgaveId
 
         publish(

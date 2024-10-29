@@ -91,7 +91,7 @@ class FerdigstillForespoerselSakOgOppgaveRiver(
     }
 
     private fun ferdigstillOppgave(forespoerselId: UUID) {
-        Metrics.agNotifikasjonRequest.recordTime(agNotifikasjonKlient::oppgaveUtfoert) {
+        Metrics.agNotifikasjonRequest.recordTime(agNotifikasjonKlient::oppgaveUtfoertByEksternIdV2) {
             runCatching {
                 agNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(
                     eksternId = forespoerselId.toString(),

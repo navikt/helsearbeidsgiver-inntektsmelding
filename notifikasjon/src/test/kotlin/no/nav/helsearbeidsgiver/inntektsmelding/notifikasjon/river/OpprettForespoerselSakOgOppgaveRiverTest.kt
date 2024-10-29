@@ -10,7 +10,9 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
+import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -22,6 +24,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggle
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakLevetid
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -34,8 +37,17 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
 
         val testRapid = TestRapid()
         val mockAgNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
+        val mockPaaminnelseToggle =
+            PaaminnelseToggle(
+                oppgavePaaminnelseAktivert = true,
+                tidMellomOppgaveopprettelseOgPaaminnelse = "P28D",
+            )
 
-        OpprettForespoerselSakOgOppgaveRiver("en-slags-url", mockAgNotifikasjonKlient).connect(testRapid)
+        OpprettForespoerselSakOgOppgaveRiver(
+            lenkeBaseUrl = "en-slags-url",
+            paaminnelseToggle = mockPaaminnelseToggle,
+            agNotifikasjonKlient = mockAgNotifikasjonKlient,
+        ).connect(testRapid)
 
         beforeTest {
             testRapid.reset()
@@ -54,6 +66,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                         navn = "Peer Gynt",
                     ),
                 orgNavn = "Peer Gynts Løgn og Bedrageri LTD",
+                skalHaPaaminnelse = true,
             )
 
         fun forventetFail(innkommendeMelding: OpprettForespoerselSakOgOppgaveMelding): Fail =
@@ -71,7 +84,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             } returns MOCK_SAK_ID
 
             coEvery {
-                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             } returns MOCK_OPPGAVE_ID
 
             val innkommendeMelding = innkommendeMelding()
@@ -113,6 +126,12 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                     varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
                     varslingInnhold = NotifikasjonTekst.oppgaveInnhold(innkommendeMelding.orgnr, innkommendeMelding.orgNavn),
                     tidspunkt = null,
+                    paaminnelse =
+                        Paaminnelse(
+                            tittel = "Påminnelse: ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
+                            innhold = NotifikasjonTekst.paaminnelseInnhold(innkommendeMelding.orgnr, innkommendeMelding.orgNavn),
+                            tidMellomOppgaveopprettelseOgPaaminnelse = "P28D",
+                        ),
                 )
             }
         }
@@ -143,7 +162,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             } returns MOCK_SAK_ID
 
             coEvery {
-                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             } throws NullPointerException("Doing anything more than the minimum amount of work required is my definition of failing.")
 
             testRapid.sendJson(innkommendeMelding.toMap())
@@ -154,7 +173,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
 
             coVerifySequence {
                 mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
-                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
 
@@ -176,7 +195,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
 
                 coVerify(exactly = 0) {
                     mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
-                    mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                    mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
                 }
             }
         }
@@ -195,5 +214,6 @@ private fun OpprettForespoerselSakOgOppgaveMelding.toMap() =
                 Key.ORGNRUNDERENHET to orgnr.toJson(),
                 Key.SYKMELDT to sykmeldt.toJson(Person.serializer()),
                 Key.VIRKSOMHET to orgNavn.toJson(),
+                Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
             ).toJson(),
     )

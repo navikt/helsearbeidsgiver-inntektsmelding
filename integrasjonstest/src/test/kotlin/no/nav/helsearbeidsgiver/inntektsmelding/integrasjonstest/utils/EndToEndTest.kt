@@ -57,6 +57,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createHentInntektRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektselvbestemtservice.createInntektSelvbestemtService
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJournalfoerImRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggle
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonService
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
@@ -86,6 +87,12 @@ import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 
 private const val NOTIFIKASJON_LINK = "notifikasjonLink"
+
+private val paaminnelseToggle =
+    PaaminnelseToggle(
+        oppgavePaaminnelseAktivert = true,
+        tidMellomOppgaveopprettelseOgPaaminnelse = "P28D",
+    )
 
 val bjarneBetjent =
     FullPerson(
@@ -216,7 +223,7 @@ abstract class EndToEndTest : ContainerTest() {
                 )
             }
         }
-        coEvery { arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns "123456"
+        coEvery { arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns "123456"
         coEvery { arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any()) } returns "654321"
 
         mockPriProducer.apply {
@@ -260,7 +267,12 @@ abstract class EndToEndTest : ContainerTest() {
             createHentInntektRiver(inntektClient)
             createJournalfoerImRiver(dokarkivClient)
             createMarkerForespoerselBesvart(mockPriProducer)
-            createNotifikasjonRivers(NOTIFIKASJON_LINK, selvbestemtRepo, arbeidsgiverNotifikasjonKlient)
+            createNotifikasjonRivers(
+                NOTIFIKASJON_LINK,
+                paaminnelseToggle,
+                selvbestemtRepo,
+                arbeidsgiverNotifikasjonKlient,
+            )
             createPdlRiver(pdlKlient)
             createFeilLytter(bakgrunnsjobbRepository)
         }

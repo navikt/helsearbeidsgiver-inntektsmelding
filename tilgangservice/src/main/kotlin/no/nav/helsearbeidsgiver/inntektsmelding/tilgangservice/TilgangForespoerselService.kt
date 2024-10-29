@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -28,13 +27,12 @@ import java.util.UUID
 
 class TilgangForespoerselService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore,
+    private val redisStore: RedisStore,
 ) : ServiceMed2Steg<
         TilgangForespoerselService.Steg0,
         TilgangForespoerselService.Steg1,
         TilgangForespoerselService.Steg2,
-    >(),
-    Service.MedRedis {
+    >() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
@@ -81,9 +79,10 @@ class TilgangForespoerselService(
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
-                    mapOf(
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                    ).toJson(),
+                    data
+                        .plus(
+                            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                        ).toJson(),
             ).also {
                 MdcUtils.withLogFields(
                     Log.behov(BehovType.HENT_TRENGER_IM),
@@ -104,11 +103,13 @@ class TilgangForespoerselService(
                 Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.DATA to
-                    mapOf(
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                        Key.ORGNRUNDERENHET to steg1.forespoersel.orgnr.toJson(),
-                        Key.FNR to steg0.avsenderFnr.toJson(),
-                    ).toJson(),
+                    data
+                        .plus(
+                            mapOf(
+                                Key.ORGNRUNDERENHET to steg1.forespoersel.orgnr.toJson(),
+                                Key.FNR to steg0.avsenderFnr.toJson(),
+                            ),
+                        ).toJson(),
             ).also {
                 MdcUtils.withLogFields(
                     Log.behov(BehovType.TILGANGSKONTROLL),

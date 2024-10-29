@@ -122,7 +122,6 @@ class HentPersonerRiver(
                     Person(
                         fnr = Fnr(fnr),
                         navn = person.navn.fulltNavn(),
-                        foedselsdato = person.foedselsdato,
                     )
                 }
             }

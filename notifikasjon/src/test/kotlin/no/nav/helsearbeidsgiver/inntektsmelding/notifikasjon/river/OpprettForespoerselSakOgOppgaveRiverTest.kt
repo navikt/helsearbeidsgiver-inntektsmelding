@@ -24,7 +24,6 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakLevetid
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -53,7 +52,6 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                     Person(
                         fnr = Fnr.genererGyldig(),
                         navn = "Peer Gynt",
-                        foedselsdato = 12.juli,
                     ),
                 orgNavn = "Peer Gynts Løgn og Bedrageri LTD",
             )

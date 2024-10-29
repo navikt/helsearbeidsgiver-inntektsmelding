@@ -187,13 +187,10 @@ private object Mock {
     const val INNSENDING_ID = 1L
 
     val avsender =
-        Fnr.genererGyldig().let {
-            Person(
-                fnr = it,
-                navn = "Skrue McDuck",
-                foedselsdato = Person.foedselsdato(it),
-            )
-        }
+        Person(
+            fnr = Fnr.genererGyldig(),
+            navn = "Skrue McDuck",
+        )
 
     val skjema = mockSkjemaInntektsmelding()
 

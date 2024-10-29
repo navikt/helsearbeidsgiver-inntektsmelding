@@ -423,21 +423,15 @@ private fun Map<Key, JsonElement>.lesInntektsmelding(): Inntektsmelding {
 private object Mock {
     private const val ORG_NAVN = "Keiser Augustus' Ponniutleie"
     private val sykmeldt =
-        Fnr.genererGyldig().let {
-            Person(
-                fnr = it,
-                navn = "Ponnius Pilatus",
-                foedselsdato = Person.foedselsdato(it),
-            )
-        }
+        Person(
+            fnr = Fnr.genererGyldig(),
+            navn = "Ponnius Pilatus",
+        )
     private val avsender =
-        Fnr.genererGyldig().let {
-            Person(
-                fnr = it,
-                navn = "King Kong Keiser",
-                foedselsdato = Person.foedselsdato(it),
-            )
-        }
+        Person(
+            fnr = Fnr.genererGyldig(),
+            navn = "King Kong Keiser",
+        )
 
     val skjema =
         SkjemaInntektsmeldingSelvbestemt(

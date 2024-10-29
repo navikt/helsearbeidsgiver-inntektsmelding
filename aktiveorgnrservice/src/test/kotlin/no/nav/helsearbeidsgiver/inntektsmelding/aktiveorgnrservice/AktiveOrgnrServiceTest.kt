@@ -202,12 +202,7 @@ private object Mock {
             sykmeldtFnr to SYKMELDT_NAVN,
             avsenderFnr to AVSENDER_NAVN,
         ).associate { (fnr, navn) ->
-            fnr to
-                Person(
-                    fnr = fnr,
-                    navn = navn,
-                    foedselsdato = Person.foedselsdato(fnr),
-                )
+            fnr to Person(fnr, navn)
         }
 
     fun successResult(orgnr: Orgnr): JsonElement =

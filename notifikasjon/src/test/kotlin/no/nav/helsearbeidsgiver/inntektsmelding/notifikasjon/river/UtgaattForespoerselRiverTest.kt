@@ -54,7 +54,7 @@ class UtgaattForespoerselRiverTest :
                     merkelapp = "Inntektsmelding sykepenger",
                     status = SaksStatus.FERDIG,
                     tidspunkt = null,
-                    statusTekst = "Avbrutt av NAV",
+                    statusTekst = "Avbrutt av Nav",
                     nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
                 )
             }
@@ -93,7 +93,7 @@ class UtgaattForespoerselRiverTest :
                     grupperingsid = innkommendeMelding.forespoerselId.toString(),
                     merkelapp = "Inntektsmelding sykepenger",
                     status = SaksStatus.FERDIG,
-                    statusTekst = "Avbrutt av NAV",
+                    statusTekst = "Avbrutt av Nav",
                     nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
                 )
                 // Feiler ikke
@@ -101,7 +101,7 @@ class UtgaattForespoerselRiverTest :
                     grupperingsid = innkommendeMelding.forespoerselId.toString(),
                     merkelapp = "Inntektsmelding",
                     status = SaksStatus.FERDIG,
-                    statusTekst = "Avbrutt av NAV",
+                    statusTekst = "Avbrutt av Nav",
                     nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
                 )
             }
@@ -137,7 +137,7 @@ class UtgaattForespoerselRiverTest :
                     grupperingsid = innkommendeMelding.forespoerselId.toString(),
                     merkelapp = "Inntektsmelding sykepenger",
                     status = SaksStatus.FERDIG,
-                    statusTekst = "Avbrutt av NAV",
+                    statusTekst = "Avbrutt av Nav",
                     nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
                 )
             }
@@ -167,7 +167,7 @@ class UtgaattForespoerselRiverTest :
                     grupperingsid = innkommendeMelding.forespoerselId.toString(),
                     merkelapp = "Inntektsmelding sykepenger",
                     status = SaksStatus.FERDIG,
-                    statusTekst = "Avbrutt av NAV",
+                    statusTekst = "Avbrutt av Nav",
                     nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
                 )
                 // Feiler
@@ -175,7 +175,7 @@ class UtgaattForespoerselRiverTest :
                     grupperingsid = innkommendeMelding.forespoerselId.toString(),
                     merkelapp = "Inntektsmelding",
                     status = SaksStatus.FERDIG,
-                    statusTekst = "Avbrutt av NAV",
+                    statusTekst = "Avbrutt av Nav",
                     nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
                 )
             }

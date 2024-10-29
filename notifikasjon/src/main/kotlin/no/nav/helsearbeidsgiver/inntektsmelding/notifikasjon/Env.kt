@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
+import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.ISO8601Duration
 import no.nav.helsearbeidsgiver.felles.utils.fromEnv
 import no.nav.helsearbeidsgiver.tokenprovider.OAuth2Environment
 
@@ -15,6 +16,14 @@ object Env {
             clientSecret = "AZURE_APP_CLIENT_SECRET".fromEnv(),
             clientJwk = "AZURE_APP_JWK".fromEnv(),
         )
-    val oppgavePaaminnelseAktivert: Boolean = "OPPGAVEPAAMINNELSER_AKTIVERT".fromEnv().toBoolean()
-    val tidMellomOppgaveopprettelseOgPaaminnelse = "TID_MELLOM_OPPGAVEOPPRETTELSE_OG_PAAMINNELSE".fromEnv()
+
+    object PaaminnelseToggle : PaaminnelseToggleInterface {
+        override val oppgavePaaminnelseAktivert: Boolean = "OPPGAVEPAAMINNELSER_AKTIVERT".fromEnv().toBoolean()
+        override val tidMellomOppgaveopprettelseOgPaaminnelse = "TID_MELLOM_OPPGAVEOPPRETTELSE_OG_PAAMINNELSE".fromEnv()
+    }
+}
+
+interface PaaminnelseToggleInterface {
+    val oppgavePaaminnelseAktivert: Boolean
+    val tidMellomOppgaveopprettelseOgPaaminnelse: ISO8601Duration
 }

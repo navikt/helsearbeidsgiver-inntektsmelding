@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggleInterface
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.opprettOppgave
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.opprettSak
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -36,8 +37,7 @@ data class OpprettForespoerselSakOgOppgaveMelding(
 class OpprettForespoerselSakOgOppgaveRiver(
     private val lenkeBaseUrl: String,
     private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
-    private val paaminnelseAktivert: Boolean,
-    private val tidMellomOppgaveopprettelseOgPaaminnelse: String,
+    private val paaminnelseToggle: PaaminnelseToggleInterface,
 ) : ObjectRiver<OpprettForespoerselSakOgOppgaveMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -77,8 +77,8 @@ class OpprettForespoerselSakOgOppgaveRiver(
                 orgnr = orgnr,
                 orgNavn = orgNavn,
                 skalHaPaaminnelse = skalHaPaaminnelse,
-                paaminnelseAktivert = paaminnelseAktivert,
-                tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveopprettelseOgPaaminnelse,
+                paaminnelseAktivert = paaminnelseToggle.oppgavePaaminnelseAktivert,
+                tidMellomOppgaveopprettelseOgPaaminnelse = paaminnelseToggle.tidMellomOppgaveopprettelseOgPaaminnelse,
             )
 
         return mapOf(

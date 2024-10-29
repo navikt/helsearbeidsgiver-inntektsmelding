@@ -31,8 +31,7 @@ fun main() {
         .createNotifikasjonService()
         .createNotifikasjonRivers(
             linkUrl = Env.linkUrl,
-            paaminnelseAktivert = Env.oppgavePaaminnelseAktivert,
-            tidMellomOppgaveopprettelseOgPaaminnelse = Env.tidMellomOppgaveopprettelseOgPaaminnelse,
+            paaminnelseToggle = Env.PaaminnelseToggle,
             selvbestemtRepo = selvbestemtRepo,
             agNotifikasjonKlient = buildClient(),
         ).registerShutdownLifecycle {
@@ -51,8 +50,7 @@ fun RapidsConnection.createNotifikasjonService(): RapidsConnection =
 
 fun RapidsConnection.createNotifikasjonRivers(
     linkUrl: String,
-    paaminnelseAktivert: Boolean,
-    tidMellomOppgaveopprettelseOgPaaminnelse: String,
+    paaminnelseToggle: PaaminnelseToggleInterface,
     selvbestemtRepo: SelvbestemtRepo,
     agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
 ): RapidsConnection =
@@ -61,8 +59,7 @@ fun RapidsConnection.createNotifikasjonRivers(
         OpprettForespoerselSakOgOppgaveRiver(
             lenkeBaseUrl = linkUrl,
             agNotifikasjonKlient = agNotifikasjonKlient,
-            paaminnelseAktivert = paaminnelseAktivert,
-            tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveopprettelseOgPaaminnelse,
+            paaminnelseToggle = paaminnelseToggle,
         ).connect(this)
 
         logger.info("Starter ${OpprettSelvbestemtSakRiver::class.simpleName}...")

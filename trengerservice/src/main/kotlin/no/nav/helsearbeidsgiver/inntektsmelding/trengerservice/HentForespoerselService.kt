@@ -20,7 +20,6 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
@@ -181,7 +180,7 @@ class HentForespoerselService(
             val avsenderNavn = steg2.personer[steg0.avsenderFnr]?.navn ?: UKJENT_NAVN
             val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr] ?: UKJENT_VIRKSOMHET
 
-            val feil = redisStore.get(RedisKey.feilmelding(steg0.transaksjonId))?.fromJson(feilMapSerializer)
+            val feil = redisStore.lesFeil(steg0.transaksjonId)?.fromJson(feilMapSerializer)
 
             val resultJson =
                 ResultJson(
@@ -196,7 +195,7 @@ class HentForespoerselService(
                         ).toJson(HentForespoerselResultat.serializer()),
                 ).toJson(ResultJson.serializer())
 
-            redisStore.set(RedisKey.of(steg0.transaksjonId), resultJson)
+            redisStore.skrivResultat(steg0.transaksjonId, resultJson)
         }
     }
 
@@ -236,15 +235,12 @@ class HentForespoerselService(
             }
 
         if (overkommeligFeil != null) {
-            val feilmeldingKey = RedisKey.feilmelding(fail.transaksjonId)
-            val defaultVerdiKey = RedisKey.of(fail.transaksjonId, overkommeligFeil.key)
-
-            val gamleFeil = redisStore.get(feilmeldingKey)?.fromJson(feilMapSerializer)
+            val gamleFeil = redisStore.lesFeil(fail.transaksjonId)?.fromJson(feilMapSerializer)
 
             val alleFeil = gamleFeil.orEmpty() + mapOf(overkommeligFeil.key to overkommeligFeil.feilmelding)
 
-            redisStore.set(feilmeldingKey, alleFeil.toJson(feilMapSerializer))
-            redisStore.set(defaultVerdiKey, overkommeligFeil.defaultVerdi)
+            redisStore.skrivFeil(fail.transaksjonId, alleFeil.toJson(feilMapSerializer))
+            redisStore.skrivMellomlagring(fail.transaksjonId, overkommeligFeil.key, overkommeligFeil.defaultVerdi)
 
             val meldingMedDefault =
                 mapOf(overkommeligFeil.key to overkommeligFeil.defaultVerdi)
@@ -262,7 +258,7 @@ class HentForespoerselService(
                     failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(),
                 ).toJson(ResultJson.serializer())
 
-            redisStore.set(RedisKey.of(fail.transaksjonId), resultJson)
+            redisStore.skrivResultat(fail.transaksjonId, resultJson)
         }
     }
 

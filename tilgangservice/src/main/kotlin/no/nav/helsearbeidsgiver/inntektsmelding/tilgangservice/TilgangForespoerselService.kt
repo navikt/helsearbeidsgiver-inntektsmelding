@@ -13,7 +13,6 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
@@ -130,7 +129,7 @@ class TilgangForespoerselService(
                 tilgang = steg2.tilgang,
             ).toJson(TilgangResultat.serializer())
 
-        redisStore.set(RedisKey.of(steg0.transaksjonId), tilgangJson)
+        redisStore.skrivResultat(steg0.transaksjonId, tilgangJson)
 
         sikkerLogger.info("$eventName fullført.")
     }
@@ -151,7 +150,7 @@ class TilgangForespoerselService(
 
             sikkerLogger.error("Returnerer feilmelding: '${tilgangResultat.feilmelding}'")
 
-            redisStore.set(RedisKey.of(fail.transaksjonId), tilgangResultat.toJson(TilgangResultat.serializer()))
+            redisStore.skrivResultat(fail.transaksjonId, tilgangResultat.toJson(TilgangResultat.serializer()))
             sikkerLogger.error("$eventName terminert.")
         }
     }

@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
@@ -21,7 +20,7 @@ class RedisPoller(
         repeat(MAX_RETRIES) {
             sikkerLogger.debug("Polling redis: $it time(s) for key $key")
 
-            val result = redisStore.get(RedisKey.of(key))
+            val result = redisStore.lesResultat(key)
 
             if (result != null) {
                 sikkerLogger.info("Hentet verdi for: '$key' = $result")

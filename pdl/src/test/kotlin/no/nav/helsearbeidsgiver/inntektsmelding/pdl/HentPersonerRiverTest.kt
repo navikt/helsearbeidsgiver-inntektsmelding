@@ -50,12 +50,7 @@ class HentPersonerRiverTest :
             val olaFnr = Fnr.genererGyldig()
             val personer =
                 mapOf(
-                    olaFnr to
-                        Person(
-                            fnr = olaFnr,
-                            navn = "Ola Normann",
-                            foedselsdato = 13.juni(1956),
-                        ),
+                    olaFnr to Person(olaFnr, "Ola Normann"),
                 )
 
             val innkommendeMelding = Mock.innkommendeMelding(setOf(olaFnr))
@@ -87,18 +82,8 @@ class HentPersonerRiverTest :
             val kariFnr = Fnr.genererGyldig(somDnr = true)
             val personer =
                 mapOf(
-                    olaFnr to
-                        Person(
-                            fnr = olaFnr,
-                            navn = "Ola Normann",
-                            foedselsdato = 13.juni(1956),
-                        ),
-                    kariFnr to
-                        Person(
-                            fnr = kariFnr,
-                            navn = "Kari Normann",
-                            foedselsdato = 13.juni(1956),
-                        ),
+                    olaFnr to Person(olaFnr, "Ola Normann"),
+                    kariFnr to Person(kariFnr, "Kari Normann"),
                 )
 
             val innkommendeMelding = Mock.innkommendeMelding(setOf(olaFnr, kariFnr))
@@ -136,12 +121,7 @@ class HentPersonerRiverTest :
             val kariFnr = Fnr.genererGyldig()
             val personer =
                 mapOf(
-                    kariFnr to
-                        Person(
-                            fnr = kariFnr,
-                            navn = "Kari Normann",
-                            foedselsdato = 13.juni(1956),
-                        ),
+                    kariFnr to Person(kariFnr, "Kari Normann"),
                 )
 
             val innkommendeMelding = Mock.innkommendeMelding(setOf(olaFnr, kariFnr))
@@ -173,12 +153,7 @@ class HentPersonerRiverTest :
             val olaFnr = Fnr.genererGyldig()
             val personer =
                 mapOf(
-                    olaFnr to
-                        Person(
-                            fnr = olaFnr,
-                            navn = "Ola Normann",
-                            foedselsdato = 13.juni(1956),
-                        ),
+                    olaFnr to Person(olaFnr, "Ola Normann"),
                 )
 
             val innkommendeMelding = Mock.innkommendeMelding(setOf(olaFnr), forespoerselId)

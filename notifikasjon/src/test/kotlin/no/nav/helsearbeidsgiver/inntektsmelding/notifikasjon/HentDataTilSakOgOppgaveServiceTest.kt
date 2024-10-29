@@ -24,7 +24,6 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -112,7 +111,7 @@ private object Mock {
     val orgnr = Orgnr.genererGyldig()
     val fnr = Fnr.genererGyldig()
     val orgnrMedNavn = mapOf(orgnr to "Kåre Conradis Kål og Kålrabi")
-    val personer = mapOf(fnr to Person(fnr, "Kåre Conradi", 22.april))
+    val personer = mapOf(fnr to Person(fnr, "Kåre Conradi"))
     val skalHaPaaminnelse = true
 
     fun steg0(): Map<Key, JsonElement> =

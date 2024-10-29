@@ -39,7 +39,7 @@ class RedisPollerTest :
         }
 
         test("skal finne med tillatt antall forsøk") {
-            every { mockRedisStore.get(any()) } returnsMany answers(answerOnAttemptNo = 10, answer = dataJson)
+            every { mockRedisStore.lesResultat(any()) } returnsMany answers(answerOnAttemptNo = 10, answer = dataJson)
 
             val json = redisPoller.hent(key)
 
@@ -47,7 +47,7 @@ class RedisPollerTest :
         }
 
         test("skal ikke finne etter maks forsøk") {
-            every { mockRedisStore.get(any()) } returnsMany answers(answerOnAttemptNo = 11, answer = dataJson)
+            every { mockRedisStore.lesResultat(any()) } returnsMany answers(answerOnAttemptNo = 11, answer = dataJson)
 
             assertThrows<RedisPollerTimeoutException> {
                 redisPoller.hent(key)
@@ -72,7 +72,7 @@ class RedisPollerTest :
                 """.removeJsonWhitespace()
                     .parseJson()
 
-            every { mockRedisStore.get(any()) } returnsMany answers(answerOnAttemptNo = 1, answer = expectedJson)
+            every { mockRedisStore.lesResultat(any()) } returnsMany answers(answerOnAttemptNo = 1, answer = expectedJson)
 
             val resultat = redisPoller.hent(key).fromJson(Forespoersel.serializer())
 

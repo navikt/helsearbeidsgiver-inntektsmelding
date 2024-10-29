@@ -8,15 +8,12 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.json.toPretty
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.utils.collection.mapKeysNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import java.util.UUID
 
 class ServiceRiverStateless(
     override val service: Service,
@@ -54,7 +51,7 @@ class ServiceRiverStateful<S>(
         when (this) {
             is DataMelding -> {
                 dataMap.forEach { (key, data) ->
-                    service.redisStore.set(RedisKey.of(transaksjonId, key), data)
+                    service.redisStore.skrivMellomlagring(transaksjonId, key, data)
                 }
 
                 "Lagret ${dataMap.size} nøkler (med data) i Redis.".also {
@@ -62,7 +59,7 @@ class ServiceRiverStateful<S>(
                     sikkerLogger.info("$it\n${json.toPretty()}")
                 }
 
-                val meldingMedRedisData = getAllRedisData(transaksjonId) + json
+                val meldingMedRedisData = service.redisStore.lesAlleMellomlagrede(transaksjonId).plus(json)
 
                 service.onData(meldingMedRedisData)
             }
@@ -73,31 +70,13 @@ class ServiceRiverStateful<S>(
                     sikkerLogger.error("$it Utløsende melding er \n${fail.utloesendeMelding.toPretty()}")
                 }
 
-                val meldingMedRedisData = getAllRedisData(transaksjonId) + json
+                val meldingMedRedisData = service.redisStore.lesAlleMellomlagrede(transaksjonId).plus(json)
 
                 service.onError(meldingMedRedisData, fail)
             }
         }
 
         return null
-    }
-
-    private fun getAllRedisData(transaksjonId: UUID): Map<Key, JsonElement> {
-        val allKeys = Key.entries.map { RedisKey.of(transaksjonId, it) }.toSet()
-        return service.redisStore
-            .getAll(allKeys)
-            .mapKeysNotNull { key ->
-                key
-                    .removePrefix("$transaksjonId${service.redisStore.keyPartSeparator}")
-                    .runCatching(Key::fromString)
-                    .getOrElse { error ->
-                        "Feil med nøkkel '$key' i Redis.".also {
-                            logger.error(it)
-                            sikkerLogger.error(it, error)
-                        }
-                        null
-                    }
-            }
     }
 }
 

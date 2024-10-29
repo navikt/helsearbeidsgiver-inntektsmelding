@@ -61,7 +61,7 @@ class OpprettSelvbestemtSakRiver(
                 lenke = NotifikasjonTekst.lenkeFerdigstiltSelvbestemt(linkUrl, inntektsmelding.type.id),
                 inntektsmeldingTypeId = inntektsmelding.type.id,
                 orgnr = inntektsmelding.avsender.orgnr,
-                sykmeldt = inntektsmelding.sykmeldt.let { Person(it.fnr, it.navn, Person.foedselsdato(it.fnr)) },
+                sykmeldt = inntektsmelding.sykmeldt.let { Person(it.fnr, it.navn) },
                 initiellStatus = SaksStatus.FERDIG,
             )
 

@@ -20,7 +20,6 @@ import no.nav.helsearbeidsgiver.felles.domene.InnsendtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
@@ -71,7 +70,7 @@ class KvitteringServiceTest :
                 testRapid.inspektør.size shouldBeExactly 1
 
                 verify {
-                    mockRedisStore.set(RedisKey.of(transaksjonId), expectedSuccess)
+                    mockRedisStore.skrivResultat(transaksjonId, expectedSuccess)
                 }
             }
         }
@@ -90,7 +89,7 @@ class KvitteringServiceTest :
             testRapid.inspektør.size shouldBeExactly 1
 
             verify {
-                mockRedisStore.set(RedisKey.of(MockKvittering.fail.transaksjonId), expectedFailure)
+                mockRedisStore.skrivResultat(MockKvittering.fail.transaksjonId, expectedFailure)
             }
         }
     })

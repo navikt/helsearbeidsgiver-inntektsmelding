@@ -162,9 +162,4 @@ class HentDataTilSakOgOppgaveService(
 
 private const val ORG_NAVN_DEFAULT = "Arbeidsgiver"
 
-private fun personDefault(fnr: Fnr): Person =
-    Person(
-        fnr = fnr,
-        navn = "Ukjent person",
-        foedselsdato = Person.foedselsdato(fnr),
-    )
+private fun personDefault(fnr: Fnr): Person = Person(fnr, "Ukjent person")

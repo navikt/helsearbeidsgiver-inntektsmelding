@@ -17,7 +17,6 @@ import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
@@ -63,8 +62,8 @@ class InntektSelvbestemtServiceTest :
             testRapid.inspektør.size shouldBeExactly 1
 
             verify {
-                mockRedisStore.set(
-                    RedisKey.of(transaksjonId),
+                mockRedisStore.skrivResultat(
+                    transaksjonId,
                     ResultJson(
                         success = Mock.inntekt.toJson(Inntekt.serializer()),
                     ).toJson(ResultJson.serializer()),
@@ -99,8 +98,8 @@ class InntektSelvbestemtServiceTest :
             testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_INNTEKT
 
             verify {
-                mockRedisStore.set(
-                    RedisKey.of(transaksjonId),
+                mockRedisStore.skrivResultat(
+                    transaksjonId,
                     ResultJson(
                         failure = feilmelding.toJson(),
                     ).toJson(ResultJson.serializer()),

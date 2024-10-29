@@ -87,7 +87,7 @@ import kotlin.io.path.absolutePathString
 
 private const val NOTIFIKASJON_LINK = "notifikasjonLink"
 private const val PAAMINNELSE_AKTIVERT = true
-private const val TID_MELLOM_OPPGAVEOPPRETTELSE_OG_PAAMINNELSE = "P10M"
+private const val TID_MELLOM_OPPGAVEOPPRETTELSE_OG_PAAMINNELSE = "P28D"
 
 val bjarneBetjent =
     FullPerson(

@@ -58,7 +58,7 @@ object NotifikasjonTekst {
             "og trenger ikke sende inn via Min side – arbeidsgiver.",
         ).joinToString(separator = " ")
 
-    fun purringInnhold(
+    fun paaminnelseInnhold(
         orgnr: Orgnr,
         orgNavn: String,
     ): String =
@@ -172,11 +172,11 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
                 if (skalHaPaaminnelse && paaminnelseAktivert) {
                     Paaminnelse(
                         tittel = "Påminnelse: ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
-                        innhold = NotifikasjonTekst.purringInnhold(orgnr, orgNavn),
+                        innhold = NotifikasjonTekst.paaminnelseInnhold(orgnr, orgNavn),
                         tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveopprettelseOgPaaminnelse,
                     ).also { logger().info("Satte påminnelse for forespørsel $forespoerselId") }
                 } else {
-                    null.also { logger().info("Satte ikke påminnelse for forespørsel $forespoerselId") }
+                    null
                 },
         )
     }

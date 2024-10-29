@@ -42,7 +42,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             lenkeBaseUrl = "en-slags-url",
             agNotifikasjonKlient = mockAgNotifikasjonKlient,
             paaminnelseAktivert = true,
-            tidMellomOppgaveopprettelseOgPaaminnelse = "P10M",
+            tidMellomOppgaveopprettelseOgPaaminnelse = "P28D",
         ).connect(testRapid)
 
         beforeTest {
@@ -126,8 +126,8 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                     paaminnelse =
                         Paaminnelse(
                             tittel = "Påminnelse: ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
-                            innhold = NotifikasjonTekst.purringInnhold(innkommendeMelding.orgnr, innkommendeMelding.orgNavn),
-                            tidMellomOppgaveopprettelseOgPaaminnelse = "P10M",
+                            innhold = NotifikasjonTekst.paaminnelseInnhold(innkommendeMelding.orgnr, innkommendeMelding.orgNavn),
+                            tidMellomOppgaveopprettelseOgPaaminnelse = "P28D",
                         ),
                 )
             }

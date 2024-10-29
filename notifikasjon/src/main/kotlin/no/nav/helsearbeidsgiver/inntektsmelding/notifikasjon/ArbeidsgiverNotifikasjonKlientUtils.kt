@@ -5,6 +5,7 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 import kotlin.time.Duration.Companion.days
@@ -39,10 +40,7 @@ object NotifikasjonTekst {
         selvbestemtId: UUID,
     ): String = "$linkUrl/im-dialog/kvittering/agi/$selvbestemtId"
 
-    fun sakTittel(sykmeldt: Person): String {
-        val foedselsdato = sykmeldt.fnr.verdi.take(6)
-        return "Inntektsmelding for ${sykmeldt.navn}: f. $foedselsdato"
-    }
+    fun sakTittel(sykmeldt: Person): String = "Inntektsmelding for ${sykmeldt.navn}: f. ${sykmeldt.fnr.lesFoedselsdato()}"
 
     fun oppgaveInnhold(
         orgnr: Orgnr,
@@ -153,3 +151,13 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
             tidspunkt = null,
         )
     }
+
+// Støtter d-nummer
+private fun Fnr.lesFoedselsdato(): String {
+    val foersteSiffer = verdi.first().digitToInt()
+    return if (foersteSiffer < 4) {
+        verdi.take(6)
+    } else {
+        (foersteSiffer - 4).toString() + verdi.substring(1, 6)
+    }
+}

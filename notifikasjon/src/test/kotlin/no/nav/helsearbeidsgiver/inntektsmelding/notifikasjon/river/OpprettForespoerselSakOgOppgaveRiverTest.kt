@@ -13,6 +13,7 @@ import io.mockk.mockk
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveDuplikatException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -54,56 +55,20 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             clearAllMocks()
         }
 
-        fun innkommendeMelding(): OpprettForespoerselSakOgOppgaveMelding =
-            OpprettForespoerselSakOgOppgaveMelding(
-                eventName = EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED,
-                transaksjonId = UUID.randomUUID(),
-                forespoerselId = UUID.randomUUID(),
-                orgnr = Orgnr.genererGyldig(),
-                sykmeldt =
-                    Person(
-                        fnr = Fnr.genererGyldig(),
-                        navn = "Peer Gynt",
-                    ),
-                orgNavn = "Peer Gynts Løgn og Bedrageri LTD",
-                skalHaPaaminnelse = true,
-            )
-
-        fun forventetFail(innkommendeMelding: OpprettForespoerselSakOgOppgaveMelding): Fail =
-            Fail(
-                feilmelding = "Klarte ikke opprette sak og/eller oppgave for forespurt inntektmelding.",
-                event = innkommendeMelding.eventName,
-                transaksjonId = innkommendeMelding.transaksjonId,
-                forespoerselId = innkommendeMelding.forespoerselId,
-                utloesendeMelding = innkommendeMelding.toMap().toJson(),
-            )
-
         test("oppretter sak og oppgave") {
-            coEvery {
-                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
-            } returns MOCK_SAK_ID
+            val sakId = UUID.randomUUID().toString()
+            val oppgaveId = UUID.randomUUID().toString()
 
-            coEvery {
-                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
-            } returns MOCK_OPPGAVE_ID
+            coEvery { mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns sakId
+            coEvery { mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns oppgaveId
 
-            val innkommendeMelding = innkommendeMelding()
+            val innkommendeMelding = innkommendeOpprettForespoerselSakOgOppgaveMelding()
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly
-                mapOf(
-                    Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETTET.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                    Key.DATA to
-                        mapOf(
-                            Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
-                            Key.SAK_ID to MOCK_SAK_ID.toJson(),
-                            Key.OPPGAVE_ID to MOCK_OPPGAVE_ID.toJson(),
-                        ).toJson(),
-                )
+            testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding, sakId, oppgaveId)
 
             coVerifySequence {
                 mockAgNotifikasjonKlient.opprettNySak(
@@ -114,7 +79,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                     tittel = NotifikasjonTekst.sakTittel(innkommendeMelding.sykmeldt),
                     statusTekst = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
                     initiellStatus = SaksStatus.UNDER_BEHANDLING,
-                    harddeleteOm = sakLevetid,
+                    hardDeleteOm = sakLevetid,
                 )
                 mockAgNotifikasjonKlient.opprettNyOppgave(
                     virksomhetsnummer = innkommendeMelding.orgnr.verdi,
@@ -136,11 +101,85 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             }
         }
 
-        test("ukjent feil for sak håndteres") {
-            val innkommendeMelding = innkommendeMelding()
+        test("sak opprettes selv om oppgave har duplikat") {
+            val sakId = UUID.randomUUID().toString()
+            val duplikatOppgaveId = UUID.randomUUID().toString()
+
+            coEvery { mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns sakId
 
             coEvery {
-                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            } throws SakEllerOppgaveDuplikatException(duplikatOppgaveId, "mock feilmelding")
+
+            val innkommendeMelding = innkommendeOpprettForespoerselSakOgOppgaveMelding()
+
+            testRapid.sendJson(innkommendeMelding.toMap())
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding, sakId, duplikatOppgaveId)
+
+            coVerifySequence {
+                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            }
+        }
+
+        test("oppgave opprettes selv om sak har duplikat") {
+            val duplikatSakId = UUID.randomUUID().toString()
+            val oppgaveId = UUID.randomUUID().toString()
+
+            coEvery {
+                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+            } throws SakEllerOppgaveDuplikatException(duplikatSakId, "mock feilmelding")
+
+            coEvery { mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns oppgaveId
+
+            val innkommendeMelding = innkommendeOpprettForespoerselSakOgOppgaveMelding()
+
+            testRapid.sendJson(innkommendeMelding.toMap())
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding, duplikatSakId, oppgaveId)
+
+            coVerifySequence {
+                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            }
+        }
+
+        test("sak og oppgave som har duplikat håndteres") {
+            val duplikatSakId = UUID.randomUUID().toString()
+            val duplikatOppgaveId = UUID.randomUUID().toString()
+
+            coEvery {
+                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+            } throws SakEllerOppgaveDuplikatException(duplikatSakId, "mock feilmelding")
+
+            coEvery {
+                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            } throws SakEllerOppgaveDuplikatException(duplikatOppgaveId, "mock feilmelding")
+
+            val innkommendeMelding = innkommendeOpprettForespoerselSakOgOppgaveMelding()
+
+            testRapid.sendJson(innkommendeMelding.toMap())
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding, duplikatSakId, duplikatOppgaveId)
+
+            coVerifySequence {
+                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            }
+        }
+
+        test("ukjent feil for sak håndteres") {
+            val innkommendeMelding = innkommendeOpprettForespoerselSakOgOppgaveMelding()
+
+            coEvery {
+                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
             } throws NullPointerException("To me, religion is like Paul Rudd.")
 
             testRapid.sendJson(innkommendeMelding.toMap())
@@ -150,16 +189,16 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail(innkommendeMelding).tilMelding()
 
             coVerifySequence {
-                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
 
         test("ukjent feil for oppgave håndteres") {
-            val innkommendeMelding = innkommendeMelding()
+            val innkommendeMelding = innkommendeOpprettForespoerselSakOgOppgaveMelding()
 
             coEvery {
-                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
-            } returns MOCK_SAK_ID
+                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+            } returns UUID.randomUUID().toString()
 
             coEvery {
                 mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
@@ -172,7 +211,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail(innkommendeMelding).tilMelding()
 
             coVerifySequence {
-                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
                 mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
@@ -182,11 +221,11 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                 mapOf(
                     "melding med behov" to Pair(Key.BEHOV, BehovType.LAGRE_SELVBESTEMT_IM.toJson()),
                     "melding med data som flagg" to Pair(Key.DATA, "".toJson()),
-                    "melding med fail" to Pair(Key.FAIL, forventetFail(innkommendeMelding()).toJson(Fail.serializer())),
+                    "melding med fail" to Pair(Key.FAIL, forventetFail(innkommendeOpprettForespoerselSakOgOppgaveMelding()).toJson(Fail.serializer())),
                 ),
             ) { uoensketKeyMedVerdi ->
                 testRapid.sendJson(
-                    innkommendeMelding()
+                    innkommendeOpprettForespoerselSakOgOppgaveMelding()
                         .toMap()
                         .plus(uoensketKeyMedVerdi),
                 )
@@ -194,15 +233,27 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 coVerify(exactly = 0) {
-                    mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
+                    mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
                     mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
                 }
             }
         }
     })
 
-private const val MOCK_SAK_ID = "en enestående særegen sak-id"
-private const val MOCK_OPPGAVE_ID = "en makalaus unik oppgave-id"
+fun innkommendeOpprettForespoerselSakOgOppgaveMelding(): OpprettForespoerselSakOgOppgaveMelding =
+    OpprettForespoerselSakOgOppgaveMelding(
+        eventName = EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED,
+        transaksjonId = UUID.randomUUID(),
+        forespoerselId = UUID.randomUUID(),
+        orgnr = Orgnr.genererGyldig(),
+        sykmeldt =
+            Person(
+                fnr = Fnr.genererGyldig(),
+                navn = "Peer Gynt",
+            ),
+        orgNavn = "Peer Gynts Løgn og Bedrageri LTD",
+        skalHaPaaminnelse = true,
+    )
 
 private fun OpprettForespoerselSakOgOppgaveMelding.toMap() =
     mapOf(
@@ -216,4 +267,29 @@ private fun OpprettForespoerselSakOgOppgaveMelding.toMap() =
                 Key.VIRKSOMHET to orgNavn.toJson(),
                 Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
             ).toJson(),
+    )
+
+private fun forventetUtgaaendeMelding(
+    innkommendeMelding: OpprettForespoerselSakOgOppgaveMelding,
+    sakId: String,
+    oppgaveId: String,
+): Map<Key, Any> =
+    mapOf(
+        Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETTET.toJson(),
+        Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+        Key.DATA to
+            mapOf(
+                Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
+                Key.SAK_ID to sakId.toJson(),
+                Key.OPPGAVE_ID to oppgaveId.toJson(),
+            ).toJson(),
+    )
+
+private fun forventetFail(innkommendeMelding: OpprettForespoerselSakOgOppgaveMelding): Fail =
+    Fail(
+        feilmelding = "Klarte ikke opprette sak og/eller oppgave for forespurt inntektmelding.",
+        event = innkommendeMelding.eventName,
+        transaksjonId = innkommendeMelding.transaksjonId,
+        forespoerselId = innkommendeMelding.forespoerselId,
+        utloesendeMelding = innkommendeMelding.toMap().toJson(),
     )

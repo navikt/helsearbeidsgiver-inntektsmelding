@@ -33,11 +33,11 @@ class ForespoerselMottattIT : EndToEndTest() {
     @Test
     fun `Oppretter sak og oppgave ved mottatt forespørsel`() {
         coEvery {
-            arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
+            agNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
         } returns Mock.sakId
 
         coEvery {
-            arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            agNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
         } returns Mock.oppgaveId
 
         publish(

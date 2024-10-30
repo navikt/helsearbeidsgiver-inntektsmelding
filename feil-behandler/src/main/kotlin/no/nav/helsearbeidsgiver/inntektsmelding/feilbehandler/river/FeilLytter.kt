@@ -4,6 +4,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import kotlinx.serialization.json.JsonElement
 import no.nav.hag.utils.bakgrunnsjobb.Bakgrunnsjobb
 import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbRepository
 import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbStatus
@@ -13,11 +14,9 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.prosessor.FeilProsessor
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -60,23 +59,37 @@ class FeilLytter(
         context: MessageContext,
     ) {
         sikkerLogger.info("Mottok feil: ${packet.toJson().parseJson().toPretty()}")
-        val fail = toFailOrNull(packet.toJson().parseJson().toMap())
+        val fail = packet.toJson().parseJson().toFailOrNull()
         if (fail == null) {
             sikkerLogger.warn("Kunne ikke parse feil-objekt, ignorerer...")
             return
         }
-        if (behovSkalHaandteres(fail) || eventSkalHaandteres(fail)) {
+
+        val utloesendeMelding = fail.utloesendeMelding.toMap()
+        if (behovSkalHaandteres(utloesendeMelding) || eventSkalHaandteres(utloesendeMelding)) {
             // slå opp transaksjonID. Hvis den finnes, kan det være en annen feilende melding i samme transaksjon (forskjelig behov): Lagre i så fall
             // med egen id. Denne id vil så sendes med som ny transaksjonID ved rekjøring..
             val jobbId = fail.transaksjonId
             val eksisterendeJobb = repository.getById(jobbId)
             if (eksisterendeJobb != null) {
-                if (fail.utloesendeMelding.toMap()[Key.BEHOV] != eksisterendeJobb.data.parseJson().toMap()[Key.BEHOV]) {
-                    sikkerLogger.info("Id $jobbId finnes fra før med annet behov. Lagrer en ny jobb.")
+                val uliktBehov =
+                    Key.BEHOV in utloesendeMelding &&
+                        utloesendeMelding[Key.BEHOV] != eksisterendeJobb.data.parseJson().toMap()[Key.BEHOV]
+                val ulikEvent =
+                    Key.EVENT_NAME in utloesendeMelding &&
+                        utloesendeMelding[Key.EVENT_NAME] != eksisterendeJobb.data.parseJson().toMap()[Key.EVENT_NAME]
+
+                if (uliktBehov || ulikEvent) {
+                    sikkerLogger.info("ID $jobbId finnes fra før med annet behov/event. Lagrer en ny jobb.")
                     val nyTransaksjonId = UUID.randomUUID()
-                    val utloesendeMeldingMedNyTransaksjonId = fail.utloesendeMelding.toMap() + mapOf(Key.UUID to nyTransaksjonId.toJson(UuidSerializer))
+                    val utloesendeMeldingMedNyTransaksjonId = utloesendeMelding.plus(Key.UUID to nyTransaksjonId.toJson())
                     lagre(
-                        Bakgrunnsjobb(nyTransaksjonId, type = jobbType, data = utloesendeMeldingMedNyTransaksjonId.toJson().toString(), maksAntallForsoek = 10),
+                        Bakgrunnsjobb(
+                            uuid = nyTransaksjonId,
+                            type = jobbType,
+                            data = utloesendeMeldingMedNyTransaksjonId.toJson().toString(),
+                            maksAntallForsoek = 10,
+                        ),
                     )
                 } else {
                     oppdater(eksisterendeJobb)
@@ -100,7 +113,7 @@ class FeilLytter(
         // BakgrunnsjobbService finnVentende() tar heller ikke hensyn til forsøk, kun status på jobben!
         if (jobb.forsoek > jobb.maksAntallForsoek) {
             jobb.status = BakgrunnsjobbStatus.STOPPET
-            sikkerLogger.warn("Maks forsøk nådd, stopper jobb med id ${jobb.uuid} permanent!")
+            sikkerLogger.error("Maks forsøk nådd, stopper jobb med id ${jobb.uuid} permanent!")
         } else {
             jobb.status = BakgrunnsjobbStatus.FEILET
         }
@@ -121,17 +134,23 @@ class FeilLytter(
         }
     }
 
-    fun behovSkalHaandteres(fail: Fail): Boolean {
-        val behovFraMelding = fail.utloesendeMelding.toMap()[Key.BEHOV]?.fromJson(BehovType.serializer())
+    fun behovSkalHaandteres(utloesendeMelding: Map<Key, JsonElement>): Boolean {
+        val behovFraMelding = utloesendeMelding[Key.BEHOV]?.fromJson(BehovType.serializer())
         val skalHaandteres = behovSomHaandteres.contains(behovFraMelding)
         sikkerLogger.info("Behov: $behovFraMelding skal håndteres: $skalHaandteres")
         return skalHaandteres
     }
 
-    fun eventSkalHaandteres(fail: Fail): Boolean {
-        val eventFraMelding = fail.utloesendeMelding.toMap()[Key.EVENT_NAME]?.fromJson(EventName.serializer())
+    fun eventSkalHaandteres(utloesendeMelding: Map<Key, JsonElement>): Boolean {
+        val eventFraMelding = utloesendeMelding[Key.EVENT_NAME]?.fromJson(EventName.serializer())
         val skalHaandteres = eventerSomHaandteres.contains(eventFraMelding)
         sikkerLogger.info("Event: $eventFraMelding skal håndteres: $skalHaandteres")
         return skalHaandteres
     }
 }
+
+fun JsonElement.toFailOrNull(): Fail? =
+    toMap()[Key.FAIL]
+        ?.runCatching {
+            fromJson(Fail.serializer())
+        }?.getOrNull()

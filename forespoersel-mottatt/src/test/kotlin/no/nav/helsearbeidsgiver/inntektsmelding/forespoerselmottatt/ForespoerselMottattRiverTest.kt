@@ -8,14 +8,19 @@ import io.kotest.matchers.maps.shouldContainKey
 import io.mockk.clearAllMocks
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
+import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -52,6 +57,7 @@ class ForespoerselMottattRiverTest :
                             Key.ORGNRUNDERENHET to innkommendeMelding.orgnr.toJson(),
                             Key.FNR to innkommendeMelding.fnr.toJson(),
                             Key.SKAL_HA_PAAMINNELSE to innkommendeMelding.skalHaPaaminnelse.toJson(Boolean.serializer()),
+                            Key.FORESPOERSEL to innkommendeMelding.forespoerselFraBro.toForespoersel().toJson(Forespoersel.serializer()),
                         ).toJson(),
                 )
         }
@@ -65,6 +71,7 @@ private fun mockInnkommendeMelding(): Melding =
         orgnr = Orgnr.genererGyldig(),
         fnr = Fnr.genererGyldig(),
         skalHaPaaminnelse = true,
+        forespoerselFraBro = Mock.forespoerselFraBro,
     )
 
 private fun Melding.toMap(): Map<Pri.Key, JsonElement> =
@@ -74,4 +81,21 @@ private fun Melding.toMap(): Map<Pri.Key, JsonElement> =
         Pri.Key.ORGNR to orgnr.toJson(),
         Pri.Key.FNR to fnr.toJson(),
         Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
+        Pri.Key.FORESPOERSEL to forespoerselFraBro.toJson(ForespoerselFraBro.serializer()),
     )
+
+object Mock {
+    val orgnr = Orgnr.genererGyldig()
+    val forespoerselFraBro =
+        ForespoerselFraBro(
+            orgnr = orgnr,
+            fnr = Fnr.genererGyldig(),
+            vedtaksperiodeId = UUID.randomUUID(),
+            forespoerselId = UUID.randomUUID(),
+            sykmeldingsperioder = listOf(2.januar til 16.januar),
+            egenmeldingsperioder = listOf(1.januar til 1.januar),
+            bestemmendeFravaersdager = mapOf(orgnr to 1.januar),
+            forespurtData = mockForespurtData(),
+            erBesvart = false,
+        )
+}

@@ -5,6 +5,8 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
+import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -27,6 +29,7 @@ data class Melding(
     val orgnr: Orgnr,
     val fnr: Fnr,
     val skalHaPaaminnelse: Boolean,
+    val forespoerselFraBro: ForespoerselFraBro
 )
 
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */
@@ -42,6 +45,7 @@ class ForespoerselMottattRiver : PriObjectRiver<Melding>() {
             orgnr = Pri.Key.ORGNR.les(Orgnr.serializer(), json),
             fnr = Pri.Key.FNR.les(Fnr.serializer(), json),
             skalHaPaaminnelse = Pri.Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), json),
+            forespoerselFraBro = Pri.Key.FORESPOERSEL.les(ForespoerselFraBro.serializer(), json),
         )
 
     override fun Melding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
@@ -57,6 +61,7 @@ class ForespoerselMottattRiver : PriObjectRiver<Melding>() {
                     Key.ORGNRUNDERENHET to orgnr.toJson(),
                     Key.FNR to fnr.toJson(),
                     Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
+                    Key.FORESPOERSEL to forespoerselFraBro.toForespoersel().toJson(Forespoersel.serializer()),
                 ).toJson(),
         )
     }

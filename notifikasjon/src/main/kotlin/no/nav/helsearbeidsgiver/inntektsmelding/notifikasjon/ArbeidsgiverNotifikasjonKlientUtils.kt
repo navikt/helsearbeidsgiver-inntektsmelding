@@ -101,7 +101,10 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
             )
         }
     } catch (e: SakEllerOppgaveDuplikatException) {
-        loggWarn("Fant duplikat under opprettelse av sak.", e)
+        "Fant duplikat (lik ID, ulikt innhold) under opprettelse av sak.".also {
+            logger.error(it)
+            sikkerLogger.error(it, e)
+        }
         e.eksisterendeId
     }
 }
@@ -194,7 +197,10 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
             )
         }
     } catch (e: SakEllerOppgaveDuplikatException) {
-        loggWarn("Fant duplikat under opprettelse av oppgave.", e)
+        "Fant duplikat (lik ID, ulikt innhold) under opprettelse av oppgave.".also {
+            logger.error(it)
+            sikkerLogger.error(it, e)
+        }
         e.eksisterendeId
     }
 
@@ -259,16 +265,9 @@ private fun loggWarnIkkeFunnetEllerThrow(
     error: Throwable,
 ) {
     if (error is SakEllerOppgaveFinnesIkkeException) {
-        loggWarn(melding, error)
+        logger.warn(melding)
+        sikkerLogger.warn(melding, error)
     } else {
         throw error
     }
-}
-
-private fun loggWarn(
-    melding: String,
-    error: Throwable,
-) {
-    logger.warn(melding)
-    sikkerLogger.warn(melding, error)
 }

@@ -207,7 +207,7 @@ class InnsendingIT : EndToEndTest() {
 
     private fun bekreftMarkeringAvForespoerselSomBesvart() {
         verify(exactly = 1) {
-            mockPriProducer.send(
+            priProducer.send(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
                 Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
             )

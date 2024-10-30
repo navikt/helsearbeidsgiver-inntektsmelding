@@ -15,6 +15,7 @@ import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveDuplikatException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -49,7 +50,7 @@ class OpprettSelvbestemtSakRiverTest :
             val sakId = UUID.randomUUID().toString()
             val innkommendeMelding = innkommendeMelding()
 
-            coEvery { mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any()) } returns sakId
+            coEvery { mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns sakId
             every { mockSelvbestemtRepo.lagreSakId(any(), any()) } returns 1
 
             testRapid.sendJson(innkommendeMelding.toMap())
@@ -80,9 +81,40 @@ class OpprettSelvbestemtSakRiverTest :
                             "f. ${innkommendeMelding.inntektsmelding.sykmeldt.fnr.verdi.take(6)}",
                     statusTekst = "Mottatt – Se kvittering eller korriger inntektsmelding",
                     initiellStatus = SaksStatus.FERDIG,
-                    harddeleteOm = any(),
+                    hardDeleteOm = any(),
                 )
                 mockSelvbestemtRepo.lagreSakId(innkommendeMelding.inntektsmelding.type.id, sakId)
+            }
+        }
+
+        test("svarer OK ved duplikat sak") {
+            val duplikatSakId = UUID.randomUUID().toString()
+            val innkommendeMelding = innkommendeMelding()
+
+            coEvery {
+                mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+            } throws SakEllerOppgaveDuplikatException(duplikatSakId, "mock feilmelding")
+
+            every { mockSelvbestemtRepo.lagreSakId(any(), any()) } returns 1
+
+            testRapid.sendJson(innkommendeMelding.toMap())
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            testRapid.firstMessage().toMap() shouldContainExactly
+                mapOf(
+                    Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
+                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.SELVBESTEMT_INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                            Key.SAK_ID to duplikatSakId.toJson(),
+                        ).toJson(),
+                )
+
+            coVerifySequence {
+                mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockSelvbestemtRepo.lagreSakId(innkommendeMelding.inntektsmelding.type.id, duplikatSakId)
             }
         }
 
@@ -92,8 +124,9 @@ class OpprettSelvbestemtSakRiverTest :
                 val innkommendeMelding = innkommendeMelding()
                 val forventetFail = innkommendeMelding.toFail()
 
-                coEvery { mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any()) } throws
-                    RuntimeException("RIP in peace")
+                coEvery {
+                    mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                } throws RuntimeException("RIP in peace")
 
                 testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -110,7 +143,7 @@ class OpprettSelvbestemtSakRiverTest :
                         )
 
                 coVerifySequence {
-                    mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
+                    mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
                 }
                 verify(exactly = 0) {
                     mockSelvbestemtRepo.lagreSakId(any(), any())
@@ -121,7 +154,10 @@ class OpprettSelvbestemtSakRiverTest :
                 val innkommendeMelding = innkommendeMelding()
                 val forventetFail = innkommendeMelding.toFail()
 
-                coEvery { mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any()) } returns UUID.randomUUID().toString()
+                coEvery {
+                    mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                } returns UUID.randomUUID().toString()
+
                 every { mockSelvbestemtRepo.lagreSakId(any(), any()) } throws RuntimeException("RIPperoni")
 
                 testRapid.sendJson(innkommendeMelding.toMap())
@@ -139,7 +175,7 @@ class OpprettSelvbestemtSakRiverTest :
                         )
 
                 coVerifySequence {
-                    mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
+                    mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
                     mockSelvbestemtRepo.lagreSakId(any(), any())
                 }
             }
@@ -162,7 +198,7 @@ class OpprettSelvbestemtSakRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 coVerify(exactly = 0) {
-                    mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
+                    mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
                     mockSelvbestemtRepo.lagreSakId(any(), any())
                 }
             }

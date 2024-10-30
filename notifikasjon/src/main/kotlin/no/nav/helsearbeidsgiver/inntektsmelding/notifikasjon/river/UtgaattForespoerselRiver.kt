@@ -1,9 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
@@ -14,9 +12,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst.MERKELAPP
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst.MERKELAPP_GAMMEL
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.avbrytSak
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.settOppgaveUtgaatt
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -53,23 +50,8 @@ class UtgaattForespoerselRiver(
 
         val lenke = NotifikasjonTekst.lenkeUtgaattForespoersel(linkUrl)
 
-        runBlocking {
-            runCatching {
-                agNotifikasjonKlient.oppgaveUtgaattByEksternId(
-                    merkelapp = MERKELAPP,
-                    eksternId = forespoerselId.toString(),
-                    nyLenke = lenke,
-                )
-            }.recoverCatching {
-                agNotifikasjonKlient.oppgaveUtgaattByEksternId(
-                    merkelapp = MERKELAPP_GAMMEL,
-                    eksternId = forespoerselId.toString(),
-                    nyLenke = lenke,
-                )
-            }.onFailure(::loggWarnIkkeFunnet)
-        }
-
-        agNotifikasjonKlient.avbrytSak(forespoerselId, lenke).onFailure(::loggWarnIkkeFunnet)
+        agNotifikasjonKlient.settOppgaveUtgaatt(lenke, forespoerselId)
+        agNotifikasjonKlient.avbrytSak(lenke, forespoerselId)
 
         return mapOf(
             Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_UTGAATT.toJson(),
@@ -104,13 +86,4 @@ class UtgaattForespoerselRiver(
             Log.transaksjonId(transaksjonId),
             Log.forespoerselId(forespoerselId),
         )
-
-    private fun loggWarnIkkeFunnet(error: Throwable) {
-        if (error is SakEllerOppgaveFinnesIkkeException) {
-            logger.warn(error.message)
-            sikkerLogger.warn(error.message)
-        } else {
-            throw error
-        }
-    }
 }

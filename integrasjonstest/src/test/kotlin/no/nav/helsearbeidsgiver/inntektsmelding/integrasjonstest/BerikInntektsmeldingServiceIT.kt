@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
+import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
@@ -41,7 +42,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
-import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro as ForespoerselBro
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BerikInntektsmeldingServiceIT : EndToEndTest() {
@@ -346,7 +346,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             )
 
         val forespoerselSvar =
-            ForespoerselBro(
+            ForespoerselFraBro(
                 orgnr = Orgnr(forespoersel.orgnr),
                 fnr = Fnr(forespoersel.fnr),
                 forespoerselId = forespoerselId,

@@ -2,8 +2,6 @@
 
 package no.nav.helsearbeidsgiver.felles.domene
 
-
-
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
@@ -13,7 +11,6 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
 import java.util.UUID
-
 
 @Serializable
 data class ForespoerselFraBro(

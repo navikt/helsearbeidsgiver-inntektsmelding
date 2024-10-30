@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.db.exposed.Database
+import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -49,7 +50,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselinfotrygd.createFore
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createMarkerForespoerselBesvart
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottattRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebroRivers
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.Forespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselListeSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
@@ -317,7 +317,7 @@ abstract class EndToEndTest : ContainerTest() {
 
     fun mockForespoerselSvarFraHelsebro(
         forespoerselId: UUID,
-        forespoerselSvar: Forespoersel,
+        forespoerselSvar: ForespoerselFraBro,
     ) {
         var boomerang: JsonElement? = null
 
@@ -351,7 +351,7 @@ abstract class EndToEndTest : ContainerTest() {
         }
     }
 
-    fun mockForespoerselSvarFraHelsebro(forespoerselListeSvar: List<Forespoersel>) {
+    fun mockForespoerselSvarFraHelsebro(forespoerselListeSvar: List<ForespoerselFraBro>) {
         var boomerang: JsonElement? = null
 
         every {

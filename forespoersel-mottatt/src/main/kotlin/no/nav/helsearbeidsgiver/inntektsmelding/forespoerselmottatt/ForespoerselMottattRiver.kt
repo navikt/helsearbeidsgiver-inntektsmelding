@@ -29,7 +29,7 @@ data class Melding(
     val orgnr: Orgnr,
     val fnr: Fnr,
     val skalHaPaaminnelse: Boolean,
-    val forespoerselFraBro: ForespoerselFraBro
+    val forespoerselFraBro: ForespoerselFraBro,
 )
 
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */

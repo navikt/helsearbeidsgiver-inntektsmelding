@@ -75,7 +75,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Mock.virksomhet)
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforhold
-        coEvery { arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any()) } returns Mock.sakId
+        coEvery { agNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns Mock.sakId
         coEvery { dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any()) } returns
             OpprettOgFerdigstillResponse(
                 journalpostId = Mock.journalpostId,

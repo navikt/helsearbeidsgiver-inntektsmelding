@@ -2,17 +2,16 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.ferdigstillOppgave
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.ferdigstillSak
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -45,8 +44,10 @@ class FerdigstillForespoerselSakOgOppgaveRiver(
         }
 
     override fun FerdigstillForespoerselSakMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        ferdigstillSak(forespoerselId)
-        ferdigstillOppgave(forespoerselId)
+        val lenke = NotifikasjonTekst.lenkeFerdigstiltForespoersel(linkUrl, forespoerselId)
+
+        agNotifikasjonKlient.ferdigstillSak(lenke, forespoerselId)
+        agNotifikasjonKlient.ferdigstillOppgave(lenke, forespoerselId)
 
         return mapOf(
             Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_FERDIGSTILT.toJson(),
@@ -81,39 +82,4 @@ class FerdigstillForespoerselSakOgOppgaveRiver(
             Log.transaksjonId(transaksjonId),
             Log.forespoerselId(forespoerselId),
         )
-
-    private fun ferdigstillSak(forespoerselId: UUID) {
-        agNotifikasjonKlient
-            .ferdigstillSak(
-                forespoerselId = forespoerselId,
-                nyLenke = NotifikasjonTekst.lenkeFerdigstiltForespoersel(linkUrl, forespoerselId),
-            ).onFailure(::loggWarnIkkeFunnet)
-    }
-
-    private fun ferdigstillOppgave(forespoerselId: UUID) {
-        Metrics.agNotifikasjonRequest.recordTime(agNotifikasjonKlient::oppgaveUtfoertByEksternIdV2) {
-            runCatching {
-                agNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(
-                    eksternId = forespoerselId.toString(),
-                    merkelapp = NotifikasjonTekst.MERKELAPP,
-                    nyLenke = NotifikasjonTekst.lenkeFerdigstiltForespoersel(linkUrl, forespoerselId),
-                )
-            }.recoverCatching {
-                agNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(
-                    eksternId = forespoerselId.toString(),
-                    merkelapp = NotifikasjonTekst.MERKELAPP_GAMMEL,
-                    nyLenke = NotifikasjonTekst.lenkeFerdigstiltForespoersel(linkUrl, forespoerselId),
-                )
-            }.onFailure(::loggWarnIkkeFunnet)
-        }
-    }
-
-    private fun loggWarnIkkeFunnet(error: Throwable) {
-        if (error is SakEllerOppgaveFinnesIkkeException) {
-            logger.warn(error.message)
-            sikkerLogger.warn(error.message)
-        } else {
-            throw error
-        }
-    }
 }

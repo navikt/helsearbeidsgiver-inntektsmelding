@@ -3,10 +3,12 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveDuplikatException
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.domene.Person
-import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
@@ -16,6 +18,7 @@ import kotlin.time.Duration.Companion.days
 val sakLevetid = 390.days
 
 private val logger = "arbeidsgiver-notifikasjon-klient-utils".logger()
+private val sikkerLogger = sikkerLogger()
 
 object NotifikasjonTekst {
     const val MERKELAPP = "Inntektsmelding sykepenger"
@@ -84,7 +87,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
             else -> NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING
         }
 
-    return Metrics.agNotifikasjonRequest.recordTime(::opprettNySak) {
+    return try {
         runBlocking {
             opprettNySak(
                 virksomhetsnummer = orgnr.verdi,
@@ -94,17 +97,20 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
                 tittel = NotifikasjonTekst.sakTittel(sykmeldt),
                 statusTekst = statusTekst,
                 initiellStatus = initiellStatus,
-                harddeleteOm = sakLevetid,
+                hardDeleteOm = sakLevetid,
             )
         }
+    } catch (e: SakEllerOppgaveDuplikatException) {
+        loggWarn("Fant duplikat under opprettelse av sak.", e)
+        e.eksisterendeId
     }
 }
 
 fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(
-    forespoerselId: UUID,
     nyLenke: String,
-): Result<Unit> =
-    Metrics.agNotifikasjonRequest.recordTime(::nyStatusSakByGrupperingsid) {
+    forespoerselId: UUID,
+) {
+    runBlocking {
         runCatching {
             nyStatusSakByGrupperingsid(
                 grupperingsid = forespoerselId.toString(),
@@ -121,14 +127,17 @@ fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(
                 statusTekst = NotifikasjonTekst.STATUS_TEKST_FERDIG,
                 nyLenke = nyLenke,
             )
+        }.onFailure { error ->
+            loggWarnIkkeFunnetEllerThrow("Fant ikke sak under ferdigstilling.", error)
         }
     }
+}
 
 fun ArbeidsgiverNotifikasjonKlient.avbrytSak(
-    forespoerselId: UUID,
     nyLenke: String,
-): Result<Unit> =
-    Metrics.agNotifikasjonRequest.recordTime(::nyStatusSakByGrupperingsid) {
+    forespoerselId: UUID,
+) {
+    runBlocking {
         runCatching {
             nyStatusSakByGrupperingsid(
                 grupperingsid = forespoerselId.toString(),
@@ -145,8 +154,11 @@ fun ArbeidsgiverNotifikasjonKlient.avbrytSak(
                 statusTekst = NotifikasjonTekst.STATUS_TEKST_AVBRUTT,
                 nyLenke = nyLenke,
             )
+        }.onFailure { error ->
+            loggWarnIkkeFunnetEllerThrow("Fant ikke sak under avbryting.", error)
         }
     }
+}
 
 fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
     lenke: String,
@@ -157,29 +169,80 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
     paaminnelseAktivert: Boolean,
     tidMellomOppgaveopprettelseOgPaaminnelse: String,
 ): String =
-    runBlocking {
-        opprettNyOppgave(
-            virksomhetsnummer = orgnr.verdi,
-            eksternId = forespoerselId.toString(),
-            grupperingsid = forespoerselId.toString(),
-            merkelapp = NotifikasjonTekst.MERKELAPP,
-            lenke = lenke,
-            tekst = NotifikasjonTekst.OPPGAVE_TEKST,
-            varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
-            varslingInnhold = NotifikasjonTekst.oppgaveInnhold(orgnr, orgNavn),
-            tidspunkt = null,
-            paaminnelse =
-                if (skalHaPaaminnelse && paaminnelseAktivert) {
-                    Paaminnelse(
-                        tittel = "Påminnelse: ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
-                        innhold = NotifikasjonTekst.paaminnelseInnhold(orgnr, orgNavn),
-                        tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveopprettelseOgPaaminnelse,
-                    ).also { logger.info("Satte påminnelse for forespørsel $forespoerselId") }
-                } else {
-                    null
-                },
-        )
+    try {
+        runBlocking {
+            opprettNyOppgave(
+                virksomhetsnummer = orgnr.verdi,
+                eksternId = forespoerselId.toString(),
+                grupperingsid = forespoerselId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP,
+                lenke = lenke,
+                tekst = NotifikasjonTekst.OPPGAVE_TEKST,
+                varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
+                varslingInnhold = NotifikasjonTekst.oppgaveInnhold(orgnr, orgNavn),
+                tidspunkt = null,
+                paaminnelse =
+                    if (skalHaPaaminnelse && paaminnelseAktivert) {
+                        Paaminnelse(
+                            tittel = "Påminnelse: ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
+                            innhold = NotifikasjonTekst.paaminnelseInnhold(orgnr, orgNavn),
+                            tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveopprettelseOgPaaminnelse,
+                        ).also { logger.info("Satte påminnelse for forespørsel $forespoerselId") }
+                    } else {
+                        null
+                    },
+            )
+        }
+    } catch (e: SakEllerOppgaveDuplikatException) {
+        loggWarn("Fant duplikat under opprettelse av oppgave.", e)
+        e.eksisterendeId
     }
+
+fun ArbeidsgiverNotifikasjonKlient.ferdigstillOppgave(
+    lenke: String,
+    forespoerselId: UUID,
+) {
+    runBlocking {
+        runCatching {
+            oppgaveUtfoertByEksternIdV2(
+                eksternId = forespoerselId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP,
+                nyLenke = lenke,
+            )
+        }.recoverCatching {
+            oppgaveUtfoertByEksternIdV2(
+                eksternId = forespoerselId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP_GAMMEL,
+                nyLenke = lenke,
+            )
+        }.onFailure { error ->
+            loggWarnIkkeFunnetEllerThrow("Fant ikke oppgave under ferdigstilling.", error)
+        }
+    }
+}
+
+fun ArbeidsgiverNotifikasjonKlient.settOppgaveUtgaatt(
+    lenke: String,
+    forespoerselId: UUID,
+) {
+    runBlocking {
+        runCatching {
+            oppgaveUtgaattByEksternId(
+                eksternId = forespoerselId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP,
+                nyLenke = lenke,
+            )
+        }.recoverCatching {
+            oppgaveUtgaattByEksternId(
+                eksternId = forespoerselId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP_GAMMEL,
+                nyLenke = lenke,
+            )
+        }.onFailure { error ->
+            loggWarnIkkeFunnetEllerThrow("Fant ikke oppgave under endring til utgått.", error)
+        }
+    }
+}
 
 // Støtter d-nummer
 private fun Fnr.lesFoedselsdato(): String {
@@ -189,4 +252,23 @@ private fun Fnr.lesFoedselsdato(): String {
     } else {
         (foersteSiffer - 4).toString() + verdi.substring(1, 6)
     }
+}
+
+private fun loggWarnIkkeFunnetEllerThrow(
+    melding: String,
+    error: Throwable,
+) {
+    if (error is SakEllerOppgaveFinnesIkkeException) {
+        loggWarn(melding, error)
+    } else {
+        throw error
+    }
+}
+
+private fun loggWarn(
+    melding: String,
+    error: Throwable,
+) {
+    logger.warn(melding)
+    sikkerLogger.warn(melding, error)
 }

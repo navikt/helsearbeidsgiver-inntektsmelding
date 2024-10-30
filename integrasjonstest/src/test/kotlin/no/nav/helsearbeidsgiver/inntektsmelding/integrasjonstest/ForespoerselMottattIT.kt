@@ -7,6 +7,7 @@ import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
@@ -14,6 +15,7 @@ import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -44,6 +46,18 @@ class ForespoerselMottattIT : EndToEndTest() {
             Pri.Key.ORGNR to Mock.orgnr.toJson(),
             Pri.Key.FNR to Mock.fnr.toJson(),
             Pri.Key.SKAL_HA_PAAMINNELSE to Mock.skalHaPaaminnelse.toJson(Boolean.serializer()),
+            Pri.Key.FORESPOERSEL to
+                ForespoerselFraBro(
+                    orgnr = Mock.orgnr,
+                    fnr = Mock.fnr,
+                    forespoerselId = Mock.forespoerselId,
+                    vedtaksperiodeId = UUID.randomUUID(),
+                    sykmeldingsperioder = emptyList(),
+                    egenmeldingsperioder = emptyList(),
+                    bestemmendeFravaersdager = emptyMap(),
+                    forespurtData = mockForespurtData(),
+                    erBesvart = false,
+                ).toJson(ForespoerselFraBro.serializer()),
         )
 
         val messagesFilteredForespoerselMottatt = messages.filter(EventName.FORESPOERSEL_MOTTATT)

@@ -29,7 +29,6 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggle
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakLevetid
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.tilString
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -103,8 +102,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                                     innkommendeMelding.orgNavn,
                                     innkommendeMelding.forespoersel
                                         ?.sykmeldingsperioder
-                                        .orEmpty()
-                                        .tilString(),
+                                        .orEmpty(),
                                 ),
                             tidMellomOppgaveopprettelseOgPaaminnelse = "P28D",
                         ),

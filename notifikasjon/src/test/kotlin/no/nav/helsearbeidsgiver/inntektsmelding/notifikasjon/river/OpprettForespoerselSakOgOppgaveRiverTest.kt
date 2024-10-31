@@ -32,7 +32,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.lesbarString
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakLevetid
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID

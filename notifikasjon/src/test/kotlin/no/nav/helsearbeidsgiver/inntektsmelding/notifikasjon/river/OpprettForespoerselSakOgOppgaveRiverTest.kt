@@ -30,6 +30,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggle
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.lesbarString
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakLevetid
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -57,15 +58,6 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             testRapid.reset()
             clearAllMocks()
         }
-
-        fun forventetFail(innkommendeMelding: OpprettForespoerselSakOgOppgaveMelding): Fail =
-            Fail(
-                feilmelding = "Klarte ikke opprette sak og/eller oppgave for forespurt inntektmelding.",
-                event = innkommendeMelding.eventName,
-                transaksjonId = innkommendeMelding.transaksjonId,
-                forespoerselId = innkommendeMelding.forespoerselId,
-                utloesendeMelding = innkommendeMelding.toMap().toJson(),
-            )
 
         test("oppretter sak og oppgave") {
             val sakId = UUID.randomUUID().toString()
@@ -294,8 +286,8 @@ private fun OpprettForespoerselSakOgOppgaveMelding.toMap() =
                 Key.SYKMELDT to sykmeldt.toJson(Person.serializer()),
                 Key.VIRKSOMHET to orgNavn.toJson(),
                 Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
-                Key.FORESPOERSEL to forespoersel!!.toJson(Forespoersel.serializer()),
-            ).toJson(),
+                Key.FORESPOERSEL to forespoersel?.toJson(Forespoersel.serializer()),
+            ).mapValuesNotNull { it }.toJson(),
     )
 
 private fun forventetUtgaaendeMelding(

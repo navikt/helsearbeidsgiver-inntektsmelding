@@ -35,7 +35,7 @@ class ArbeidsgiverNotifikasjonKlientUtilsTest :
                     "to perioder" to row(listOf(1.januar til 31.januar, 1.februar til 28.februar), " for periode: 01.01.2018 - [...] - 28.02.2018"),
                 ),
             ) { (perioder, forventet) ->
-                perioder.lesbarString() shouldBe forventet
+                perioder.tilString() shouldBe forventet
             }
         }
     })

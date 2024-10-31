@@ -67,10 +67,10 @@ object NotifikasjonTekst {
     fun paaminnelseInnhold(
         orgnr: Orgnr,
         orgNavn: String,
-        sykmeldingsPerioder: String?,
+        sykmeldingsPerioder: List<Periode>,
     ): String =
         listOf(
-            "Nav venter fortsatt på inntektsmelding for en av deres ansatte${sykmeldingsPerioder ?: ""}.",
+            "Nav venter fortsatt på inntektsmelding for en av deres ansatte${sykmeldingsPerioder.tilString() ?: ""}.",
             "Vi trenger inntektsmeldingen så snart som mulig,",
             "ellers kan vi ikke behandle søknaden om sykepenger.",
             "Logg inn på Min side – arbeidsgiver på Nav for å finne ut hvilken inntektsmelding det gjelder.",
@@ -193,7 +193,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
                     if (skalHaPaaminnelse && paaminnelseAktivert) {
                         Paaminnelse(
                             tittel = "Påminnelse: ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
-                            innhold = NotifikasjonTekst.paaminnelseInnhold(orgnr, orgNavn, sykmeldingsPerioder.lesbarString()),
+                            innhold = NotifikasjonTekst.paaminnelseInnhold(orgnr, orgNavn, sykmeldingsPerioder),
                             tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveopprettelseOgPaaminnelse,
                         ).also { logger.info("Satte påminnelse for forespørsel $forespoerselId") }
                     } else {
@@ -267,7 +267,7 @@ private fun Fnr.lesFoedselsdato(): String {
 
 fun LocalDate.tilString(): String = format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
 
-fun List<Periode>.lesbarString(): String? =
+fun List<Periode>.tilString(): String? =
     when (size) {
         0 -> null
         1 -> " for periode: ${first().fom.tilString()} - ${first().tom.tilString()}"

@@ -30,9 +30,10 @@ fun main() {
         .create(System.getenv())
         .createNotifikasjonService()
         .createNotifikasjonRivers(
-            Env.linkUrl,
-            selvbestemtRepo,
-            buildClient(),
+            linkUrl = Env.linkUrl,
+            paaminnelseToggle = Env.paaminnelseToggle,
+            selvbestemtRepo = selvbestemtRepo,
+            agNotifikasjonKlient = buildClient(),
         ).registerShutdownLifecycle {
             logger.info("Stoppsignal mottatt, lukker databasetilkobling.")
             database.dataSource.close()
@@ -49,12 +50,17 @@ fun RapidsConnection.createNotifikasjonService(): RapidsConnection =
 
 fun RapidsConnection.createNotifikasjonRivers(
     linkUrl: String,
+    paaminnelseToggle: PaaminnelseToggle,
     selvbestemtRepo: SelvbestemtRepo,
     agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
 ): RapidsConnection =
     also {
         logger.info("Starter ${OpprettForespoerselSakOgOppgaveRiver::class.simpleName}...")
-        OpprettForespoerselSakOgOppgaveRiver(linkUrl, agNotifikasjonKlient).connect(this)
+        OpprettForespoerselSakOgOppgaveRiver(
+            lenkeBaseUrl = linkUrl,
+            paaminnelseToggle = paaminnelseToggle,
+            agNotifikasjonKlient = agNotifikasjonKlient,
+        ).connect(this)
 
         logger.info("Starter ${OpprettSelvbestemtSakRiver::class.simpleName}...")
         OpprettSelvbestemtSakRiver(linkUrl, selvbestemtRepo, agNotifikasjonKlient).connect(this)

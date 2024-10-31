@@ -11,6 +11,7 @@ import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
@@ -20,11 +21,11 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.json.plusData
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
@@ -73,7 +74,8 @@ class HentDataTilSakOgOppgaveServiceTest :
                                 Mock.orgnrMedNavn.values
                                     .first()
                                     .toJson(),
-                            Key.SKAL_HA_PAAMINNELSE to Mock.skalHaPaaminnelse.toJson(Boolean.serializer()),
+                            Key.SKAL_HA_PAAMINNELSE to Mock.SKAL_HA_PAAMINNELSE.toJson(Boolean.serializer()),
+                            Key.FORESPOERSEL to Mock.forespoersel.toJson(Forespoersel.serializer()),
                         ).toJson(),
                 )
         }
@@ -106,13 +108,14 @@ class HentDataTilSakOgOppgaveServiceTest :
     })
 
 private object Mock {
-    val transaksjonId: UUID = UUID.randomUUID()
+    const val SKAL_HA_PAAMINNELSE = true
+    val forespoersel = mockForespoersel()
+    val transaksjonId: UUID = forespoersel.vedtaksperiodeId
     val forespoerselId: UUID = UUID.randomUUID()
-    val orgnr = Orgnr.genererGyldig()
-    val fnr = Fnr.genererGyldig()
+    val orgnr = Orgnr(forespoersel.orgnr)
+    val fnr = Fnr(forespoersel.fnr)
     val orgnrMedNavn = mapOf(orgnr to "Kåre Conradis Kål og Kålrabi")
     val personer = mapOf(fnr to Person(fnr, "Kåre Conradi"))
-    val skalHaPaaminnelse = false // TODO: Bytt ut default false
 
     fun steg0(): Map<Key, JsonElement> =
         mapOf(
@@ -123,6 +126,8 @@ private object Mock {
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.ORGNRUNDERENHET to orgnr.toJson(),
                     Key.FNR to fnr.toJson(),
+                    Key.SKAL_HA_PAAMINNELSE to SKAL_HA_PAAMINNELSE.toJson(Boolean.serializer()),
+                    Key.FORESPOERSEL to forespoersel.toJson(Forespoersel.serializer()),
                 ).toJson(),
         )
 

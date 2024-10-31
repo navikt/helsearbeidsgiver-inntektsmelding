@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.db.exposed.Database
+import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -49,7 +50,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselinfotrygd.createFore
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createMarkerForespoerselBesvart
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottattRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebroRivers
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.Forespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselListeSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
@@ -57,6 +57,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createHentInntektRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektselvbestemtservice.createInntektSelvbestemtService
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJournalfoerImRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggle
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonService
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
@@ -86,6 +87,12 @@ import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 
 private const val NOTIFIKASJON_LINK = "notifikasjonLink"
+
+private val paaminnelseToggle =
+    PaaminnelseToggle(
+        oppgavePaaminnelseAktivert = true,
+        tidMellomOppgaveopprettelseOgPaaminnelse = "P28D",
+    )
 
 val bjarneBetjent =
     FullPerson(
@@ -187,27 +194,23 @@ abstract class EndToEndTest : ContainerTest() {
     val bakgrunnsjobbRepository by lazy { PostgresBakgrunnsjobbRepository(bakgrunnsjobbDatabase.dataSource) }
 
     val altinnClient = mockk<AltinnClient>()
-    val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
-    val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
-    val spinnKlient = mockk<SpinnKlient>()
-    val brregClient = mockk<BrregClient>(relaxed = true)
-    val mockPriProducer = mockk<PriProducer>()
-    val aaregClient = mockk<AaregClient>(relaxed = true)
-    val inntektClient = mockk<InntektKlient>(relaxed = true)
-
     val pdlKlient = mockk<PdlClient>()
+    val priProducer = mockk<PriProducer>()
+    val spinnKlient = mockk<SpinnKlient>()
+
+    val aaregClient = mockk<AaregClient>(relaxed = true)
+    val agNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
+    val brregClient = mockk<BrregClient>(relaxed = true)
+    val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
+    val inntektClient = mockk<InntektKlient>(relaxed = true)
 
     @BeforeEach
     fun beforeEachEndToEnd() {
         imTestRapid.reset()
         clearAllMocks()
 
-        coEvery { pdlKlient.personBolk(any()) } returns
-            listOf(
-                bjarneBetjent,
-                maxMekker,
-            )
-        coEvery { brregClient.hentVirksomhetNavn(any()) } returns "Bedrift A/S"
+        coEvery { pdlKlient.personBolk(any()) } returns listOf(bjarneBetjent, maxMekker)
+
         coEvery { brregClient.hentVirksomheter(any()) } answers {
             firstArg<List<String>>().map { orgnr ->
                 Virksomhet(
@@ -216,10 +219,8 @@ abstract class EndToEndTest : ContainerTest() {
                 )
             }
         }
-        coEvery { arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns "123456"
-        coEvery { arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any()) } returns "654321"
 
-        mockPriProducer.apply {
+        priProducer.apply {
             // Må bare returnere en Result med gyldig JSON
             val emptyResult = Result.success(JsonObject(emptyMap()))
             every { send(any<JsonElement>()) } returns emptyResult
@@ -255,12 +256,17 @@ abstract class EndToEndTest : ContainerTest() {
             createForespoerselMottattRiver()
             createForespoerselForkastetRiver()
             createForespoerselKastetTilInfotrygdRiver()
-            createHelsebroRivers(mockPriProducer)
+            createHelsebroRivers(priProducer)
             createHentEksternImRiver(spinnKlient)
             createHentInntektRiver(inntektClient)
             createJournalfoerImRiver(dokarkivClient)
-            createMarkerForespoerselBesvart(mockPriProducer)
-            createNotifikasjonRivers(NOTIFIKASJON_LINK, selvbestemtRepo, arbeidsgiverNotifikasjonKlient)
+            createMarkerForespoerselBesvart(priProducer)
+            createNotifikasjonRivers(
+                NOTIFIKASJON_LINK,
+                paaminnelseToggle,
+                selvbestemtRepo,
+                agNotifikasjonKlient,
+            )
             createPdlRiver(pdlKlient)
             createFeilLytter(bakgrunnsjobbRepository)
         }
@@ -305,12 +311,12 @@ abstract class EndToEndTest : ContainerTest() {
 
     fun mockForespoerselSvarFraHelsebro(
         forespoerselId: UUID,
-        forespoerselSvar: Forespoersel,
+        forespoerselSvar: ForespoerselFraBro,
     ) {
         var boomerang: JsonElement? = null
 
         every {
-            mockPriProducer.send(
+            priProducer.send(
                 *varargAll { (key, value) ->
                     if (key == Pri.Key.BOOMERANG) {
                         boomerang = value
@@ -339,11 +345,11 @@ abstract class EndToEndTest : ContainerTest() {
         }
     }
 
-    fun mockForespoerselSvarFraHelsebro(forespoerselListeSvar: List<Forespoersel>) {
+    fun mockForespoerselSvarFraHelsebro(forespoerselListeSvar: List<ForespoerselFraBro>) {
         var boomerang: JsonElement? = null
 
         every {
-            mockPriProducer.send(
+            priProducer.send(
                 *varargAll { (key, value) ->
                     if (key == Pri.Key.BOOMERANG) {
                         boomerang = value

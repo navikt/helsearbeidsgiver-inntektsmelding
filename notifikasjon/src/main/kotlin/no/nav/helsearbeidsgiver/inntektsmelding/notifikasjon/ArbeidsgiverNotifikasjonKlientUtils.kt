@@ -2,16 +2,26 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveDuplikatException
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.domene.Person
-import no.nav.helsearbeidsgiver.felles.metrics.Metrics
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 import kotlin.time.Duration.Companion.days
 
 // 13x30 dager
 val sakLevetid = 390.days
+
+private val logger = "arbeidsgiver-notifikasjon-klient-utils".logger()
+private val sikkerLogger = sikkerLogger()
 
 object NotifikasjonTekst {
     const val MERKELAPP = "Inntektsmelding sykepenger"
@@ -19,9 +29,9 @@ object NotifikasjonTekst {
     @Deprecated("Bruk NotifikasjonTekst.MERKELAPP. Utdatert siden 21.05.2024.")
     const val MERKELAPP_GAMMEL = "Inntektsmelding"
     const val OPPGAVE_TEKST = "Innsending av inntektsmelding"
-    const val STATUS_TEKST_UNDER_BEHANDLING = "NAV trenger inntektsmelding"
+    const val STATUS_TEKST_UNDER_BEHANDLING = "Nav trenger inntektsmelding"
     const val STATUS_TEKST_FERDIG = "Mottatt – Se kvittering eller korriger inntektsmelding"
-    const val STATUS_TEKST_AVBRUTT = "Avbrutt av NAV"
+    const val STATUS_TEKST_AVBRUTT = "Avbrutt av Nav"
 
     fun lenkeAktivForespoersel(
         linkUrl: String,
@@ -49,9 +59,22 @@ object NotifikasjonTekst {
         listOf(
             "$orgNavn - orgnr $orgnr: En av dine ansatte har søkt om sykepenger",
             "og vi trenger inntektsmelding for å behandle søknaden.",
-            "Logg inn på Min side – arbeidsgiver hos NAV.",
+            "Logg inn på Min side – arbeidsgiver hos Nav.",
             "Hvis dere sender inntektsmelding via lønnssystem kan dere fortsatt gjøre dette,",
             "og trenger ikke sende inn via Min side – arbeidsgiver.",
+        ).joinToString(separator = " ")
+
+    fun paaminnelseInnhold(
+        orgnr: Orgnr,
+        orgNavn: String,
+        sykmeldingsPerioder: List<Periode>,
+    ): String =
+        listOf(
+            "Nav venter fortsatt på inntektsmelding for en av deres ansatte${sykmeldingsPerioder.tilString() ?: ""}.",
+            "Vi trenger inntektsmeldingen så snart som mulig,",
+            "ellers kan vi ikke behandle søknaden om sykepenger.",
+            "Logg inn på Min side – arbeidsgiver på Nav for å finne ut hvilken inntektsmelding det gjelder.",
+            "Gjelder $orgNavn – orgnr $orgnr.",
         ).joinToString(separator = " ")
 }
 
@@ -68,7 +91,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
             else -> NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING
         }
 
-    return Metrics.agNotifikasjonRequest.recordTime(::opprettNySak) {
+    return try {
         runBlocking {
             opprettNySak(
                 virksomhetsnummer = orgnr.verdi,
@@ -78,17 +101,23 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
                 tittel = NotifikasjonTekst.sakTittel(sykmeldt),
                 statusTekst = statusTekst,
                 initiellStatus = initiellStatus,
-                harddeleteOm = sakLevetid,
+                hardDeleteOm = sakLevetid,
             )
         }
+    } catch (e: SakEllerOppgaveDuplikatException) {
+        "Fant duplikat (lik ID, ulikt innhold) under opprettelse av sak.".also {
+            logger.error(it)
+            sikkerLogger.error(it, e)
+        }
+        e.eksisterendeId
     }
 }
 
 fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(
-    forespoerselId: UUID,
     nyLenke: String,
-): Result<Unit> =
-    Metrics.agNotifikasjonRequest.recordTime(::nyStatusSak) {
+    forespoerselId: UUID,
+) {
+    runBlocking {
         runCatching {
             nyStatusSakByGrupperingsid(
                 grupperingsid = forespoerselId.toString(),
@@ -105,14 +134,17 @@ fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(
                 statusTekst = NotifikasjonTekst.STATUS_TEKST_FERDIG,
                 nyLenke = nyLenke,
             )
+        }.onFailure { error ->
+            loggWarnIkkeFunnetEllerThrow("Fant ikke sak under ferdigstilling.", error)
         }
     }
+}
 
 fun ArbeidsgiverNotifikasjonKlient.avbrytSak(
-    forespoerselId: UUID,
     nyLenke: String,
-): Result<Unit> =
-    Metrics.agNotifikasjonRequest.recordTime(::nyStatusSakByGrupperingsid) {
+    forespoerselId: UUID,
+) {
+    runBlocking {
         runCatching {
             nyStatusSakByGrupperingsid(
                 grupperingsid = forespoerselId.toString(),
@@ -129,28 +161,99 @@ fun ArbeidsgiverNotifikasjonKlient.avbrytSak(
                 statusTekst = NotifikasjonTekst.STATUS_TEKST_AVBRUTT,
                 nyLenke = nyLenke,
             )
+        }.onFailure { error ->
+            loggWarnIkkeFunnetEllerThrow("Fant ikke sak under avbryting.", error)
         }
     }
+}
 
 fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
     lenke: String,
     forespoerselId: UUID,
     orgnr: Orgnr,
     orgNavn: String,
+    skalHaPaaminnelse: Boolean,
+    paaminnelseAktivert: Boolean,
+    tidMellomOppgaveopprettelseOgPaaminnelse: String,
+    sykmeldingsPerioder: List<Periode>,
 ): String =
-    runBlocking {
-        opprettNyOppgave(
-            virksomhetsnummer = orgnr.verdi,
-            eksternId = forespoerselId.toString(),
-            grupperingsid = forespoerselId.toString(),
-            merkelapp = NotifikasjonTekst.MERKELAPP,
-            lenke = lenke,
-            tekst = NotifikasjonTekst.OPPGAVE_TEKST,
-            varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
-            varslingInnhold = NotifikasjonTekst.oppgaveInnhold(orgnr, orgNavn),
-            tidspunkt = null,
-        )
+    try {
+        runBlocking {
+            opprettNyOppgave(
+                virksomhetsnummer = orgnr.verdi,
+                eksternId = forespoerselId.toString(),
+                grupperingsid = forespoerselId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP,
+                lenke = lenke,
+                tekst = NotifikasjonTekst.OPPGAVE_TEKST,
+                varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
+                varslingInnhold = NotifikasjonTekst.oppgaveInnhold(orgnr, orgNavn),
+                tidspunkt = null,
+                paaminnelse =
+                    if (skalHaPaaminnelse && paaminnelseAktivert) {
+                        Paaminnelse(
+                            tittel = "Påminnelse: ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
+                            innhold = NotifikasjonTekst.paaminnelseInnhold(orgnr, orgNavn, sykmeldingsPerioder),
+                            tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveopprettelseOgPaaminnelse,
+                        ).also { logger.info("Satte påminnelse for forespørsel $forespoerselId") }
+                    } else {
+                        null
+                    },
+            )
+        }
+    } catch (e: SakEllerOppgaveDuplikatException) {
+        "Fant duplikat (lik ID, ulikt innhold) under opprettelse av oppgave.".also {
+            logger.error(it)
+            sikkerLogger.error(it, e)
+        }
+        e.eksisterendeId
     }
+
+fun ArbeidsgiverNotifikasjonKlient.ferdigstillOppgave(
+    lenke: String,
+    forespoerselId: UUID,
+) {
+    runBlocking {
+        runCatching {
+            oppgaveUtfoertByEksternIdV2(
+                eksternId = forespoerselId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP,
+                nyLenke = lenke,
+            )
+        }.recoverCatching {
+            oppgaveUtfoertByEksternIdV2(
+                eksternId = forespoerselId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP_GAMMEL,
+                nyLenke = lenke,
+            )
+        }.onFailure { error ->
+            loggWarnIkkeFunnetEllerThrow("Fant ikke oppgave under ferdigstilling.", error)
+        }
+    }
+}
+
+fun ArbeidsgiverNotifikasjonKlient.settOppgaveUtgaatt(
+    lenke: String,
+    forespoerselId: UUID,
+) {
+    runBlocking {
+        runCatching {
+            oppgaveUtgaattByEksternId(
+                eksternId = forespoerselId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP,
+                nyLenke = lenke,
+            )
+        }.recoverCatching {
+            oppgaveUtgaattByEksternId(
+                eksternId = forespoerselId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP_GAMMEL,
+                nyLenke = lenke,
+            )
+        }.onFailure { error ->
+            loggWarnIkkeFunnetEllerThrow("Fant ikke oppgave under endring til utgått.", error)
+        }
+    }
+}
 
 // Støtter d-nummer
 private fun Fnr.lesFoedselsdato(): String {
@@ -159,5 +262,26 @@ private fun Fnr.lesFoedselsdato(): String {
         verdi.take(6)
     } else {
         (foersteSiffer - 4).toString() + verdi.substring(1, 6)
+    }
+}
+
+fun LocalDate.tilString(): String = format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+
+fun List<Periode>.tilString(): String? =
+    when (size) {
+        0 -> null
+        1 -> " for periode: ${first().fom.tilString()} - ${first().tom.tilString()}"
+        else -> " for periode: ${first().fom.tilString()} - [...] - ${last().tom.tilString()}"
+    }
+
+private fun loggWarnIkkeFunnetEllerThrow(
+    melding: String,
+    error: Throwable,
+) {
+    if (error is SakEllerOppgaveFinnesIkkeException) {
+        logger.warn(melding)
+        sikkerLogger.warn(melding, error)
+    } else {
+        throw error
     }
 }

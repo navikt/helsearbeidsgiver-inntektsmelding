@@ -6,8 +6,10 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -15,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -28,6 +31,8 @@ data class Steg0(
     val forespoerselId: UUID,
     val orgnr: Orgnr,
     val fnr: Fnr,
+    val skalHaPaaminnelse: Boolean,
+    val forespoersel: Forespoersel?,
 )
 
 data class Steg1(
@@ -52,6 +57,8 @@ class HentDataTilSakOgOppgaveService(
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
             orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding),
             fnr = Key.FNR.les(Fnr.serializer(), melding),
+            skalHaPaaminnelse = Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), melding),
+            forespoersel = Key.FORESPOERSEL.lesOrNull(Forespoersel.serializer(), melding),
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
@@ -134,8 +141,10 @@ class HentDataTilSakOgOppgaveService(
                     Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
                     Key.SYKMELDT to sykmeldt.toJson(Person.serializer()),
                     Key.VIRKSOMHET to orgNavn.toJson(),
-                    Key.SKAL_HA_PAAMINNELSE to false.toJson(Boolean.serializer()), // TODO: Erstatt default false med SKAL_HA_PAAMINNELSE fra melding
-                ).toJson(),
+                    Key.SKAL_HA_PAAMINNELSE to steg0.skalHaPaaminnelse.toJson(Boolean.serializer()),
+                    Key.FORESPOERSEL to steg0.forespoersel?.toJson(Forespoersel.serializer()),
+                ).mapValuesNotNull { it }
+                    .toJson(),
         )
     }
 

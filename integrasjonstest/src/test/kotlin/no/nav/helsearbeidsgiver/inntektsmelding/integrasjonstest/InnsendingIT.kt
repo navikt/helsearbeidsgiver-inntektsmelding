@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
+import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
@@ -37,7 +38,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.Forespoersel as ForespoerselBro
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class InnsendingIT : EndToEndTest() {
@@ -207,7 +207,7 @@ class InnsendingIT : EndToEndTest() {
 
     private fun bekreftMarkeringAvForespoerselSomBesvart() {
         verify(exactly = 1) {
-            mockPriProducer.send(
+            priProducer.send(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
                 Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
             )
@@ -244,7 +244,7 @@ class InnsendingIT : EndToEndTest() {
             )
 
         val forespoerselSvar =
-            ForespoerselBro(
+            ForespoerselFraBro(
                 orgnr = Orgnr(forespoersel.orgnr),
                 fnr = Fnr(forespoersel.fnr),
                 forespoerselId = forespoerselId,

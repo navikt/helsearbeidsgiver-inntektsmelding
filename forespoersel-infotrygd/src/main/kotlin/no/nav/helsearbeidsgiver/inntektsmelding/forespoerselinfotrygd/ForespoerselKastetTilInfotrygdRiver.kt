@@ -49,7 +49,7 @@ class ForespoerselKastetTilInfotrygdRiver : PriObjectRiver<KastetTilInfotrygdMel
         json: Map<Pri.Key, JsonElement>,
         error: Throwable,
     ): Map<Key, JsonElement>? {
-        "Klarte ikke videresende beskjed om forespørsel kastet til Infotrygd. Arbeidsgiver kan motta purring selv om de har sendt inn IM gjennom Altinn."
+        "Klarte ikke videresende beskjed om forespørsel kastet til Infotrygd. Arbeidsgiver kan motta påminnelse selv om de har sendt inn IM gjennom Altinn."
             .also {
                 logger.error("$it Se sikker logg for mer info.")
                 sikkerLogger.error(it, error)

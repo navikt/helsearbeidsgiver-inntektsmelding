@@ -5,15 +5,18 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggle
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.opprettOppgave
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.opprettSak
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -30,10 +33,13 @@ data class OpprettForespoerselSakOgOppgaveMelding(
     val orgnr: Orgnr,
     val sykmeldt: Person,
     val orgNavn: String,
+    val skalHaPaaminnelse: Boolean,
+    val forespoersel: Forespoersel?,
 )
 
 class OpprettForespoerselSakOgOppgaveRiver(
     private val lenkeBaseUrl: String,
+    private val paaminnelseToggle: PaaminnelseToggle,
     private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
 ) : ObjectRiver<OpprettForespoerselSakOgOppgaveMelding>() {
     private val logger = logger()
@@ -52,6 +58,8 @@ class OpprettForespoerselSakOgOppgaveRiver(
                 orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), data),
                 sykmeldt = Key.SYKMELDT.les(Person.serializer(), data),
                 orgNavn = Key.VIRKSOMHET.les(String.serializer(), data),
+                skalHaPaaminnelse = Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), data),
+                forespoersel = Key.FORESPOERSEL.lesOrNull(Forespoersel.serializer(), data),
             )
         }
 
@@ -72,6 +80,10 @@ class OpprettForespoerselSakOgOppgaveRiver(
                 forespoerselId = forespoerselId,
                 orgnr = orgnr,
                 orgNavn = orgNavn,
+                skalHaPaaminnelse = skalHaPaaminnelse,
+                paaminnelseAktivert = paaminnelseToggle.oppgavePaaminnelseAktivert,
+                tidMellomOppgaveopprettelseOgPaaminnelse = paaminnelseToggle.tidMellomOppgaveopprettelseOgPaaminnelse,
+                sykmeldingsPerioder = forespoersel?.sykmeldingsperioder.orEmpty(),
             )
 
         return mapOf(

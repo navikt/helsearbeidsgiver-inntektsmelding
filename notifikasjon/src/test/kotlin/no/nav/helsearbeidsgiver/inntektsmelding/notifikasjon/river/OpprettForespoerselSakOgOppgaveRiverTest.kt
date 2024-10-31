@@ -18,17 +18,19 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggle
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakLevetid
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
@@ -94,7 +96,14 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                     paaminnelse =
                         Paaminnelse(
                             tittel = "Påminnelse: ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
-                            innhold = NotifikasjonTekst.paaminnelseInnhold(innkommendeMelding.orgnr, innkommendeMelding.orgNavn),
+                            innhold =
+                                NotifikasjonTekst.paaminnelseInnhold(
+                                    innkommendeMelding.orgnr,
+                                    innkommendeMelding.orgNavn,
+                                    innkommendeMelding.forespoersel
+                                        ?.sykmeldingsperioder
+                                        .orEmpty(),
+                                ),
                             tidMellomOppgaveopprettelseOgPaaminnelse = "P28D",
                         ),
                 )
@@ -240,19 +249,24 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
         }
     })
 
+private object OpprettSakOgOppgaveMock {
+    val forespoerselId = UUID.randomUUID()
+    val forespoersel = mockForespoersel()
+    val orgnr = Orgnr(forespoersel.orgnr)
+    val orgNavn = "Peer Gynts Løgn og Bedrageri LTD"
+    val person = Person(Fnr(forespoersel.fnr), "Peer Gynt")
+}
+
 fun innkommendeOpprettForespoerselSakOgOppgaveMelding(): OpprettForespoerselSakOgOppgaveMelding =
     OpprettForespoerselSakOgOppgaveMelding(
         eventName = EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED,
         transaksjonId = UUID.randomUUID(),
-        forespoerselId = UUID.randomUUID(),
-        orgnr = Orgnr.genererGyldig(),
-        sykmeldt =
-            Person(
-                fnr = Fnr.genererGyldig(),
-                navn = "Peer Gynt",
-            ),
-        orgNavn = "Peer Gynts Løgn og Bedrageri LTD",
+        forespoerselId = OpprettSakOgOppgaveMock.forespoerselId,
+        orgnr = OpprettSakOgOppgaveMock.orgnr,
+        sykmeldt = OpprettSakOgOppgaveMock.person,
+        orgNavn = OpprettSakOgOppgaveMock.orgNavn,
         skalHaPaaminnelse = true,
+        forespoersel = OpprettSakOgOppgaveMock.forespoersel,
     )
 
 private fun OpprettForespoerselSakOgOppgaveMelding.toMap() =
@@ -266,7 +280,8 @@ private fun OpprettForespoerselSakOgOppgaveMelding.toMap() =
                 Key.SYKMELDT to sykmeldt.toJson(Person.serializer()),
                 Key.VIRKSOMHET to orgNavn.toJson(),
                 Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
-            ).toJson(),
+                Key.FORESPOERSEL to forespoersel?.toJson(Forespoersel.serializer()),
+            ).mapValuesNotNull { it }.toJson(),
     )
 
 private fun forventetUtgaaendeMelding(

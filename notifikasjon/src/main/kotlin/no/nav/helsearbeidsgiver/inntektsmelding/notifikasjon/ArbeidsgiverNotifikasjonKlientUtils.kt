@@ -6,11 +6,14 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveDuplikatException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 import kotlin.time.Duration.Companion.days
 
@@ -64,9 +67,10 @@ object NotifikasjonTekst {
     fun paaminnelseInnhold(
         orgnr: Orgnr,
         orgNavn: String,
+        sykmeldingsPerioder: List<Periode>,
     ): String =
         listOf(
-            "Nav venter fortsatt på inntektsmelding for en av deres ansatte.",
+            "Nav venter fortsatt på inntektsmelding for en av deres ansatte${sykmeldingsPerioder.tilString() ?: ""}.",
             "Vi trenger inntektsmeldingen så snart som mulig,",
             "ellers kan vi ikke behandle søknaden om sykepenger.",
             "Logg inn på Min side – arbeidsgiver på Nav for å finne ut hvilken inntektsmelding det gjelder.",
@@ -171,6 +175,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
     skalHaPaaminnelse: Boolean,
     paaminnelseAktivert: Boolean,
     tidMellomOppgaveopprettelseOgPaaminnelse: String,
+    sykmeldingsPerioder: List<Periode>,
 ): String =
     try {
         runBlocking {
@@ -188,7 +193,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
                     if (skalHaPaaminnelse && paaminnelseAktivert) {
                         Paaminnelse(
                             tittel = "Påminnelse: ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
-                            innhold = NotifikasjonTekst.paaminnelseInnhold(orgnr, orgNavn),
+                            innhold = NotifikasjonTekst.paaminnelseInnhold(orgnr, orgNavn, sykmeldingsPerioder),
                             tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveopprettelseOgPaaminnelse,
                         ).also { logger.info("Satte påminnelse for forespørsel $forespoerselId") }
                     } else {
@@ -259,6 +264,15 @@ private fun Fnr.lesFoedselsdato(): String {
         (foersteSiffer - 4).toString() + verdi.substring(1, 6)
     }
 }
+
+fun LocalDate.tilString(): String = format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+
+fun List<Periode>.tilString(): String? =
+    when (size) {
+        0 -> null
+        1 -> " for periode: ${first().fom.tilString()} - ${first().tom.tilString()}"
+        else -> " for periode: ${first().fom.tilString()} - [...] - ${last().tom.tilString()}"
+    }
 
 private fun loggWarnIkkeFunnetEllerThrow(
     melding: String,

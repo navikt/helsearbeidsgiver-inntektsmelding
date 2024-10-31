@@ -67,11 +67,10 @@ object NotifikasjonTekst {
     fun paaminnelseInnhold(
         orgnr: Orgnr,
         orgNavn: String,
-        sykeperioder: String,
+        sykmeldingsPerioder: String?,
     ): String =
-
         listOf(
-            "Nav venter fortsatt på inntektsmelding for en av deres ansatte$sykeperioder.",
+            "Nav venter fortsatt på inntektsmelding for en av deres ansatte${sykmeldingsPerioder ?: ""}.",
             "Vi trenger inntektsmeldingen så snart som mulig,",
             "ellers kan vi ikke behandle søknaden om sykepenger.",
             "Logg inn på Min side – arbeidsgiver på Nav for å finne ut hvilken inntektsmelding det gjelder.",
@@ -268,9 +267,9 @@ private fun Fnr.lesFoedselsdato(): String {
 
 fun LocalDate.tilString(): String = format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
 
-fun List<Periode>.lesbarString(): String =
+fun List<Periode>.lesbarString(): String? =
     when (size) {
-        0 -> ""
+        0 -> null
         1 -> " for periode: ${first().fom.tilString()} - ${first().tom.tilString()}"
         else -> " for periode: ${first().fom.tilString()} - [...] - ${last().tom.tilString()}"
     }

@@ -30,7 +30,7 @@ class ArbeidsgiverNotifikasjonKlientUtilsTest :
         context("Generer riktig periode tekst for oppgave varsel tekst") {
             withData(
                 mapOf(
-                    "ingen perioder" to row(emptyList(), ""),
+                    "ingen perioder" to row(emptyList(), null),
                     "en periode" to row(listOf(1.januar til 31.januar), " for periode: 01.01.2018 - 31.01.2018"),
                     "to perioder" to row(listOf(1.januar til 31.januar, 1.februar til 28.februar), " for periode: 01.01.2018 - [...] - 28.02.2018"),
                 ),

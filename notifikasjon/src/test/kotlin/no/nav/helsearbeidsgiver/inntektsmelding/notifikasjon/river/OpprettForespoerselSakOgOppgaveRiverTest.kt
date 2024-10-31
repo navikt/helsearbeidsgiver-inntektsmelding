@@ -252,28 +252,25 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
         }
     })
 
+private object OpprettSakOgOppgaveMock {
+    val forespoerselId = UUID.randomUUID()
+    val forespoersel = mockForespoersel()
+    val orgnr = Orgnr(forespoersel.orgnr)
+    val orgNavn = "Peer Gynts Løgn og Bedrageri LTD"
+    val person = Person(Fnr(forespoersel.fnr), "Peer Gynt")
+}
+
 fun innkommendeOpprettForespoerselSakOgOppgaveMelding(): OpprettForespoerselSakOgOppgaveMelding =
     OpprettForespoerselSakOgOppgaveMelding(
         eventName = EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED,
         transaksjonId = UUID.randomUUID(),
-        forespoerselId = UUID.randomUUID(),
-        orgnr = Orgnr.genererGyldig(),
-        sykmeldt =
-            Person(
-                fnr = Fnr.genererGyldig(),
-                navn = "Peer Gynt",
-            ),
-        orgNavn = "Peer Gynts Løgn og Bedrageri LTD",
+        forespoerselId = OpprettSakOgOppgaveMock.forespoerselId,
+        orgnr = OpprettSakOgOppgaveMock.orgnr,
+        sykmeldt = OpprettSakOgOppgaveMock.person,
+        orgNavn = OpprettSakOgOppgaveMock.orgNavn,
         skalHaPaaminnelse = true,
         forespoersel = OpprettSakOgOppgaveMock.forespoersel,
     )
-
-private object OpprettSakOgOppgaveMock {
-    val forespoersel = mockForespoersel()
-    val orgnr = Orgnr(forespoersel.orgnr)
-    val fnr = Fnr(forespoersel.fnr)
-    val vedtaksperiodeId = forespoersel.vedtaksperiodeId
-}
 
 private fun OpprettForespoerselSakOgOppgaveMelding.toMap() =
     mapOf(

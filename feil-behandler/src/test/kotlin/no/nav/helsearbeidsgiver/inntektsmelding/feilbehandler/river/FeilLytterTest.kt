@@ -1,11 +1,15 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.river
 
-import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.equals.shouldNotBeEqual
+import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import no.nav.hag.utils.bakgrunnsjobb.Bakgrunnsjobb
 import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbStatus
 import no.nav.hag.utils.bakgrunnsjobb.MockBakgrunnsjobbRepository
@@ -16,8 +20,9 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.prosessor.FeilProsessor
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -37,34 +42,39 @@ class FeilLytterTest :
         }
 
         test("skal håndtere gyldige feil med spesifiserte behov") {
-            handler.behovSomHaandteres.forEach { handler.behovSkalHaandteres(lagGyldigFeil(it)) shouldBe true }
+            handler.behovSomHaandteres.forEach { handler.behovSkalHaandteres(utloesendeMelding(it)) shouldBe true }
         }
 
         test("skal ignorere gyldige feil med visse behov") {
             val ignorerteBehov = BehovType.entries.filterNot { handler.behovSomHaandteres.contains(it) }
-            ignorerteBehov.forEach { handler.behovSkalHaandteres(lagGyldigFeil(it)) shouldBe false }
+            ignorerteBehov.forEach { handler.behovSkalHaandteres(utloesendeMelding(it)) shouldBe false }
         }
 
         test("skal ignorere feil uten behov") {
-            val uuid = UUID.randomUUID()
-            val feil =
-                lagGyldigFeil(BehovType.LAGRE_JOURNALPOST_ID).copy(
-                    utloesendeMelding =
-                        JsonMessage
-                            .newMessage(
-                                mapOf(
-                                    Key.UUID.str to uuid,
-                                    Key.FORESPOERSEL_ID.str to uuid,
-                                ),
-                            ).toJson()
-                            .parseJson(),
+            val utloesendeMelding =
+                mapOf(
+                    Key.UUID to UUID.randomUUID().toJson(),
+                    Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
                 )
-            handler.behovSkalHaandteres(feil) shouldBe false
+            handler.behovSkalHaandteres(utloesendeMelding) shouldBe false
+        }
+
+        test("skal behandle feil uten behov, men med spesifiserte eventer") {
+            handler.eventerSomHaandteres.forEach { event ->
+                val utloesendeMelding =
+                    mapOf(
+                        Key.EVENT_NAME to event.toJson(),
+                        Key.UUID to UUID.randomUUID().toJson(),
+                        Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
+                    )
+
+                handler.eventSkalHaandteres(utloesendeMelding).shouldBeTrue()
+            }
         }
 
         test("skal håndtere feil uten forespørselId") {
-            val feil = lagGyldigFeilUtenForespoerselId(BehovType.LAGRE_JOURNALPOST_ID)
-            handler.behovSkalHaandteres(feil) shouldBe true
+            val utloesendeMelding = utloesendeMelding(BehovType.LAGRE_JOURNALPOST_ID).minus(Key.FORESPOERSEL_ID)
+            handler.behovSkalHaandteres(utloesendeMelding) shouldBe true
         }
 
         test("Ny feil med forskjellig behov og samme id skal lagres") {
@@ -97,7 +107,7 @@ class FeilLytterTest :
         test("Skal sette jobb til STOPPET når maks antall forsøk er overskredet") {
             val now = LocalDateTime.now()
             val feilmelding = lagRapidFeilmelding()
-            val feil = toFailOrNull(feilmelding.parseJson().toMap())!!
+            val feil = feilmelding.parseJson().toFailOrNull()!!
 
             repository.save(
                 Bakgrunnsjobb(
@@ -136,6 +146,102 @@ class FeilLytterTest :
             repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 1
             repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.FEILET), true).size shouldBe 1
         }
+
+        test("ved flere feil på samme transaksjon-ID og event, så oppdateres eksisterende jobb") {
+            val omEttMinutt = LocalDateTime.now().plusMinutes(1)
+            val forespoerselMottattFail = lagFail(EventName.FORESPOERSEL_MOTTATT)
+
+            rapid.sendJson(forespoerselMottattFail.tilMelding())
+
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.FEILET), true).size shouldBeExactly 0
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBeExactly 1
+
+            rapid.sendJson(forespoerselMottattFail.tilMelding())
+
+            val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.FEILET), true)
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBeExactly 0
+
+            jobber.size shouldBeExactly 1
+
+            jobber[0].uuid shouldBe forespoerselMottattFail.transaksjonId
+            jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail.utloesendeMelding.toMap()
+        }
+
+        test("ved flere feil på samme transaksjon-ID, men ulik event, så lagres to jobber med ulik transaksjon-ID") {
+            val omEttMinutt = LocalDateTime.now().plusMinutes(1)
+            val transaksjonId = UUID.randomUUID()
+            val forespoerselMottattFail = lagFail(EventName.FORESPOERSEL_MOTTATT, transaksjonId)
+            val forespoerselBesvartFail = lagFail(EventName.FORESPOERSEL_BESVART, transaksjonId)
+
+            rapid.sendJson(forespoerselMottattFail.tilMelding())
+
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.FEILET), true).size shouldBeExactly 0
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBeExactly 1
+
+            rapid.sendJson(forespoerselBesvartFail.tilMelding())
+
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.FEILET), true).size shouldBeExactly 0
+            val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.OPPRETTET), true)
+
+            jobber.size shouldBeExactly 2
+
+            jobber[0].uuid shouldBe transaksjonId
+            jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail.utloesendeMelding.toMap()
+
+            jobber[1].uuid shouldNotBe transaksjonId
+            jobber[1].data.parseJson().toMap().also {
+                it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe forespoerselBesvartFail.event
+                it[Key.UUID]?.fromJson(UuidSerializer) shouldNotBe transaksjonId
+            }
+        }
+
+        test("ved flere feil på ulik transaksjon-ID, men samme event, så lagres to jobber (med ulik transaksjon-ID)") {
+            val omEttMinutt = LocalDateTime.now().plusMinutes(1)
+            val forespoerselMottattFail1 = lagFail(EventName.FORESPOERSEL_MOTTATT)
+            val forespoerselMottattFail2 = lagFail(EventName.FORESPOERSEL_MOTTATT)
+
+            rapid.sendJson(forespoerselMottattFail1.tilMelding())
+
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.FEILET), true).size shouldBeExactly 0
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBeExactly 1
+
+            rapid.sendJson(forespoerselMottattFail2.tilMelding())
+
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.FEILET), true).size shouldBeExactly 0
+            val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.OPPRETTET), true)
+
+            jobber.size shouldBeExactly 2
+
+            jobber[0].uuid shouldBe forespoerselMottattFail1.transaksjonId
+            jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail1.utloesendeMelding.toMap()
+
+            jobber[1].uuid shouldBe forespoerselMottattFail2.transaksjonId
+            jobber[1].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail2.utloesendeMelding.toMap()
+        }
+
+        test("ved flere feil på ulik transaksjon-ID og ulik event, så lagres to jobber (med ulik transaksjon-ID)") {
+            val omEttMinutt = LocalDateTime.now().plusMinutes(1)
+            val forespoerselMottattFail = lagFail(EventName.FORESPOERSEL_MOTTATT)
+            val forespoerselBesvartFail = lagFail(EventName.FORESPOERSEL_BESVART)
+
+            rapid.sendJson(forespoerselMottattFail.tilMelding())
+
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.FEILET), true).size shouldBeExactly 0
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBeExactly 1
+
+            rapid.sendJson(forespoerselBesvartFail.tilMelding())
+
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.FEILET), true).size shouldBeExactly 0
+            val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.OPPRETTET), true)
+
+            jobber.size shouldBeExactly 2
+
+            jobber[0].uuid shouldBe forespoerselMottattFail.transaksjonId
+            jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail.utloesendeMelding.toMap()
+
+            jobber[1].uuid shouldBe forespoerselBesvartFail.transaksjonId
+            jobber[1].data.parseJson().toMap() shouldContainExactly forespoerselBesvartFail.utloesendeMelding.toMap()
+        }
     })
 
 fun lagRapidFeilmelding(
@@ -164,30 +270,26 @@ fun lagRapidFeilmelding(
         .toString()
 }
 
-fun lagGyldigFeil(behov: BehovType): Fail {
-    val transaksjonId = UUID.randomUUID()
-    val forespoerselID = UUID.randomUUID()
-    val jsonMessage =
-        JsonMessage.newMessage(
-            EventName.KVITTERING_REQUESTED.name,
+fun lagFail(
+    eventName: EventName,
+    transaksjonId: UUID = UUID.randomUUID(),
+): Fail =
+    Fail(
+        feilmelding = "skux life",
+        event = eventName,
+        transaksjonId = transaksjonId,
+        forespoerselId = null,
+        utloesendeMelding =
             mapOf(
-                Key.BEHOV.str to behov,
-                Key.UUID.str to transaksjonId,
-                Key.FORESPOERSEL_ID.str to forespoerselID,
-            ),
-        )
-    return Fail("Feil", EventName.KVITTERING_REQUESTED, transaksjonId, forespoerselID, jsonMessage.toJson().parseJson())
-}
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+            ).toJson(),
+    )
 
-fun lagGyldigFeilUtenForespoerselId(behov: BehovType): Fail {
-    val transaksjonId = UUID.randomUUID()
-    val jsonMessage =
-        JsonMessage.newMessage(
-            EventName.KVITTERING_REQUESTED.name,
-            mapOf(
-                Key.BEHOV.str to behov,
-                Key.UUID.str to transaksjonId,
-            ),
-        )
-    return Fail("Feil", EventName.KVITTERING_REQUESTED, transaksjonId, null, jsonMessage.toJson().parseJson())
-}
+fun utloesendeMelding(behov: BehovType): Map<Key, JsonElement> =
+    mapOf(
+        Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
+        Key.BEHOV to behov.toJson(),
+        Key.UUID to UUID.randomUUID().toJson(),
+        Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
+    )

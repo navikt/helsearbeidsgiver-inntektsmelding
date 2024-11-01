@@ -42,6 +42,8 @@ class FeilLytter(
             EventName.FORESPOERSEL_BESVART,
             EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED,
             EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
+            EventName.INNTEKTSMELDING_JOURNALFOERT,
+            EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET,
         )
 
     init {

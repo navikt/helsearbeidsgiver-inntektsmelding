@@ -50,11 +50,9 @@ class EksternInntektsmeldingLagretIT : EndToEndTest() {
 
         messages
             .filter(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT)
-            .filter(BehovType.LAGRE_EKSTERN_INNTEKTSMELDING)
             .firstAsMap()
             .also {
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.EKSTERN_INNTEKTSMELDING_MOTTATT
-                Key.BEHOV.les(BehovType.serializer(), it) shouldBe BehovType.LAGRE_EKSTERN_INNTEKTSMELDING
                 Key.UUID.les(UuidSerializer, it) shouldBe Mock.transaksjonId
 
                 val data = it[Key.DATA].shouldNotBeNull().toMap()

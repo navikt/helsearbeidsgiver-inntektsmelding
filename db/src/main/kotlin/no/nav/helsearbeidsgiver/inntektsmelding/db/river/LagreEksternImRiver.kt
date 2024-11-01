@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
@@ -21,7 +20,6 @@ import java.util.UUID
 
 data class LagreEksternImMelding(
     val eventName: EventName,
-    val behovType: BehovType,
     val transaksjonId: UUID,
     val forespoerselId: UUID,
     val eksternInntektsmelding: EksternInntektsmelding,
@@ -34,14 +32,14 @@ class LagreEksternImRiver(
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): LagreEksternImMelding? =
+        // TODO ignorer behov etter overgangsfase
         if (Key.FAIL in json) {
             null
         } else {
             val data = json[Key.DATA]?.toMap().orEmpty()
 
             LagreEksternImMelding(
-                eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
-                behovType = Key.BEHOV.krev(BehovType.LAGRE_EKSTERN_INNTEKTSMELDING, BehovType.serializer(), json),
+                eventName = Key.EVENT_NAME.krev(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT, EventName.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
                 eksternInntektsmelding = Key.EKSTERN_INNTEKTSMELDING.les(EksternInntektsmelding.serializer(), data),
@@ -86,7 +84,6 @@ class LagreEksternImRiver(
         mapOf(
             Log.klasse(this@LagreEksternImRiver),
             Log.event(eventName),
-            Log.behov(behovType),
             Log.transaksjonId(transaksjonId),
             Log.forespoerselId(forespoerselId),
         )

@@ -20,6 +20,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
+// TODO også sjekk "NAV_NO_SELVBESTEMT"
 private const val AVSENDER_NAV_NO = "NAV_NO"
 
 data class Steg0(
@@ -88,7 +89,6 @@ class SpinnService(
             val publisert =
                 rapid.publish(
                     Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
-                    Key.BEHOV to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson(),
                     Key.UUID to steg0.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
@@ -99,9 +99,8 @@ class SpinnService(
 
             MdcUtils.withLogFields(
                 Log.event(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT),
-                Log.behov(BehovType.LAGRE_EKSTERN_INNTEKTSMELDING),
             ) {
-                logger.info("Publiserte melding om ${BehovType.LAGRE_EKSTERN_INNTEKTSMELDING}.")
+                logger.info("Publiserte melding om '${EventName.EKSTERN_INNTEKTSMELDING_MOTTATT}'.")
                 sikkerLogger.info("Publiserte melding:\n${publisert.toPretty()}")
             }
         }

@@ -213,7 +213,7 @@ private object Mock {
     val fail =
         Fail(
             feilmelding = "I'm afraid I can't let you do that.",
-            event = EventName.INNTEKTSMELDING_JOURNALFOERT,
+            event = EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET,
             transaksjonId = UUID.randomUUID(),
             forespoerselId = UUID.randomUUID(),
             utloesendeMelding = JsonNull,
@@ -221,7 +221,7 @@ private object Mock {
 
     fun innkommendeMelding(): Melding =
         Melding(
-            eventName = EventName.INNTEKTSMELDING_JOURNALFOERT,
+            eventName = EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET,
             transaksjonId = UUID.randomUUID(),
             inntektsmelding = mockInntektsmeldingV1(),
             bestemmendeFravaersdag = bestemmendeFravaersdag,

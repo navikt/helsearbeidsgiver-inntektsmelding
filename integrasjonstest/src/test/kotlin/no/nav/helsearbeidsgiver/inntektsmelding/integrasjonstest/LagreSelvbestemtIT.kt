@@ -244,7 +244,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
             .shouldBeEqualToInntektsmelding(Mock.inntektsmelding, compareType = true)
 
         messages
-            .filter(EventName.SELVBESTEMT_IM_LAGRET)
+            .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
             .filter(BehovType.LAGRE_JOURNALPOST_ID)
             .firstAsMap()
             .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, Mock.inntektsmelding, compareType = true)
@@ -318,7 +318,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
             .shouldBeEmpty()
 
         messages
-            .filter(EventName.SELVBESTEMT_IM_LAGRET)
+            .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
             .filter(BehovType.LAGRE_JOURNALPOST_ID)
             .all()
             .shouldBeEmpty()

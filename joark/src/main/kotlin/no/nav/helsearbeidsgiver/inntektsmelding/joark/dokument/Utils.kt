@@ -2,20 +2,17 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
 import java.text.DecimalFormat
-import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
-fun LocalDate.toNorsk(): String = this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+fun OffsetDateTime.tilNorskFormat(): String = this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy ' kl. ' HH.mm.ss"))
 
-fun OffsetDateTime.toNorsk(): String = this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy ' kl. ' HH.mm.ss"))
-
-fun Double.toNorsk(): String {
+fun Double.tilNorskFormat(): String {
     val format = DecimalFormat("#,###.##")
     return format.format(this)
 }
 
-fun Boolean.toNorsk(): String =
+fun Boolean.tilNorskFormat(): String =
     if (this) {
         "Ja"
     } else {

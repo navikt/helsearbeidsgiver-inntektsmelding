@@ -27,8 +27,6 @@ import java.util.UUID
 data class Steg0(
     val transaksjonId: UUID,
     val forespoerselId: UUID,
-    val orgnr: Orgnr,
-    val fnr: Fnr,
     val skalHaPaaminnelse: Boolean,
     val forespoersel: Forespoersel,
 )
@@ -53,8 +51,6 @@ class HentDataTilSakOgOppgaveService(
         Steg0(
             transaksjonId = Key.UUID.les(UuidSerializer, melding),
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
-            orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding),
-            fnr = Key.FNR.les(Fnr.serializer(), melding),
             skalHaPaaminnelse = Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), melding),
             forespoersel = Key.FORESPOERSEL.les(Forespoersel.serializer(), melding),
         )
@@ -93,7 +89,7 @@ class HentDataTilSakOgOppgaveService(
             Key.DATA to
                 data
                     .plus(
-                        Key.ORGNR_UNDERENHETER to setOf(steg0.orgnr).toJson(Orgnr.serializer()),
+                        Key.ORGNR_UNDERENHETER to setOf(steg0.forespoersel.orgnr).toJson(String.serializer()),
                     ).toJson(),
         )
     }
@@ -111,7 +107,7 @@ class HentDataTilSakOgOppgaveService(
                 Key.DATA to
                     data
                         .plus(
-                            Key.FNR_LISTE to setOf(steg0.fnr).toJson(Fnr.serializer()),
+                            Key.FNR_LISTE to setOf(steg0.forespoersel.fnr).toJson(String.serializer()),
                         ).toJson(),
             )
     }
@@ -127,8 +123,8 @@ class HentDataTilSakOgOppgaveService(
             sikkerLogger.info(it)
         }
 
-        val orgNavn = steg1.orgnrMedNavn[steg0.orgnr] ?: ORG_NAVN_DEFAULT
-        val sykmeldt = steg2.personer[steg0.fnr] ?: personDefault(steg0.fnr)
+        val orgNavn = steg1.orgnrMedNavn[steg0.forespoersel.orgnr.let(::Orgnr)] ?: ORG_NAVN_DEFAULT
+        val sykmeldt = steg2.personer[steg0.forespoersel.fnr.let(::Fnr)] ?: personDefault(steg0.forespoersel.fnr.let(::Fnr))
 
         rapid.publish(
             Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED.toJson(),
@@ -136,7 +132,8 @@ class HentDataTilSakOgOppgaveService(
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                    Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
+                    // TODO kan fjernes etter overgangsfase
+                    Key.ORGNRUNDERENHET to steg0.forespoersel.orgnr.toJson(),
                     Key.SYKMELDT to sykmeldt.toJson(Person.serializer()),
                     Key.VIRKSOMHET to orgNavn.toJson(),
                     Key.SKAL_HA_PAAMINNELSE to steg0.skalHaPaaminnelse.toJson(Boolean.serializer()),

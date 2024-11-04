@@ -29,7 +29,6 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggle
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakLevetid
-import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -100,9 +99,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                                 NotifikasjonTekst.paaminnelseInnhold(
                                     innkommendeMelding.orgnr,
                                     innkommendeMelding.orgNavn,
-                                    innkommendeMelding.forespoersel
-                                        ?.sykmeldingsperioder
-                                        .orEmpty(),
+                                    innkommendeMelding.forespoersel.sykmeldingsperioder,
                                 ),
                             tidMellomOppgaveopprettelseOgPaaminnelse = "P28D",
                         ),
@@ -280,8 +277,8 @@ private fun OpprettForespoerselSakOgOppgaveMelding.toMap() =
                 Key.SYKMELDT to sykmeldt.toJson(Person.serializer()),
                 Key.VIRKSOMHET to orgNavn.toJson(),
                 Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
-                Key.FORESPOERSEL to forespoersel?.toJson(Forespoersel.serializer()),
-            ).mapValuesNotNull { it }.toJson(),
+                Key.FORESPOERSEL to forespoersel.toJson(Forespoersel.serializer()),
+            ).toJson(),
     )
 
 private fun forventetUtgaaendeMelding(

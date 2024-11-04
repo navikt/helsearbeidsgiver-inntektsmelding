@@ -19,7 +19,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed4Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -215,14 +214,12 @@ class BerikInntektsmeldingService(
         if (!steg4.erDuplikat) {
             val publisert =
                 rapid.publish(
-                    mapOf(
-                        Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
-                        Key.UUID to steg0.transaksjonId.toJson(),
-                        Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
-                        Key.INNTEKTSMELDING to steg4.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                        Key.BESTEMMENDE_FRAVAERSDAG to steg4.bestemmendeFravaersdag.toJson(),
-                        Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
-                    ).mapValuesNotNull { it },
+                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
+                    Key.UUID to steg0.transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
+                    Key.INNTEKTSMELDING to steg4.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                    Key.BESTEMMENDE_FRAVAERSDAG to steg4.bestemmendeFravaersdag.toJson(),
+                    Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
                 )
 
             MdcUtils.withLogFields(

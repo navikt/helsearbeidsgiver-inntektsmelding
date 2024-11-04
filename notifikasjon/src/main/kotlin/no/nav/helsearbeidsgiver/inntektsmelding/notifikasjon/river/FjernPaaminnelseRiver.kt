@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggle
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -27,6 +28,7 @@ data class FjernPaaminnelseMelding(
 
 class FjernPaaminnelseRiver(
     val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
+    private val paaminnelseToggle: PaaminnelseToggle,
 ) : ObjectRiver<FjernPaaminnelseMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -43,21 +45,9 @@ class FjernPaaminnelseRiver(
         }
 
     override fun FjernPaaminnelseMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
-        runCatching {
-            runBlocking {
-                agNotifikasjonKlient.slettOppgavePaaminnelserByEksternId(NotifikasjonTekst.MERKELAPP, forespoerselId.toString())
-            }
-        }.onFailure {
-            when (it) {
-                is SakEllerOppgaveFinnesIkkeException, is OppgaveAlleredeUtfoertException -> {
-                    logger.warn(it.message)
-                    sikkerLogger.warn(it.message)
-                }
-
-                else -> throw it
-            }
+        if (paaminnelseToggle.oppgavePaaminnelseAktivert) {
+            slettOppgavePaaminnelser(forespoerselId = forespoerselId)
         }
-
         return null
     }
 
@@ -87,4 +77,21 @@ class FjernPaaminnelseRiver(
             Log.transaksjonId(transaksjonId),
             Log.forespoerselId(forespoerselId),
         )
+
+    private fun slettOppgavePaaminnelser(forespoerselId: UUID) {
+        runCatching {
+            runBlocking {
+                agNotifikasjonKlient.slettOppgavePaaminnelserByEksternId(NotifikasjonTekst.MERKELAPP, forespoerselId.toString())
+            }
+        }.onFailure {
+            when (it) {
+                is SakEllerOppgaveFinnesIkkeException, is OppgaveAlleredeUtfoertException -> {
+                    logger.warn(it.message)
+                    sikkerLogger.warn(it.message)
+                }
+
+                else -> throw it
+            }
+        }
+    }
 }

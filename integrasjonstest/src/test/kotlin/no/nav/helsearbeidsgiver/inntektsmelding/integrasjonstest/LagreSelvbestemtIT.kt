@@ -171,7 +171,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
             .shouldBeEqualToInntektsmelding(nyInntektsmelding)
 
         messages
-            .filter(EventName.SELVBESTEMT_IM_LAGRET)
+            .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
             .filter(BehovType.LAGRE_JOURNALPOST_ID)
             .firstAsMap()
             .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, nyInntektsmelding, compareType = false)

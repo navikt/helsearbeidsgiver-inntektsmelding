@@ -58,18 +58,14 @@ spec:
   gcp:
     sqlInstances:
       - type: POSTGRES_14
-        tier: {{ dbTier }}
+        tier: {{ database.tier }}
         databases:
-          {{#each database as |db| }}
-          - name: {{ db.name }}
-            {{#if db.users}}
+          - name: {{ database.name }}
+            {{#if database.user}}
             users:
-              {{#each db.users as |user| }}
-              - name: {{ user }}
-              {{/each}}
+              - name: {{ database.user }}
             {{/if}}
-          {{/each}}
-        {{#if logical_decoding}}
+        {{#if database.logicalDecoding}}
         flags:
           - name: cloudsql.logical_decoding
             value: "on"

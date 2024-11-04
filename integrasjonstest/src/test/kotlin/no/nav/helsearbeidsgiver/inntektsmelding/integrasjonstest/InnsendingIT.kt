@@ -101,7 +101,7 @@ class InnsendingIT : EndToEndTest() {
             }
 
         messages
-            .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
+            .filter(EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET)
             .firstAsMap()
             .also {
                 it shouldContainKey Key.INNTEKTSMELDING
@@ -153,6 +153,8 @@ class InnsendingIT : EndToEndTest() {
 
         messages.filter(EventName.INNTEKTSMELDING_JOURNALFOERT).all() shouldHaveSize 0
 
+        messages.filter(EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET).all() shouldHaveSize 0
+
         messages.filter(EventName.INNTEKTSMELDING_DISTRIBUERT).all() shouldHaveSize 0
     }
 
@@ -185,6 +187,8 @@ class InnsendingIT : EndToEndTest() {
         messages.filter(EventName.INNTEKTSMELDING_MOTTATT).all() shouldHaveSize 0
 
         messages.filter(EventName.INNTEKTSMELDING_JOURNALFOERT).all() shouldHaveSize 0
+
+        messages.filter(EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET).all() shouldHaveSize 0
 
         messages.filter(EventName.INNTEKTSMELDING_DISTRIBUERT).all() shouldHaveSize 0
     }

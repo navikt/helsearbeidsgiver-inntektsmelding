@@ -84,14 +84,14 @@ class LagreJournalpostIdRiver(
         }
 
         return mapOf(
-            Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
+            Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.BESTEMMENDE_FRAVAERSDAG to json[Key.BESTEMMENDE_FRAVAERSDAG],
             Key.JOURNALPOST_ID to journalpostId.toJson(),
         ).mapValuesNotNull { it }
             .also {
-                logger.info("Publiserer event '${EventName.INNTEKTSMELDING_JOURNALFOERT}' med journalpost-ID '$journalpostId'.")
+                logger.info("Publiserer event '${EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET}' med journalpost-ID '$journalpostId'.")
                 sikkerLogger.info("Publiserer event:\n${it.toPretty()}")
             }
     }

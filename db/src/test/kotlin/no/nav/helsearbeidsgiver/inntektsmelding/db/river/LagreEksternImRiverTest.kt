@@ -14,6 +14,7 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
@@ -90,7 +91,7 @@ class LagreEksternImRiverTest :
         context("ignorerer melding") {
             withData(
                 mapOf(
-//                    "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.HENT_VIRKSOMHET_NAVN.toJson()),
+                    "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.HENT_VIRKSOMHET_NAVN.toJson()),
                     "melding med data som flagg" to Pair(Key.DATA, "".toJson()),
                     "melding med fail" to Pair(Key.FAIL, mockFail.toJson(Fail.serializer())),
                 ),

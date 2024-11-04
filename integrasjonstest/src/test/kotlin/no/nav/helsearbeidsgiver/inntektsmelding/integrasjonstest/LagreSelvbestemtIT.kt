@@ -177,7 +177,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
             .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, nyInntektsmelding, compareType = false)
 
         messages
-            .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
+            .filter(EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET)
             .firstAsMap()
             .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, nyInntektsmelding, compareType = false)
 
@@ -250,7 +250,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
             .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, Mock.inntektsmelding, compareType = true)
 
         messages
-            .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
+            .filter(EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET)
             .firstAsMap()
             .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, Mock.inntektsmelding, compareType = true)
 
@@ -324,7 +324,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
             .shouldBeEmpty()
 
         messages
-            .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
+            .filter(EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET)
             .all()
             .shouldBeEmpty()
 

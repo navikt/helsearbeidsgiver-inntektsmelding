@@ -32,8 +32,7 @@ class LagreEksternImRiver(
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): LagreEksternImMelding? =
-        // TODO ignorer behov etter overgangsfase
-        if (Key.FAIL in json) {
+        if (setOf(Key.BEHOV, Key.FAIL).any(json::containsKey)) {
             null
         } else {
             val data = json[Key.DATA]?.toMap().orEmpty()

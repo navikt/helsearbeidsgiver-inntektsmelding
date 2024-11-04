@@ -75,7 +75,7 @@ class JournalfoerImRiverTest :
 
                 testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
-                        Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
+                        Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
                         Key.BEHOV to BehovType.LAGRE_JOURNALPOST_ID.toJson(),
                         Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                         Key.JOURNALPOST_ID to journalpostId.toJson(),
@@ -122,7 +122,7 @@ class JournalfoerImRiverTest :
 
                 testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
-                        Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
+                        Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
                         Key.BEHOV to BehovType.LAGRE_JOURNALPOST_ID.toJson(),
                         Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                         Key.JOURNALPOST_ID to journalpostId.toJson(),
@@ -174,7 +174,7 @@ class JournalfoerImRiverTest :
 
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
-                    Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
+                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
                     Key.BEHOV to BehovType.LAGRE_JOURNALPOST_ID.toJson(),
                     Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                     Key.JOURNALPOST_ID to journalpostId.toJson(),

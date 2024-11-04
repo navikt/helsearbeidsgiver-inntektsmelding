@@ -92,11 +92,11 @@ class InnsendingIT : EndToEndTest() {
             }
 
         messages
-            .filter(EventName.INNTEKTSMELDING_MOTTATT)
+            .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
             .filter(BehovType.LAGRE_JOURNALPOST_ID)
             .firstAsMap()
             .also {
-                // Journalført i dokarkiv
+                it shouldContainKey Key.INNTEKTSMELDING
                 it[Key.JOURNALPOST_ID]?.fromJson(String.serializer()) shouldBe Mock.JOURNALPOST_ID
             }
 

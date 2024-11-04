@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -52,18 +53,13 @@ class DistribusjonRiver(
         ) {
             null
         } else {
-            val eventName = Key.EVENT_NAME.les(EventName.serializer(), json)
-            if (eventName !in setOf(EventName.INNTEKTSMELDING_JOURNALFOERT, EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET)) {
-                null
-            } else {
-                Melding(
-                    eventName = eventName,
-                    transaksjonId = Key.UUID.les(UuidSerializer, json),
-                    inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), json),
-                    bestemmendeFravaersdag = Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, json),
-                    journalpostId = Key.JOURNALPOST_ID.les(String.serializer(), json),
-                )
-            }
+            Melding(
+                eventName = Key.EVENT_NAME.krev(EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET, EventName.serializer(), json),
+                transaksjonId = Key.UUID.les(UuidSerializer, json),
+                inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), json),
+                bestemmendeFravaersdag = Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, json),
+                journalpostId = Key.JOURNALPOST_ID.les(String.serializer(), json),
+            )
         }
     }
 

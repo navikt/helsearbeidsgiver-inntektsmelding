@@ -81,7 +81,10 @@ class FjernPaaminnelseRiver(
     private fun slettOppgavePaaminnelser(forespoerselId: UUID) {
         runCatching {
             runBlocking {
-                agNotifikasjonKlient.slettOppgavePaaminnelserByEksternId(NotifikasjonTekst.MERKELAPP, forespoerselId.toString())
+                agNotifikasjonKlient.slettOppgavePaaminnelserByEksternId(
+                    merkelapp = NotifikasjonTekst.MERKELAPP,
+                    eksternId = forespoerselId.toString(),
+                )
             }
         }.onFailure {
             when (it) {

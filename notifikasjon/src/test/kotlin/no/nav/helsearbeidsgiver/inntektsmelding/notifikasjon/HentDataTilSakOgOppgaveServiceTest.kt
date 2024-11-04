@@ -65,7 +65,7 @@ class HentDataTilSakOgOppgaveServiceTest :
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                            Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
+                            Key.ORGNRUNDERENHET to Mock.forespoersel.orgnr.toJson(),
                             Key.SYKMELDT to
                                 Mock.personer.values
                                     .first()
@@ -112,10 +112,8 @@ private object Mock {
     val forespoersel = mockForespoersel()
     val transaksjonId: UUID = forespoersel.vedtaksperiodeId
     val forespoerselId: UUID = UUID.randomUUID()
-    val orgnr = Orgnr(forespoersel.orgnr)
-    val fnr = Fnr(forespoersel.fnr)
-    val orgnrMedNavn = mapOf(orgnr to "Kåre Conradis Kål og Kålrabi")
-    val personer = mapOf(fnr to Person(fnr, "Kåre Conradi"))
+    val orgnrMedNavn = mapOf(forespoersel.orgnr.let(::Orgnr) to "Kåre Conradis Kål og Kålrabi")
+    val personer = listOf(forespoersel.fnr.let(::Fnr)).associateWith { Person(it, "Kåre Conradi") }
 
     fun steg0(): Map<Key, JsonElement> =
         mapOf(
@@ -124,8 +122,6 @@ private object Mock {
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.ORGNRUNDERENHET to orgnr.toJson(),
-                    Key.FNR to fnr.toJson(),
                     Key.SKAL_HA_PAAMINNELSE to SKAL_HA_PAAMINNELSE.toJson(Boolean.serializer()),
                     Key.FORESPOERSEL to forespoersel.toJson(Forespoersel.serializer()),
                 ).toJson(),

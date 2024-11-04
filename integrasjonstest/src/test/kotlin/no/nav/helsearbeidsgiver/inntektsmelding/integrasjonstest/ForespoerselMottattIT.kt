@@ -4,6 +4,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -21,6 +22,8 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.januar
+import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -52,7 +55,7 @@ class ForespoerselMottattIT : EndToEndTest() {
                     fnr = Mock.fnr,
                     forespoerselId = Mock.forespoerselId,
                     vedtaksperiodeId = UUID.randomUUID(),
-                    sykmeldingsperioder = emptyList(),
+                    sykmeldingsperioder = listOf(23.januar til 15.mars),
                     egenmeldingsperioder = emptyList(),
                     bestemmendeFravaersdager = emptyMap(),
                     forespurtData = mockForespurtData(),

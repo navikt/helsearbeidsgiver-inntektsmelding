@@ -61,7 +61,7 @@ class LagreJournalpostIdRiverTest :
 
                 testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
-                        Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
+                        Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET.toJson(),
                         Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                         Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
                         Key.BESTEMMENDE_FRAVAERSDAG to Mock.bestemmendeFravaersdag.toJson(),
@@ -101,7 +101,7 @@ class LagreJournalpostIdRiverTest :
 
                 testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
-                        Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
+                        Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET.toJson(),
                         Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                         Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
                         Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),

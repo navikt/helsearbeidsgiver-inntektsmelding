@@ -62,6 +62,7 @@ class OpprettSelvbestemtSakRiver(
                 inntektsmeldingTypeId = inntektsmelding.type.id,
                 orgnr = inntektsmelding.avsender.orgnr,
                 sykmeldt = inntektsmelding.sykmeldt.let { Person(it.fnr, it.navn) },
+                sykmeldingsperioder = inntektsmelding.sykmeldingsperioder,
                 initiellStatus = SaksStatus.FERDIG,
             )
 

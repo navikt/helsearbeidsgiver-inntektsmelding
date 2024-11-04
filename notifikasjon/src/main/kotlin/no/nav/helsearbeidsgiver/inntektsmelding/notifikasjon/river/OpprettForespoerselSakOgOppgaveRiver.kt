@@ -9,7 +9,6 @@ import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -34,7 +33,7 @@ data class OpprettForespoerselSakOgOppgaveMelding(
     val sykmeldt: Person,
     val orgNavn: String,
     val skalHaPaaminnelse: Boolean,
-    val forespoersel: Forespoersel?,
+    val forespoersel: Forespoersel,
 )
 
 class OpprettForespoerselSakOgOppgaveRiver(
@@ -59,7 +58,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
                 sykmeldt = Key.SYKMELDT.les(Person.serializer(), data),
                 orgNavn = Key.VIRKSOMHET.les(String.serializer(), data),
                 skalHaPaaminnelse = Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), data),
-                forespoersel = Key.FORESPOERSEL.lesOrNull(Forespoersel.serializer(), data),
+                forespoersel = Key.FORESPOERSEL.les(Forespoersel.serializer(), data),
             )
         }
 
@@ -83,7 +82,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
                 skalHaPaaminnelse = skalHaPaaminnelse,
                 paaminnelseAktivert = paaminnelseToggle.oppgavePaaminnelseAktivert,
                 tidMellomOppgaveopprettelseOgPaaminnelse = paaminnelseToggle.tidMellomOppgaveopprettelseOgPaaminnelse,
-                sykmeldingsPerioder = forespoersel?.sykmeldingsperioder.orEmpty(),
+                sykmeldingsPerioder = forespoersel.sykmeldingsperioder,
             )
 
         return mapOf(

@@ -80,6 +80,7 @@ class OpprettSelvbestemtSakRiverTest :
                         "Inntektsmelding for ${innkommendeMelding.inntektsmelding.sykmeldt.navn}: " +
                             "f. ${innkommendeMelding.inntektsmelding.sykmeldt.fnr.verdi.take(6)}",
                     statusTekst = "Mottatt – Se kvittering eller korriger inntektsmelding",
+                    tilleggsinfo = "Sykmeldingsperiode 05.10.2018 - [...] - 03.11.2018",
                     initiellStatus = SaksStatus.FERDIG,
                     hardDeleteOm = any(),
                 )

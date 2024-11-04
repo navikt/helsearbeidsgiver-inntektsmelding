@@ -73,31 +73,32 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
 
             coVerifySequence {
                 mockAgNotifikasjonKlient.opprettNySak(
-                    virksomhetsnummer = innkommendeMelding.orgnr.verdi,
+                    virksomhetsnummer = innkommendeMelding.forespoersel.orgnr,
                     grupperingsid = innkommendeMelding.forespoerselId.toString(),
                     merkelapp = NotifikasjonTekst.MERKELAPP,
                     lenke = "en-slags-url/im-dialog/${innkommendeMelding.forespoerselId}",
                     tittel = NotifikasjonTekst.sakTittel(innkommendeMelding.sykmeldt),
                     statusTekst = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
+                    tilleggsinfo = NotifikasjonTekst.sakTilleggsinfo(innkommendeMelding.forespoersel.sykmeldingsperioder),
                     initiellStatus = SaksStatus.UNDER_BEHANDLING,
                     hardDeleteOm = sakLevetid,
                 )
                 mockAgNotifikasjonKlient.opprettNyOppgave(
-                    virksomhetsnummer = innkommendeMelding.orgnr.verdi,
+                    virksomhetsnummer = innkommendeMelding.forespoersel.orgnr,
                     eksternId = innkommendeMelding.forespoerselId.toString(),
                     grupperingsid = innkommendeMelding.forespoerselId.toString(),
                     merkelapp = NotifikasjonTekst.MERKELAPP,
                     lenke = "en-slags-url/im-dialog/${innkommendeMelding.forespoerselId}",
                     tekst = NotifikasjonTekst.OPPGAVE_TEKST,
                     varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
-                    varslingInnhold = NotifikasjonTekst.oppgaveInnhold(innkommendeMelding.orgnr, innkommendeMelding.orgNavn),
+                    varslingInnhold = NotifikasjonTekst.oppgaveInnhold(innkommendeMelding.forespoersel.orgnr.let(::Orgnr), innkommendeMelding.orgNavn),
                     tidspunkt = null,
                     paaminnelse =
                         Paaminnelse(
                             tittel = "Påminnelse: ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
                             innhold =
                                 NotifikasjonTekst.paaminnelseInnhold(
-                                    innkommendeMelding.orgnr,
+                                    innkommendeMelding.forespoersel.orgnr.let(::Orgnr),
                                     innkommendeMelding.orgNavn,
                                     innkommendeMelding.forespoersel.sykmeldingsperioder,
                                 ),
@@ -259,7 +260,6 @@ fun innkommendeOpprettForespoerselSakOgOppgaveMelding(): OpprettForespoerselSakO
         eventName = EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED,
         transaksjonId = UUID.randomUUID(),
         forespoerselId = OpprettSakOgOppgaveMock.forespoerselId,
-        orgnr = OpprettSakOgOppgaveMock.orgnr,
         sykmeldt = OpprettSakOgOppgaveMock.person,
         orgNavn = OpprettSakOgOppgaveMock.orgNavn,
         skalHaPaaminnelse = true,
@@ -273,7 +273,6 @@ private fun OpprettForespoerselSakOgOppgaveMelding.toMap() =
         Key.DATA to
             mapOf(
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to orgnr.toJson(),
                 Key.SYKMELDT to sykmeldt.toJson(Person.serializer()),
                 Key.VIRKSOMHET to orgNavn.toJson(),
                 Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),

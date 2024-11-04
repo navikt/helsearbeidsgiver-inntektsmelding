@@ -8,12 +8,11 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIk
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.domene.Person
+import no.nav.helsearbeidsgiver.felles.utils.tilNorskFormat
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 import kotlin.time.Duration.Companion.days
 
@@ -52,6 +51,8 @@ object NotifikasjonTekst {
 
     fun sakTittel(sykmeldt: Person): String = "Inntektsmelding for ${sykmeldt.navn}: f. ${sykmeldt.fnr.lesFoedselsdato()}"
 
+    fun sakTilleggsinfo(sykmeldingsperioder: List<Periode>): String = "Sykmeldingsperiode ${sykmeldingsperioder.tilString()}"
+
     fun oppgaveInnhold(
         orgnr: Orgnr,
         orgNavn: String,
@@ -67,10 +68,10 @@ object NotifikasjonTekst {
     fun paaminnelseInnhold(
         orgnr: Orgnr,
         orgNavn: String,
-        sykmeldingsPerioder: List<Periode>,
+        sykmeldingsperioder: List<Periode>,
     ): String =
         listOf(
-            "Nav venter fortsatt på inntektsmelding for en av deres ansatte${sykmeldingsPerioder.tilString() ?: ""}.",
+            "Nav venter fortsatt på inntektsmelding for en av deres ansatte for periode: ${sykmeldingsperioder.tilString()}.",
             "Vi trenger inntektsmeldingen så snart som mulig,",
             "ellers kan vi ikke behandle søknaden om sykepenger.",
             "Logg inn på Min side – arbeidsgiver på Nav for å finne ut hvilken inntektsmelding det gjelder.",
@@ -83,6 +84,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
     inntektsmeldingTypeId: UUID,
     orgnr: Orgnr,
     sykmeldt: Person,
+    sykmeldingsperioder: List<Periode>,
     initiellStatus: SaksStatus = SaksStatus.UNDER_BEHANDLING,
 ): String {
     val statusTekst =
@@ -100,6 +102,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
                 lenke = lenke,
                 tittel = NotifikasjonTekst.sakTittel(sykmeldt),
                 statusTekst = statusTekst,
+                tilleggsinfo = NotifikasjonTekst.sakTilleggsinfo(sykmeldingsperioder),
                 initiellStatus = initiellStatus,
                 hardDeleteOm = sakLevetid,
             )
@@ -255,6 +258,13 @@ fun ArbeidsgiverNotifikasjonKlient.settOppgaveUtgaatt(
     }
 }
 
+fun List<Periode>.tilString(): String =
+    if (size < 2) {
+        "${first().fom.tilNorskFormat()} - ${first().tom.tilNorskFormat()}"
+    } else {
+        "${first().fom.tilNorskFormat()} - [...] - ${last().tom.tilNorskFormat()}"
+    }
+
 // Støtter d-nummer
 private fun Fnr.lesFoedselsdato(): String {
     val foersteSiffer = verdi.first().digitToInt()
@@ -264,15 +274,6 @@ private fun Fnr.lesFoedselsdato(): String {
         (foersteSiffer - 4).toString() + verdi.substring(1, 6)
     }
 }
-
-fun LocalDate.tilString(): String = format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
-
-fun List<Periode>.tilString(): String? =
-    when (size) {
-        0 -> null
-        1 -> " for periode: ${first().fom.tilString()} - ${first().tom.tilString()}"
-        else -> " for periode: ${first().fom.tilString()} - [...] - ${last().tom.tilString()}"
-    }
 
 private fun loggWarnIkkeFunnetEllerThrow(
     melding: String,

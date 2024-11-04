@@ -58,7 +58,9 @@ class ForespoerselMottattRiver : PriObjectRiver<Melding>() {
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    // TODO kan fjernes etter overgangsfase
                     Key.ORGNRUNDERENHET to orgnr.toJson(),
+                    // TODO kan fjernes etter overgangsfase
                     Key.FNR to fnr.toJson(),
                     Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
                     Key.FORESPOERSEL to forespoerselFraBro.toForespoersel().toJson(Forespoersel.serializer()),

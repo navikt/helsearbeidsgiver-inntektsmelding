@@ -29,7 +29,6 @@ data class OpprettForespoerselSakOgOppgaveMelding(
     val eventName: EventName,
     val transaksjonId: UUID,
     val forespoerselId: UUID,
-    val orgnr: Orgnr,
     val sykmeldt: Person,
     val orgNavn: String,
     val skalHaPaaminnelse: Boolean,
@@ -54,7 +53,6 @@ class OpprettForespoerselSakOgOppgaveRiver(
                 eventName = Key.EVENT_NAME.krev(EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED, EventName.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
-                orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), data),
                 sykmeldt = Key.SYKMELDT.les(Person.serializer(), data),
                 orgNavn = Key.VIRKSOMHET.les(String.serializer(), data),
                 skalHaPaaminnelse = Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), data),
@@ -69,15 +67,16 @@ class OpprettForespoerselSakOgOppgaveRiver(
             agNotifikasjonKlient.opprettSak(
                 lenke = lenke,
                 inntektsmeldingTypeId = forespoerselId,
-                orgnr = orgnr,
+                orgnr = forespoersel.orgnr.let(::Orgnr),
                 sykmeldt = sykmeldt,
+                sykmeldingsperioder = forespoersel.sykmeldingsperioder,
             )
 
         val oppgaveId =
             agNotifikasjonKlient.opprettOppgave(
                 lenke = lenke,
                 forespoerselId = forespoerselId,
-                orgnr = orgnr,
+                orgnr = forespoersel.orgnr.let(::Orgnr),
                 orgNavn = orgNavn,
                 skalHaPaaminnelse = skalHaPaaminnelse,
                 paaminnelseAktivert = paaminnelseToggle.oppgavePaaminnelseAktivert,

@@ -22,8 +22,6 @@ object Metrics {
 
     val dbSelvbestemtIm = databaseMetric("inntektsmelding", "selvbestemt_inntektsmelding")
 
-    val dbSelvbestemtSak = databaseMetric("notifikasjon", "selvbestemt_sak")
-
     val aaregRequest = requestMetric("Aareg")
 
     val altinnRequest = requestMetric("Altinn")

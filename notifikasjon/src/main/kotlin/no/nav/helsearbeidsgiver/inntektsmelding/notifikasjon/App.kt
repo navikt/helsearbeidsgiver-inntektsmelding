@@ -3,10 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
-import no.nav.helsearbeidsgiver.felles.db.exposed.Database
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FerdigstillForespoerselSakOgOppgaveRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FjernPaaminnelseRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettForespoerselSakOgOppgaveRiver
@@ -18,26 +15,11 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 private val logger = "im-notifikasjon".logger()
 
 fun main() {
-    val database = Database("NAIS_DATABASE_IM_NOTIFIKASJON_NOTIFIKASJON")
-
-    logger.info("Migrering starter...")
-    database.migrate()
-    logger.info("Migrering ferdig.")
-
-    val selvbestemtRepo = SelvbestemtRepo(database.db)
-
     RapidApplication
         .create(System.getenv())
         .createNotifikasjonService()
-        .createNotifikasjonRivers(
-            linkUrl = Env.linkUrl,
-            paaminnelseToggle = Env.paaminnelseToggle,
-            selvbestemtRepo = selvbestemtRepo,
-            agNotifikasjonKlient = buildClient(),
-        ).registerShutdownLifecycle {
-            logger.info("Stoppsignal mottatt, lukker databasetilkobling.")
-            database.dataSource.close()
-        }.start()
+        .createNotifikasjonRivers(Env.linkUrl, Env.paaminnelseToggle, buildClient())
+        .start()
 }
 
 fun RapidsConnection.createNotifikasjonService(): RapidsConnection =
@@ -51,7 +33,6 @@ fun RapidsConnection.createNotifikasjonService(): RapidsConnection =
 fun RapidsConnection.createNotifikasjonRivers(
     linkUrl: String,
     paaminnelseToggle: PaaminnelseToggle,
-    selvbestemtRepo: SelvbestemtRepo,
     agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
 ): RapidsConnection =
     also {
@@ -63,7 +44,7 @@ fun RapidsConnection.createNotifikasjonRivers(
         ).connect(this)
 
         logger.info("Starter ${OpprettSelvbestemtSakRiver::class.simpleName}...")
-        OpprettSelvbestemtSakRiver(linkUrl, selvbestemtRepo, agNotifikasjonKlient).connect(this)
+        OpprettSelvbestemtSakRiver(linkUrl, agNotifikasjonKlient).connect(this)
 
         logger.info("Starter ${FerdigstillForespoerselSakOgOppgaveRiver::class.simpleName}...")
         FerdigstillForespoerselSakOgOppgaveRiver(linkUrl, agNotifikasjonKlient).connect(this)

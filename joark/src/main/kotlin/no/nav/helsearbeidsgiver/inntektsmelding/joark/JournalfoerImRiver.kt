@@ -20,7 +20,6 @@ import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.time.LocalDate
@@ -74,7 +73,7 @@ class JournalfoerImRiver(
     }
 
     override fun JournalfoerImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        "Mottok melding med event '$eventName'. Sender behov '${BehovType.LAGRE_JOURNALPOST_ID}'.".also {
+        "Mottok melding med event '$eventName'.".also {
             logger.info(it)
             sikkerLogger.info("$it Innkommende melding:\n${json.toPretty()}")
         }
@@ -83,7 +82,6 @@ class JournalfoerImRiver(
 
         return mapOf(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
-            Key.BEHOV to BehovType.LAGRE_JOURNALPOST_ID.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
@@ -91,12 +89,8 @@ class JournalfoerImRiver(
             Key.INNSENDING_ID to json[Key.INNSENDING_ID],
         ).mapValuesNotNull { it }
             .also {
-                MdcUtils.withLogFields(
-                    Log.behov(BehovType.LAGRE_JOURNALPOST_ID),
-                ) {
-                    logger.info("Publiserer behov '${BehovType.LAGRE_JOURNALPOST_ID}' med journalpost-ID '$journalpostId'.")
-                    sikkerLogger.info("Publiserer behov:\n${it.toPretty()}")
-                }
+                logger.info("Publiserte melding med event '${EventName.INNTEKTSMELDING_JOURNALFOERT}' og journalpost-ID '$journalpostId'.")
+                sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
             }
     }
 

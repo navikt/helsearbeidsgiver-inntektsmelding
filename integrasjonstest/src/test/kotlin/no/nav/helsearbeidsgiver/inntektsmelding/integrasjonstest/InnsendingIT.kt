@@ -12,7 +12,6 @@ import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
@@ -93,7 +92,6 @@ class InnsendingIT : EndToEndTest() {
 
         messages
             .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
-            .filter(BehovType.LAGRE_JOURNALPOST_ID)
             .firstAsMap()
             .also {
                 it shouldContainKey Key.INNTEKTSMELDING

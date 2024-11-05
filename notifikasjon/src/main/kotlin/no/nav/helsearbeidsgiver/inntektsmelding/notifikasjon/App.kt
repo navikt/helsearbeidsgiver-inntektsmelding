@@ -72,7 +72,10 @@ fun RapidsConnection.createNotifikasjonRivers(
         UtgaattForespoerselRiver(linkUrl, agNotifikasjonKlient).connect(this)
 
         logger.info("Starter ${FjernPaaminnelseRiver::class.simpleName}...")
-        FjernPaaminnelseRiver(agNotifikasjonKlient).connect(this)
+        FjernPaaminnelseRiver(
+            agNotifikasjonKlient = agNotifikasjonKlient,
+            paaminnelseToggle = paaminnelseToggle,
+        ).connect(this)
     }
 
 private fun buildClient(): ArbeidsgiverNotifikasjonKlient {

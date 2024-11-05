@@ -82,7 +82,7 @@ class JournalfoerImRiver(
         val journalpostId = opprettOgFerdigstillJournalpost(transaksjonId, inntektsmelding, bestemmendeFravaersdag)
 
         return mapOf(
-            Key.EVENT_NAME to eventName.toJson(),
+            Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
             Key.BEHOV to BehovType.LAGRE_JOURNALPOST_ID.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.JOURNALPOST_ID to journalpostId.toJson(),

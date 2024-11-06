@@ -18,7 +18,6 @@ abstract class ContainerTest {
     val redisContainer = RedisContainer(DockerImageName.parse("redis:7"))
     val postgresContainerOne = postgresContainer()
     val postgresContainerTwo = postgresContainer()
-    val postgresContainerThree = postgresContainer()
 
     @BeforeAll
     fun startContainers() {
@@ -43,7 +42,6 @@ abstract class ContainerTest {
         println("Starter Postgres...")
         postgresContainerOne.start()
         postgresContainerTwo.start()
-        postgresContainerThree.start()
 
         println("Containerne er klare!")
     }
@@ -54,7 +52,6 @@ abstract class ContainerTest {
         kafkaContainer.stop()
         postgresContainerOne.stop()
         postgresContainerTwo.stop()
-        postgresContainerThree.stop()
         redisContainer.stop()
         println("Containere er stoppet!")
     }

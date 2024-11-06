@@ -24,7 +24,6 @@ enum class BehovType {
     OPPRETT_SELVBESTEMT_SAK,
 
     // Asynkrone endringer
-    LAGRE_FORESPOERSEL, // TODO slett etter databasen er flyttet
     LAGRE_JOURNALPOST_ID, // kan erstattes av event
 
     // Asynkrone endringer, men brukt til å prøve igjen ved feil

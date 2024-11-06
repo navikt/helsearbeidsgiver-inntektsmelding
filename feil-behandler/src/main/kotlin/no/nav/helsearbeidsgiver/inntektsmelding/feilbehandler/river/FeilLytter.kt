@@ -32,7 +32,6 @@ class FeilLytter(
     private val sikkerLogger = sikkerLogger()
     val behovSomHaandteres =
         listOf(
-            BehovType.LAGRE_FORESPOERSEL,
             BehovType.JOURNALFOER,
             BehovType.LAGRE_JOURNALPOST_ID,
         )

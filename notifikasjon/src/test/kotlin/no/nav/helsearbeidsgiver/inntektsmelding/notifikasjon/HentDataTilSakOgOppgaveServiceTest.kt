@@ -46,26 +46,25 @@ class HentDataTilSakOgOppgaveServiceTest :
 
             testRapid.sendJson(Mock.steg0())
 
-            testRapid.inspektør.size shouldBeExactly 2
-            testRapid.firstMessage().lesBehov() shouldBe BehovType.LAGRE_FORESPOERSEL
-            testRapid.message(1).lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
+            testRapid.inspektør.size shouldBeExactly 1
+            testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
 
             testRapid.sendJson(Mock.steg1())
 
-            testRapid.inspektør.size shouldBeExactly 3
-            testRapid.message(2).lesBehov() shouldBe BehovType.HENT_PERSONER
+            testRapid.inspektør.size shouldBeExactly 2
+            testRapid.message(1).lesBehov() shouldBe BehovType.HENT_PERSONER
 
             testRapid.sendJson(Mock.steg2())
 
-            testRapid.inspektør.size shouldBeExactly 4
-            testRapid.message(3).toMap() shouldContainExactly
+            testRapid.inspektør.size shouldBeExactly 3
+            testRapid.message(2).toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED.toJson(),
                     Key.UUID to Mock.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                            Key.ORGNRUNDERENHET to Mock.forespoersel.orgnr.toJson(),
+                            Key.FORESPOERSEL to Mock.forespoersel.toJson(Forespoersel.serializer()),
                             Key.SYKMELDT to
                                 Mock.personer.values
                                     .first()
@@ -75,7 +74,6 @@ class HentDataTilSakOgOppgaveServiceTest :
                                     .first()
                                     .toJson(),
                             Key.SKAL_HA_PAAMINNELSE to Mock.SKAL_HA_PAAMINNELSE.toJson(Boolean.serializer()),
-                            Key.FORESPOERSEL to Mock.forespoersel.toJson(Forespoersel.serializer()),
                         ).toJson(),
                 )
         }
@@ -97,13 +95,12 @@ class HentDataTilSakOgOppgaveServiceTest :
 
             testRapid.sendJson(Mock.steg0())
 
-            testRapid.inspektør.size shouldBeExactly 2
-            testRapid.firstMessage().lesBehov() shouldBe BehovType.LAGRE_FORESPOERSEL
-            testRapid.message(1).lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
+            testRapid.inspektør.size shouldBeExactly 1
+            testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
 
             testRapid.sendJson(fail.tilMelding())
 
-            testRapid.inspektør.size shouldBeExactly 2
+            testRapid.inspektør.size shouldBeExactly 1
         }
     })
 
@@ -122,8 +119,8 @@ private object Mock {
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.SKAL_HA_PAAMINNELSE to SKAL_HA_PAAMINNELSE.toJson(Boolean.serializer()),
                     Key.FORESPOERSEL to forespoersel.toJson(Forespoersel.serializer()),
+                    Key.SKAL_HA_PAAMINNELSE to SKAL_HA_PAAMINNELSE.toJson(Boolean.serializer()),
                 ).toJson(),
         )
 

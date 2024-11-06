@@ -38,7 +38,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createHentEksternImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createSpinnService
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrregRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDbRivers
@@ -169,7 +168,6 @@ abstract class EndToEndTest : ContainerTest() {
 
     val imRepository by lazy { InntektsmeldingRepository(inntektsmeldingDatabase.db) }
     val selvbestemtImRepo by lazy { SelvbestemtImRepo(inntektsmeldingDatabase.db) }
-    private val forespoerselRepository by lazy { ForespoerselRepository(inntektsmeldingDatabase.db) }
 
     val bakgrunnsjobbRepository by lazy { PostgresBakgrunnsjobbRepository(bakgrunnsjobbDatabase.dataSource) }
 
@@ -230,7 +228,7 @@ abstract class EndToEndTest : ContainerTest() {
             createAaregRiver(aaregClient)
             createAltinn(altinnClient)
             createBrregRiver(brregClient, false)
-            createDbRivers(imRepository, selvbestemtImRepo, forespoerselRepository)
+            createDbRivers(imRepository, selvbestemtImRepo)
             createDistribusjonRiver(mockk(relaxed = true))
             createForespoerselBesvartRivers()
             createForespoerselMottattRiver()

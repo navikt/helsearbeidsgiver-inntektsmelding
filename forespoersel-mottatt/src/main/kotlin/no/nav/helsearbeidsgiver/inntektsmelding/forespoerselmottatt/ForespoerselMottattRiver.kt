@@ -18,18 +18,14 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 data class Melding(
     val notisType: Pri.NotisType,
     val transaksjonId: UUID,
     val forespoerselId: UUID,
-    val orgnr: Orgnr,
-    val fnr: Fnr,
-    val skalHaPaaminnelse: Boolean,
     val forespoerselFraBro: ForespoerselFraBro,
+    val skalHaPaaminnelse: Boolean,
 )
 
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */
@@ -42,10 +38,8 @@ class ForespoerselMottattRiver : PriObjectRiver<Melding>() {
             notisType = Pri.Key.NOTIS.krev(Pri.NotisType.FORESPØRSEL_MOTTATT, Pri.NotisType.serializer(), json),
             transaksjonId = UUID.randomUUID(),
             forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, json),
-            orgnr = Pri.Key.ORGNR.les(Orgnr.serializer(), json),
-            fnr = Pri.Key.FNR.les(Fnr.serializer(), json),
-            skalHaPaaminnelse = Pri.Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), json),
             forespoerselFraBro = Pri.Key.FORESPOERSEL.les(ForespoerselFraBro.serializer(), json),
+            skalHaPaaminnelse = Pri.Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), json),
         )
 
     override fun Melding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
@@ -58,12 +52,8 @@ class ForespoerselMottattRiver : PriObjectRiver<Melding>() {
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    // TODO kan fjernes etter overgangsfase
-                    Key.ORGNRUNDERENHET to orgnr.toJson(),
-                    // TODO kan fjernes etter overgangsfase
-                    Key.FNR to fnr.toJson(),
-                    Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
                     Key.FORESPOERSEL to forespoerselFraBro.toForespoersel().toJson(Forespoersel.serializer()),
+                    Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
                 ).toJson(),
         )
     }

@@ -23,9 +23,6 @@ enum class BehovType {
     LAGRE_SELVBESTEMT_IM,
     OPPRETT_SELVBESTEMT_SAK,
 
-    // Asynkrone endringer
-    LAGRE_FORESPOERSEL, // TODO slett etter databasen er flyttet
-
     // Asynkrone endringer, men brukt til å prøve igjen ved feil
     JOURNALFOER,
     DISTRIBUER_IM,

@@ -58,6 +58,9 @@ spec:
   gcp:
     sqlInstances:
       - type: POSTGRES_14
+        {{#if database.cascadingDelete}}
+        cascadingDelete: {{ database.cascadingDelete }}
+        {{/if}}
         tier: {{ database.tier }}
         databases:
           - name: {{ database.name }}
@@ -73,9 +76,10 @@ spec:
   {{/if}}
   {{#if envFrom}}
   envFrom:
-  {{# each envFrom as |item| }}
+    {{# each envFrom as |item| }}
     - {{ item.type }}: {{ item.name }}
-  {{/each}}{{/if}}
+    {{/each}}
+  {{/if}}
   env:
     - name: KAFKA_CONSUMER_GROUP_ID
       value: helsearbeidsgiver-im-{{app}}-v1

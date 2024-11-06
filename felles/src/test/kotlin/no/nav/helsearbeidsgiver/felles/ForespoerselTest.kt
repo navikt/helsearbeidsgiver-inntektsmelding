@@ -5,7 +5,10 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
+import no.nav.helsearbeidsgiver.felles.domene.ForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
+import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.februar
@@ -97,6 +100,25 @@ class ForespoerselTest :
                     )
 
                 forespoersel.forslagBestemmendeFravaersdag() shouldBe 5.januar
+            }
+
+            test("ignorer egenmeldinger ved beregning av bestemmende fraværsdag dersom agp ikke er påkrevd") {
+                val forespoersel =
+                    mockForespoersel().copy(
+                        orgnr = "555898023",
+                        sykmeldingsperioder = listOf(7.mars til 31.mars),
+                        egenmeldingsperioder = listOf(5.mars til 6.mars),
+                        bestemmendeFravaersdager = mapOf("444707112" to 14.april),
+                        forespurtData =
+                            mockForespurtData().copy(
+                                arbeidsgiverperiode =
+                                    ForespurtData.Arbeidsgiverperiode(
+                                        paakrevd = false,
+                                    ),
+                            ),
+                    )
+
+                forespoersel.forslagBestemmendeFravaersdag() shouldBe 7.mars
             }
         }
 
@@ -216,6 +238,25 @@ class ForespoerselTest :
                     )
 
                 forespoersel.forslagInntektsdato() shouldBe 2.februar
+            }
+
+            test("ignorer egenmeldinger ved beregning av bestemmende fraværsdag dersom agp ikke er påkrevd") {
+                val forespoersel =
+                    mockForespoersel().copy(
+                        orgnr = "333848343",
+                        sykmeldingsperioder = listOf(8.august til 28.august),
+                        egenmeldingsperioder = listOf(2.august til 7.august),
+                        bestemmendeFravaersdager = emptyMap(),
+                        forespurtData =
+                            mockForespurtData().copy(
+                                arbeidsgiverperiode =
+                                    ForespurtData.Arbeidsgiverperiode(
+                                        paakrevd = false,
+                                    ),
+                            ),
+                    )
+
+                forespoersel.forslagInntektsdato() shouldBe 8.august
             }
         }
 

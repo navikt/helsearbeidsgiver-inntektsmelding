@@ -38,21 +38,24 @@ data class Forespoersel(
         }
 
     private fun brukForslagEllerUtled(forslag: LocalDate?): LocalDate {
+        val gyldigeEgenmeldinger =
+            if (forespurtData.arbeidsgiverperiode.paakrevd) {
+                egenmeldingsperioder
+            } else {
+                emptyList()
+            }
+
         val utledet =
             bestemmendeFravaersdag(
                 arbeidsgiverperioder = emptyList(),
-                sykefravaersperioder = egenmeldingsperioder.plus(sykmeldingsperioder).sortedBy { it.fom },
+                sykefravaersperioder = gyldigeEgenmeldinger.plus(sykmeldingsperioder).sortedBy { it.fom },
             )
 
-        return if (forslag == null) {
-            utledet
-        } else {
+        return when {
+            forslag == null -> utledet
             // Spleis hensyntar ikke sykmeldtes rapporterte egenmeldinger når de utleder forslaget sitt
-            if (egenmeldingsperioder.isEmpty()) {
-                forslag
-            } else {
-                minOf(forslag, utledet)
-            }
+            gyldigeEgenmeldinger.isEmpty() -> forslag
+            else -> minOf(forslag, utledet)
         }
     }
 }

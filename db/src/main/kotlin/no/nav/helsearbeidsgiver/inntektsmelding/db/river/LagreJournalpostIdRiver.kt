@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
@@ -25,7 +24,6 @@ import java.util.UUID
 
 data class LagreJournalpostIdMelding(
     val eventName: EventName,
-    val behovType: BehovType,
     val transaksjonId: UUID,
     val inntektsmelding: Inntektsmelding,
     val journalpostId: String,
@@ -40,12 +38,12 @@ class LagreJournalpostIdRiver(
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): LagreJournalpostIdMelding? =
+        // TODO legg til Key.BEHOV etter overgangsfase
         if (setOf(Key.DATA, Key.FAIL).any(json::containsKey)) {
             null
         } else {
             LagreJournalpostIdMelding(
-                eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
-                behovType = Key.BEHOV.krev(BehovType.LAGRE_JOURNALPOST_ID, BehovType.serializer(), json),
+                eventName = Key.EVENT_NAME.krev(EventName.INNTEKTSMELDING_JOURNALFOERT, EventName.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
                 inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), json),
                 journalpostId = Key.JOURNALPOST_ID.les(String.serializer(), json),
@@ -119,7 +117,6 @@ class LagreJournalpostIdRiver(
         mapOf(
             Log.klasse(this@LagreJournalpostIdRiver),
             Log.event(eventName),
-            Log.behov(behovType),
             Log.transaksjonId(transaksjonId),
             when (inntektsmelding.type) {
                 is Inntektsmelding.Type.Forespurt -> Log.forespoerselId(inntektsmelding.type.id)

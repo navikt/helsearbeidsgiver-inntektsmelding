@@ -101,9 +101,11 @@ class FeilLytter(
 
                 // Feil i flyt som tidligere har opplevd annen type feil
                 else -> {
-                    sikkerLogger.info("ID $jobbId finnes fra før med annen utløsende melding. Lagrer en ny jobb.")
                     val nyTransaksjonId = UUID.randomUUID()
                     val utloesendeMeldingMedNyTransaksjonId = utloesendeMelding.plus(Key.UUID to nyTransaksjonId.toJson())
+
+                    sikkerLogger.info("ID $jobbId finnes fra før med annen utløsende melding. Lagrer en ny jobb på ID '$nyTransaksjonId'.")
+
                     lagre(
                         Bakgrunnsjobb(
                             uuid = nyTransaksjonId,

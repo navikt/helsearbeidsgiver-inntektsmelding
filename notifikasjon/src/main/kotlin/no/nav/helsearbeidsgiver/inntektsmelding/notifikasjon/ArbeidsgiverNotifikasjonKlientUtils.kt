@@ -28,6 +28,7 @@ object NotifikasjonTekst {
     @Deprecated("Bruk NotifikasjonTekst.MERKELAPP. Utdatert siden 21.05.2024.")
     const val MERKELAPP_GAMMEL = "Inntektsmelding"
     const val OPPGAVE_TEKST = "Innsending av inntektsmelding"
+    const val PAAMINNELSE_TITTEL = "Påminnelse – Vi mangler inntektsmelding for en av deres ansatte"
     const val STATUS_TEKST_UNDER_BEHANDLING = "Nav trenger inntektsmelding"
     const val STATUS_TEKST_FERDIG = "Mottatt – Se kvittering eller korriger inntektsmelding"
     const val STATUS_TEKST_AVBRUTT = "Avbrutt av Nav"
@@ -195,7 +196,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
                 paaminnelse =
                     if (skalHaPaaminnelse && paaminnelseAktivert) {
                         Paaminnelse(
-                            tittel = "Påminnelse – ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
+                            tittel = NotifikasjonTekst.PAAMINNELSE_TITTEL,
                             innhold = NotifikasjonTekst.paaminnelseInnhold(orgnr, orgNavn, sykmeldingsPerioder),
                             tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveopprettelseOgPaaminnelse,
                         ).also { logger.info("Satte påminnelse for forespørsel $forespoerselId") }

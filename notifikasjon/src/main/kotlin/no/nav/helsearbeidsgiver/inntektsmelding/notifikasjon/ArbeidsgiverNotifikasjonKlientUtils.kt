@@ -56,9 +56,10 @@ object NotifikasjonTekst {
     fun oppgaveInnhold(
         orgnr: Orgnr,
         orgNavn: String,
+        sykmeldingsperioder: List<Periode>,
     ): String =
         listOf(
-            "$orgNavn - orgnr $orgnr: En av dine ansatte har søkt om sykepenger",
+            "$orgNavn - org.nr. $orgnr: En av dine ansatte har søkt om sykepenger for perioden ${sykmeldingsperioder.tilString()}",
             "og vi trenger inntektsmelding for å behandle søknaden.",
             "Logg inn på Min side – arbeidsgiver hos Nav.",
             "Hvis dere sender inntektsmelding via lønnssystem kan dere fortsatt gjøre dette,",
@@ -71,11 +72,10 @@ object NotifikasjonTekst {
         sykmeldingsperioder: List<Periode>,
     ): String =
         listOf(
-            "Nav venter fortsatt på inntektsmelding for en av deres ansatte for periode: ${sykmeldingsperioder.tilString()}.",
-            "Vi trenger inntektsmeldingen så snart som mulig,",
-            "ellers kan vi ikke behandle søknaden om sykepenger.",
-            "Logg inn på Min side – arbeidsgiver på Nav for å finne ut hvilken inntektsmelding det gjelder.",
-            "Gjelder $orgNavn – orgnr $orgnr.",
+            "Nav har ennå ikke mottatt inntektsmeldingen for en av deres ansatte for perioden ${sykmeldingsperioder.tilString()}.",
+            "For at vi skal kunne behandle søknaden om sykepenger, må inntektsmeldingen sendes inn så snart som mulig.",
+            "Vennligst logg inn på Min side – arbeidsgiver hos Nav for å se hvilken inntektsmelding det gjelder.",
+            "Arbeidsgiver: $orgNavn (org.nr. $orgnr).",
         ).joinToString(separator = " ")
 }
 
@@ -190,12 +190,12 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
                 lenke = lenke,
                 tekst = NotifikasjonTekst.OPPGAVE_TEKST,
                 varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
-                varslingInnhold = NotifikasjonTekst.oppgaveInnhold(orgnr, orgNavn),
+                varslingInnhold = NotifikasjonTekst.oppgaveInnhold(orgnr, orgNavn, sykmeldingsPerioder),
                 tidspunkt = null,
                 paaminnelse =
                     if (skalHaPaaminnelse && paaminnelseAktivert) {
                         Paaminnelse(
-                            tittel = "Påminnelse: ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
+                            tittel = "Påminnelse – ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
                             innhold = NotifikasjonTekst.paaminnelseInnhold(orgnr, orgNavn, sykmeldingsPerioder),
                             tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveopprettelseOgPaaminnelse,
                         ).also { logger.info("Satte påminnelse for forespørsel $forespoerselId") }

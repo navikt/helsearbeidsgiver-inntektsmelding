@@ -91,11 +91,16 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                     lenke = "en-slags-url/im-dialog/${innkommendeMelding.forespoerselId}",
                     tekst = NotifikasjonTekst.OPPGAVE_TEKST,
                     varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
-                    varslingInnhold = NotifikasjonTekst.oppgaveInnhold(innkommendeMelding.forespoersel.orgnr.let(::Orgnr), innkommendeMelding.orgNavn),
+                    varslingInnhold =
+                        NotifikasjonTekst.oppgaveInnhold(
+                            innkommendeMelding.forespoersel.orgnr.let(::Orgnr),
+                            innkommendeMelding.orgNavn,
+                            innkommendeMelding.forespoersel.sykmeldingsperioder,
+                        ),
                     tidspunkt = null,
                     paaminnelse =
                         Paaminnelse(
-                            tittel = "Påminnelse: ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
+                            tittel = "Påminnelse – ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
                             innhold =
                                 NotifikasjonTekst.paaminnelseInnhold(
                                     innkommendeMelding.forespoersel.orgnr.let(::Orgnr),

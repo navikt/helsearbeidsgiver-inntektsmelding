@@ -2,11 +2,12 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.json.toPretty
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
@@ -34,17 +35,60 @@ class UtgaattForespoerselRiver(
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): UtgaattForespoerselMelding? =
-        if (setOf(Key.BEHOV, Key.FAIL).any(json::containsKey)) {
+        // Obs!: Ignorerer ikke fail blankt så lenge vi vil sette sak og oppgave til utgått for forespørsler som ikke ble funnet.
+        if (setOf(Key.BEHOV, Key.DATA).any(json::containsKey)) {
             null
         } else {
-            UtgaattForespoerselMelding(
-                eventName = Key.EVENT_NAME.krev(EventName.FORESPOERSEL_FORKASTET, EventName.serializer(), json),
-                transaksjonId = Key.UUID.les(UuidSerializer, json),
-                forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json),
-            )
+            val eventName = Key.EVENT_NAME.les(EventName.serializer(), json)
+            val transaksjonId = Key.UUID.les(UuidSerializer, json)
+
+            when (eventName) {
+                // Forespørsler som ble forkastet nylig matcher her
+                EventName.FORESPOERSEL_FORKASTET -> {
+                    if (Key.FAIL in json) {
+                        null
+                    } else {
+                        UtgaattForespoerselMelding(
+                            eventName = eventName,
+                            transaksjonId = transaksjonId,
+                            forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json),
+                        )
+                    }
+                }
+
+                // Forespørsler som ble forkastet for lenge siden matcher her dersom noen prøver å hente dem
+                EventName.TRENGER_REQUESTED -> {
+                    val fail = Key.FAIL.les(Fail.serializer(), json)
+                    val behovType = Key.BEHOV.les(BehovType.serializer(), fail.utloesendeMelding.toMap())
+
+                    if (
+                        behovType != BehovType.HENT_TRENGER_IM ||
+                        fail.feilmelding != "Klarte ikke hente forespørsel. Feilet med kode 'FORESPOERSEL_IKKE_FUNNET'."
+                    ) {
+                        null
+                    } else {
+                        val data =
+                            fail.utloesendeMelding
+                                .toMap()[Key.DATA]
+                                ?.toMap()
+                                .orEmpty()
+                        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data)
+
+                        "Setter sak og oppgave til utgått for forespørsel '$forespoerselId' som ikke ble funnet.".also {
+                            logger.info(it)
+                            sikkerLogger.info(it)
+                        }
+
+                        UtgaattForespoerselMelding(eventName, transaksjonId, forespoerselId)
+                    }
+                }
+
+                // Alle andre eventer ignoreres
+                else -> null
+            }
         }
 
-    override fun UtgaattForespoerselMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
+    override fun UtgaattForespoerselMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok melding med event '$eventName'.")
         sikkerLogger.info("Mottok melding:\n${json.toPretty()}")
 
@@ -55,8 +99,8 @@ class UtgaattForespoerselRiver(
 
         return mapOf(
             Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_UTGAATT.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.UUID to transaksjonId.toJson(),
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
     }
 

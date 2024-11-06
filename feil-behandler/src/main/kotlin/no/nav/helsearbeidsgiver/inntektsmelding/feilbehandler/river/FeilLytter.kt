@@ -34,7 +34,6 @@ class FeilLytter(
         listOf(
             BehovType.LAGRE_FORESPOERSEL,
             BehovType.JOURNALFOER,
-            BehovType.LAGRE_JOURNALPOST_ID,
         )
     val eventerSomHaandteres =
         listOf(

@@ -73,7 +73,7 @@ class FeilLytterTest :
         }
 
         test("skal håndtere feil uten forespørselId") {
-            val utloesendeMelding = utloesendeMelding(BehovType.LAGRE_JOURNALPOST_ID).minus(Key.FORESPOERSEL_ID)
+            val utloesendeMelding = utloesendeMelding(BehovType.JOURNALFOER).minus(Key.FORESPOERSEL_ID)
             handler.behovSkalHaandteres(utloesendeMelding) shouldBe true
         }
 
@@ -130,7 +130,7 @@ class FeilLytterTest :
             repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 1
             // nå kjører bakgrunnsjobb, plukker opp feilen og rekjører - det går fint, så feilen kommer ikke på nytt.
             // Istedet feiler neste steg - nytt behov fra samme transaksjon
-            val feilmeldingLagre = lagRapidFeilmelding(BehovType.LAGRE_JOURNALPOST_ID, transaksjonId)
+            val feilmeldingLagre = lagRapidFeilmelding(BehovType.LAGRE_FORESPOERSEL, transaksjonId)
             rapid.sendTestMessage(feilmeldingLagre)
             // status på gammel jobb blir ikke oppdatert i denne testen..
             repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 2
@@ -139,7 +139,7 @@ class FeilLytterTest :
             val nyTransaksjonId = Key.UUID.les(UuidSerializer, Json.parseToJsonElement(utloesendeMelding).toMap())
             transaksjonId shouldNotBeEqual nyTransaksjonId
 
-            val nyFeilmeldingLagre = lagRapidFeilmelding(BehovType.LAGRE_JOURNALPOST_ID, nyTransaksjonId)
+            val nyFeilmeldingLagre = lagRapidFeilmelding(BehovType.LAGRE_FORESPOERSEL, nyTransaksjonId)
             rapid.sendTestMessage(nyFeilmeldingLagre) // !! ny tx, ikke samme igjen!
 
             // Bakgrunnsjobben har blitt oppdatert og går til status FEILET..
@@ -245,7 +245,7 @@ class FeilLytterTest :
     })
 
 fun lagRapidFeilmelding(
-    behovType: BehovType = BehovType.LAGRE_JOURNALPOST_ID,
+    behovType: BehovType = BehovType.JOURNALFOER,
     transaksjonId: UUID = UUID.randomUUID(),
 ): String {
     val eventName = EventName.INNTEKTSMELDING_MOTTATT

@@ -8,7 +8,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.hag.utils.bakgrunnsjobb.Bakgrunnsjobb
 import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbRepository
 import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbStatus
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -30,19 +29,19 @@ class FeilLytter(
     private val jobbType = FeilProsessor.JOB_TYPE
 
     private val sikkerLogger = sikkerLogger()
-    val behovSomHaandteres =
-        listOf(
-            BehovType.LAGRE_FORESPOERSEL,
-            BehovType.JOURNALFOER,
-        )
-    val eventerSomHaandteres =
+
+    private val eventerSomHaandteres =
         listOf(
             EventName.FORESPOERSEL_MOTTATT,
             EventName.FORESPOERSEL_BESVART,
+            EventName.FORESPOERSEL_FORKASTET,
+            EventName.FORESPOERSEL_KASTET_TIL_INFOTRYGD,
             EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED,
             EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
+            EventName.INNTEKTSMELDING_MOTTATT,
             EventName.INNTEKTSMELDING_JOURNALFOERT,
             EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET,
+            EventName.SELVBESTEMT_IM_LAGRET,
         )
 
     init {
@@ -60,28 +59,49 @@ class FeilLytter(
         context: MessageContext,
     ) {
         sikkerLogger.info("Mottok feil: ${packet.toJson().parseJson().toPretty()}")
-        val fail = packet.toJson().parseJson().toFailOrNull()
+        val fail =
+            packet
+                .toJson()
+                .parseJson()
+                .toMap()[Key.FAIL]
+                ?.runCatching {
+                    fromJson(Fail.serializer())
+                }?.getOrNull()
+
         if (fail == null) {
             sikkerLogger.warn("Kunne ikke parse feil-objekt, ignorerer...")
             return
         }
 
         val utloesendeMelding = fail.utloesendeMelding.toMap()
-        if (behovSkalHaandteres(utloesendeMelding) || eventSkalHaandteres(utloesendeMelding)) {
-            // slå opp transaksjonID. Hvis den finnes, kan det være en annen feilende melding i samme transaksjon (forskjelig behov): Lagre i så fall
-            // med egen id. Denne id vil så sendes med som ny transaksjonID ved rekjøring..
+        if (eventSkalHaandteres(utloesendeMelding)) {
+            // slå opp transaksjonID. Hvis den finnes, kan det være en annen feilende melding i samme transaksjon: Lagre i så fall
+            // med egen id. Denne id vil så sendes med som ny transaksjonID ved rekjøring.
             val jobbId = fail.transaksjonId
             val eksisterendeJobb = repository.getById(jobbId)
-            if (eksisterendeJobb != null) {
-                val uliktBehov =
-                    Key.BEHOV in utloesendeMelding &&
-                        utloesendeMelding[Key.BEHOV] != eksisterendeJobb.data.parseJson().toMap()[Key.BEHOV]
-                val ulikEvent =
-                    Key.EVENT_NAME in utloesendeMelding &&
-                        utloesendeMelding[Key.EVENT_NAME] != eksisterendeJobb.data.parseJson().toMap()[Key.EVENT_NAME]
 
-                if (uliktBehov || ulikEvent) {
-                    sikkerLogger.info("ID $jobbId finnes fra før med annet behov/event. Lagrer en ny jobb.")
+            when {
+                // Første gang denne flyten feiler
+                eksisterendeJobb == null -> {
+                    sikkerLogger.info("Lagrer mottatt pakke!")
+                    lagre(
+                        Bakgrunnsjobb(
+                            uuid = fail.transaksjonId,
+                            type = jobbType,
+                            data = fail.utloesendeMelding.toString(),
+                            maksAntallForsoek = 10,
+                        ),
+                    )
+                }
+
+                // Samme feil har inntruffet flere ganger i samme flyt
+                utloesendeMelding == eksisterendeJobb.data.parseJson().toMap() -> {
+                    oppdater(eksisterendeJobb)
+                }
+
+                // Feil i flyt som tidligere har opplevd annen type feil
+                else -> {
+                    sikkerLogger.info("ID $jobbId finnes fra før med annen utløsende melding. Lagrer en ny jobb.")
                     val nyTransaksjonId = UUID.randomUUID()
                     val utloesendeMeldingMedNyTransaksjonId = utloesendeMelding.plus(Key.UUID to nyTransaksjonId.toJson())
                     lagre(
@@ -92,19 +112,7 @@ class FeilLytter(
                             maksAntallForsoek = 10,
                         ),
                     )
-                } else {
-                    oppdater(eksisterendeJobb)
                 }
-            } else {
-                sikkerLogger.info("Lagrer mottatt pakke!")
-                val jobb =
-                    Bakgrunnsjobb(
-                        uuid = fail.transaksjonId,
-                        type = jobbType,
-                        data = fail.utloesendeMelding.toString(),
-                        maksAntallForsoek = 10,
-                    )
-                lagre(jobb)
             }
         }
     }
@@ -135,23 +143,10 @@ class FeilLytter(
         }
     }
 
-    fun behovSkalHaandteres(utloesendeMelding: Map<Key, JsonElement>): Boolean {
-        val behovFraMelding = utloesendeMelding[Key.BEHOV]?.fromJson(BehovType.serializer())
-        val skalHaandteres = behovSomHaandteres.contains(behovFraMelding)
-        sikkerLogger.info("Behov: $behovFraMelding skal håndteres: $skalHaandteres")
-        return skalHaandteres
-    }
-
-    fun eventSkalHaandteres(utloesendeMelding: Map<Key, JsonElement>): Boolean {
+    private fun eventSkalHaandteres(utloesendeMelding: Map<Key, JsonElement>): Boolean {
         val eventFraMelding = utloesendeMelding[Key.EVENT_NAME]?.fromJson(EventName.serializer())
         val skalHaandteres = eventerSomHaandteres.contains(eventFraMelding)
         sikkerLogger.info("Event: $eventFraMelding skal håndteres: $skalHaandteres")
         return skalHaandteres
     }
 }
-
-fun JsonElement.toFailOrNull(): Fail? =
-    toMap()[Key.FAIL]
-        ?.runCatching {
-            fromJson(Fail.serializer())
-        }?.getOrNull()

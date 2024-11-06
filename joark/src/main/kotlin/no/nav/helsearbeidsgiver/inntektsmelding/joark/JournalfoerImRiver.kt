@@ -5,7 +5,6 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender
 import no.nav.helsearbeidsgiver.dokarkiv.domene.GjelderPerson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -38,12 +37,8 @@ class JournalfoerImRiver(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun les(json: Map<Key, JsonElement>): JournalfoerImMelding? {
-        val behovType = Key.BEHOV.lesOrNull(BehovType.serializer(), json)
-        return if (
-            setOf(Key.DATA, Key.FAIL).any(json::containsKey) ||
-            (behovType != null && behovType != BehovType.JOURNALFOER)
-        ) {
+    override fun les(json: Map<Key, JsonElement>): JournalfoerImMelding? =
+        if (setOf(Key.BEHOV, Key.DATA, Key.FAIL).any(json::containsKey)) {
             null
         } else {
             val eventName = Key.EVENT_NAME.les(EventName.serializer(), json)
@@ -70,7 +65,6 @@ class JournalfoerImRiver(
                     null
             }
         }
-    }
 
     override fun JournalfoerImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         "Mottok melding med event '$eventName'.".also {
@@ -104,11 +98,7 @@ class JournalfoerImRiver(
                 event = eventName,
                 transaksjonId = transaksjonId,
                 forespoerselId = null,
-                utloesendeMelding =
-                    json
-                        .plus(
-                            Key.BEHOV to BehovType.JOURNALFOER.toJson(),
-                        ).toJson(),
+                utloesendeMelding = json.toJson(),
             )
 
         logger.error(fail.feilmelding)

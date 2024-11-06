@@ -25,10 +25,6 @@ enum class BehovType {
 
     // Asynkrone endringer
     LAGRE_FORESPOERSEL, // TODO slett etter databasen er flyttet
-
-    // Asynkrone endringer, men brukt til å prøve igjen ved feil
-    JOURNALFOER,
-    DISTRIBUER_IM,
 }
 
 @Serializable

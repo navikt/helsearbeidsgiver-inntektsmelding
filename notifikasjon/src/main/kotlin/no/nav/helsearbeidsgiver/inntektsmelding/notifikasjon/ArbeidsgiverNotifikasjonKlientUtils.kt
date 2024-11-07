@@ -60,7 +60,7 @@ object NotifikasjonTekst {
         sykmeldingsperioder: List<Periode>,
     ): String =
         listOf(
-            "$orgNavn - org.nr. $orgnr: En av dine ansatte har søkt om sykepenger for perioden ${sykmeldingsperioder.tilString()}",
+            "$orgNavn - orgnr $orgnr: En av dine ansatte har søkt om sykepenger for perioden ${sykmeldingsperioder.tilString()}",
             "og vi trenger inntektsmelding for å behandle søknaden.",
             "Logg inn på Min side – arbeidsgiver hos Nav.",
             "Hvis dere sender inntektsmelding via lønnssystem kan dere fortsatt gjøre dette,",
@@ -76,7 +76,7 @@ object NotifikasjonTekst {
             "Nav har ennå ikke mottatt inntektsmeldingen for en av deres ansatte for perioden ${sykmeldingsperioder.tilString()}.",
             "For at vi skal kunne behandle søknaden om sykepenger, må inntektsmeldingen sendes inn så snart som mulig.",
             "Vennligst logg inn på Min side – arbeidsgiver hos Nav for å se hvilken inntektsmelding det gjelder.",
-            "Arbeidsgiver: $orgNavn (org.nr. $orgnr).",
+            "Arbeidsgiver: $orgNavn (orgnr $orgnr).",
         ).joinToString(separator = " ")
 }
 

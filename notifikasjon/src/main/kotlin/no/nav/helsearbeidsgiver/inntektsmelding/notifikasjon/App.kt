@@ -28,6 +28,10 @@ fun RapidsConnection.createNotifikasjonService(): RapidsConnection =
         ServiceRiverStateless(
             HentDataTilSakOgOppgaveService(this),
         ).connect(this)
+        logger.info("Starter ${HentDataTilPaaminnelseService::class.simpleName}...")
+        ServiceRiverStateless(
+            HentDataTilPaaminnelseService(this),
+        ).connect(this)
     }
 
 fun RapidsConnection.createNotifikasjonRivers(

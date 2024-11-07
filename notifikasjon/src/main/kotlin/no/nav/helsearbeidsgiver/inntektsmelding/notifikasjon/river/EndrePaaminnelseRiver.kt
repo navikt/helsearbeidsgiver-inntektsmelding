@@ -33,6 +33,7 @@ data class EndrePaaminnelseMelding(
     val orgNavn: String,
 )
 
+// River for å opprette påminnelser på eksisterende oppgaver
 class EndrePaaminnelseRiver(
     val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
 ) : ObjectRiver<EndrePaaminnelseMelding>() {

@@ -38,8 +38,7 @@ class LagreJournalpostIdRiver(
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): LagreJournalpostIdMelding? =
-        // TODO legg til Key.BEHOV etter overgangsfase
-        if (setOf(Key.DATA, Key.FAIL).any(json::containsKey)) {
+        if (setOf(Key.BEHOV, Key.DATA, Key.FAIL).any(json::containsKey)) {
             null
         } else {
             LagreJournalpostIdMelding(

@@ -22,10 +22,6 @@ enum class BehovType {
     LAGRE_IM,
     LAGRE_SELVBESTEMT_IM,
     OPPRETT_SELVBESTEMT_SAK,
-
-    // Asynkrone endringer, men brukt til å prøve igjen ved feil
-    JOURNALFOER,
-    DISTRIBUER_IM,
 }
 
 @Serializable

@@ -16,6 +16,7 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -203,7 +204,7 @@ class LagreJournalpostIdRiverTest :
         context("ignorerer melding") {
             withData(
                 mapOf(
-//                    "melding med ukjent behov" to Pair(Key.BEHOV, BehovType.LAGRE_IM_SKJEMA.toJson()),
+                    "melding med ukjent behov" to Pair(Key.BEHOV, BehovType.LAGRE_IM_SKJEMA.toJson()),
                     "melding med data" to Pair(Key.DATA, "".toJson()),
                     "melding med fail" to Pair(Key.FAIL, Mock.fail.toJson(Fail.serializer())),
                 ),

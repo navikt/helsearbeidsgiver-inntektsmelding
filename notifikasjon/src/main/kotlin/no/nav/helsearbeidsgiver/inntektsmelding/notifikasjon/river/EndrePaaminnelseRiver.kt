@@ -49,7 +49,7 @@ class EndrePaaminnelseRiver(
             EndrePaaminnelseMelding(
                 eventName = Key.EVENT_NAME.krev(EventName.OPPGAVE_ENDRE_PAAMINNELSE_REQUESTED, EventName.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
-                forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json),
+                forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
                 forespoersel = Key.FORESPOERSEL.les(Forespoersel.serializer(), data),
                 orgNavn = Key.VIRKSOMHET.les(String.serializer(), data),
             )

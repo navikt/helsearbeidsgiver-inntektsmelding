@@ -156,9 +156,9 @@ private fun EndrePaaminnelseMelding.toMap() =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
         Key.UUID to transaksjonId.toJson(),
-        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         Key.DATA to
             mapOf(
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.FORESPOERSEL to forespoersel.toJson(Forespoersel.serializer()),
                 Key.VIRKSOMHET to orgNavn.toJson(),
             ).toJson(),

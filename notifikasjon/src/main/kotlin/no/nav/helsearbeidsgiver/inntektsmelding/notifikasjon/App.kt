@@ -4,6 +4,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.EndrePaaminnelseRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FerdigstillForespoerselSakOgOppgaveRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FjernPaaminnelseRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettForespoerselSakOgOppgaveRiver
@@ -60,6 +61,10 @@ fun RapidsConnection.createNotifikasjonRivers(
         FjernPaaminnelseRiver(
             agNotifikasjonKlient = agNotifikasjonKlient,
             paaminnelseToggle = paaminnelseToggle,
+        ).connect(this)
+        logger.info("Starter ${EndrePaaminnelseRiver::class.simpleName}...")
+        EndrePaaminnelseRiver(
+            agNotifikasjonKlient = agNotifikasjonKlient,
         ).connect(this)
     }
 

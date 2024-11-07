@@ -113,7 +113,7 @@ class EndrePaaminnelseRiver(
                                     orgNavn = orgNavn,
                                     sykmeldingsperioder = sykmeldingsperioder,
                                 ),
-                            tidMellomOppgaveopprettelseOgPaaminnelse = "P21D",
+                            tidMellomOppgaveopprettelseOgPaaminnelse = "PT10M",
                         ),
                 )
             }

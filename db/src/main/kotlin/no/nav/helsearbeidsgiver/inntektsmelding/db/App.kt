@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentLagretImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentSelvbestemtImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreEksternImRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreForespoerselRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreImSkjemaRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreJournalpostIdRiver
@@ -25,11 +24,10 @@ fun main() {
 
     val imRepo = InntektsmeldingRepository(database.db)
     val selvbestemtImRepo = SelvbestemtImRepo(database.db)
-    val forespoerselRepo = ForespoerselRepository(database.db)
 
     return RapidApplication
         .create(System.getenv())
-        .createDbRivers(imRepo, selvbestemtImRepo, forespoerselRepo)
+        .createDbRivers(imRepo, selvbestemtImRepo)
         .registerShutdownLifecycle {
             logger.info("Stoppsignal mottatt, lukker databasetilkobling.")
             database.dataSource.close()
@@ -39,12 +37,8 @@ fun main() {
 fun RapidsConnection.createDbRivers(
     imRepo: InntektsmeldingRepository,
     selvbestemtImRepo: SelvbestemtImRepo,
-    forespoerselRepo: ForespoerselRepository,
 ): RapidsConnection =
     also {
-        logger.info("Starter ${LagreForespoerselRiver::class.simpleName}...")
-        LagreForespoerselRiver(forespoerselRepo).connect(this)
-
         logger.info("Starter ${HentLagretImRiver::class.simpleName}...")
         HentLagretImRiver(imRepo).connect(this)
 

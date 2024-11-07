@@ -38,7 +38,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createHentEksternImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createSpinnService
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrregRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDbRivers
@@ -60,7 +59,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJournalfoerImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggle
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonService
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdlRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.selvbestemthentimservice.createHentSelvbestemtImService
 import no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice.createLagreSelvbestemtImService
@@ -138,31 +136,14 @@ abstract class EndToEndTest : ContainerTest() {
         }
     }
 
-    // Vent på im-notifikasjon database
-    private val notifikasjonDatabase by lazy {
-        println("Database jdbcUrl for im-notifikasjon: ${postgresContainerTwo.jdbcUrl}")
-
-        return@lazy withRetries(
-            feilmelding = "Klarte ikke sette opp notifikasjonDatabase.",
-        ) {
-            postgresContainerTwo
-                .toHikariConfig()
-                .let(::Database)
-                .also {
-                    val migrationLocation = Path("../notifikasjon/src/main/resources/db/migration").absolutePathString()
-                    it.migrate(migrationLocation)
-                }.createTruncateFunction()
-        }
-    }
-
     // Vent på feilbehandlerdatabase
     private val bakgrunnsjobbDatabase by lazy {
-        println("Database jdbcUrl for im-feil-behandler: ${postgresContainerThree.jdbcUrl}")
+        println("Database jdbcUrl for im-feil-behandler: ${postgresContainerTwo.jdbcUrl}")
 
         return@lazy withRetries(
             feilmelding = "Klarte ikke sette opp feilbehandlerdatabase.",
         ) {
-            postgresContainerThree
+            postgresContainerTwo
                 .toHikariConfig()
                 .let(::Database)
                 .also {
@@ -187,9 +168,6 @@ abstract class EndToEndTest : ContainerTest() {
 
     val imRepository by lazy { InntektsmeldingRepository(inntektsmeldingDatabase.db) }
     val selvbestemtImRepo by lazy { SelvbestemtImRepo(inntektsmeldingDatabase.db) }
-    private val forespoerselRepository by lazy { ForespoerselRepository(inntektsmeldingDatabase.db) }
-
-    private val selvbestemtRepo by lazy { SelvbestemtRepo(notifikasjonDatabase.db) }
 
     val bakgrunnsjobbRepository by lazy { PostgresBakgrunnsjobbRepository(bakgrunnsjobbDatabase.dataSource) }
 
@@ -250,7 +228,7 @@ abstract class EndToEndTest : ContainerTest() {
             createAaregRiver(aaregClient)
             createAltinn(altinnClient)
             createBrregRiver(brregClient, false)
-            createDbRivers(imRepository, selvbestemtImRepo, forespoerselRepository)
+            createDbRivers(imRepository, selvbestemtImRepo)
             createDistribusjonRiver(mockk(relaxed = true))
             createForespoerselBesvartRivers()
             createForespoerselMottattRiver()
@@ -261,12 +239,7 @@ abstract class EndToEndTest : ContainerTest() {
             createHentInntektRiver(inntektClient)
             createJournalfoerImRiver(dokarkivClient)
             createMarkerForespoerselBesvart(priProducer)
-            createNotifikasjonRivers(
-                NOTIFIKASJON_LINK,
-                paaminnelseToggle,
-                selvbestemtRepo,
-                agNotifikasjonKlient,
-            )
+            createNotifikasjonRivers(NOTIFIKASJON_LINK, paaminnelseToggle, agNotifikasjonKlient)
             createPdlRiver(pdlKlient)
             createFeilLytter(bakgrunnsjobbRepository)
         }
@@ -276,7 +249,7 @@ abstract class EndToEndTest : ContainerTest() {
     fun afterAllEndToEnd() {
         redisConnection.close()
         inntektsmeldingDatabase.dataSource.close()
-        notifikasjonDatabase.dataSource.close()
+        bakgrunnsjobbDatabase.dataSource.close()
         println("Stopped.")
     }
 
@@ -387,7 +360,7 @@ abstract class EndToEndTest : ContainerTest() {
         transaction(inntektsmeldingDatabase.db) {
             exec("SELECT truncate_tables()")
         }
-        transaction(notifikasjonDatabase.db) {
+        transaction(bakgrunnsjobbDatabase.db) {
             exec("SELECT truncate_tables()")
         }
     }

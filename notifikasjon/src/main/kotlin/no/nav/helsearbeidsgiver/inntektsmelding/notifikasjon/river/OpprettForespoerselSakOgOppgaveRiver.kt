@@ -29,10 +29,10 @@ data class OpprettForespoerselSakOgOppgaveMelding(
     val eventName: EventName,
     val transaksjonId: UUID,
     val forespoerselId: UUID,
+    val forespoersel: Forespoersel,
     val sykmeldt: Person,
     val orgNavn: String,
     val skalHaPaaminnelse: Boolean,
-    val forespoersel: Forespoersel,
 )
 
 class OpprettForespoerselSakOgOppgaveRiver(
@@ -53,10 +53,10 @@ class OpprettForespoerselSakOgOppgaveRiver(
                 eventName = Key.EVENT_NAME.krev(EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED, EventName.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
+                forespoersel = Key.FORESPOERSEL.les(Forespoersel.serializer(), data),
                 sykmeldt = Key.SYKMELDT.les(Person.serializer(), data),
                 orgNavn = Key.VIRKSOMHET.les(String.serializer(), data),
                 skalHaPaaminnelse = Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), data),
-                forespoersel = Key.FORESPOERSEL.les(Forespoersel.serializer(), data),
             )
         }
 

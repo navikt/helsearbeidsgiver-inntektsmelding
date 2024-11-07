@@ -5,11 +5,10 @@ database:
   name: notifikasjon
   tier: db-custom-1-3840
   logicalDecoding: true
+  cascadingDelete: true
 envFrom:
   - type: secret
     name: google-sql-im-notifikasjon
-secureLogs:
-  enabled: true
 env:
   - name: ARBEIDSGIVER_NOTIFIKASJON_API_URL
     value: "http://notifikasjon-produsent-api.fager/api/graphql"

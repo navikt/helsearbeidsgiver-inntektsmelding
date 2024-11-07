@@ -27,8 +27,8 @@ import java.util.UUID
 data class Steg0(
     val transaksjonId: UUID,
     val forespoerselId: UUID,
-    val skalHaPaaminnelse: Boolean,
     val forespoersel: Forespoersel,
+    val skalHaPaaminnelse: Boolean,
 )
 
 data class Steg1(
@@ -51,8 +51,8 @@ class HentDataTilSakOgOppgaveService(
         Steg0(
             transaksjonId = Key.UUID.les(UuidSerializer, melding),
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
-            skalHaPaaminnelse = Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), melding),
             forespoersel = Key.FORESPOERSEL.les(Forespoersel.serializer(), melding),
+            skalHaPaaminnelse = Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), melding),
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
@@ -73,14 +73,6 @@ class HentDataTilSakOgOppgaveService(
             logger.info(it)
             sikkerLogger.info(it)
         }
-
-        // Brukes midlertidig til å lagre forespørsel, til tabellen fjernes
-        rapid.publish(
-            Key.EVENT_NAME to eventName.toJson(),
-            Key.BEHOV to BehovType.LAGRE_FORESPOERSEL.toJson(BehovType.serializer()),
-            Key.UUID to steg0.transaksjonId.toJson(),
-            Key.DATA to data.toJson(),
-        )
 
         rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
@@ -132,12 +124,10 @@ class HentDataTilSakOgOppgaveService(
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                    // TODO kan fjernes etter overgangsfase
-                    Key.ORGNRUNDERENHET to steg0.forespoersel.orgnr.toJson(),
+                    Key.FORESPOERSEL to steg0.forespoersel.toJson(Forespoersel.serializer()),
                     Key.SYKMELDT to sykmeldt.toJson(Person.serializer()),
                     Key.VIRKSOMHET to orgNavn.toJson(),
                     Key.SKAL_HA_PAAMINNELSE to steg0.skalHaPaaminnelse.toJson(Boolean.serializer()),
-                    Key.FORESPOERSEL to steg0.forespoersel.toJson(Forespoersel.serializer()),
                 ).toJson(),
         )
     }

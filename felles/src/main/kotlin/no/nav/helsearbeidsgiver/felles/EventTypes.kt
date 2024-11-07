@@ -22,9 +22,6 @@ enum class BehovType {
     LAGRE_IM,
     LAGRE_SELVBESTEMT_IM,
     OPPRETT_SELVBESTEMT_SAK,
-
-    // Asynkrone endringer
-    LAGRE_FORESPOERSEL, // TODO slett etter databasen er flyttet
 }
 
 @Serializable

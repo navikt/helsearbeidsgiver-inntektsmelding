@@ -8,12 +8,12 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
@@ -45,22 +45,9 @@ class ForespoerselMottattIT : EndToEndTest() {
 
         publish(
             Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
-            Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Pri.Key.ORGNR to Mock.orgnr.toJson(),
-            Pri.Key.FNR to Mock.fnr.toJson(),
-            Pri.Key.SKAL_HA_PAAMINNELSE to Mock.skalHaPaaminnelse.toJson(Boolean.serializer()),
-            Pri.Key.FORESPOERSEL to
-                ForespoerselFraBro(
-                    orgnr = Mock.orgnr,
-                    fnr = Mock.fnr,
-                    forespoerselId = Mock.forespoerselId,
-                    vedtaksperiodeId = UUID.randomUUID(),
-                    sykmeldingsperioder = listOf(23.januar til 15.mars),
-                    egenmeldingsperioder = emptyList(),
-                    bestemmendeFravaersdager = emptyMap(),
-                    forespurtData = mockForespurtData(),
-                    erBesvart = false,
-                ).toJson(ForespoerselFraBro.serializer()),
+            Pri.Key.FORESPOERSEL_ID to Mock.forespoersel.forespoerselId.toJson(),
+            Pri.Key.FORESPOERSEL to Mock.forespoersel.toJson(ForespoerselFraBro.serializer()),
+            Pri.Key.SKAL_HA_PAAMINNELSE to Mock.SKAL_HA_PAAMINNELSE.toJson(Boolean.serializer()),
         )
 
         val messagesFilteredForespoerselMottatt = messages.filter(EventName.FORESPOERSEL_MOTTATT)
@@ -73,18 +60,9 @@ class ForespoerselMottattIT : EndToEndTest() {
                 Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.FORESPOERSEL_MOTTATT
 
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-                Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data) shouldBe Mock.forespoerselId
-                Key.ORGNRUNDERENHET.lesOrNull(Orgnr.serializer(), data) shouldBe Mock.orgnr
-                Key.FNR.lesOrNull(Fnr.serializer(), data) shouldBe Mock.fnr
-            }
-
-        messagesFilteredForespoerselMottatt
-            .filter(BehovType.LAGRE_FORESPOERSEL)
-            .firstAsMap()
-            .also {
-                val data = it[Key.DATA].shouldNotBeNull().toMap()
-                data[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-                data[Key.ORGNRUNDERENHET]?.fromJson(Orgnr.serializer()) shouldBe Mock.orgnr
+                Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data) shouldBe Mock.forespoersel.forespoerselId
+                Key.FORESPOERSEL.lesOrNull(Forespoersel.serializer(), data) shouldBe Mock.forespoersel.toForespoersel()
+                Key.SKAL_HA_PAAMINNELSE.lesOrNull(Boolean.serializer(), data) shouldBe Mock.SKAL_HA_PAAMINNELSE
             }
 
         messagesFilteredForespoerselMottatt
@@ -92,7 +70,7 @@ class ForespoerselMottattIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-                data[Key.ORGNR_UNDERENHETER]?.fromJson(Orgnr.serializer().set()) shouldBe setOf(Mock.orgnr)
+                data[Key.ORGNR_UNDERENHETER]?.fromJson(Orgnr.serializer().set()) shouldBe setOf(Mock.forespoersel.orgnr)
             }
 
         messagesFilteredForespoerselMottatt
@@ -100,7 +78,7 @@ class ForespoerselMottattIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-                data[Key.FNR_LISTE]?.fromJson(Fnr.serializer().set()) shouldBe setOf(Mock.fnr)
+                data[Key.FNR_LISTE]?.fromJson(Fnr.serializer().set()) shouldBe setOf(Mock.forespoersel.fnr)
             }
 
         messagesFilteredForespoerselMottatt
@@ -133,9 +111,9 @@ class ForespoerselMottattIT : EndToEndTest() {
                 data[Key.SYKMELDT]?.fromJson(Person.serializer()).shouldNotBeNull()
                 data[Key.VIRKSOMHET]?.fromJson(String.serializer()).shouldNotBeNull()
 
-                data[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-                data[Key.ORGNRUNDERENHET]?.fromJson(Orgnr.serializer()) shouldBe Mock.orgnr
-                data[Key.SKAL_HA_PAAMINNELSE]?.fromJson(Boolean.serializer()) shouldBe Mock.skalHaPaaminnelse
+                data[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoersel.forespoerselId
+                data[Key.FORESPOERSEL]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel.toForespoersel()
+                data[Key.SKAL_HA_PAAMINNELSE]?.fromJson(Boolean.serializer()) shouldBe Mock.SKAL_HA_PAAMINNELSE
             }
 
         messages
@@ -143,18 +121,27 @@ class ForespoerselMottattIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-                data[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
+                data[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoersel.forespoerselId
                 data[Key.SAK_ID]?.fromJson(String.serializer()) shouldBe Mock.sakId
                 data[Key.OPPGAVE_ID]?.fromJson(String.serializer()) shouldBe Mock.oppgaveId
             }
     }
 
     private object Mock {
-        val forespoerselId: UUID = UUID.randomUUID()
-        val orgnr = Orgnr.genererGyldig()
-        val fnr = Fnr.genererGyldig()
+        const val SKAL_HA_PAAMINNELSE = false
+        val forespoersel =
+            ForespoerselFraBro(
+                orgnr = Orgnr.genererGyldig(),
+                fnr = Fnr.genererGyldig(),
+                forespoerselId = UUID.randomUUID(),
+                vedtaksperiodeId = UUID.randomUUID(),
+                sykmeldingsperioder = listOf(23.januar til 15.mars),
+                egenmeldingsperioder = emptyList(),
+                bestemmendeFravaersdager = emptyMap(),
+                forespurtData = mockForespurtData(),
+                erBesvart = false,
+            )
         val sakId = UUID.randomUUID().toString()
         val oppgaveId = UUID.randomUUID().toString()
-        val skalHaPaaminnelse = false
     }
 }

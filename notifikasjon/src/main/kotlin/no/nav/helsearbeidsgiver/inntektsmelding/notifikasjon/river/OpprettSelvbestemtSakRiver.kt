@@ -16,7 +16,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.opprettSak
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -34,7 +33,6 @@ data class OpprettSelvbestemtSakMelding(
 
 class OpprettSelvbestemtSakRiver(
     private val linkUrl: String,
-    private val selvbestemtRepo: SelvbestemtRepo,
     private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
 ) : ObjectRiver<OpprettSelvbestemtSakMelding>() {
     private val logger = logger()
@@ -65,8 +63,6 @@ class OpprettSelvbestemtSakRiver(
                 sykmeldingsperioder = inntektsmelding.sykmeldingsperioder,
                 initiellStatus = SaksStatus.FERDIG,
             )
-
-        selvbestemtRepo.lagreSakId(inntektsmelding.type.id, sakId)
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),

@@ -116,7 +116,12 @@ class InnsendingIT : EndToEndTest() {
                 it[Key.INNTEKTSMELDING].shouldNotBeNull()
             }
 
-        bekreftForventedeMeldingerForFerdigstilligAvOppgaveOgSak()
+        messages
+            .filter(EventName.SAK_OG_OPPGAVE_FERDIGSTILT)
+            .firstAsMap()
+            .also {
+                Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
+            }
 
         bekreftMarkeringAvForespoerselSomBesvart()
     }
@@ -189,22 +194,6 @@ class InnsendingIT : EndToEndTest() {
         messages.filter(EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET).all() shouldHaveSize 0
 
         messages.filter(EventName.INNTEKTSMELDING_DISTRIBUERT).all() shouldHaveSize 0
-    }
-
-    private fun bekreftForventedeMeldingerForFerdigstilligAvOppgaveOgSak() {
-        messages
-            .filter(EventName.FORESPOERSEL_BESVART)
-            .firstAsMap()
-            .also {
-                Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-            }
-
-        messages
-            .filter(EventName.SAK_OG_OPPGAVE_FERDIGSTILT)
-            .firstAsMap()
-            .also {
-                Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-            }
     }
 
     private fun bekreftMarkeringAvForespoerselSomBesvart() {

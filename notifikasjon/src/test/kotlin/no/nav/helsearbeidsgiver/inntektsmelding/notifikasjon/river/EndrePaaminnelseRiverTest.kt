@@ -11,6 +11,7 @@ import io.mockk.coVerifySequence
 import io.mockk.just
 import io.mockk.mockk
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OppgaveAlleredeUtfoertException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OppgaveEndrePaaminnelseByEksternIdException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
@@ -112,7 +113,8 @@ class EndrePaaminnelseRiverTest :
         test("kaster ikke exception dersom oppgaven allerede er utført") {
             val innkommendeMelding = innkommendeEndrePaaminnelseMelding()
 
-            coEvery { mockagNotifikasjonKlient.endreOppgavePaaminnelserByEksternId(any(), any(), any()) } just Runs
+            coEvery { mockagNotifikasjonKlient.endreOppgavePaaminnelserByEksternId(any(), any(), any()) } throws
+                OppgaveAlleredeUtfoertException("Oppgave er allerede utfoert")
 
             testRapid.sendJson(innkommendeMelding.toMap())
 

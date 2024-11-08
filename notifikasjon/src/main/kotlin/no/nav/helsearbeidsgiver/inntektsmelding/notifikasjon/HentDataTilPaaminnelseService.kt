@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
-import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -19,7 +18,6 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
@@ -123,7 +121,7 @@ class HentDataTilPaaminnelseService(
         melding: Map<Key, JsonElement>,
         fail: Fail,
     ) {
-        "Klarte ikke hente data for å opprette sak og oppgave pga. feil: '${fail.feilmelding}'".also {
+        "Klarte ikke hente data for å endre påminnelse på oppgave pga. feil: '${fail.feilmelding}'".also {
             logger.error(it)
             sikkerLogger.error(it)
         }
@@ -144,5 +142,3 @@ class HentDataTilPaaminnelseService(
 }
 
 private const val ORG_NAVN_DEFAULT = "Arbeidsgiver"
-
-private fun personDefault(fnr: Fnr): Person = Person(fnr, "Ukjent person")

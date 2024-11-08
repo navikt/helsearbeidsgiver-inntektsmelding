@@ -284,7 +284,7 @@ abstract class EndToEndTest : ContainerTest() {
 
     fun mockForespoerselSvarFraHelsebro(
         forespoerselId: UUID,
-        forespoerselSvar: ForespoerselFraBro,
+        forespoerselSvar: ForespoerselFraBro?,
     ) {
         var boomerang: JsonElement? = null
 
@@ -308,6 +308,12 @@ abstract class EndToEndTest : ContainerTest() {
                     ForespoerselSvar(
                         forespoerselId = forespoerselId,
                         resultat = forespoerselSvar,
+                        feil =
+                            if (forespoerselSvar == null) {
+                                ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET
+                            } else {
+                                null
+                            },
                         boomerang = boomerang.shouldNotBeNull(),
                     ).toJson(ForespoerselSvar.serializer()),
             )

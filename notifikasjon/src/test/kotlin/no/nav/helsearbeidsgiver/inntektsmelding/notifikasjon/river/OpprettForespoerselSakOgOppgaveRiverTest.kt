@@ -100,7 +100,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                     tidspunkt = null,
                     paaminnelse =
                         Paaminnelse(
-                            tittel = "Påminnelse – ${NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING}",
+                            tittel = NotifikasjonTekst.PAAMINNELSE_TITTEL,
                             innhold =
                                 NotifikasjonTekst.paaminnelseInnhold(
                                     innkommendeMelding.forespoersel.orgnr.let(::Orgnr),

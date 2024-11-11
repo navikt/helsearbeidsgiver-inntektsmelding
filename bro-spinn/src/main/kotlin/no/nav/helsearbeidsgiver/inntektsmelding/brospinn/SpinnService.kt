@@ -21,8 +21,8 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-// TODO også sjekk "NAV_NO_SELVBESTEMT"
 private const val AVSENDER_NAV_NO = "NAV_NO"
+private const val AVSENDER_NAV_NO_SELVBESTEMT = "NAV_NO_SELVBESTEMT"
 
 data class Steg0(
     val transaksjonId: UUID,
@@ -88,7 +88,7 @@ class SpinnService(
         steg0: Steg0,
         steg1: Steg1,
     ) {
-        if (steg1.eksternInntektsmelding.avsenderSystemNavn != AVSENDER_NAV_NO) {
+        if (steg1.eksternInntektsmelding.avsenderSystemNavn !in setOf(AVSENDER_NAV_NO, AVSENDER_NAV_NO_SELVBESTEMT)) {
             val publisert =
                 rapid.publish(
                     Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),

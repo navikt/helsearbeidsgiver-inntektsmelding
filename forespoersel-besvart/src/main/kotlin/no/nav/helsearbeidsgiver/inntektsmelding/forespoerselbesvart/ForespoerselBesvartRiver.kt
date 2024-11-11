@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.toPretty
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.PriObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -22,7 +23,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-data class BesvartSpleisMelding(
+data class BesvartMelding(
     val notisType: Pri.NotisType,
     val transaksjonId: UUID,
     val forespoerselId: UUID,
@@ -30,21 +31,21 @@ data class BesvartSpleisMelding(
 )
 
 /** Tar imot notifikasjon om at en forespørsel om arbeidsgiveropplysninger er besvart. */
-class ForespoerselBesvartFraSpleisRiver(
+class ForespoerselBesvartRiver(
     private val rapid: RapidsConnection,
-) : PriObjectRiver<BesvartSpleisMelding>() {
+) : PriObjectRiver<BesvartMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun les(json: Map<Pri.Key, JsonElement>): BesvartSpleisMelding =
-        BesvartSpleisMelding(
+    override fun les(json: Map<Pri.Key, JsonElement>): BesvartMelding =
+        BesvartMelding(
             notisType = Pri.Key.NOTIS.krev(Pri.NotisType.FORESPOERSEL_BESVART, Pri.NotisType.serializer(), json),
             transaksjonId = UUID.randomUUID(),
             forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, json),
             spinnInntektsmeldingId = Pri.Key.SPINN_INNTEKTSMELDING_ID.lesOrNull(UuidSerializer, json),
         )
 
-    override fun BesvartSpleisMelding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
+    override fun BesvartMelding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok melding på pri-topic om ${Pri.NotisType.FORESPOERSEL_BESVART}.")
         sikkerLogger.info("Mottok melding på pri-topic:\n${json.toPretty()}")
 
@@ -70,10 +71,21 @@ class ForespoerselBesvartFraSpleisRiver(
 
         Metrics.forespoerslerBesvartFraSpleis.inc()
 
-        return forespoerselBesvartMelding(transaksjonId, forespoerselId)
+        return mapOf(
+            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            // TODO slett etter overgangsfase
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.SPINN_INNTEKTSMELDING_ID to spinnInntektsmeldingId?.toJson(),
+                ).mapValuesNotNull { it }
+                    .toJson(),
+        )
     }
 
-    override fun BesvartSpleisMelding.haandterFeil(
+    override fun BesvartMelding.haandterFeil(
         json: Map<Pri.Key, JsonElement>,
         error: Throwable,
     ): Map<Key, JsonElement>? {
@@ -85,9 +97,9 @@ class ForespoerselBesvartFraSpleisRiver(
         return null
     }
 
-    override fun BesvartSpleisMelding.loggfelt(): Map<String, String> =
+    override fun BesvartMelding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this@ForespoerselBesvartFraSpleisRiver),
+            Log.klasse(this@ForespoerselBesvartRiver),
             Log.priNotis(notisType),
             Log.transaksjonId(transaksjonId),
             Log.forespoerselId(forespoerselId),

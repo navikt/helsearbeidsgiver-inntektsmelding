@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.HentForespoerselResultat
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess
@@ -49,7 +50,6 @@ class HentForespoerselIT : EndToEndTest() {
             .filter(BehovType.HENT_TRENGER_IM)
             .firstAsMap()
             .let {
-                // Ble lagret i databasen
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
@@ -58,7 +58,6 @@ class HentForespoerselIT : EndToEndTest() {
             .filter(BehovType.HENT_VIRKSOMHET_NAVN)
             .firstAsMap()
             .let {
-                // Ble lagret i databasen
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
@@ -67,7 +66,6 @@ class HentForespoerselIT : EndToEndTest() {
             .filter(BehovType.HENT_PERSONER)
             .firstAsMap()
             .let {
-                // Ble lagret i databasen
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
@@ -76,7 +74,6 @@ class HentForespoerselIT : EndToEndTest() {
             .filter(BehovType.HENT_INNTEKT)
             .firstAsMap()
             .let {
-                // Ble lagret i databasen
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
@@ -98,5 +95,51 @@ class HentForespoerselIT : EndToEndTest() {
             forespoersel.shouldNotBeNull()
             feil.shouldBeEmpty()
         }
+    }
+
+    @Test
+    fun `dersom forespørsel ikke blir funnet så settes sak og oppgave til utgått`() {
+        val transaksjonId: UUID = UUID.randomUUID()
+        val forespoerselId: UUID = UUID.randomUUID()
+
+        mockForespoerselSvarFraHelsebro(
+            forespoerselId = forespoerselId,
+            forespoerselSvar = null,
+        )
+
+        publish(
+            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+            Key.UUID to transaksjonId.toJson(UuidSerializer),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer),
+                    Key.ARBEIDSGIVER_FNR to Fnr.genererGyldig().toJson(),
+                ).toJson(),
+        )
+
+        messages
+            .filter(EventName.TRENGER_REQUESTED)
+            .filter(BehovType.HENT_TRENGER_IM)
+            .firstAsMap()
+            .let {
+                Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+            }
+
+        messages
+            .filter(EventName.SAK_OG_OPPGAVE_UTGAATT)
+            .firstAsMap()
+            .let {
+                Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe forespoerselId
+            }
+
+        val resultJson =
+            redisConnection
+                .get(RedisPrefix.HentForespoersel, transaksjonId)
+                ?.fromJson(ResultJson.serializer())
+                .shouldNotBeNull()
+
+        resultJson.success.shouldBeNull()
+        resultJson.failure.shouldNotBeNull()
     }
 }

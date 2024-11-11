@@ -43,7 +43,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDbRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjonRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.createFeilLytter
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartRivers
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselforkastet.createForespoerselForkastetRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselinfotrygd.createForespoerselKastetTilInfotrygdRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createMarkerForespoerselBesvart
@@ -230,7 +230,7 @@ abstract class EndToEndTest : ContainerTest() {
             createBrregRiver(brregClient, false)
             createDbRivers(imRepository, selvbestemtImRepo)
             createDistribusjonRiver(mockk(relaxed = true))
-            createForespoerselBesvartRivers()
+            createForespoerselBesvartRiver()
             createForespoerselMottattRiver()
             createForespoerselForkastetRiver()
             createForespoerselKastetTilInfotrygdRiver()
@@ -284,7 +284,7 @@ abstract class EndToEndTest : ContainerTest() {
 
     fun mockForespoerselSvarFraHelsebro(
         forespoerselId: UUID,
-        forespoerselSvar: ForespoerselFraBro,
+        forespoerselSvar: ForespoerselFraBro?,
     ) {
         var boomerang: JsonElement? = null
 
@@ -308,6 +308,12 @@ abstract class EndToEndTest : ContainerTest() {
                     ForespoerselSvar(
                         forespoerselId = forespoerselId,
                         resultat = forespoerselSvar,
+                        feil =
+                            if (forespoerselSvar == null) {
+                                ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET
+                            } else {
+                                null
+                            },
                         boomerang = boomerang.shouldNotBeNull(),
                     ).toJson(ForespoerselSvar.serializer()),
             )

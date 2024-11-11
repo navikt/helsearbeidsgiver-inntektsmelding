@@ -11,17 +11,14 @@ fun main() {
 
     RapidApplication
         .create(System.getenv())
-        .createForespoerselBesvartRivers()
+        .createForespoerselBesvartRiver()
         .start()
 
     logger.info("Bye bye, baby, bye bye!")
 }
 
-fun RapidsConnection.createForespoerselBesvartRivers(): RapidsConnection =
+fun RapidsConnection.createForespoerselBesvartRiver(): RapidsConnection =
     also {
-        logger.info("Starter ${ForespoerselBesvartFraSimbaRiver::class.simpleName}...")
-        ForespoerselBesvartFraSimbaRiver().connect(this)
-
-        logger.info("Starter ${ForespoerselBesvartFraSpleisRiver::class.simpleName}...")
-        ForespoerselBesvartFraSpleisRiver(this).connect(this)
+        logger.info("Starter ${ForespoerselBesvartRiver::class.simpleName}...")
+        ForespoerselBesvartRiver(this).connect(this)
     }

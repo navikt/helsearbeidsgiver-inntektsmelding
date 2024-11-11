@@ -41,36 +41,44 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
             clearAllMocks()
         }
 
-        test("sak og oppgave ferdigstilles") {
-            val innkommendeMelding = innkommendeMelding()
+        context("sak og oppgave ferdigstilles") {
+            withData(
+                nameFn = { "for event '$it'" },
+                listOf(
+                    EventName.INNTEKTSMELDING_MOTTATT,
+                    EventName.FORESPOERSEL_BESVART,
+                ),
+            ) { eventName ->
+                val innkommendeMelding = innkommendeMelding().copy(eventName = eventName)
 
-            coEvery {
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), NotifikasjonTekst.MERKELAPP, any(), any(), any())
-            } just Runs
+                coEvery {
+                    mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), NotifikasjonTekst.MERKELAPP, any(), any(), any())
+                } just Runs
 
-            coEvery {
-                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), NotifikasjonTekst.MERKELAPP, any())
-            } just Runs
+                coEvery {
+                    mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), NotifikasjonTekst.MERKELAPP, any())
+                } just Runs
 
-            testRapid.sendJson(innkommendeMelding.toMap())
+                testRapid.sendJson(innkommendeMelding.toMap())
 
-            testRapid.inspektør.size shouldBeExactly 1
+                testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding)
+                testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding)
 
-            coVerifySequence {
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
-                    grupperingsid = innkommendeMelding.forespoerselId.toString(),
-                    merkelapp = "Inntektsmelding sykepenger",
-                    status = SaksStatus.FERDIG,
-                    statusTekst = "Mottatt – Se kvittering eller korriger inntektsmelding",
-                    nyLenke = "$mockLinkUrl/im-dialog/kvittering/${innkommendeMelding.forespoerselId}",
-                )
-                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(
-                    eksternId = innkommendeMelding.forespoerselId.toString(),
-                    merkelapp = "Inntektsmelding sykepenger",
-                    nyLenke = "$mockLinkUrl/im-dialog/kvittering/${innkommendeMelding.forespoerselId}",
-                )
+                coVerifySequence {
+                    mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
+                        grupperingsid = innkommendeMelding.forespoerselId.toString(),
+                        merkelapp = "Inntektsmelding sykepenger",
+                        status = SaksStatus.FERDIG,
+                        statusTekst = "Mottatt – Se kvittering eller korriger inntektsmelding",
+                        nyLenke = "$mockLinkUrl/im-dialog/kvittering/${innkommendeMelding.forespoerselId}",
+                    )
+                    mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(
+                        eksternId = innkommendeMelding.forespoerselId.toString(),
+                        merkelapp = "Inntektsmelding sykepenger",
+                        nyLenke = "$mockLinkUrl/im-dialog/kvittering/${innkommendeMelding.forespoerselId}",
+                    )
+                }
             }
         }
 

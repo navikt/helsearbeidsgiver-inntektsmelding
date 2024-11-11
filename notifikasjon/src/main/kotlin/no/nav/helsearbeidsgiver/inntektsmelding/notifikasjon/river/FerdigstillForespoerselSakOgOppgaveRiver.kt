@@ -4,9 +4,10 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -33,14 +34,22 @@ class FerdigstillForespoerselSakOgOppgaveRiver(
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): FerdigstillForespoerselSakMelding? =
-        if (setOf(Key.BEHOV, Key.DATA, Key.FAIL).any(json::containsKey)) {
+        if (setOf(Key.BEHOV, Key.FAIL).any(json::containsKey)) {
             null
         } else {
-            FerdigstillForespoerselSakMelding(
-                eventName = Key.EVENT_NAME.krev(EventName.FORESPOERSEL_BESVART, EventName.serializer(), json),
-                transaksjonId = Key.UUID.les(UuidSerializer, json),
-                forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json),
-            )
+            val data = json[Key.DATA]?.toMap().orEmpty()
+            val eventName = Key.EVENT_NAME.les(EventName.serializer(), json)
+
+            // Støtter både inntektmelding mottatt av Simba og event fra Storebror
+            if (eventName !in setOf(EventName.INNTEKTSMELDING_MOTTATT, EventName.FORESPOERSEL_BESVART)) {
+                null
+            } else {
+                FerdigstillForespoerselSakMelding(
+                    eventName = eventName,
+                    transaksjonId = Key.UUID.les(UuidSerializer, json),
+                    forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, json) ?: Key.FORESPOERSEL_ID.les(UuidSerializer, data),
+                )
+            }
         }
 
     override fun FerdigstillForespoerselSakMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {

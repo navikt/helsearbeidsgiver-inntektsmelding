@@ -60,7 +60,10 @@ class HentEksternImRiver(
             Key.DATA to
                 data
                     .plus(
-                        Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
+                        mapOf(
+                            Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
+                            Key.EKSTERN_INNTEKTSMELDING_V2 to eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
+                        ),
                     ).toJson(),
         )
     }

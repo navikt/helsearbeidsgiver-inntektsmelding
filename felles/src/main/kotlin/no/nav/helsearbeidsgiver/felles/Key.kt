@@ -49,6 +49,7 @@ enum class Key(
 
     // ulik formattering
     EKSTERN_INNTEKTSMELDING("eksternInntektsmelding"),
+    EKSTERN_INNTEKTSMELDING_V2("ekstern_inntektsmelding"),
     FORESPOERSEL_ID("forespoerselId"),
     FORESPOERSEL_SVAR("forespoersel-svar"),
     JOURNALPOST_ID("journalpostId"),

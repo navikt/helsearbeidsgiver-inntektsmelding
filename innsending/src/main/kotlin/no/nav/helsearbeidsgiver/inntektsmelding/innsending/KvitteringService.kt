@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.InnsendtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -23,6 +24,7 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 
 class KvitteringService(
@@ -58,8 +60,9 @@ class KvitteringService(
                     .success
                     ?.fromJson(Inntektsmelding.serializer()),
             eksternInntektsmelding =
-                Key.EKSTERN_INNTEKTSMELDING
-                    .les(ResultJson.serializer(), melding)
+                Key.EKSTERN_INNTEKTSMELDING_V2
+                    .lesOrNull(ResultJson.serializer(), melding)
+                    .orDefault(Key.EKSTERN_INNTEKTSMELDING.les(ResultJson.serializer(), melding))
                     .success
                     ?.fromJson(EksternInntektsmelding.serializer()),
         )

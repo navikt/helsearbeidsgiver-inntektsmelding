@@ -67,6 +67,7 @@ class HentLagretImRiver(
                         mapOf(
                             Key.LAGRET_INNTEKTSMELDING to inntektsmelding.toJson(ResultJson.serializer()),
                             Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(ResultJson.serializer()),
+                            Key.EKSTERN_INNTEKTSMELDING_V2 to eksternInntektsmelding.toJson(ResultJson.serializer()),
                         ),
                     ).toJson(),
         )

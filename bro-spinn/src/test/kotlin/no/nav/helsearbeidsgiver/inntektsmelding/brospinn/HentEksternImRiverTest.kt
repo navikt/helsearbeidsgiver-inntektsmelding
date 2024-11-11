@@ -56,10 +56,10 @@ class HentEksternImRiverTest :
                     Key.DATA to
                         innkommendeMelding.data
                             .plus(
-                                Key.EKSTERN_INNTEKTSMELDING to
-                                    mockEksternInntektsmelding().toJson(
-                                        EksternInntektsmelding.serializer(),
-                                    ),
+                                mapOf(
+                                    Key.EKSTERN_INNTEKTSMELDING to mockEksternInntektsmelding().toJson(EksternInntektsmelding.serializer()),
+                                    Key.EKSTERN_INNTEKTSMELDING_V2 to mockEksternInntektsmelding().toJson(EksternInntektsmelding.serializer()),
+                                ),
                             ).toJson(),
                 )
 

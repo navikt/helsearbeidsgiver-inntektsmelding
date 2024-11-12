@@ -66,7 +66,6 @@ class LagreJournalpostIdRiverTest :
                         Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
                         Key.BESTEMMENDE_FRAVAERSDAG to Mock.bestemmendeFravaersdag.toJson(),
                         Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
-                        Key.JOURNALPOST_ID_V2 to innkommendeMelding.journalpostId.toJson(),
                     )
 
                 verifySequence {
@@ -106,7 +105,6 @@ class LagreJournalpostIdRiverTest :
                         Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                         Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
                         Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
-                        Key.JOURNALPOST_ID_V2 to innkommendeMelding.journalpostId.toJson(),
                     )
 
                 verifySequence {
@@ -247,7 +245,6 @@ private object Mock {
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
-            Key.JOURNALPOST_ID_V2 to journalpostId.toJson(),
             Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag.toJson(),
             Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),

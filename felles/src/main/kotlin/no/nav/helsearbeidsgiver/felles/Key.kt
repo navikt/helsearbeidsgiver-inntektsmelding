@@ -48,11 +48,10 @@ enum class Key(
     VIRKSOMHET("virksomhet"),
     VIRKSOMHETER("virksomheter"),
     FORESPOERSEL_SVAR("forespoersel_svar"),
+    JOURNALPOST_ID("journalpost_id"),
 
     // ulik formattering
     FORESPOERSEL_ID("forespoerselId"),
-    JOURNALPOST_ID("journalpostId"),
-    JOURNALPOST_ID_V2("journalpost_id"),
     ORGNRUNDERENHET("orgnrUnderenhet"),
     SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
     ;

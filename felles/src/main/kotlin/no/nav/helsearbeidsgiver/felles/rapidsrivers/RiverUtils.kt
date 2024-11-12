@@ -33,6 +33,7 @@ fun MessageContext.publish(messageFields: Map<Key, JsonElement>): JsonElement =
         .parseJson()
 
 private fun Map<Key, JsonElement>.mapAddTemporaryJournalpostKey(): Map<Key, JsonElement> {
+    // forsikre at this inneholder journalpost
     if (!this.containsKey(Key.JOURNALPOST_ID)) {
         return this
     }

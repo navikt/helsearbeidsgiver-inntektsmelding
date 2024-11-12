@@ -47,11 +47,10 @@ enum class Key(
     VEDTAKSPERIODE_ID_LISTE("vedtaksperiode_id_liste"),
     VIRKSOMHET("virksomhet"),
     VIRKSOMHETER("virksomheter"),
+    FORESPOERSEL_SVAR("forespoersel_svar"),
 
     // ulik formattering
     FORESPOERSEL_ID("forespoerselId"),
-    FORESPOERSEL_SVAR("forespoersel-svar"),
-    FORESPOERSEL_SVAR_V2("forespoersel_svar"),
     JOURNALPOST_ID("journalpostId"),
     ORGNRUNDERENHET("orgnrUnderenhet"),
     SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),

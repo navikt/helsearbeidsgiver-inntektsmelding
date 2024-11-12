@@ -107,6 +107,11 @@ private data class PublishedData(
                                     .shouldNotBeNull()
                                     .toForespoersel()
                                     .toJson(Forespoersel.serializer()),
+                            Key.FORESPOERSEL_SVAR_V2 to
+                                forespoerselSvar.resultat
+                                    .shouldNotBeNull()
+                                    .toForespoersel()
+                                    .toJson(Forespoersel.serializer()),
                         ),
                     ),
             )

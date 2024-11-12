@@ -6,7 +6,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -43,8 +42,7 @@ class LagreEksternImRiver(
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
                 eksternInntektsmelding =
-                    Key.EKSTERN_INNTEKTSMELDING_V2.lesOrNull(EksternInntektsmelding.serializer(), data)
-                        ?: Key.EKSTERN_INNTEKTSMELDING.les(EksternInntektsmelding.serializer(), data),
+                    Key.EKSTERN_INNTEKTSMELDING.les(EksternInntektsmelding.serializer(), data),
             )
         }
 

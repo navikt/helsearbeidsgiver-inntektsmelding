@@ -20,6 +20,7 @@ enum class Key(
     ARBEIDSGIVER_FNR("arbeidsgiver_fnr"),
     BESTEMMENDE_FRAVAERSDAG("bestemmende_fravaersdag"),
     DATA("data"),
+    EKSTERN_INNTEKTSMELDING("ekstern_inntektsmelding"),
     ER_DUPLIKAT_IM("er_duplikat_im"),
     FAIL("fail"),
     FNR("fnr"),
@@ -48,8 +49,6 @@ enum class Key(
     VIRKSOMHETER("virksomheter"),
 
     // ulik formattering
-    EKSTERN_INNTEKTSMELDING("eksternInntektsmelding"),
-    EKSTERN_INNTEKTSMELDING_V2("ekstern_inntektsmelding"),
     FORESPOERSEL_ID("forespoerselId"),
     FORESPOERSEL_SVAR("forespoersel-svar"),
     JOURNALPOST_ID("journalpostId"),

@@ -64,7 +64,6 @@ class SpinnServiceTest :
                         mapOf(
                             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                             Key.EKSTERN_INNTEKTSMELDING to Mock.eksternIm.toJson(EksternInntektsmelding.serializer()),
-                            Key.EKSTERN_INNTEKTSMELDING_V2 to Mock.eksternIm.toJson(EksternInntektsmelding.serializer()),
                         ).toJson(),
                 )
         }

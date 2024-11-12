@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -51,9 +50,7 @@ class SpinnService(
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
         Steg1(
-            eksternInntektsmelding =
-                Key.EKSTERN_INNTEKTSMELDING_V2.lesOrNull(EksternInntektsmelding.serializer(), melding)
-                    ?: Key.EKSTERN_INNTEKTSMELDING.les(EksternInntektsmelding.serializer(), melding),
+            eksternInntektsmelding = Key.EKSTERN_INNTEKTSMELDING.les(EksternInntektsmelding.serializer(), melding),
         )
 
     override fun utfoerSteg0(
@@ -97,7 +94,6 @@ class SpinnService(
                         mapOf(
                             Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
                             Key.EKSTERN_INNTEKTSMELDING to steg1.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
-                            Key.EKSTERN_INNTEKTSMELDING_V2 to steg1.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
                         ).toJson(),
                 )
 

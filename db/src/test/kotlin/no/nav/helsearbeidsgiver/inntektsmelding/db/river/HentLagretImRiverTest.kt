@@ -82,11 +82,6 @@ class HentLagretImRiverTest :
                                                 ?.toJson(EksternInntektsmelding.serializer())
                                                 ?.toSuccessJson()
                                                 .orDefault(MockHentIm.tomResultJson()),
-                                        Key.EKSTERN_INNTEKTSMELDING_V2 to
-                                            lagret.second
-                                                ?.toJson(EksternInntektsmelding.serializer())
-                                                ?.toSuccessJson()
-                                                .orDefault(MockHentIm.tomResultJson()),
                                     ),
                                 ).toJson(),
                     )

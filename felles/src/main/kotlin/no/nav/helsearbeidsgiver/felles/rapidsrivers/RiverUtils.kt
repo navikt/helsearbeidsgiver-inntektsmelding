@@ -8,6 +8,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
@@ -15,6 +16,7 @@ fun MessageContext.publish(vararg messageFields: Pair<Key, JsonElement>): JsonEl
 
 fun MessageContext.publish(messageFields: Map<Key, JsonElement>): JsonElement =
     messageFields
+        .mapAddTemporaryJournalpostKey()
         .mapKeys { (key, _) -> key.toString() }
         .filterValues { it !is JsonNull }
         .toJson()
@@ -29,3 +31,11 @@ fun MessageContext.publish(messageFields: Map<Key, JsonElement>): JsonElement =
         }.toJson()
         .also(::publish)
         .parseJson()
+
+private fun Map<Key, JsonElement>.mapAddTemporaryJournalpostKey(): Map<Key, JsonElement> {
+    if (!this.containsKey(Key.JOURNALPOST_ID)) {
+        return this
+    }
+
+    return this.plus(Key.JOURNALPOST_ID_V2 to this[Key.JOURNALPOST_ID]).mapValuesNotNull { it }
+}

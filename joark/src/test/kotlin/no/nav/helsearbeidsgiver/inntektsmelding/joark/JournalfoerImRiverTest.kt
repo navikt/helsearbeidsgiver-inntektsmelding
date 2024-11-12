@@ -78,6 +78,7 @@ class JournalfoerImRiverTest :
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
                         Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                         Key.JOURNALPOST_ID to journalpostId.toJson(),
+                        Key.JOURNALPOST_ID_V2 to journalpostId.toJson(),
                         Key.INNTEKTSMELDING to Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
                         Key.BESTEMMENDE_FRAVAERSDAG to Mock.bestemmendeFravaersdag.toJson(),
                         Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
@@ -124,6 +125,7 @@ class JournalfoerImRiverTest :
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
                         Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                         Key.JOURNALPOST_ID to journalpostId.toJson(),
+                        Key.JOURNALPOST_ID_V2 to journalpostId.toJson(),
                         Key.INNTEKTSMELDING to Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
                     )
 

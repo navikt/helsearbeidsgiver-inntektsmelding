@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -11,14 +10,12 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.toPretty
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.PriObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
-import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
@@ -31,9 +28,7 @@ data class BesvartMelding(
 )
 
 /** Tar imot notifikasjon om at en forespørsel om arbeidsgiveropplysninger er besvart. */
-class ForespoerselBesvartRiver(
-    private val rapid: RapidsConnection,
-) : PriObjectRiver<BesvartMelding>() {
+class ForespoerselBesvartRiver : PriObjectRiver<BesvartMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -49,33 +44,11 @@ class ForespoerselBesvartRiver(
         logger.info("Mottok melding på pri-topic om ${Pri.NotisType.FORESPOERSEL_BESVART}.")
         sikkerLogger.info("Mottok melding på pri-topic:\n${json.toPretty()}")
 
-        if (spinnInntektsmeldingId != null) {
-            MdcUtils.withLogFields(
-                Log.event(EventName.EKSTERN_INNTEKTSMELDING_REQUESTED),
-            ) {
-                rapid
-                    .publish(
-                        Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
-                        Key.UUID to transaksjonId.toJson(),
-                        Key.DATA to
-                            mapOf(
-                                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                                Key.SPINN_INNTEKTSMELDING_ID to spinnInntektsmeldingId.toJson(),
-                            ).toJson(),
-                    ).also {
-                        logger.info("Publiserte melding om ekstern avsender")
-                        sikkerLogger.info("Publiserte melding om ekstern avsender:\n${it.toPretty()}")
-                    }
-            }
-        }
-
         Metrics.forespoerslerBesvartFraSpleis.inc()
 
         return mapOf(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            // TODO slett etter overgangsfase
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),

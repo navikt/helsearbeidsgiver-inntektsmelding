@@ -45,7 +45,7 @@ class MessagesTest :
 
         test("finner ikke manglende melding for behov") {
             Mock.meldinger
-                .filter(BehovType.HENT_EKSTERN_INNTEKTSMELDING)
+                .filter(BehovType.HENT_LAGRET_IM)
                 .all()
                 .shouldBeEmpty()
         }

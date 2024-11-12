@@ -12,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -21,20 +20,19 @@ class ForespoerselBesvartRiverTest :
     FunSpec({
         val testRapid = TestRapid()
 
-        ForespoerselBesvartRiver(testRapid).connect(testRapid)
+        ForespoerselBesvartRiver().connect(testRapid)
 
         beforeEach {
             testRapid.reset()
             clearAllMocks()
         }
 
-        test("Ved notis om besvart forespørsel publiseres behov om å hente notifikasjon-ID-er uten IM-ID fra Spinn") {
+        test("Ved notis om besvart forespørsel publiseres behov om å hente notifikasjon-ID-er _uten_ IM-ID fra Spinn") {
             val forespoerselId = UUID.randomUUID()
             val forventetPublisert =
                 mapOf(
                     Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
                     Key.UUID to UUID.randomUUID().toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
@@ -55,14 +53,13 @@ class ForespoerselBesvartRiverTest :
             publisert.minus(Key.UUID) shouldContainExactly forventetPublisert.minus(Key.UUID)
         }
 
-        test("Ved notis om besvart forespørsel publiseres behov om å hente notifikasjon-ID-er med IM-ID fra Spinn") {
+        test("Ved notis om besvart forespørsel publiseres behov om å hente notifikasjon-ID-er _med_ IM-ID fra Spinn") {
             val forespoerselId = UUID.randomUUID()
             val spinnInntektsmeldingId = UUID.randomUUID()
             val forventetPublisert =
                 mapOf(
                     Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
                     Key.UUID to UUID.randomUUID().toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
@@ -76,9 +73,9 @@ class ForespoerselBesvartRiverTest :
                 Pri.Key.SPINN_INNTEKTSMELDING_ID to spinnInntektsmeldingId.toJson(),
             )
 
-            testRapid.inspektør.size shouldBeExactly 2
+            testRapid.inspektør.size shouldBeExactly 1
 
-            val publisert = testRapid.message(1).toMap()
+            val publisert = testRapid.firstMessage().toMap()
 
             publisert shouldContainKey Key.UUID
 

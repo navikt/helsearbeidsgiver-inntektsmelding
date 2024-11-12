@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.json.toPretty
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -38,9 +39,10 @@ class JournalfoerImRiver(
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): JournalfoerImMelding? =
-        if (setOf(Key.BEHOV, Key.DATA, Key.FAIL).any(json::containsKey)) {
+        if (setOf(Key.BEHOV, Key.FAIL).any(json::containsKey)) {
             null
         } else {
+            val data = json[Key.DATA]?.toMap().orEmpty()
             val eventName = Key.EVENT_NAME.les(EventName.serializer(), json)
             val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
@@ -49,15 +51,21 @@ class JournalfoerImRiver(
                     JournalfoerImMelding(
                         eventName = eventName,
                         transaksjonId = transaksjonId,
-                        inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), json),
-                        bestemmendeFravaersdag = Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, json),
+                        inntektsmelding =
+                            Key.INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), json)
+                                ?: Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
+                        bestemmendeFravaersdag =
+                            Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, json)
+                                ?: Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, data),
                     )
 
                 EventName.SELVBESTEMT_IM_LAGRET ->
                     JournalfoerImMelding(
                         eventName = eventName,
                         transaksjonId = transaksjonId,
-                        inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), json),
+                        inntektsmelding =
+                            Key.SELVBESTEMT_INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), json)
+                                ?: Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
                         bestemmendeFravaersdag = null,
                     )
 

@@ -77,7 +77,7 @@ class TilgangOrgService(
                 MdcUtils.withLogFields(
                     Log.behov(BehovType.TILGANGSKONTROLL),
                 ) {
-                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
+                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
                 }
             }
     }

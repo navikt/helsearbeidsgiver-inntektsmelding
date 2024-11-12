@@ -20,8 +20,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class MarkerForespoerselBesvartRiverTest :
@@ -62,7 +60,6 @@ class MarkerForespoerselBesvartRiverTest :
             withData(
                 mapOf(
                     "melding med behov" to Pair(Key.BEHOV, BehovType.HENT_PERSONER.toJson()),
-                    "melding med data" to Pair(Key.DATA, mapOf(Key.FNR to Fnr.genererGyldig().toJson()).toJson()),
                     "melding med fail" to Pair(Key.FAIL, mockFail.toJson(Fail.serializer())),
                 ),
             ) { uoensketKeyMedVerdi ->

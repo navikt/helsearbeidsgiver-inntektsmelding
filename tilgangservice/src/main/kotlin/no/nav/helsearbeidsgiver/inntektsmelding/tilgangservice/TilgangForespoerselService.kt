@@ -87,7 +87,7 @@ class TilgangForespoerselService(
                 MdcUtils.withLogFields(
                     Log.behov(BehovType.HENT_TRENGER_IM),
                 ) {
-                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
+                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
                 }
             }
     }
@@ -114,7 +114,7 @@ class TilgangForespoerselService(
                 MdcUtils.withLogFields(
                     Log.behov(BehovType.TILGANGSKONTROLL),
                 ) {
-                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
+                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
                 }
             }
     }

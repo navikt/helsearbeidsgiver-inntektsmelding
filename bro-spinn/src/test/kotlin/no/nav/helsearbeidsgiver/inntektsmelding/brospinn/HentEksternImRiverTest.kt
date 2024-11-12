@@ -23,7 +23,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.MockHent.toMap
+import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
@@ -41,7 +41,7 @@ class HentEksternImRiverTest :
         }
 
         test("henter ekstern inntektsmelding") {
-            val innkommendeMelding = MockHent.innkommendeMelding()
+            val innkommendeMelding = Mock.innkommendeMelding()
 
             every { mockSpinnKlient.hentEksternInntektsmelding(any()) } returns mockEksternInntektsmelding()
 
@@ -51,20 +51,42 @@ class HentEksternImRiverTest :
 
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
-                    Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
+                    Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
                     Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                     Key.DATA to
-                        innkommendeMelding.data
-                            .plus(
-                                Key.EKSTERN_INNTEKTSMELDING to
-                                    mockEksternInntektsmelding().toJson(
-                                        EksternInntektsmelding.serializer(),
-                                    ),
-                            ).toJson(),
+                        mapOf(
+                            Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
+                            Key.EKSTERN_INNTEKTSMELDING to mockEksternInntektsmelding().toJson(EksternInntektsmelding.serializer()),
+                        ).toJson(),
                 )
 
             verifySequence {
                 mockSpinnKlient.hentEksternInntektsmelding(innkommendeMelding.spinnImId)
+            }
+        }
+
+        context("publiserer ikke mottatt-event for ...") {
+            withData(
+                mapOf(
+                    "forespurt inntektsmelding fra nav.no" to "NAV_NO",
+                    "selvbestemt inntektsmelding fra nav.no" to "NAV_NO_SELVBESTEMT",
+                ),
+            ) { avsenderSystemNavn ->
+                val imFraNavNo =
+                    mockEksternInntektsmelding().copy(
+                        avsenderSystemNavn = avsenderSystemNavn,
+                    )
+                val innkommendeMelding = Mock.innkommendeMelding()
+
+                every { mockSpinnKlient.hentEksternInntektsmelding(any()) } returns imFraNavNo
+
+                testRapid.sendJson(innkommendeMelding.toMap())
+
+                testRapid.inspektør.size shouldBeExactly 0
+
+                verifySequence {
+                    mockSpinnKlient.hentEksternInntektsmelding(innkommendeMelding.spinnImId)
+                }
             }
         }
 
@@ -83,7 +105,7 @@ class HentEksternImRiverTest :
                         ),
                 ),
             ) { (error, expectedFeilmelding) ->
-                val innkommendeMelding = MockHent.innkommendeMelding()
+                val innkommendeMelding = Mock.innkommendeMelding()
 
                 val innkommendeJsonMap = innkommendeMelding.toMap()
 
@@ -114,12 +136,11 @@ class HentEksternImRiverTest :
             withData(
                 mapOf(
                     "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.HENT_VIRKSOMHET_NAVN.toJson()),
-                    "melding med data som flagg" to Pair(Key.DATA, "".toJson()),
-                    "melding med fail" to Pair(Key.FAIL, MockHent.fail.toJson(Fail.serializer())),
+                    "melding med fail" to Pair(Key.FAIL, Mock.fail.toJson(Fail.serializer())),
                 ),
             ) { uoensketKeyMedVerdi ->
                 testRapid.sendJson(
-                    MockHent
+                    Mock
                         .innkommendeMelding()
                         .toMap()
                         .plus(uoensketKeyMedVerdi),
@@ -134,29 +155,18 @@ class HentEksternImRiverTest :
         }
     })
 
-private object MockHent {
-    fun innkommendeMelding(): HentEksternImMelding {
-        val forespoerselId = UUID.randomUUID()
-        val spinnImId = UUID.randomUUID()
-
-        return HentEksternImMelding(
-            eventName = EventName.EKSTERN_INNTEKTSMELDING_REQUESTED,
-            behovType = BehovType.HENT_EKSTERN_INNTEKTSMELDING,
+private object Mock {
+    fun innkommendeMelding(): HentEksternImMelding =
+        HentEksternImMelding(
+            eventName = EventName.FORESPOERSEL_BESVART,
             transaksjonId = UUID.randomUUID(),
-            data =
-                mapOf(
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.SPINN_INNTEKTSMELDING_ID to spinnImId.toJson(),
-                ),
-            forespoerselId = forespoerselId,
-            spinnImId = spinnImId,
+            forespoerselId = UUID.randomUUID(),
+            spinnImId = UUID.randomUUID(),
         )
-    }
 
     fun HentEksternImMelding.toMap(): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.BEHOV to behovType.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
@@ -168,7 +178,7 @@ private object MockHent {
     val fail =
         Fail(
             feilmelding = "Vi spiller ikke Flo Rida sin versjon.",
-            event = EventName.EKSTERN_INNTEKTSMELDING_REQUESTED,
+            event = EventName.FORESPOERSEL_BESVART,
             transaksjonId = UUID.randomUUID(),
             forespoerselId = UUID.randomUUID(),
             utloesendeMelding = JsonNull,

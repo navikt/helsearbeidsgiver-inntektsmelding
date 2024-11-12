@@ -61,7 +61,6 @@ class DistribusjonRiverTest :
                     Key.EVENT_NAME to EventName.INNTEKTSMELDING_DISTRIBUERT.toJson(),
                     Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                     Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
-                    Key.JOURNALPOST_ID_V2 to innkommendeMelding.journalpostId.toJson(),
                     Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
                     Key.BESTEMMENDE_FRAVAERSDAG to innkommendeMelding.bestemmendeFravaersdag?.toJson(),
                 ).mapValuesNotNull { it }
@@ -110,7 +109,6 @@ class DistribusjonRiverTest :
                     Key.EVENT_NAME to EventName.INNTEKTSMELDING_DISTRIBUERT.toJson(),
                     Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                     Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
-                    Key.JOURNALPOST_ID_V2 to innkommendeMelding.journalpostId.toJson(),
                     Key.INNTEKTSMELDING to selvbestemtInntektsmelding.toJson(Inntektsmelding.serializer()),
                 )
 

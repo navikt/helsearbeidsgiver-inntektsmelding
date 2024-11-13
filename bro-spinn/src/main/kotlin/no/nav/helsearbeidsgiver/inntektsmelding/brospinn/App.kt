@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.tokenprovider.oauth2ClientCredentialsTokenGetter
 import no.nav.helsearbeidsgiver.utils.log.logger
 
@@ -16,20 +15,11 @@ fun main() {
 
     RapidApplication
         .create(System.getenv())
-        .createSpinnService()
         .createHentEksternImRiver(spinnKlient)
         .start()
 
     logger.info("Bye bye, baby, bye bye!")
 }
-
-fun RapidsConnection.createSpinnService(): RapidsConnection =
-    also {
-        logger.info("Starter ${SpinnService::class.simpleName}...")
-        ServiceRiverStateless(
-            SpinnService(this),
-        ).connect(this)
-    }
 
 fun RapidsConnection.createHentEksternImRiver(spinnKlient: SpinnKlient): RapidsConnection =
     also {

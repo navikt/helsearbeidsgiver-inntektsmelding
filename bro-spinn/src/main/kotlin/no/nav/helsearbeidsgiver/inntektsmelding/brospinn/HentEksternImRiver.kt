@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
@@ -18,11 +17,12 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
+private const val AVSENDER_NAV_NO = "NAV_NO"
+private const val AVSENDER_NAV_NO_SELVBESTEMT = "NAV_NO_SELVBESTEMT"
+
 class HentEksternImMelding(
     val eventName: EventName,
-    val behovType: BehovType,
     val transaksjonId: UUID,
-    val data: Map<Key, JsonElement>,
     val forespoerselId: UUID,
     val spinnImId: UUID,
 )
@@ -34,35 +34,37 @@ class HentEksternImRiver(
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): HentEksternImMelding? =
-        if (Key.FAIL in json) {
+        if (setOf(Key.BEHOV, Key.FAIL).any(json::containsKey)) {
             null
         } else {
             val data = json[Key.DATA]?.toMap().orEmpty()
 
             HentEksternImMelding(
-                eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
-                behovType = Key.BEHOV.krev(BehovType.HENT_EKSTERN_INNTEKTSMELDING, BehovType.serializer(), json),
+                eventName = Key.EVENT_NAME.krev(EventName.FORESPOERSEL_BESVART, EventName.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
-                data = data,
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
                 spinnImId = Key.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, data),
             )
         }
 
-    override fun HentEksternImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
+    override fun HentEksternImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         logger.info("Henter ekstern inntektsmelding med ID '$spinnImId' fra Spinn.")
 
         val eksternInntektsmelding = spinnKlient.hentEksternInntektsmelding(spinnImId)
 
-        return mapOf(
-            Key.EVENT_NAME to eventName.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.DATA to
-                data
-                    .plus(
+        return if (eksternInntektsmelding.avsenderSystemNavn in setOf(AVSENDER_NAV_NO, AVSENDER_NAV_NO_SELVBESTEMT)) {
+            null
+        } else {
+            mapOf(
+                Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                         Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
                     ).toJson(),
-        )
+            )
+        }
     }
 
     override fun HentEksternImMelding.haandterFeil(
@@ -94,7 +96,6 @@ class HentEksternImRiver(
         mapOf(
             Log.klasse(this@HentEksternImRiver),
             Log.event(eventName),
-            Log.behov(behovType),
             Log.transaksjonId(transaksjonId),
             Log.forespoerselId(forespoerselId),
         )

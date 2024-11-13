@@ -5,6 +5,8 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.json.toPretty
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
@@ -30,13 +32,15 @@ class MarkerForespoerselBesvartRiver(
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): Melding? =
-        if (setOf(Key.BEHOV, Key.DATA, Key.FAIL).any(json::containsKey)) {
+        if (setOf(Key.BEHOV, Key.FAIL).any(json::containsKey)) {
             null
         } else {
+            val data = json[Key.DATA]?.toMap().orEmpty()
+
             Melding(
                 eventName = Key.EVENT_NAME.krev(EventName.INNTEKTSMELDING_MOTTATT, EventName.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
-                forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json),
+                forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, json) ?: Key.FORESPOERSEL_ID.les(UuidSerializer, data),
             )
         }
 

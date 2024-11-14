@@ -88,7 +88,7 @@ class JournalfoerImRiver(
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag?.toJson(),
-            Key.INNSENDING_ID to (json[Key.INNSENDING_ID] ?: json[Key.DATA]?.toMap().orEmpty()[Key.FORESPOERSEL_ID]),
+            Key.INNSENDING_ID to (json[Key.INNSENDING_ID] ?: json[Key.DATA]?.toMap().orEmpty()[Key.INNSENDING_ID]),
         ).mapValuesNotNull { it }
             .also {
                 logger.info("Publiserte melding med event '${EventName.INNTEKTSMELDING_JOURNALFOERT}' og journalpost-ID '$journalpostId'.")

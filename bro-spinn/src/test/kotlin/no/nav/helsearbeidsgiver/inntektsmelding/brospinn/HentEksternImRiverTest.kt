@@ -5,7 +5,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.data.row
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
-import io.kotest.matchers.maps.shouldContainExactly
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -23,6 +22,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.test.shouldContainAllExcludingTempKey
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -49,7 +49,7 @@ class HentEksternImRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly
+            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey
                 mapOf(
                     Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
                     Key.UUID to innkommendeMelding.transaksjonId.toJson(),
@@ -124,7 +124,7 @@ class HentEksternImRiverTest :
 
                 testRapid.inspektør.size shouldBeExactly 1
 
-                testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
+                testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey forventetFail.tilMelding()
 
                 verifySequence {
                     mockSpinnKlient.hentEksternInntektsmelding(innkommendeMelding.spinnImId)

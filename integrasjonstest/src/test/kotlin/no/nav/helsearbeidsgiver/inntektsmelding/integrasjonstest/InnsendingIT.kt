@@ -86,8 +86,8 @@ class InnsendingIT : EndToEndTest() {
             .filter(EventName.INNTEKTSMELDING_MOTTATT)
             .firstAsMap()
             .also {
-                // EVENT: Mottatt inntektsmelding
-                it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
         messages

@@ -35,7 +35,6 @@ import no.nav.helsearbeidsgiver.felles.domene.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.domene.PeriodeNullable
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
-import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -129,7 +128,8 @@ class LagreSelvbestemtImServiceTest :
             testRapid.message(5).toMap().also {
                 Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.SELVBESTEMT_IM_LAGRET
                 Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
-                Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), it).shouldBeEqualToIgnoringFields(nyInntektsmelding, Inntektsmelding::id)
+
+                it.lesInntektsmelding().shouldBeEqualToIgnoringFields(nyInntektsmelding, Inntektsmelding::id)
             }
 
             verify {
@@ -177,7 +177,8 @@ class LagreSelvbestemtImServiceTest :
             testRapid.message(4).toMap().also {
                 Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.SELVBESTEMT_IM_LAGRET
                 Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
-                Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), it).shouldBeEqualToIgnoringFields(endretInntektsmelding, Inntektsmelding::id)
+
+                it.lesInntektsmelding().shouldBeEqualToIgnoringFields(endretInntektsmelding, Inntektsmelding::id)
             }
 
             verify {
@@ -308,9 +309,8 @@ class LagreSelvbestemtImServiceTest :
             testRapid.message(4).toMap().also {
                 Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.SELVBESTEMT_IM_LAGRET
                 Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
-                Key.SELVBESTEMT_INNTEKTSMELDING
-                    .les(Inntektsmelding.serializer(), it)
-                    .shouldBeEqualToIgnoringFields(inntektsmeldingMedDefaults, Inntektsmelding::id)
+
+                it.lesInntektsmelding().shouldBeEqualToIgnoringFields(inntektsmeldingMedDefaults, Inntektsmelding::id)
             }
 
             verify {

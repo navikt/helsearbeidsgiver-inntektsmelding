@@ -41,8 +41,7 @@ class LagreEksternImRiver(
                 eventName = Key.EVENT_NAME.krev(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT, EventName.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
-                eksternInntektsmelding =
-                    Key.EKSTERN_INNTEKTSMELDING.les(EksternInntektsmelding.serializer(), data),
+                eksternInntektsmelding = Key.EKSTERN_INNTEKTSMELDING.les(EksternInntektsmelding.serializer(), data),
             )
         }
 

@@ -216,9 +216,13 @@ class BerikInntektsmeldingService(
                 rapid.publish(
                     Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
                     Key.UUID to steg0.transaksjonId.toJson(),
-                    Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
-                    Key.INNTEKTSMELDING to steg4.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                    Key.BESTEMMENDE_FRAVAERSDAG to steg4.bestemmendeFravaersdag.toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
+                            Key.INNTEKTSMELDING to steg4.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                            Key.BESTEMMENDE_FRAVAERSDAG to steg4.bestemmendeFravaersdag.toJson(),
+                            Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
+                        ).toJson(),
                     Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
                 )
 

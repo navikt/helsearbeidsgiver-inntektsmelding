@@ -148,15 +148,17 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                         .shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
-                    it[Key.FORESPOERSEL_ID]
+                    val data = it[Key.DATA].shouldNotBeNull().toMap()
+
+                    data[Key.FORESPOERSEL_ID]
                         .shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
-                    it[Key.INNTEKTSMELDING]
+                    data[Key.INNTEKTSMELDING]
                         .shouldNotBeNull()
                         .fromJson(InntektsmeldingV1.serializer())
 
-                    it[Key.BESTEMMENDE_FRAVAERSDAG]
+                    data[Key.BESTEMMENDE_FRAVAERSDAG]
                         .shouldNotBeNull()
                         .fromJson(LocalDateSerializer)
                 }
@@ -282,15 +284,17 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                         .shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
-                    it[Key.FORESPOERSEL_ID]
+                    val data = it[Key.DATA].shouldNotBeNull().toMap()
+
+                    data[Key.FORESPOERSEL_ID]
                         .shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
-                    it[Key.INNTEKTSMELDING]
+                    data[Key.INNTEKTSMELDING]
                         .shouldNotBeNull()
                         .fromJson(InntektsmeldingV1.serializer())
 
-                    it[Key.BESTEMMENDE_FRAVAERSDAG]
+                    data[Key.BESTEMMENDE_FRAVAERSDAG]
                         .shouldNotBeNull()
                         .fromJson(LocalDateSerializer)
                 }

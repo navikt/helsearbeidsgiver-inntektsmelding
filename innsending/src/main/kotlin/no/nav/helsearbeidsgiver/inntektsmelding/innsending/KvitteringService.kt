@@ -98,9 +98,7 @@ class KvitteringService(
         val resultJson =
             ResultJson(
                 success =
-                    InnsendtInntektsmelding(steg1.inntektsmeldingDokument, steg1.eksternInntektsmelding).toJson(
-                        InnsendtInntektsmelding.serializer(),
-                    ),
+                    InnsendtInntektsmelding(steg1.inntektsmeldingDokument, steg1.eksternInntektsmelding).toJson(InnsendtInntektsmelding.serializer()),
             ).toJson(ResultJson.serializer())
 
         redisStore.skrivResultat(steg0.transaksjonId, resultJson)

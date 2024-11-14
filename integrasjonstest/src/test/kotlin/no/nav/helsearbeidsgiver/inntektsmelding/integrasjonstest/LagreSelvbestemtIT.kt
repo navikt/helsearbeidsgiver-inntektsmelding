@@ -165,7 +165,9 @@ class LagreSelvbestemtIT : EndToEndTest() {
         // Service ferdig
         messages
             .filter(EventName.SELVBESTEMT_IM_LAGRET)
-            .firstAsMap()[Key.SELVBESTEMT_INNTEKTSMELDING]
+            .firstAsMap()[Key.DATA]
+            .shouldNotBeNull()
+            .toMap()[Key.SELVBESTEMT_INNTEKTSMELDING]
             .shouldNotBeNull()
             .fromJson(Inntektsmelding.serializer())
             .shouldBeEqualToInntektsmelding(nyInntektsmelding)
@@ -237,7 +239,9 @@ class LagreSelvbestemtIT : EndToEndTest() {
         // Service ferdig
         messages
             .filter(EventName.SELVBESTEMT_IM_LAGRET)
-            .firstAsMap()[Key.SELVBESTEMT_INNTEKTSMELDING]
+            .firstAsMap()[Key.DATA]
+            .shouldNotBeNull()
+            .toMap()[Key.SELVBESTEMT_INNTEKTSMELDING]
             .shouldNotBeNull()
             .fromJson(Inntektsmelding.serializer())
             .shouldBeEqualToInntektsmelding(Mock.inntektsmelding, compareType = true)

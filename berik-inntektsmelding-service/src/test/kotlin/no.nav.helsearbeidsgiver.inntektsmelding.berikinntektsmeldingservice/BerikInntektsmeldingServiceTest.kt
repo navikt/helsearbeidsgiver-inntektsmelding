@@ -20,7 +20,6 @@ import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
@@ -116,10 +115,12 @@ class BerikInntektsmeldingServiceTest :
             testRapid.inspektør.size shouldBeExactly 5
             testRapid.message(4).also {
                 it.lesEventName() shouldBe EventName.INNTEKTSMELDING_MOTTATT
-                Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it.toMap()) shouldBe Mock.skjema.forespoerselId
-                Key.INNTEKTSMELDING.lesOrNull(InntektsmeldingV1.serializer(), it.toMap()) shouldNotBe null
-                Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, it.toMap()) shouldNotBe null
-                Key.INNSENDING_ID.lesOrNull(Long.serializer(), it.toMap()) shouldBe Mock.INNSENDING_ID
+
+                val data = it.lesData()
+                Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data) shouldBe Mock.skjema.forespoerselId
+                Key.INNTEKTSMELDING.lesOrNull(InntektsmeldingV1.serializer(), data) shouldNotBe null
+                Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, data) shouldNotBe null
+                Key.INNSENDING_ID.lesOrNull(Long.serializer(), data) shouldBe Mock.INNSENDING_ID
             }
         }
 

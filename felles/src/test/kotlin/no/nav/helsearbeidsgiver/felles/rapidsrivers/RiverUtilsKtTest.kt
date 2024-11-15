@@ -84,5 +84,99 @@ class RiverUtilsKtTest :
                     )
                 }
             }
+
+            xtest("duplikert verdi i ORGNRUNDERENHET_V2 nøkkel") {
+
+                val verdi = ("unik ORGNRUNDERENHET verdi " + UUID.randomUUID().toString()).toJson()
+
+                val melding =
+                    mapOf(
+                        Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
+                        Key.ORGNRUNDERENHET to verdi,
+                    )
+
+                testRapid.publish(melding)
+
+                verifySequence {
+                    testRapid.publish(
+                        withArg<String> {
+                            it.parseJson().toMap() shouldContainExactly melding.plus(Key.ORGNRUNDERENHET_V2 to verdi)
+                        },
+                    )
+                }
+            }
+
+            test("duplikert verdi i Data MapOf i ORGNRUNDERENHET_V2 nøkkel") {
+
+                val verdi = ("unik ORGNRUNDERENHET verdi " + UUID.randomUUID().toString()).toJson()
+
+                val melding =
+                    mapOf(
+                        Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
+                        Key.DATA to
+                            mapOf(
+                                Key.ORGNRUNDERENHET to verdi,
+                            ).toJson(),
+                    )
+
+                testRapid.publish(melding)
+
+                val meldingMedDuplikert =
+                    melding.plus(
+                        Key.DATA to
+                            mapOf(
+                                Key.ORGNRUNDERENHET to verdi,
+                                Key.ORGNRUNDERENHET_V2 to verdi,
+                            ).toJson(),
+                    )
+
+                verifySequence {
+                    testRapid.publish(
+                        withArg<String> {
+                            it.parseJson().toMap() shouldContainExactly meldingMedDuplikert
+                        },
+                    )
+                }
+            }
+
+            test("duplikert verdi i nøkkel og Data MapOf nøkkel") {
+
+                val verdi = ("unik ORGNRUNDERENHET verdi " + UUID.randomUUID().toString()).toJson()
+                val id = Key.FORESPOERSEL_ID to UUID.randomUUID().toJson()
+
+                val melding =
+                    mapOf(
+                        id,
+                        Key.ORGNRUNDERENHET to verdi,
+                        Key.DATA to
+                            mapOf(
+                                Key.ORGNRUNDERENHET to verdi,
+                            ).toJson(),
+                    )
+
+                testRapid.publish(melding)
+
+                val meldingMedDuplikert =
+                    mapOf(
+                        id,
+                        Key.ORGNRUNDERENHET to verdi,
+                        Key.ORGNRUNDERENHET to verdi,
+                        Key.ORGNRUNDERENHET_V2 to verdi,
+                        Key.DATA to
+                            mapOf(
+                                Key.ORGNRUNDERENHET to verdi,
+                                Key.ORGNRUNDERENHET_V2 to verdi,
+                            ).toJson(),
+                    )
+
+                verifySequence {
+                    testRapid.publish(
+                        withArg<String> {
+
+                            it.parseJson().toMap() shouldContainExactly meldingMedDuplikert
+                        },
+                    )
+                }
+            }
         }
     })

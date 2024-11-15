@@ -25,6 +25,7 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.MockTilgang.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -57,6 +58,8 @@ class TilgangRiverTest :
 
                 testRapid.inspektør.size shouldBeExactly 1
 
+                val harOrgnrunderenhet = innkommendeMelding.data.containsKey(Key.ORGNRUNDERENHET)
+
                 testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
                         Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
@@ -64,7 +67,15 @@ class TilgangRiverTest :
                         Key.DATA to
                             innkommendeMelding.data
                                 .plus(Key.TILGANG to forventetTilgang.toJson(Tilgang.serializer()))
-                                .toJson(),
+                                .let {
+                                    val verdi = innkommendeMelding.data[Key.ORGNRUNDERENHET].orDefault(JsonNull)
+
+                                    if (innkommendeMelding.data.containsKey(Key.ORGNRUNDERENHET)) {
+                                        it.plus(Key.ORGNRUNDERENHET_V2 to verdi)
+                                    } else {
+                                        it
+                                    }
+                                }.toJson(),
                     )
 
                 coVerifySequence {

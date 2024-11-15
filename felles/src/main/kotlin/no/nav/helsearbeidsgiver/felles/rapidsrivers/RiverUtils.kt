@@ -18,8 +18,18 @@ fun MessageContext.publish(vararg messageFields: Pair<Key, JsonElement>): JsonEl
 
 fun MessageContext.publish(messageFields: Map<Key, JsonElement>): JsonElement =
     messageFields
-        .mapAddTemporaryOrgnrunderenhetKey()
-        .mapKeys { (key, _) -> key.toString() }
+        .let { root ->
+            val data = root[Key.DATA]?.toMap().orEmpty()
+            val newData =
+                data
+                    .plus(Key.ORGNRUNDERENHET_V2 to data[Key.ORGNRUNDERENHET])
+                    .mapValuesNotNull { it }
+                    .ifEmpty { null }
+            root
+                .plus(Key.ORGNRUNDERENHET_V2 to root[Key.ORGNRUNDERENHET])
+                .plus(Key.DATA to newData?.toJson())
+                .mapValuesNotNull { it }
+        }.mapKeys { (key, _) -> key.toString() }
         .filterValues { it !is JsonNull }
         .toJson()
         .toString()
@@ -33,36 +43,3 @@ fun MessageContext.publish(messageFields: Map<Key, JsonElement>): JsonElement =
         }.toJson()
         .also(::publish)
         .parseJson()
-
-private fun Map<Key, JsonElement>.mapAddTemporaryOrgnrunderenhetKey(): Map<Key, JsonElement> =
-    this
-        .mapDuplikertVerdi(Key.ORGNRUNDERENHET, Key.ORGNRUNDERENHET_V2)
-        .mapDataMedDuplikertVerdi(Key.ORGNRUNDERENHET, Key.ORGNRUNDERENHET_V2)
-
-private fun Map<Key, JsonElement>.mapDataMedDuplikertVerdi(
-    originalKey: Key,
-    duplikasjonKey: Key,
-): Map<Key, JsonElement> {
-    val data = this[Key.DATA]?.toMap().orEmpty()
-    val verdi = data[originalKey]
-
-    if (data.isEmpty() || verdi == null) {
-        return this
-    }
-
-    return this.plus(
-        Key.DATA to
-            data.plus(duplikasjonKey to data[originalKey]).mapValuesNotNull { it }.toJson(),
-    )
-}
-
-private fun Map<Key, JsonElement>.mapDuplikertVerdi(
-    originalKey: Key,
-    duplikasjonKey: Key,
-): Map<Key, JsonElement> {
-    if (!this.containsKey(originalKey)) {
-        return this
-    }
-
-    return this.plus(duplikasjonKey to this[originalKey]).mapValuesNotNull { it }
-}

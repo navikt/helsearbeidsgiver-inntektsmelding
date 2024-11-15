@@ -85,7 +85,7 @@ class RiverUtilsKtTest :
                 }
             }
 
-            xtest("duplikert verdi i ORGNRUNDERENHET_V2 nøkkel") {
+            test("duplikert verdi i ORGNRUNDERENHET_V2 nøkkel") {
 
                 val verdi = ("unik ORGNRUNDERENHET verdi " + UUID.randomUUID().toString()).toJson()
 

@@ -3,12 +3,12 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
-import io.kotest.matchers.maps.shouldContainExactly
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
+import no.nav.helsearbeidsgiver.felles.test.shouldContainAllExcludingTempKey
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -27,7 +27,7 @@ class AktiveOrgnrProducerTest :
             producer.publish(transaksjonId, arbeidsgiverFnr, arbeidstagerFnr)
 
             testRapid.inspektør.size shouldBeExactly 1
-            testRapid.firstMessage().toMap() shouldContainExactly
+            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey
                 mapOf(
                     Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
                     Key.UUID to transaksjonId.toJson(),

@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
-import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
@@ -23,6 +22,7 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.test.shouldContainAllExcludingTempKey
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
@@ -54,7 +54,7 @@ class HentDataTilPaaminnelseServiceTest :
             testRapid.sendJson(HentDataTilPaaminnelseServiceMock.steg2())
 
             testRapid.inspektør.size shouldBeExactly 3
-            testRapid.message(2).toMap() shouldContainExactly
+            testRapid.message(2).toMap() shouldContainAllExcludingTempKey
                 mapOf(
                     Key.EVENT_NAME to EventName.OPPGAVE_ENDRE_PAAMINNELSE_REQUESTED.toJson(),
                     Key.UUID to HentDataTilPaaminnelseServiceMock.transaksjonId.toJson(),

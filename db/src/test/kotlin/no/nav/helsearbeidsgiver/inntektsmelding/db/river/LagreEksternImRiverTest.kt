@@ -4,7 +4,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
-import io.kotest.matchers.maps.shouldContainExactly
 import io.mockk.Runs
 import io.mockk.clearAllMocks
 import io.mockk.every
@@ -24,6 +23,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.test.shouldContainAllExcludingTempKey
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -49,7 +49,7 @@ class LagreEksternImRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly
+            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey
                 mapOf(
                     Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_LAGRET.toJson(),
                     Key.UUID to innkommendeMelding.transaksjonId.toJson(),
@@ -81,7 +81,7 @@ class LagreEksternImRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
+            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey forventetFail.tilMelding()
 
             verifySequence {
                 mockImRepo.lagreEksternInntektsmelding(innkommendeMelding.forespoerselId, innkommendeMelding.eksternInntektsmelding)

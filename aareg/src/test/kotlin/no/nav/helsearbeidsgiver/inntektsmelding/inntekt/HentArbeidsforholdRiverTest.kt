@@ -4,7 +4,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
-import io.kotest.matchers.maps.shouldContainExactly
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -22,6 +21,7 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.test.shouldContainAllExcludingTempKey
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.HentArbeidsforholdMelding
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.HentArbeidsforholdRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.tilArbeidsforhold
@@ -57,7 +57,7 @@ class HentArbeidsforholdRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly
+            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
                     Key.UUID to innkommendeMelding.transaksjonId.toJson(),
@@ -90,7 +90,7 @@ class HentArbeidsforholdRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
+            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey forventetFail.tilMelding()
 
             coVerifySequence {
                 mockAaregClient.hentArbeidsforhold(innkommendeMelding.fnr.verdi, innkommendeMelding.transaksjonId.toString())

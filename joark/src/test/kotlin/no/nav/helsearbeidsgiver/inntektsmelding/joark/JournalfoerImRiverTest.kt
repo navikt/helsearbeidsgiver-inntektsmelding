@@ -6,7 +6,6 @@ import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.ints.shouldBeExactly
-import io.kotest.matchers.maps.shouldContainExactly
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -29,6 +28,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.test.shouldContainAllExcludingTempKey
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -73,7 +73,7 @@ class JournalfoerImRiverTest :
 
                 testRapid.inspektør.size shouldBeExactly 1
 
-                testRapid.firstMessage().toMap() shouldContainExactly
+                testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey
                     mapOf(
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
                         Key.UUID to innkommendeMelding.transaksjonId.toJson(),
@@ -119,7 +119,7 @@ class JournalfoerImRiverTest :
 
                 testRapid.inspektør.size shouldBeExactly 1
 
-                testRapid.firstMessage().toMap() shouldContainExactly
+                testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey
                     mapOf(
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
                         Key.UUID to innkommendeMelding.transaksjonId.toJson(),
@@ -171,7 +171,7 @@ class JournalfoerImRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
+            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey forventetFail.tilMelding()
 
             coVerifySequence {
                 mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())

@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.river
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
-import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.serialization.builtins.serializer
@@ -16,6 +15,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.test.shouldContainAllExcludingTempKey
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.prosessor.FeilProsessor
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
@@ -53,7 +53,7 @@ class FeilLytterTest :
             jobber.size shouldBeExactly 1
 
             jobber[0].uuid shouldBe forespoerselMottattFail.transaksjonId
-            jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail.utloesendeMelding.toMap()
+            jobber[0].data.parseJson().toMap() shouldContainAllExcludingTempKey forespoerselMottattFail.utloesendeMelding.toMap()
         }
 
         test("ved flere feil på samme transaksjon-ID og event, men ulikt innhold, så lagres to jobber med ulik transaksjon-ID") {
@@ -84,7 +84,7 @@ class FeilLytterTest :
             jobber.size shouldBeExactly 2
 
             jobber[0].uuid shouldBe transaksjonId
-            jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail.utloesendeMelding.toMap()
+            jobber[0].data.parseJson().toMap() shouldContainAllExcludingTempKey forespoerselMottattFail.utloesendeMelding.toMap()
 
             jobber[1].uuid shouldNotBe transaksjonId
             jobber[1].data.parseJson().toMap().also {
@@ -114,7 +114,7 @@ class FeilLytterTest :
             jobber.size shouldBeExactly 2
 
             jobber[0].uuid shouldBe transaksjonId
-            jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail.utloesendeMelding.toMap()
+            jobber[0].data.parseJson().toMap() shouldContainAllExcludingTempKey forespoerselMottattFail.utloesendeMelding.toMap()
 
             jobber[1].uuid shouldNotBe transaksjonId
             jobber[1].data.parseJson().toMap().also {
@@ -141,10 +141,10 @@ class FeilLytterTest :
             jobber.size shouldBeExactly 2
 
             jobber[0].uuid shouldBe forespoerselMottattFail1.transaksjonId
-            jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail1.utloesendeMelding.toMap()
+            jobber[0].data.parseJson().toMap() shouldContainAllExcludingTempKey forespoerselMottattFail1.utloesendeMelding.toMap()
 
             jobber[1].uuid shouldBe forespoerselMottattFail2.transaksjonId
-            jobber[1].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail2.utloesendeMelding.toMap()
+            jobber[1].data.parseJson().toMap() shouldContainAllExcludingTempKey forespoerselMottattFail2.utloesendeMelding.toMap()
         }
 
         test("ved flere feil på ulik transaksjon-ID og ulik event, så lagres to jobber (med ulik transaksjon-ID)") {
@@ -165,10 +165,10 @@ class FeilLytterTest :
             jobber.size shouldBeExactly 2
 
             jobber[0].uuid shouldBe forespoerselMottattFail.transaksjonId
-            jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail.utloesendeMelding.toMap()
+            jobber[0].data.parseJson().toMap() shouldContainAllExcludingTempKey forespoerselMottattFail.utloesendeMelding.toMap()
 
             jobber[1].uuid shouldBe forespoerselBesvartFail.transaksjonId
-            jobber[1].data.parseJson().toMap() shouldContainExactly forespoerselBesvartFail.utloesendeMelding.toMap()
+            jobber[1].data.parseJson().toMap() shouldContainAllExcludingTempKey forespoerselBesvartFail.utloesendeMelding.toMap()
         }
 
         test("setter jobb til STOPPET når maks antall forsøk er overskredet") {

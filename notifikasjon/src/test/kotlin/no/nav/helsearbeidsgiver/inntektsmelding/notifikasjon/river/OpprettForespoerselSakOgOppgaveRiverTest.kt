@@ -4,13 +4,13 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
-import io.kotest.matchers.maps.shouldContainExactly
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveDuplikatException
@@ -26,6 +26,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.test.shouldContainAllExcludingTempKey
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggle
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakLevetid
@@ -69,7 +70,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding, sakId, oppgaveId)
+            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey forventetUtgaaendeMelding(innkommendeMelding, sakId, oppgaveId)
 
             coVerifySequence {
                 mockAgNotifikasjonKlient.opprettNySak(
@@ -129,7 +130,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding, sakId, duplikatOppgaveId)
+            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey forventetUtgaaendeMelding(innkommendeMelding, sakId, duplikatOppgaveId)
 
             coVerifySequence {
                 mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
@@ -153,7 +154,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding, duplikatSakId, oppgaveId)
+            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey forventetUtgaaendeMelding(innkommendeMelding, duplikatSakId, oppgaveId)
 
             coVerifySequence {
                 mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
@@ -179,7 +180,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding, duplikatSakId, duplikatOppgaveId)
+            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey forventetUtgaaendeMelding(innkommendeMelding, duplikatSakId, duplikatOppgaveId)
 
             coVerifySequence {
                 mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
@@ -198,7 +199,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly forventetFail(innkommendeMelding).tilMelding()
+            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey forventetFail(innkommendeMelding).tilMelding()
 
             coVerifySequence {
                 mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
@@ -220,7 +221,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly forventetFail(innkommendeMelding).tilMelding()
+            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey forventetFail(innkommendeMelding).tilMelding()
 
             coVerifySequence {
                 mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
@@ -289,7 +290,7 @@ private fun forventetUtgaaendeMelding(
     innkommendeMelding: OpprettForespoerselSakOgOppgaveMelding,
     sakId: String,
     oppgaveId: String,
-): Map<Key, Any> =
+): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETTET.toJson(),
         Key.UUID to innkommendeMelding.transaksjonId.toJson(),

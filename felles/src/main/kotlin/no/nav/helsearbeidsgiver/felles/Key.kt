@@ -52,6 +52,7 @@ enum class Key(
 
     // ulik formattering
     FORESPOERSEL_ID("forespoerselId"),
+    FORESPOERSEL_ID_V2("forespoersel_id"),
     ORGNRUNDERENHET("orgnrUnderenhet"),
     SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
     ;

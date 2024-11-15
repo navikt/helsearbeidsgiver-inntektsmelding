@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.maps.shouldContainExactly
 import io.mockk.clearAllMocks
 import io.mockk.spyk
 import io.mockk.verifySequence
@@ -13,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
+import no.nav.helsearbeidsgiver.felles.test.shouldContainAllExcludingTempKey
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -41,7 +41,7 @@ class RiverUtilsKtTest :
                 verifySequence {
                     testRapid.publish(
                         withArg<String> {
-                            it.parseJson().toMap() shouldContainExactly melding.toMap()
+                            it.parseJson().toMap() shouldContainAllExcludingTempKey melding.toMap()
                         },
                     )
                 }
@@ -60,7 +60,7 @@ class RiverUtilsKtTest :
                 verifySequence {
                     testRapid.publish(
                         withArg<String> {
-                            it.parseJson().toMap() shouldContainExactly melding
+                            it.parseJson().toMap() shouldContainAllExcludingTempKey melding
                         },
                     )
                 }
@@ -79,7 +79,7 @@ class RiverUtilsKtTest :
                 verifySequence {
                     testRapid.publish(
                         withArg<String> {
-                            it.parseJson().toMap() shouldContainExactly mapOf(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
+                            it.parseJson().toMap() shouldContainAllExcludingTempKey mapOf(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
                         },
                     )
                 }

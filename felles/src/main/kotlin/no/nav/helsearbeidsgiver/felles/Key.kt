@@ -26,6 +26,7 @@ enum class Key(
     FNR("fnr"),
     FNR_LISTE("fnr_liste"),
     FORESPOERSEL("forespoersel"),
+    FORESPOERSEL_ID("forespoersel_id"),
     FORESPOERSEL_MAP("forespoersel_map"),
     INNSENDING_ID("innsending_id"),
     INNTEKT("inntekt"),
@@ -51,8 +52,6 @@ enum class Key(
     JOURNALPOST_ID("journalpost_id"),
 
     // ulik formattering
-    FORESPOERSEL_ID("forespoerselId"),
-    FORESPOERSEL_ID_V2("forespoersel_id"),
     ORGNRUNDERENHET("orgnrUnderenhet"),
     SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
     ;

@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.maps.shouldContainExactly
 import io.mockk.clearAllMocks
 import io.mockk.spyk
 import io.mockk.verifySequence

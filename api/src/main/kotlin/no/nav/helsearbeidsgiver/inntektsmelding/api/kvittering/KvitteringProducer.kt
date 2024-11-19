@@ -32,6 +32,7 @@ class KvitteringProducer(
         ) {
             rapid
                 .publish(
+                    key = forespoerselId,
                     Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
                     Key.UUID to transaksjonId.toJson(),
                     Key.DATA to

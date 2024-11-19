@@ -45,7 +45,6 @@ enum class Key(
     SKJEMA_INNTEKTSMELDING("skjema_inntektsmelding"),
     SYKMELDT("sykmeldt"),
     TILGANG("tilgang"),
-    UUID("uuid"),
     VEDTAKSPERIODE_ID_LISTE("vedtaksperiode_id_liste"),
     VIRKSOMHET("virksomhet"),
     VIRKSOMHETER("virksomheter"),
@@ -55,6 +54,9 @@ enum class Key(
     // ulik formattering
     ORGNRUNDERENHET("orgnrUnderenhet"),
     SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
+
+    // TODO erstatt med KONTEKST_ID
+    UUID("kontekst_id"),
     ;
 
     override fun toString(): String = str

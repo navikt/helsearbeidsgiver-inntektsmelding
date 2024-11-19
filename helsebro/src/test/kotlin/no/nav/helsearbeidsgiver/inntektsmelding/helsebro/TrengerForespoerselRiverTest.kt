@@ -37,7 +37,7 @@ class TrengerForespoerselRiverTest :
             testRapid.sendJson(
                 Key.EVENT_NAME to expectedEvent.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                Key.UUID to expectedTransaksjonId.toJson(),
+                Key.KONTEKST_ID to expectedTransaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
@@ -54,7 +54,7 @@ class TrengerForespoerselRiverTest :
                     Pri.Key.BOOMERANG to
                         mapOf(
                             Key.EVENT_NAME to expectedEvent.toJson(),
-                            Key.UUID to expectedTransaksjonId.toJson(),
+                            Key.KONTEKST_ID to expectedTransaksjonId.toJson(),
                             Key.DATA to
                                 mapOf(
                                     Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),

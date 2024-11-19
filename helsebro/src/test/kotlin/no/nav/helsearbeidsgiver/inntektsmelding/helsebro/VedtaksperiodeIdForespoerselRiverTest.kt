@@ -37,7 +37,7 @@ class VedtaksperiodeIdForespoerselRiverTest :
             testRapid.sendJson(
                 Key.EVENT_NAME to expectedEvent.toJson(),
                 Key.BEHOV to BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(),
-                Key.UUID to expectedTransaksjonId.toJson(),
+                Key.KONTEKST_ID to expectedTransaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.VEDTAKSPERIODE_ID_LISTE to expectedVedtaksperiodeIdListe.toJson(UuidSerializer),
@@ -53,7 +53,7 @@ class VedtaksperiodeIdForespoerselRiverTest :
                     Pri.Key.BOOMERANG to
                         mapOf(
                             Key.EVENT_NAME to expectedEvent.toJson(),
-                            Key.UUID to expectedTransaksjonId.toJson(),
+                            Key.KONTEKST_ID to expectedTransaksjonId.toJson(),
                             Key.DATA to
                                 mapOf(
                                     Key.VEDTAKSPERIODE_ID_LISTE to expectedVedtaksperiodeIdListe.toJson(UuidSerializer),

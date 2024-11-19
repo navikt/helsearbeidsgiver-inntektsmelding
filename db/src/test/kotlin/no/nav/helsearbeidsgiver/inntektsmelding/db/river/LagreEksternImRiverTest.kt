@@ -52,7 +52,7 @@ class LagreEksternImRiverTest :
             testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey
                 mapOf(
                     Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_LAGRET.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                     Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
                 )
 
@@ -122,7 +122,7 @@ private fun mockInnkommendeMelding(): LagreEksternImMelding =
 private fun LagreEksternImMelding.toMap(): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
-        Key.UUID to transaksjonId.toJson(),
+        Key.KONTEKST_ID to transaksjonId.toJson(),
         Key.DATA to
             mapOf(
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),

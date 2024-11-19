@@ -89,7 +89,7 @@ class InnsendingServiceTest :
             testRapid.inspektør.size shouldBeExactly 2
             testRapid.message(1).toMap().also {
                 Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.INNTEKTSMELDING_SKJEMA_LAGRET
-                Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
 
                 val data = it[Key.DATA]?.toMap().orEmpty()
                 Key.ARBEIDSGIVER_FNR.lesOrNull(Fnr.serializer(), data) shouldBe Mock.avsender.fnr
@@ -197,7 +197,7 @@ private object Mock {
     fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
@@ -208,7 +208,7 @@ private object Mock {
     fun steg1(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),

@@ -30,7 +30,7 @@ class InntektSelvbestemtIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
-            Key.UUID to Mock.transaksjonId.toJson(),
+            Key.KONTEKST_ID to Mock.transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FNR to Mock.fnr.toJson(),
@@ -46,7 +46,7 @@ class InntektSelvbestemtIT : EndToEndTest() {
                 mapOf(
                     Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
                     Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
-                    Key.UUID to Mock.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to Mock.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
@@ -62,7 +62,7 @@ class InntektSelvbestemtIT : EndToEndTest() {
             .shouldContainAllExcludingTempKey(
                 mapOf(
                     Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
-                    Key.UUID to Mock.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to Mock.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),

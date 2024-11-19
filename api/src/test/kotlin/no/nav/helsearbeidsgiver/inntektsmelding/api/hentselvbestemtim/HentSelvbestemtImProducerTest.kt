@@ -28,7 +28,7 @@ class HentSelvbestemtImProducerTest :
             testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey
                 mapOf(
                     Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.SELVBESTEMT_ID to selvbestemtId.toJson(),

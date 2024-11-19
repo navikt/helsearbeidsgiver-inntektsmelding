@@ -32,7 +32,7 @@ class ForespoerselKastetTilInfotrygdRiverTest :
             val forventetPublisert =
                 mapOf(
                     Key.EVENT_NAME to EventName.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(),
-                    Key.UUID to UUID.randomUUID().toJson(),
+                    Key.KONTEKST_ID to UUID.randomUUID().toJson(),
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 )
 
@@ -45,8 +45,8 @@ class ForespoerselKastetTilInfotrygdRiverTest :
 
             val publisert = testRapid.firstMessage().toMap()
 
-            publisert shouldContainKey Key.UUID
+            publisert shouldContainKey Key.KONTEKST_ID
 
-            publisert.minus(Key.UUID) shouldContainAllExcludingTempKey forventetPublisert.minus(Key.UUID)
+            publisert.minus(Key.KONTEKST_ID) shouldContainAllExcludingTempKey forventetPublisert.minus(Key.KONTEKST_ID)
         }
     })

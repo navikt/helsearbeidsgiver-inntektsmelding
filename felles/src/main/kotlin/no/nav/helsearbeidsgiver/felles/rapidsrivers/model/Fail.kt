@@ -26,7 +26,7 @@ data class Fail(
         mapOf(
             Key.FAIL to toJson(serializer()),
             Key.EVENT_NAME to event.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId?.toJson(),
         ).mapValuesNotNull { it }
 

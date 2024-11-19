@@ -46,9 +46,9 @@ class ForespoerselMottattRiverTest :
 
             val publisert = testRapid.firstMessage().toMap()
 
-            publisert shouldContainKey Key.UUID
+            publisert shouldContainKey Key.KONTEKST_ID
 
-            publisert.minus(Key.UUID) shouldContainAllExcludingTempKey
+            publisert.minus(Key.KONTEKST_ID) shouldContainAllExcludingTempKey
                 mapOf(
                     Key.EVENT_NAME to EventName.FORESPOERSEL_MOTTATT.toJson(EventName.serializer()),
                     Key.DATA to

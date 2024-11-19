@@ -58,7 +58,7 @@ class HentSelvbestemtImRiverTest :
             testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.SELVBESTEMT_ID to innkommendeMelding.selvbestemtId.toJson(),
@@ -155,7 +155,7 @@ private fun HentSelvbestemtImMelding.toMap(): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
         Key.BEHOV to behovType.toJson(),
-        Key.UUID to transaksjonId.toJson(),
+        Key.KONTEKST_ID to transaksjonId.toJson(),
         Key.DATA to data.toJson(),
     )
 

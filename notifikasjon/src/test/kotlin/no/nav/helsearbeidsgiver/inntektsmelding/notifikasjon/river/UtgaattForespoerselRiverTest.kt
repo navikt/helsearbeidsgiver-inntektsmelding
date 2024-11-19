@@ -233,7 +233,7 @@ class UtgaattForespoerselRiverTest :
                 testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey
                     mapOf(
                         Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_UTGAATT.toJson(),
-                        Key.UUID to innkommendeFail.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to innkommendeFail.transaksjonId.toJson(),
                         Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     )
 
@@ -332,14 +332,14 @@ private object Mock {
     fun UtgaattForespoerselMelding.toMap(): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
 
     fun forventetUtgaaendeMelding(innkommendeMelding: UtgaattForespoerselMelding): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_UTGAATT.toJson(),
-            Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+            Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
         )
 
@@ -366,7 +366,7 @@ private object Mock {
                 mapOf(
                     Key.EVENT_NAME to eventName.toJson(),
                     Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to forespoerselId.toJson(),

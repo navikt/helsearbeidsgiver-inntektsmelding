@@ -91,7 +91,7 @@ sealed class ServiceRiver : ObjectRiver<ServiceMelding>() {
             Key.FAIL in json -> {
                 FailMelding(
                     eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), json),
-                    transaksjonId = Key.UUID.les(UuidSerializer, json),
+                    transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                     fail = Key.FAIL.les(Fail.serializer(), json),
                 )
             }
@@ -106,7 +106,7 @@ sealed class ServiceRiver : ObjectRiver<ServiceMelding>() {
                 if (nestedData != null) {
                     DataMelding(
                         eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), json),
-                        transaksjonId = Key.UUID.les(UuidSerializer, json),
+                        transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                         dataMap = nestedData,
                     )
                 } else {

@@ -40,7 +40,7 @@ class VedtaksperiodeIdForespoerselSvarRiver : PriObjectRiver<VedtaksperiodeIdFor
         return VedtaksperiodeIdForespoerselSvarMelding(
             eventName = Key.EVENT_NAME.les(EventName.serializer(), boomerang),
             behovType = Pri.Key.BEHOV.krev(Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE, Pri.BehovType.serializer(), json),
-            transaksjonId = Key.UUID.les(UuidSerializer, boomerang),
+            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, boomerang),
             data = boomerang[Key.DATA]?.toMap().orEmpty(),
             forespoerselSvar = forespoerselSvar,
         )
@@ -55,7 +55,7 @@ class VedtaksperiodeIdForespoerselSvarRiver : PriObjectRiver<VedtaksperiodeIdFor
         return if (forespoerselSvar.feil == null) {
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
-                Key.UUID to transaksjonId.toJson(),
+                Key.KONTEKST_ID to transaksjonId.toJson(),
                 Key.DATA to
                     data
                         .plus(
@@ -84,7 +84,7 @@ class VedtaksperiodeIdForespoerselSvarRiver : PriObjectRiver<VedtaksperiodeIdFor
                     mapOf(
                         Key.EVENT_NAME to eventName.toJson(),
                         Key.BEHOV to BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(),
-                        Key.UUID to transaksjonId.toJson(),
+                        Key.KONTEKST_ID to transaksjonId.toJson(),
                         Key.DATA to data.toJson(),
                     ).toJson(),
             )

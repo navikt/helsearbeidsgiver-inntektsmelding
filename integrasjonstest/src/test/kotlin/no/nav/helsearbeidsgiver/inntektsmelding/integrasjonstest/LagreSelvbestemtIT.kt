@@ -86,7 +86,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.copy(selvbestemtId = null).toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
@@ -205,7 +205,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
@@ -274,7 +274,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
@@ -352,7 +352,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
     ) {
         this shouldContainAllExcludingTempKey
             mapOf(
-                Key.UUID to transaksjonId.toJson(),
+                Key.KONTEKST_ID to transaksjonId.toJson(),
                 Key.JOURNALPOST_ID to Mock.journalpostId.toJson(),
             )
 

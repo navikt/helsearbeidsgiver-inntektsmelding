@@ -79,7 +79,7 @@ class LagreImSkjemaRiverTest :
                 testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey
                     mapOf(
                         Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                        Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                         Key.DATA to
                             mapOf(
                                 Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.inntektsmeldingSkjema.toJson(SkjemaInntektsmelding.serializer()),
@@ -111,7 +111,7 @@ class LagreImSkjemaRiverTest :
             testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.inntektsmeldingSkjema.toJson(SkjemaInntektsmelding.serializer()),
@@ -199,7 +199,7 @@ private fun LagreImSkjemaMelding.toMap(): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
         Key.BEHOV to behovType.toJson(),
-        Key.UUID to transaksjonId.toJson(),
+        Key.KONTEKST_ID to transaksjonId.toJson(),
         Key.DATA to data.toJson(),
     )
 

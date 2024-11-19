@@ -64,7 +64,7 @@ class HentPersonerRiverTest :
             testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey
                 mapOf(
                     Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FNR_LISTE to listOf(olaFnr).toJson(Fnr.serializer()),
@@ -103,7 +103,7 @@ class HentPersonerRiverTest :
             testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey
                 mapOf(
                     Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FNR_LISTE to setOf(olaFnr, kariFnr).toJson(Fnr.serializer()),
@@ -135,7 +135,7 @@ class HentPersonerRiverTest :
             testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey
                 mapOf(
                     Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FNR_LISTE to setOf(olaFnr, kariFnr).toJson(Fnr.serializer()),
@@ -167,7 +167,7 @@ class HentPersonerRiverTest :
             testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey
                 mapOf(
                     Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
@@ -263,7 +263,7 @@ private object Mock {
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to behovType.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to data.toJson(),
         )
 

@@ -44,7 +44,7 @@ class HentForespoerslerForVedtaksperiodeIdListeRiver(
             HentForespoerslerForVedtaksperiodeIdListeMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE, BehovType.serializer(), json),
-                transaksjonId = Key.UUID.les(UuidSerializer, json),
+                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 vedtaksperiodeIdListe = Key.VEDTAKSPERIODE_ID_LISTE.les(UuidSerializer.list(), data),
             )
@@ -58,7 +58,7 @@ class HentForespoerslerForVedtaksperiodeIdListeRiver(
                 Pri.Key.BOOMERANG to
                     mapOf(
                         Key.EVENT_NAME to eventName.toJson(),
-                        Key.UUID to transaksjonId.toJson(),
+                        Key.KONTEKST_ID to transaksjonId.toJson(),
                         Key.DATA to data.toJson(),
                     ).toJson(),
             ).onSuccess {

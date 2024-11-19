@@ -28,7 +28,7 @@ spec:
       cpu:
         thresholdPercentage: 75
   startup:
-    path: /started
+    path: /isalive
     initialDelay: 10
     periodSeconds: 5
     failureThreshold: 22

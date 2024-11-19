@@ -10,9 +10,6 @@ import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 
 fun Application.helsesjekkerRouting() {
     routing {
-        get("started") {
-            call.respondText("I started")
-        }
         get("isalive") {
             call.respondText("I'm alive")
         }

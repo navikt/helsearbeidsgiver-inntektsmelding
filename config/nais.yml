@@ -27,12 +27,15 @@ spec:
     scalingStrategy:
       cpu:
         thresholdPercentage: 75
+  startup:
+    path: /started
+    initialDelay: 10
+    periodSeconds: 5
+    failureThreshold: 22
   liveness:
-    path: isalive
-    initialDelay: 10
+    path: /isalive
   readiness:
-    path: isready
-    initialDelay: 10
+    path: /isready
   secureLogs:
     enabled: true
   observability:

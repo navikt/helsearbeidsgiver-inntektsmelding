@@ -32,7 +32,6 @@ enum class Key(
     INNTEKT("inntekt"),
     INNTEKTSDATO("inntektsdato"),
     INNTEKTSMELDING("inntektsmelding"),
-    KONTEKST_ID("kontekst_id"),
     LAGRET_INNTEKTSMELDING("lagret_inntektsmelding"),
     OPPGAVE_ID("oppgave_id"),
     ORGNR_UNDERENHETER("orgnr_underenheter"),

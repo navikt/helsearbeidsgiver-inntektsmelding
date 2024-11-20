@@ -180,7 +180,7 @@ class HentForespoerselService(
             val avsenderNavn = steg2.personer[steg0.avsenderFnr]?.navn ?: UKJENT_NAVN
             val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr] ?: UKJENT_VIRKSOMHET
 
-            val feil = redisStore.lesFeil(steg0.transaksjonId)?.fromJson(feilMapSerializer)
+            val feil = redisStore.lesAlleFeil(steg0.transaksjonId)
 
             val resultJson =
                 ResultJson(
@@ -191,7 +191,7 @@ class HentForespoerselService(
                             orgNavn = orgNavn,
                             inntekt = steg2.inntekt,
                             forespoersel = steg1.forespoersel,
-                            feil = feil.orEmpty(),
+                            feil = feil,
                         ).toJson(HentForespoerselResultat.serializer()),
                 ).toJson(ResultJson.serializer())
 
@@ -235,11 +235,7 @@ class HentForespoerselService(
             }
 
         if (overkommeligFeil != null) {
-            val gamleFeil = redisStore.lesFeil(fail.transaksjonId)?.fromJson(feilMapSerializer)
-
-            val alleFeil = gamleFeil.orEmpty() + mapOf(overkommeligFeil.key to overkommeligFeil.feilmelding)
-
-            redisStore.skrivFeil(fail.transaksjonId, alleFeil.toJson(feilMapSerializer))
+            redisStore.skrivFeil(fail.transaksjonId, overkommeligFeil.key, overkommeligFeil.feilmelding)
             redisStore.skrivMellomlagring(fail.transaksjonId, overkommeligFeil.key, overkommeligFeil.defaultVerdi)
 
             val meldingMedDefault =
@@ -290,9 +286,3 @@ private data class Datafeil(
     val feilmelding: String,
     val defaultVerdi: JsonElement,
 )
-
-private val feilMapSerializer =
-    MapSerializer(
-        Key.serializer(),
-        String.serializer(),
-    )

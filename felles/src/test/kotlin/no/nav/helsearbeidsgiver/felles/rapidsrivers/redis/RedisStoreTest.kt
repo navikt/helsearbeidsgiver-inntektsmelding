@@ -8,7 +8,6 @@ import io.kotest.matchers.shouldBe
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.test.mock.redisWithMockRedisClient
-import no.nav.helsearbeidsgiver.felles.test.shouldContainAllExcludingTempKey
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -39,7 +38,7 @@ class RedisStoreTest :
 
                 redisStore.lesAlleMellomlagrede(UUID.randomUUID()).shouldBeEmpty()
 
-                redisStore.lesAlleMellomlagrede(transaksjonId) shouldContainAllExcludingTempKey
+                redisStore.lesAlleMellomlagrede(transaksjonId) shouldContainExactly
                     mapOf(
                         Key.FNR to "ananas".toJson(),
                         Key.ORGNRUNDERENHET to "kokosnøtt".toJson(),
@@ -68,7 +67,7 @@ class RedisStoreTest :
 
                 redisStore.lesAlleMellomlagrede(UUID.randomUUID()).shouldBeEmpty()
 
-                redisStore.lesAlleMellomlagrede(transaksjonId) shouldContainAllExcludingTempKey
+                redisStore.lesAlleMellomlagrede(transaksjonId) shouldContainExactly
                     mapOf(
                         Key.ORGNRUNDERENHET to "kokosnøtt".toJson(),
                     )
@@ -95,7 +94,7 @@ class RedisStoreTest :
 
                 redisStore.lesAlleMellomlagrede(UUID.randomUUID()).shouldBeEmpty()
 
-                redisStore.lesAlleMellomlagrede(transaksjonId) shouldContainAllExcludingTempKey
+                redisStore.lesAlleMellomlagrede(transaksjonId) shouldContainExactly
                     mapOf(
                         Key.FNR to "ananas".toJson(),
                     )
@@ -177,7 +176,7 @@ class RedisStoreTest :
 
             redisStore.skrivMellomlagring(transaksjonId, Key.FNR, "durian".toJson())
 
-            redisStore.lesAlleMellomlagrede(transaksjonId) shouldContainAllExcludingTempKey
+            redisStore.lesAlleMellomlagrede(transaksjonId) shouldContainExactly
                 mapOf(
                     Key.FNR to "durian".toJson(),
                 )
@@ -185,7 +184,7 @@ class RedisStoreTest :
             redisStore.skrivMellomlagring(transaksjonId, Key.INNTEKT, "kiwi".toJson())
             redisStore.skrivMellomlagring(transaksjonId, Key.JOURNALPOST_ID, "litchi".toJson())
 
-            redisStore.lesAlleMellomlagrede(transaksjonId) shouldContainAllExcludingTempKey
+            redisStore.lesAlleMellomlagrede(transaksjonId) shouldContainExactly
                 mapOf(
                     Key.FNR to "durian".toJson(),
                     Key.INNTEKT to "kiwi".toJson(),
@@ -194,7 +193,7 @@ class RedisStoreTest :
 
             redisStore.skrivMellomlagring(transaksjonId, Key.INNTEKT, "granateple".toJson())
 
-            redisStore.lesAlleMellomlagrede(transaksjonId) shouldContainAllExcludingTempKey
+            redisStore.lesAlleMellomlagrede(transaksjonId) shouldContainExactly
                 mapOf(
                     Key.FNR to "durian".toJson(),
                     Key.INNTEKT to "granateple".toJson(),
@@ -242,7 +241,7 @@ class RedisStoreTest :
 
             // Har ikke blitt overskrevet
             redisStore.lesAlleFeil(transaksjonId1) shouldContainExactly mapOf(Key.SAK_ID to "dragefrukt")
-            redisStore.lesAlleMellomlagrede(transaksjonId1) shouldContainAllExcludingTempKey mapOf(Key.FNR to "durian".toJson())
+            redisStore.lesAlleMellomlagrede(transaksjonId1) shouldContainExactly mapOf(Key.FNR to "durian".toJson())
             redisStore.lesResultat(transaksjonId2)?.fromJson(String.serializer()) shouldBe "rambutan"
         }
 
@@ -293,6 +292,6 @@ class RedisStoreTest :
 
             // Har ikke blitt overskrevet
             redisStore.lesResultat(transaksjonId)?.fromJson(String.serializer()) shouldBe "rabarbra"
-            redisStore.lesAlleMellomlagrede(transaksjonId) shouldContainAllExcludingTempKey mapOf(Key.FNR to "durian".toJson())
+            redisStore.lesAlleMellomlagrede(transaksjonId) shouldContainExactly mapOf(Key.FNR to "durian".toJson())
         }
     })

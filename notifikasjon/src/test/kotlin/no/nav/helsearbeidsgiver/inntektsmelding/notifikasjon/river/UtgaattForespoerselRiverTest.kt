@@ -4,6 +4,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
@@ -22,7 +23,6 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.felles.test.shouldContainAllExcludingTempKey
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -47,7 +47,7 @@ class UtgaattForespoerselRiverTest :
             testRapid.sendJson(innkommendeMelding.toMap())
 
             testRapid.inspektør.size shouldBeExactly 1
-            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey Mock.forventetUtgaaendeMelding(innkommendeMelding)
+            testRapid.firstMessage().toMap() shouldContainExactly Mock.forventetUtgaaendeMelding(innkommendeMelding)
 
             coVerifySequence {
                 mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
@@ -79,7 +79,7 @@ class UtgaattForespoerselRiverTest :
             testRapid.sendJson(innkommendeMelding.toMap())
 
             testRapid.inspektør.size shouldBeExactly 1
-            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey Mock.forventetUtgaaendeMelding(innkommendeMelding)
+            testRapid.firstMessage().toMap() shouldContainExactly Mock.forventetUtgaaendeMelding(innkommendeMelding)
 
             coVerifySequence {
                 // Feiler
@@ -123,7 +123,7 @@ class UtgaattForespoerselRiverTest :
             testRapid.sendJson(innkommendeMelding.toMap())
 
             testRapid.inspektør.size shouldBeExactly 1
-            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey Mock.forventetUtgaaendeMelding(innkommendeMelding)
+            testRapid.firstMessage().toMap() shouldContainExactly Mock.forventetUtgaaendeMelding(innkommendeMelding)
 
             coVerifySequence {
                 // Feiler
@@ -159,7 +159,7 @@ class UtgaattForespoerselRiverTest :
             testRapid.sendJson(innkommendeMelding.toMap())
 
             testRapid.inspektør.size shouldBeExactly 1
-            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey Mock.forventetUtgaaendeMelding(innkommendeMelding)
+            testRapid.firstMessage().toMap() shouldContainExactly Mock.forventetUtgaaendeMelding(innkommendeMelding)
 
             coVerifySequence {
                 // Feiler ikke
@@ -197,7 +197,7 @@ class UtgaattForespoerselRiverTest :
             testRapid.sendJson(innkommendeMelding.toMap())
 
             testRapid.inspektør.size shouldBeExactly 1
-            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey Mock.forventetFail(innkommendeMelding).tilMelding()
+            testRapid.firstMessage().toMap() shouldContainExactly Mock.forventetFail(innkommendeMelding).tilMelding()
 
             coVerifySequence {
                 // Feiler
@@ -230,7 +230,7 @@ class UtgaattForespoerselRiverTest :
                 testRapid.sendJson(innkommendeFail.tilMelding())
 
                 testRapid.inspektør.size shouldBeExactly 1
-                testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey
+                testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
                         Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_UTGAATT.toJson(),
                         Key.UUID to innkommendeFail.transaksjonId.toJson(),

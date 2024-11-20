@@ -223,7 +223,6 @@ class BerikInntektsmeldingService(
                             Key.BESTEMMENDE_FRAVAERSDAG to steg4.bestemmendeFravaersdag.toJson(),
                             Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
                         ).toJson(),
-                    Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
                 )
 
             MdcUtils.withLogFields(

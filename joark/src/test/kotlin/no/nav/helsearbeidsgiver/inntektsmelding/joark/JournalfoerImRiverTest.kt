@@ -26,6 +26,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.json.plusData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -64,10 +65,8 @@ class JournalfoerImRiverTest :
                 testRapid.sendJson(
                     innkommendeMelding
                         .toMap()
-                        .plus(
-                            mapOf(
-                                Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
-                            ),
+                        .plusData(
+                            Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
                         ),
                 )
 
@@ -232,9 +231,13 @@ private object Mock {
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            imKey to inntektsmelding.toJson(Inntektsmelding.serializer()),
-            Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag?.toJson(),
-        ).mapValuesNotNull { it }
+            Key.DATA to
+                mapOf(
+                    imKey to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                    Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag?.toJson(),
+                ).mapValuesNotNull { it }
+                    .toJson(),
+        )
 
     fun opprettOgFerdigstillResponse(journalpostId: String): OpprettOgFerdigstillResponse =
         OpprettOgFerdigstillResponse(

@@ -193,7 +193,7 @@ class HentForespoerselService(
                             forespoersel = steg1.forespoersel,
                             feil = feil,
                         ).toJson(HentForespoerselResultat.serializer()),
-                ).toJson(ResultJson.serializer())
+                )
 
             redisStore.skrivResultat(steg0.transaksjonId, resultJson)
         }
@@ -249,10 +249,7 @@ class HentForespoerselService(
                 sikkerLogger.warn(it)
             }
 
-            val resultJson =
-                ResultJson(
-                    failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(),
-                ).toJson(ResultJson.serializer())
+            val resultJson = ResultJson(failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson())
 
             redisStore.skrivResultat(fail.transaksjonId, resultJson)
         }

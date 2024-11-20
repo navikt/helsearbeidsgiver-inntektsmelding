@@ -61,7 +61,7 @@ class HentSelvbestemtImServiceTest :
                     transaksjonId,
                     ResultJson(
                         success = Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -97,7 +97,7 @@ class HentSelvbestemtImServiceTest :
                     transaksjonId,
                     ResultJson(
                         failure = feilmelding.toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }

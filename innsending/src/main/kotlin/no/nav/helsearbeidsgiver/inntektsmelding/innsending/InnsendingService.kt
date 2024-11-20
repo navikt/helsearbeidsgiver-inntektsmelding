@@ -78,7 +78,7 @@ class InnsendingService(
         val resultJson =
             ResultJson(
                 success = steg0.skjema.forespoerselId.toJson(),
-            ).toJson(ResultJson.serializer())
+            )
 
         redisStore.skrivResultat(steg0.transaksjonId, resultJson)
 
@@ -131,6 +131,6 @@ class InnsendingService(
     ) {
         val resultJson = ResultJson(failure = fail.feilmelding.toJson())
 
-        redisStore.skrivResultat(fail.transaksjonId, resultJson.toJson(ResultJson.serializer()))
+        redisStore.skrivResultat(fail.transaksjonId, resultJson)
     }
 }

@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import kotlinx.coroutines.delay
-import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
@@ -16,7 +16,7 @@ class RedisPoller(
 ) {
     private val sikkerLogger = sikkerLogger()
 
-    suspend fun hent(key: UUID): JsonElement {
+    suspend fun hent(key: UUID): ResultJson {
         repeat(MAX_RETRIES) {
             sikkerLogger.debug("Polling redis: $it time(s) for key $key")
 

@@ -11,6 +11,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -330,14 +331,14 @@ private object Mock {
     fun successResult(resultat: Map<UUID, Forespoersel>): String =
         ResultJson(
             success = resultat.toJson(MapSerializer(UuidSerializer, Forespoersel.serializer())),
-        ).toJson(ResultJson.serializer())
+        ).toJson()
             .toString()
 
     fun failureResult(feilmelding: String): String =
         ResultJson(
             failure = feilmelding.toJson(),
-        ).toJson(ResultJson.serializer())
+        ).toJson()
             .toString()
 
-    fun emptyResult(): String = ResultJson().toJson(ResultJson.serializer()).toString()
+    fun emptyResult(): String = ResultJson().toJson().toString()
 }

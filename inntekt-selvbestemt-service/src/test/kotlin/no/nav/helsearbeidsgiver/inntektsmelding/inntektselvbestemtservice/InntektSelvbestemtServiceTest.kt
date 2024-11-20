@@ -66,7 +66,7 @@ class InntektSelvbestemtServiceTest :
                     transaksjonId,
                     ResultJson(
                         success = Mock.inntekt.toJson(Inntekt.serializer()),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -102,7 +102,7 @@ class InntektSelvbestemtServiceTest :
                     transaksjonId,
                     ResultJson(
                         failure = feilmelding.toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }

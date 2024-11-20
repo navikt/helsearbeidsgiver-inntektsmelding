@@ -85,7 +85,7 @@ class HentSelvbestemtImService(
         val resultJson =
             ResultJson(
                 success = steg1.inntektsmelding.toJson(Inntektsmelding.serializer()),
-            ).toJson(ResultJson.serializer())
+            )
 
         redisStore.skrivResultat(steg0.transaksjonId, resultJson)
     }
@@ -94,11 +94,7 @@ class HentSelvbestemtImService(
         melding: Map<Key, JsonElement>,
         fail: Fail,
     ) {
-        val resultJson =
-            ResultJson(
-                failure = fail.feilmelding.toJson(),
-            ).toJson(ResultJson.serializer())
-
+        val resultJson = ResultJson(failure = fail.feilmelding.toJson())
         redisStore.skrivResultat(fail.transaksjonId, resultJson)
     }
 

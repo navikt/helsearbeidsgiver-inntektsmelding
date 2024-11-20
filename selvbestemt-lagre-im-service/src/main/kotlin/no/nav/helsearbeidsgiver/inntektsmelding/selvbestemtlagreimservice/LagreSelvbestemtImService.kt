@@ -213,7 +213,7 @@ class LagreSelvbestemtImService(
                 "Mangler arbeidsforhold i perioden".also { feilmelding ->
                     logger.warn(feilmelding)
                     sikkerLogger.warn(feilmelding)
-                    val resultJson = ResultJson(failure = feilmelding.toJson()).toJson(ResultJson.serializer())
+                    val resultJson = ResultJson(failure = feilmelding.toJson())
                     redisStore.skrivResultat(steg0.transaksjonId, resultJson)
                 }
             }
@@ -264,7 +264,7 @@ class LagreSelvbestemtImService(
                     success =
                         steg2.inntektsmelding.type.id
                             .toJson(),
-                ).toJson(ResultJson.serializer())
+                )
             redisStore.skrivResultat(steg0.transaksjonId, resultJson)
 
             if (!steg2.erDuplikat) {
@@ -315,7 +315,7 @@ class LagreSelvbestemtImService(
 
                 onData(meldingMedDefault)
             } else {
-                val resultJson = ResultJson(failure = fail.feilmelding.toJson()).toJson(ResultJson.serializer())
+                val resultJson = ResultJson(failure = fail.feilmelding.toJson())
                 redisStore.skrivResultat(fail.transaksjonId, resultJson)
             }
         }

@@ -122,27 +122,27 @@ private object MockKvittering {
                         ResultJson(
                             success =
                                 inntektsmelding?.toJson(Inntektsmelding.serializer()),
-                        ).toJson(ResultJson.serializer()),
+                        ).toJson(),
                     Key.EKSTERN_INNTEKTSMELDING to
                         ResultJson(
                             success =
                                 eksternInntektsmelding?.toJson(EksternInntektsmelding.serializer()),
-                        ).toJson(ResultJson.serializer()),
+                        ).toJson(),
                 ).toJson(),
         )
 
     fun successResult(
         inntektsmelding: Inntektsmelding?,
         eksternInntektsmelding: EksternInntektsmelding?,
-    ): JsonElement =
+    ): ResultJson =
         ResultJson(
             success = InnsendtInntektsmelding(inntektsmelding, eksternInntektsmelding).toJson(InnsendtInntektsmelding.serializer()),
-        ).toJson(ResultJson.serializer())
+        )
 
-    fun failureResult(): JsonElement =
+    fun failureResult(): ResultJson =
         ResultJson(
             failure = fail.feilmelding.toJson(),
-        ).toJson(ResultJson.serializer())
+        )
 
     val fail =
         Fail(

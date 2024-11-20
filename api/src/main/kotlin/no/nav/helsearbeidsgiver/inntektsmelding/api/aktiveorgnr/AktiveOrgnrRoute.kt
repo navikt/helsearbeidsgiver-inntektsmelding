@@ -10,7 +10,6 @@ import io.ktor.server.routing.post
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.AktiveArbeidsgivere
-import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -42,7 +41,7 @@ fun Route.aktiveOrgnrRoute(
 
             aktiveOrgnrProducer.publish(transaksjonId, arbeidsgiverFnr = arbeidsgiverFnr, arbeidstagerFnr = request.identitetsnummer)
 
-            val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
+            val resultatJson = redisPoller.hent(transaksjonId)
 
             val resultat = resultatJson.success?.fromJson(AktiveArbeidsgivere.serializer())
             if (resultat != null) {

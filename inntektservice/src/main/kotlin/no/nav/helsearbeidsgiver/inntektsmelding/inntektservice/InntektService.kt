@@ -126,7 +126,7 @@ class InntektService(
         val resultJson =
             ResultJson(
                 success = steg2.inntekt.toJson(Inntekt.serializer()),
-            ).toJson(ResultJson.serializer())
+            )
 
         redisStore.skrivResultat(steg0.transaksjonId, resultJson)
 
@@ -138,10 +138,7 @@ class InntektService(
         fail: Fail,
     ) {
         val feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
-        val resultJson =
-            ResultJson(
-                failure = feilmelding.toJson(),
-            ).toJson(ResultJson.serializer())
+        val resultJson = ResultJson(failure = feilmelding.toJson())
 
         "Returnerer feilmelding: '$feilmelding'".also {
             logger.error(it)

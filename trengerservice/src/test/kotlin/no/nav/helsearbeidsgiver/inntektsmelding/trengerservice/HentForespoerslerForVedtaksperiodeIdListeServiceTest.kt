@@ -61,7 +61,7 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
                     transaksjonId,
                     ResultJson(
                         success = forespoersler.toJson(MapSerializer(UuidSerializer, Forespoersel.serializer())),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -93,9 +93,7 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
             verify {
                 mockRedis.store.skrivResultat(
                     transaksjonId,
-                    ResultJson(
-                        failure = feilmelding.toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ResultJson(failure = feilmelding.toJson()),
                 )
             }
         }

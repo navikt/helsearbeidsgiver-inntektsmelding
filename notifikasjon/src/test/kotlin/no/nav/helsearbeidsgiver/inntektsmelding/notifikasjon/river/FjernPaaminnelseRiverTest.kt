@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.maps.shouldContainExactly
 import io.mockk.Runs
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
@@ -19,7 +20,6 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.felles.test.shouldContainAllExcludingTempKey
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggle
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -84,7 +84,7 @@ class FjernPaaminnelseRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey forventetFail(innkommendeMelding).tilMelding()
+            testRapid.firstMessage().toMap() shouldContainExactly forventetFail(innkommendeMelding).tilMelding()
         }
 
         test("kaster ingen exception dersom oppgaven ikke finnes") {

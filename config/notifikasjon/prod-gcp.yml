@@ -12,6 +12,6 @@ env:
   - name: LINK_URL
     value: "https://arbeidsgiver.nav.no"
   - name: OPPGAVEPAAMINNELSER_AKTIVERT
-    value: "false"
+    value: "true"
   - name: TID_MELLOM_OPPGAVEOPPRETTELSE_OG_PAAMINNELSE
     value: "P28D"

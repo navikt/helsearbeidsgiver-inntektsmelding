@@ -13,7 +13,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
-import no.nav.helsearbeidsgiver.felles.test.shouldContainAllExcludingTempKey
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -42,7 +41,7 @@ class RiverUtilsKtTest :
                 verifySequence {
                     testRapid.publish(
                         withArg<String> {
-                            it.parseJson().toMap() shouldContainAllExcludingTempKey melding.toMap()
+                            it.parseJson().toMap() shouldContainExactly melding.toMap()
                         },
                     )
                 }
@@ -61,7 +60,7 @@ class RiverUtilsKtTest :
                 verifySequence {
                     testRapid.publish(
                         withArg<String> {
-                            it.parseJson().toMap() shouldContainAllExcludingTempKey melding
+                            it.parseJson().toMap() shouldContainExactly melding
                         },
                     )
                 }
@@ -80,7 +79,7 @@ class RiverUtilsKtTest :
                 verifySequence {
                     testRapid.publish(
                         withArg<String> {
-                            it.parseJson().toMap() shouldContainAllExcludingTempKey mapOf(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
+                            it.parseJson().toMap() shouldContainExactly mapOf(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
                         },
                     )
                 }

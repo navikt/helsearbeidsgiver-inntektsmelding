@@ -1,5 +1,4 @@
 package no.nav.helsearbeidsgiver.felles.test
-
 import io.kotest.matchers.maps.shouldContainAll
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.Key

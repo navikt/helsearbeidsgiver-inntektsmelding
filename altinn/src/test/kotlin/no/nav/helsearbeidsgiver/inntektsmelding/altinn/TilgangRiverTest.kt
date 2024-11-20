@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.data.row
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.maps.shouldContainExactly
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -91,7 +92,7 @@ class TilgangRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey forventetFail.tilMelding()
+            testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             coVerifySequence {
                 mockAltinnClient.harRettighetForOrganisasjon(innkommendeMelding.fnr.verdi, innkommendeMelding.orgnr.verdi)

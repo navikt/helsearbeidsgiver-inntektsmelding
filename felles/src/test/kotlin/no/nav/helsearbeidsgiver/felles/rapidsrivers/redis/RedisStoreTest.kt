@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers.redis
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.maps.shouldBeEmpty
+import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.builtins.serializer
@@ -27,7 +28,7 @@ class RedisStoreTest :
                                 mockStorageInit =
                                     mapOf(
                                         "$keyPrefix#$transaksjonId" to "\"mango\"",
-                                        "$keyPrefix#$transaksjonId#Feilmelding" to "\"papaya\"",
+                                        "$keyPrefix#$transaksjonId#${Key.SAK_ID}#feil" to "\"papaya\"",
                                         "$keyPrefix#$transaksjonId#${Key.FNR}" to "\"ananas\"",
                                         "$keyPrefix#$transaksjonId#${Key.ORGNRUNDERENHET}" to "\"kokosnøtt\"",
                                         "$keyPrefix#$transaksjonId#${Key.TILGANG}" to null,
@@ -113,8 +114,8 @@ class RedisStoreTest :
                                 mapOf(
                                     "$transaksjonId" to "\"banan\"",
                                     "$keyPrefix#$transaksjonId" to "\"mango\"",
-                                    "$keyPrefix#$transaksjonId#Feilmelding" to "\"papaya\"",
                                     "$keyPrefix#$transaksjonId#${Key.FNR}" to "\"ananas\"",
+                                    "$keyPrefix#$transaksjonId#${Key.SAK_ID}#feil" to "\"papaya\"",
                                 ),
                         ),
                     keyPrefix = keyPrefix,
@@ -125,7 +126,7 @@ class RedisStoreTest :
             redisStore.lesResultat(transaksjonId)?.fromJson(String.serializer()) to "mango"
         }
 
-        test(RedisStore::lesFeil.name) {
+        test(RedisStore::lesAlleFeil.name) {
             val keyPrefix = RedisPrefix.LagreSelvbestemtIm
             val transaksjonId = UUID.randomUUID()
 
@@ -136,18 +137,23 @@ class RedisStoreTest :
                             mockStorageInit =
                                 mapOf(
                                     "$transaksjonId" to "\"banan\"",
-                                    "$transaksjonId#Feilmelding" to "\"appelsin\"",
+                                    "$transaksjonId#${Key.SAK_ID}#feil" to "\"appelsin\"",
                                     "$keyPrefix#$transaksjonId" to "\"mango\"",
-                                    "$keyPrefix#$transaksjonId#Feilmelding" to "\"papaya\"",
                                     "$keyPrefix#$transaksjonId#${Key.FNR}" to "\"ananas\"",
+                                    "$keyPrefix#$transaksjonId#${Key.SAK_ID}#feil" to "\"papaya\"",
+                                    "$keyPrefix#$transaksjonId#${Key.OPPGAVE_ID}#feil" to "\"gojibær\"",
                                 ),
                         ),
                     keyPrefix = keyPrefix,
                 )
 
-            redisStore.lesFeil(UUID.randomUUID()).shouldBeNull()
+            redisStore.lesAlleFeil(UUID.randomUUID()).shouldBeEmpty()
 
-            redisStore.lesFeil(transaksjonId)?.fromJson(String.serializer()) to "papaya"
+            redisStore.lesAlleFeil(transaksjonId) shouldContainExactly
+                mapOf(
+                    Key.SAK_ID to "papaya",
+                    Key.OPPGAVE_ID to "gojibær",
+                )
         }
 
         test(RedisStore::skrivMellomlagring.name) {
@@ -161,7 +167,7 @@ class RedisStoreTest :
                             mockStorageInit =
                                 mapOf(
                                     "$keyPrefix#$transaksjonId" to "\"rabarbra\"",
-                                    "$keyPrefix#$transaksjonId#Feilmelding" to "\"dragefrukt\"",
+                                    "$keyPrefix#$transaksjonId#${Key.SAK_ID}#feil" to "\"dragefrukt\"",
                                 ),
                         ),
                     keyPrefix = keyPrefix,
@@ -194,6 +200,12 @@ class RedisStoreTest :
                     Key.INNTEKT to "granateple".toJson(),
                     Key.JOURNALPOST_ID to "litchi".toJson(),
                 )
+
+            redisStore.lesAlleMellomlagrede(UUID.randomUUID()).shouldBeEmpty()
+
+            // Har ikke blitt overskrevet
+            redisStore.lesResultat(transaksjonId)?.fromJson(String.serializer()) shouldBe "rabarbra"
+            redisStore.lesAlleFeil(transaksjonId) shouldContainExactly mapOf(Key.SAK_ID to "dragefrukt")
         }
 
         test(RedisStore::skrivResultat.name) {
@@ -207,8 +219,8 @@ class RedisStoreTest :
                         redisWithMockRedisClient(
                             mockStorageInit =
                                 mapOf(
-                                    "$keyPrefix#$transaksjonId1#Feilmelding" to "\"dragefrukt\"",
                                     "$keyPrefix#$transaksjonId1#${Key.FNR}" to "\"durian\"",
+                                    "$keyPrefix#$transaksjonId1#${Key.SAK_ID}#feil" to "\"dragefrukt\"",
                                     "$keyPrefix#$transaksjonId2" to "\"rambutan\"",
                                 ),
                         ),
@@ -229,11 +241,12 @@ class RedisStoreTest :
             redisStore.lesResultat(transaksjonId1)?.fromJson(String.serializer()) shouldBe "en kolossal rabarbra"
 
             // Har ikke blitt overskrevet
-            redisStore.lesFeil(transaksjonId1)?.fromJson(String.serializer()) shouldBe "dragefrukt"
+            redisStore.lesAlleFeil(transaksjonId1) shouldContainExactly mapOf(Key.SAK_ID to "dragefrukt")
             redisStore.lesAlleMellomlagrede(transaksjonId1) shouldContainAllExcludingTempKey mapOf(Key.FNR to "durian".toJson())
             redisStore.lesResultat(transaksjonId2)?.fromJson(String.serializer()) shouldBe "rambutan"
         }
 
+        // TODO test mer
         test(RedisStore::skrivFeil.name) {
             val keyPrefix = RedisPrefix.InntektSelvbestemt
             val transaksjonId = UUID.randomUUID()
@@ -251,17 +264,32 @@ class RedisStoreTest :
                     keyPrefix = keyPrefix,
                 )
 
-            redisStore.lesFeil(UUID.randomUUID()).shouldBeNull()
-            redisStore.lesFeil(transaksjonId).shouldBeNull()
+            redisStore.lesAlleFeil(transaksjonId).shouldBeEmpty()
 
-            redisStore.skrivFeil(transaksjonId, "dragefrukt".toJson())
+            redisStore.skrivFeil(transaksjonId, Key.SAK_ID, "dragefrukt")
 
-            redisStore.lesFeil(UUID.randomUUID()).shouldBeNull()
-            redisStore.lesFeil(transaksjonId)?.fromJson(String.serializer()) shouldBe "dragefrukt"
+            redisStore.lesAlleFeil(transaksjonId) shouldContainExactly mapOf(Key.SAK_ID to "dragefrukt")
 
-            redisStore.skrivFeil(transaksjonId, "et lass med dragefrukt".toJson())
+            redisStore.skrivFeil(transaksjonId, Key.OPPGAVE_ID, "gojibær")
+            redisStore.skrivFeil(transaksjonId, Key.SPINN_INNTEKTSMELDING_ID, "jackfrukt")
 
-            redisStore.lesFeil(transaksjonId)?.fromJson(String.serializer()) shouldBe "et lass med dragefrukt"
+            redisStore.lesAlleFeil(transaksjonId) shouldContainExactly
+                mapOf(
+                    Key.SAK_ID to "dragefrukt",
+                    Key.OPPGAVE_ID to "gojibær",
+                    Key.SPINN_INNTEKTSMELDING_ID to "jackfrukt",
+                )
+
+            redisStore.skrivFeil(transaksjonId, Key.SAK_ID, "et lass med dragefrukt")
+
+            redisStore.lesAlleFeil(transaksjonId) shouldContainExactly
+                mapOf(
+                    Key.SAK_ID to "et lass med dragefrukt",
+                    Key.OPPGAVE_ID to "gojibær",
+                    Key.SPINN_INNTEKTSMELDING_ID to "jackfrukt",
+                )
+
+            redisStore.lesAlleFeil(UUID.randomUUID()).shouldBeEmpty()
 
             // Har ikke blitt overskrevet
             redisStore.lesResultat(transaksjonId)?.fromJson(String.serializer()) shouldBe "rabarbra"

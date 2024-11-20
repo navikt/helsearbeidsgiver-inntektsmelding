@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldContainKey
 import io.mockk.clearAllMocks
 import kotlinx.serialization.builtins.serializer
@@ -18,7 +19,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.felles.test.shouldContainAllExcludingTempKey
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -48,7 +48,7 @@ class ForespoerselMottattRiverTest :
 
             publisert shouldContainKey Key.KONTEKST_ID
 
-            publisert.minus(Key.KONTEKST_ID) shouldContainAllExcludingTempKey
+            publisert.minus(Key.KONTEKST_ID) shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.FORESPOERSEL_MOTTATT.toJson(EventName.serializer()),
                     Key.DATA to

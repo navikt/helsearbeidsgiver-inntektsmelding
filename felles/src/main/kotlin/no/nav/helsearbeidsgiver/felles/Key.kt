@@ -28,10 +28,12 @@ enum class Key(
     FORESPOERSEL("forespoersel"),
     FORESPOERSEL_ID("forespoersel_id"),
     FORESPOERSEL_MAP("forespoersel_map"),
+    FORESPOERSEL_SVAR("forespoersel_svar"),
     INNSENDING_ID("innsending_id"),
     INNTEKT("inntekt"),
     INNTEKTSDATO("inntektsdato"),
     INNTEKTSMELDING("inntektsmelding"),
+    JOURNALPOST_ID("journalpost_id"),
     KONTEKST_ID("kontekst_id"),
     LAGRET_INNTEKTSMELDING("lagret_inntektsmelding"),
     OPPGAVE_ID("oppgave_id"),
@@ -48,8 +50,6 @@ enum class Key(
     VEDTAKSPERIODE_ID_LISTE("vedtaksperiode_id_liste"),
     VIRKSOMHET("virksomhet"),
     VIRKSOMHETER("virksomheter"),
-    FORESPOERSEL_SVAR("forespoersel_svar"),
-    JOURNALPOST_ID("journalpost_id"),
 
     // ulik formattering
     ORGNRUNDERENHET("orgnrUnderenhet"),

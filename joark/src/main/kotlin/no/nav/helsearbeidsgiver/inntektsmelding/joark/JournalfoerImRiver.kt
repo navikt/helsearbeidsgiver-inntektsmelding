@@ -44,7 +44,7 @@ class JournalfoerImRiver(
         } else {
             val data = json[Key.DATA]?.toMap().orEmpty()
             val eventName = Key.EVENT_NAME.les(EventName.serializer(), json)
-            val transaksjonId = Key.UUID.les(UuidSerializer, json)
+            val transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json)
 
             when (eventName) {
                 EventName.INNTEKTSMELDING_MOTTATT ->
@@ -84,7 +84,7 @@ class JournalfoerImRiver(
 
         return mapOf(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag?.toJson(),

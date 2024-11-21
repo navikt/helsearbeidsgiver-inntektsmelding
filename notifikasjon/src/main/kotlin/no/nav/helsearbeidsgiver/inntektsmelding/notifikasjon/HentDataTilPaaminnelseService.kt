@@ -31,7 +31,7 @@ class HentDataTilPaaminnelseService(
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            transaksjonId = Key.UUID.les(UuidSerializer, melding),
+            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
         )
 
@@ -57,7 +57,7 @@ class HentDataTilPaaminnelseService(
         rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-            Key.UUID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
             Key.DATA to
                 data
                     .plus(
@@ -75,7 +75,7 @@ class HentDataTilPaaminnelseService(
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
-                Key.UUID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     data
                         .plus(
@@ -99,7 +99,7 @@ class HentDataTilPaaminnelseService(
 
         rapid.publish(
             Key.EVENT_NAME to EventName.OPPGAVE_ENDRE_PAAMINNELSE_REQUESTED.toJson(),
-            Key.UUID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),

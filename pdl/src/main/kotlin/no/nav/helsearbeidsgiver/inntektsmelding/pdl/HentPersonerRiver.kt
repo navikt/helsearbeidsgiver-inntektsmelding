@@ -48,7 +48,7 @@ class HentPersonerRiver(
             Melding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.HENT_PERSONER, BehovType.serializer(), json),
-                transaksjonId = Key.UUID.les(UuidSerializer, json),
+                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 fnrListe = Key.FNR_LISTE.les(Fnr.serializer().set(), data),
             )
@@ -71,7 +71,7 @@ class HentPersonerRiver(
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 data
                     .plus(

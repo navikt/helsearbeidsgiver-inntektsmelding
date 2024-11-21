@@ -49,7 +49,7 @@ class InntektSelvbestemtService(
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            transaksjonId = Key.UUID.les(UuidSerializer, melding),
+            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             fnr = Key.FNR.les(Fnr.serializer(), melding),
             orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding),
             inntektsdato = Key.INNTEKTSDATO.les(LocalDateSerializer, melding),
@@ -68,7 +68,7 @@ class InntektSelvbestemtService(
             rapid.publish(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
-                Key.UUID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     data
                         .plus(

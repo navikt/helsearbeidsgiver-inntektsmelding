@@ -57,7 +57,7 @@ class TilgangProducer(
             rapid
                 .publish(
                     Key.EVENT_NAME to eventName.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to transaksjonId.toJson(),
                     Key.DATA to messageFields.toMap().toJson(),
                 ).also { json ->
                     "Publiserte request om tilgang.".let {

@@ -49,7 +49,7 @@ class LagreImRiver(
             LagreImMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.LAGRE_IM, BehovType.serializer(), json),
-                transaksjonId = Key.UUID.les(UuidSerializer, json),
+                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
                 bestemmendeFravaersdag = Key.BESTEMMENDE_FRAVAERSDAG.les(LocalDateSerializer, data),
@@ -74,7 +74,7 @@ class LagreImRiver(
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 data
                     .plus(

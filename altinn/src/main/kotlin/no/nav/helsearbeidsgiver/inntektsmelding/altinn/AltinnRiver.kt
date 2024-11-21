@@ -45,7 +45,7 @@ class AltinnRiver(
             Melding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.ARBEIDSGIVERE, BehovType.serializer(), json),
-                transaksjonId = Key.UUID.les(UuidSerializer, json),
+                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 fnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), data),
             )
@@ -62,7 +62,7 @@ class AltinnRiver(
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 data
                     .plus(

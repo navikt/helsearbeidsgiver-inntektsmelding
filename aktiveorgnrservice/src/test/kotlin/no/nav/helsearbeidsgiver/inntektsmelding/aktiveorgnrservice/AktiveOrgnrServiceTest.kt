@@ -239,7 +239,7 @@ private object Mock {
     fun startmelding(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FNR to sykmeldtFnr.toJson(),
@@ -253,7 +253,7 @@ private object Mock {
     ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSFORHOLD to
@@ -279,7 +279,7 @@ private object Mock {
     ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.VIRKSOMHETER to mapOf(orgnr.verdi to ORG_NAVN).toJson(),

@@ -78,7 +78,7 @@ class LagreSelvbestemtImService(
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            transaksjonId = Key.UUID.les(UuidSerializer, melding),
+            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmeldingSelvbestemt.serializer(), melding),
             avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
         )
@@ -130,7 +130,7 @@ class LagreSelvbestemtImService(
         rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
-            Key.UUID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
@@ -142,7 +142,7 @@ class LagreSelvbestemtImService(
         rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
-            Key.UUID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
@@ -158,7 +158,7 @@ class LagreSelvbestemtImService(
         rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_ARBEIDSFORHOLD.toJson(),
-            Key.UUID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
@@ -200,7 +200,7 @@ class LagreSelvbestemtImService(
                     .publish(
                         Key.EVENT_NAME to eventName.toJson(),
                         Key.BEHOV to BehovType.LAGRE_SELVBESTEMT_IM.toJson(),
-                        Key.UUID to steg0.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                         Key.DATA to
                             mapOf(
                                 Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
@@ -236,7 +236,7 @@ class LagreSelvbestemtImService(
                     .publish(
                         Key.EVENT_NAME to eventName.toJson(),
                         Key.BEHOV to BehovType.OPPRETT_SELVBESTEMT_SAK.toJson(),
-                        Key.UUID to steg0.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                         Key.DATA to
                             mapOf(
                                 Key.SELVBESTEMT_INNTEKTSMELDING to steg2.inntektsmelding.toJson(Inntektsmelding.serializer()),
@@ -271,7 +271,7 @@ class LagreSelvbestemtImService(
                 val publisert =
                     rapid.publish(
                         Key.EVENT_NAME to EventName.SELVBESTEMT_IM_LAGRET.toJson(),
-                        Key.UUID to steg0.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                         Key.DATA to
                             mapOf(
                                 Key.SELVBESTEMT_INNTEKTSMELDING to steg2.inntektsmelding.toJson(Inntektsmelding.serializer()),

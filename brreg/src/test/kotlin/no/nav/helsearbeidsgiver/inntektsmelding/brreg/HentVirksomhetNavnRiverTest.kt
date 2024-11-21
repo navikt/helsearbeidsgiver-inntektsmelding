@@ -59,7 +59,7 @@ class HentVirksomhetNavnRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                     Key.DATA to
                         innkommendeMelding.data
                             .plus(Key.VIRKSOMHETER to orgnrMedNavn.mapKeys { it.key.verdi }.toJson())
@@ -90,7 +90,7 @@ class HentVirksomhetNavnRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                     Key.DATA to
                         innkommendeMelding.data
                             .plus(Key.VIRKSOMHETER to orgnrMedNavn.mapKeys { it.key.verdi }.toJson())
@@ -121,7 +121,7 @@ class HentVirksomhetNavnRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                     Key.DATA to
                         innkommendeMelding.data
                             .plus(Key.VIRKSOMHETER to emptyMap<String, String>().toJson())
@@ -199,7 +199,7 @@ private object Mock {
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to behovType.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to data.toJson(),
         )
 

@@ -50,7 +50,7 @@ class HentSelvbestemtIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(UuidSerializer),
+            Key.KONTEKST_ID to transaksjonId.toJson(UuidSerializer),
             Key.DATA to
                 mapOf(
                     Key.SELVBESTEMT_ID to inntektsmelding.type.id.toJson(UuidSerializer),
@@ -66,7 +66,7 @@ class HentSelvbestemtIT : EndToEndTest() {
             .filter(BehovType.HENT_SELVBESTEMT_IM)
             .firstAsMap()
             .let { msg ->
-                Key.UUID.lesOrNull(UuidSerializer, msg) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, msg) shouldBe transaksjonId
 
                 val data = msg[Key.DATA].shouldNotBeNull().toMap()
                 Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, data) shouldBe inntektsmelding.type.id
@@ -78,7 +78,7 @@ class HentSelvbestemtIT : EndToEndTest() {
             .filter(Key.SELVBESTEMT_INNTEKTSMELDING)
             .firstAsMap()
             .let { msg ->
-                Key.UUID.lesOrNull(UuidSerializer, msg) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, msg) shouldBe transaksjonId
 
                 val data = msg[Key.DATA].shouldNotBeNull().toMap()
                 Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, data) shouldBe inntektsmelding.type.id
@@ -109,7 +109,7 @@ class HentSelvbestemtIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(UuidSerializer),
+            Key.KONTEKST_ID to transaksjonId.toJson(UuidSerializer),
             Key.DATA to
                 mapOf(
                     Key.SELVBESTEMT_ID to inntektsmelding.type.id.toJson(UuidSerializer),
@@ -125,7 +125,7 @@ class HentSelvbestemtIT : EndToEndTest() {
             .filter(BehovType.HENT_SELVBESTEMT_IM)
             .firstAsMap()
             .let { msg ->
-                Key.UUID.lesOrNull(UuidSerializer, msg) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, msg) shouldBe transaksjonId
 
                 val data = msg[Key.DATA].shouldNotBeNull().toMap()
                 Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, data) shouldBe inntektsmelding.type.id
@@ -137,7 +137,7 @@ class HentSelvbestemtIT : EndToEndTest() {
             .filterFeil()
             .firstAsMap()
             .let {
-                Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
 
                 val fail = Key.FAIL.lesOrNull(Fail.serializer(), it).shouldNotBeNull()
                 fail.utloesendeMelding.lesBehov() shouldBe BehovType.HENT_SELVBESTEMT_IM

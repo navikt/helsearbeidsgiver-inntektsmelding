@@ -39,7 +39,7 @@ class FjernPaaminnelseRiver(
         } else {
             FjernPaaminnelseMelding(
                 eventName = Key.EVENT_NAME.krev(EventName.FORESPOERSEL_KASTET_TIL_INFOTRYGD, EventName.serializer(), json),
-                transaksjonId = Key.UUID.les(UuidSerializer, json),
+                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json),
             )
         }

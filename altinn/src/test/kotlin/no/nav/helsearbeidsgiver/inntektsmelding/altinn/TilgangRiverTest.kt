@@ -23,6 +23,7 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.test.shouldContainAllExcludingTempKey
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.MockTilgang.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -57,7 +58,7 @@ class TilgangRiverTest :
 
                 testRapid.inspektør.size shouldBeExactly 1
 
-                testRapid.firstMessage().toMap() shouldContainExactly
+                testRapid.firstMessage().toMap() shouldContainAllExcludingTempKey
                     mapOf(
                         Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
                         Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),

@@ -22,11 +22,11 @@ fun MessageContext.publish(messageFields: Map<Key, JsonElement>): JsonElement =
             val data = root[Key.DATA]?.toMap().orEmpty()
             val newData =
                 data
-                    .plus(Key.ORGNRUNDERENHET_V2 to data[Key.ORGNRUNDERENHET])
+                    .plus(Key.SPINN_INNTEKTSMELDING_ID_V2 to data[Key.SPINN_INNTEKTSMELDING_ID])
                     .mapValuesNotNull { it }
                     .ifEmpty { null }
             root
-                .plus(Key.ORGNRUNDERENHET_V2 to root[Key.ORGNRUNDERENHET])
+                .plus(Key.SPINN_INNTEKTSMELDING_ID_V2 to root[Key.SPINN_INNTEKTSMELDING_ID])
                 .plus(Key.DATA to newData?.toJson())
                 .mapValuesNotNull { it }
         }.mapKeys { (key, _) -> key.toString() }

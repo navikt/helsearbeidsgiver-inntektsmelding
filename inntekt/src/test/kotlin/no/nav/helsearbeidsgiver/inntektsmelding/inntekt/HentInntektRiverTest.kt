@@ -112,7 +112,7 @@ class HentInntektRiverTest :
                                 val verdi = innkommendeMelding.data[Key.ORGNRUNDERENHET].orDefault(JsonNull)
 
                                 if (innkommendeMelding.data.containsKey(Key.ORGNRUNDERENHET)) {
-                                    it.plus(Key.ORGNRUNDERENHET_V2 to verdi)
+                                    it.plus(Key.ORGNRUNDERENHET to verdi)
                                 } else {
                                     it
                                 }

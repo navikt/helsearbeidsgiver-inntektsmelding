@@ -38,7 +38,6 @@ class InntektSelvbestemtProducerTest :
                         mapOf(
                             Key.FNR to sykmeldtFnr.toJson(),
                             Key.ORGNRUNDERENHET to orgnr.toJson(),
-                            Key.ORGNRUNDERENHET_V2 to orgnr.toJson(),
                             Key.INNTEKTSDATO to inntektsdato.toJson(),
                         ).toJson(),
                 )

@@ -85,28 +85,7 @@ class RiverUtilsKtTest :
                 }
             }
 
-            test("duplikert verdi i ORGNRUNDERENHET_V2 nøkkel") {
-
-                val verdi = ("unik ORGNRUNDERENHET verdi " + UUID.randomUUID().toString()).toJson()
-
-                val melding =
-                    mapOf(
-                        Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
-                        Key.ORGNRUNDERENHET to verdi,
-                    )
-
-                testRapid.publish(melding)
-
-                verifySequence {
-                    testRapid.publish(
-                        withArg<String> {
-                            it.parseJson().toMap() shouldContainExactly melding.plus(Key.ORGNRUNDERENHET_V2 to verdi)
-                        },
-                    )
-                }
-            }
-
-            test("duplikert verdi i Data MapOf i ORGNRUNDERENHET_V2 nøkkel") {
+            test("duplikert verdi i Data MapOf i SPINN_INNTEKTSMELDING_ID nøkkel") {
 
                 val verdi = ("unik ORGNRUNDERENHET verdi " + UUID.randomUUID().toString()).toJson()
 
@@ -115,7 +94,7 @@ class RiverUtilsKtTest :
                         Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
                         Key.DATA to
                             mapOf(
-                                Key.ORGNRUNDERENHET to verdi,
+                                Key.SPINN_INNTEKTSMELDING_ID to verdi,
                             ).toJson(),
                     )
 
@@ -125,8 +104,8 @@ class RiverUtilsKtTest :
                     melding.plus(
                         Key.DATA to
                             mapOf(
-                                Key.ORGNRUNDERENHET to verdi,
-                                Key.ORGNRUNDERENHET_V2 to verdi,
+                                Key.SPINN_INNTEKTSMELDING_ID to verdi,
+                                Key.SPINN_INNTEKTSMELDING_ID_V2 to verdi,
                             ).toJson(),
                     )
 
@@ -147,10 +126,10 @@ class RiverUtilsKtTest :
                 val melding =
                     mapOf(
                         id,
-                        Key.ORGNRUNDERENHET to verdi,
+                        Key.SPINN_INNTEKTSMELDING_ID to verdi,
                         Key.DATA to
                             mapOf(
-                                Key.ORGNRUNDERENHET to verdi,
+                                Key.SPINN_INNTEKTSMELDING_ID to verdi,
                             ).toJson(),
                     )
 
@@ -159,13 +138,12 @@ class RiverUtilsKtTest :
                 val meldingMedDuplikert =
                     mapOf(
                         id,
-                        Key.ORGNRUNDERENHET to verdi,
-                        Key.ORGNRUNDERENHET to verdi,
-                        Key.ORGNRUNDERENHET_V2 to verdi,
+                        Key.SPINN_INNTEKTSMELDING_ID to verdi,
+                        Key.SPINN_INNTEKTSMELDING_ID_V2 to verdi,
                         Key.DATA to
                             mapOf(
-                                Key.ORGNRUNDERENHET to verdi,
-                                Key.ORGNRUNDERENHET_V2 to verdi,
+                                Key.SPINN_INNTEKTSMELDING_ID to verdi,
+                                Key.SPINN_INNTEKTSMELDING_ID_V2 to verdi,
                             ).toJson(),
                     )
 

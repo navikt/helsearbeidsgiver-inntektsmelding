@@ -23,5 +23,6 @@ dependencies {
     testFixturesApi("io.kotest:kotest-assertions-core:$kotestVersion")
     testFixturesApi("io.kotest:kotest-runner-junit5:$kotestVersion")
 
+    testFixturesImplementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
     testFixturesImplementation("org.testcontainers:postgresql:$testcontainersPostgresqlVersion")
 }

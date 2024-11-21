@@ -25,6 +25,7 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.januar
@@ -107,7 +108,15 @@ class HentInntektRiverTest :
                     Key.DATA to
                         innkommendeMelding.data
                             .plus(Key.INNTEKT to forventetInntekt.toJson(Inntekt.serializer()))
-                            .toJson(),
+                            .let {
+                                val verdi = innkommendeMelding.data[Key.ORGNRUNDERENHET].orDefault(JsonNull)
+
+                                if (innkommendeMelding.data.containsKey(Key.ORGNRUNDERENHET)) {
+                                    it.plus(Key.ORGNRUNDERENHET_V2 to verdi)
+                                } else {
+                                    it
+                                }
+                            }.toJson(),
                 )
 
             coVerifySequence {

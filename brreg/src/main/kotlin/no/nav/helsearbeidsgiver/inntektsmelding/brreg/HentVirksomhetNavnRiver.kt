@@ -46,7 +46,7 @@ class HentVirksomhetNavnRiver(
             HentVirksomhetMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.HENT_VIRKSOMHET_NAVN, BehovType.serializer(), json),
-                transaksjonId = Key.UUID.les(UuidSerializer, json),
+                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 orgnr = Key.ORGNR_UNDERENHETER.les(Orgnr.serializer().set(), data),
             )
@@ -71,7 +71,7 @@ class HentVirksomhetNavnRiver(
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 data
                     .plus(Key.VIRKSOMHETER to orgnrMedNavn.toJson())

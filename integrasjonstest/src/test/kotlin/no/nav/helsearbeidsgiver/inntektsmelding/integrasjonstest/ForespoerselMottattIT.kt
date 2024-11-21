@@ -55,7 +55,7 @@ class ForespoerselMottattIT : EndToEndTest() {
         messagesFilteredForespoerselMottatt
             .firstAsMap()
             .also {
-                Key.UUID.lesOrNull(UuidSerializer, it).shouldNotBeNull()
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it).shouldNotBeNull()
 
                 Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.FORESPOERSEL_MOTTATT
 
@@ -105,7 +105,7 @@ class ForespoerselMottattIT : EndToEndTest() {
             .filter(EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED)
             .firstAsMap()
             .also {
-                it[Key.UUID]?.fromJson(UuidSerializer).shouldNotBeNull()
+                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer).shouldNotBeNull()
 
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
                 data[Key.SYKMELDT]?.fromJson(Person.serializer()).shouldNotBeNull()

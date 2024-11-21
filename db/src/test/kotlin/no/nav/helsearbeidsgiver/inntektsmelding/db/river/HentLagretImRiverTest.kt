@@ -67,7 +67,7 @@ class HentLagretImRiverTest :
                 testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
                         Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                        Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                         Key.DATA to
                             innkommendeMelding.data
                                 .plus(
@@ -163,7 +163,7 @@ private object MockHentIm {
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to behovType.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to data.toJson(),
         )
 

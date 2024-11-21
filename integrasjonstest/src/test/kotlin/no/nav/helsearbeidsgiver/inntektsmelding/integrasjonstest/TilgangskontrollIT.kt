@@ -57,7 +57,7 @@ class TilgangskontrollIT : EndToEndTest() {
             .filter(BehovType.HENT_TRENGER_IM)
             .firstAsMap()
             .also {
-                Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
 
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
                 Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data) shouldBe Mock.forespoerselId

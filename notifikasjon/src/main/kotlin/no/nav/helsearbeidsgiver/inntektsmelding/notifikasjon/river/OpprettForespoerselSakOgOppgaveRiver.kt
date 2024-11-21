@@ -51,7 +51,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
 
             OpprettForespoerselSakOgOppgaveMelding(
                 eventName = Key.EVENT_NAME.krev(EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED, EventName.serializer(), json),
-                transaksjonId = Key.UUID.les(UuidSerializer, json),
+                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
                 forespoersel = Key.FORESPOERSEL.les(Forespoersel.serializer(), data),
                 sykmeldt = Key.SYKMELDT.les(Person.serializer(), data),
@@ -86,7 +86,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
 
         return mapOf(
             Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETTET.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),

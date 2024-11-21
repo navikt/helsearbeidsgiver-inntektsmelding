@@ -288,7 +288,7 @@ private fun innkommendeMelding(): FerdigstillForespoerselSakMelding =
 private fun forventetUtgaaendeMelding(innkommendeMelding: FerdigstillForespoerselSakMelding): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_FERDIGSTILT.toJson(),
-        Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+        Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
         Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
     )
 
@@ -304,6 +304,6 @@ private fun forventetFail(innkommendeMelding: FerdigstillForespoerselSakMelding)
 private fun FerdigstillForespoerselSakMelding.toMap(): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
-        Key.UUID to transaksjonId.toJson(),
+        Key.KONTEKST_ID to transaksjonId.toJson(),
         Key.FORESPOERSEL_ID to forespoerselId.toJson(),
     )

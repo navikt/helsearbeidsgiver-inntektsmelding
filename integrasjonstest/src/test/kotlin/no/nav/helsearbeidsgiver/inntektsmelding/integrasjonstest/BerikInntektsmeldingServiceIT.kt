@@ -74,7 +74,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
-            Key.UUID to Mock.transaksjonId.toJson(),
+            Key.KONTEKST_ID to Mock.transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
@@ -144,7 +144,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .verifiserForespoerselId()
             .also {
                 shouldNotThrowAny {
-                    it[Key.UUID]
+                    it[Key.KONTEKST_ID]
                         .shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
@@ -198,7 +198,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
-            Key.UUID to Mock.transaksjonId.toJson(),
+            Key.KONTEKST_ID to Mock.transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
@@ -280,7 +280,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .verifiserForespoerselId()
             .also {
                 shouldNotThrowAny {
-                    it[Key.UUID]
+                    it[Key.KONTEKST_ID]
                         .shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
@@ -303,7 +303,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
     private fun Map<Key, JsonElement>.verifiserTransaksjonId(transaksjonId: UUID): Map<Key, JsonElement> =
         also {
-            Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+            Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
         }
 
     private fun Map<Key, JsonElement>.verifiserForespoerselId(): Map<Key, JsonElement> =

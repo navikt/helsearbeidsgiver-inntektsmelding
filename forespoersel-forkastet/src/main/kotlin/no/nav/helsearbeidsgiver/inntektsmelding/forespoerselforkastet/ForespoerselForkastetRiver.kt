@@ -43,7 +43,7 @@ class ForespoerselForkastetRiver : PriObjectRiver<ForkastetMelding>() {
 
         return mapOf(
             Key.EVENT_NAME to EventName.FORESPOERSEL_FORKASTET.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
     }

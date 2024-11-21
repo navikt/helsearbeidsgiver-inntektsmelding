@@ -44,14 +44,14 @@ class ServiceRiverStatefulTest :
                     "over data" to
                         mapOf(
                             Key.EVENT_NAME to mockService.eventName.toJson(),
-                            Key.UUID to UUID.randomUUID().toJson(),
+                            Key.KONTEKST_ID to UUID.randomUUID().toJson(),
                             Key.FAIL to Mock.fail.toJson(Fail.serializer()),
                             Key.DATA to mockService.mockSteg1Data().toJson(),
                         ),
                     "over behov (som skal ignoreres)" to
                         mapOf(
                             Key.EVENT_NAME to mockService.eventName.toJson(),
-                            Key.UUID to UUID.randomUUID().toJson(),
+                            Key.KONTEKST_ID to UUID.randomUUID().toJson(),
                             Key.FAIL to Mock.fail.toJson(Fail.serializer()),
                             Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
                         ),
@@ -89,7 +89,7 @@ class ServiceRiverStatefulTest :
             val innkommendeMelding =
                 mapOf(
                     Key.EVENT_NAME to mockService.eventName.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to transaksjonId.toJson(),
                     Key.DATA to data.toJson(),
                 )
 
@@ -120,7 +120,7 @@ class ServiceRiverStatefulTest :
             val innkommendeMelding =
                 mapOf(
                     Key.EVENT_NAME to mockService.eventName.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to transaksjonId.toJson(),
                     Key.FAIL to Mock.fail.toJson(Fail.serializer()),
                 )
 
@@ -143,7 +143,7 @@ class ServiceRiverStatefulTest :
             val innkommendeMelding =
                 mapOf(
                     Key.EVENT_NAME to mockService.eventName.toJson(),
-                    Key.UUID to UUID.randomUUID().toJson(),
+                    Key.KONTEKST_ID to UUID.randomUUID().toJson(),
                     Key.DATA to
                         mapOf(
                             Key.VIRKSOMHETER to "Barry Eagles Language Course".toJson(),
@@ -170,13 +170,13 @@ class ServiceRiverStatefulTest :
                         "med uønsket event" to
                             mapOf(
                                 Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-                                Key.UUID to UUID.randomUUID().toJson(),
+                                Key.KONTEKST_ID to UUID.randomUUID().toJson(),
                                 Key.FAIL to Mock.fail.toJson(Fail.serializer()),
                             ),
                         "med ugyldig fail" to
                             mapOf(
                                 Key.EVENT_NAME to mockService.eventName.toJson(),
-                                Key.UUID to UUID.randomUUID().toJson(),
+                                Key.KONTEKST_ID to UUID.randomUUID().toJson(),
                                 Key.FAIL to "ugyldig fail".toJson(),
                             ),
                     ),
@@ -196,7 +196,7 @@ class ServiceRiverStatefulTest :
                         "med behov" to
                             mapOf(
                                 Key.EVENT_NAME to mockService.eventName.toJson(),
-                                Key.UUID to UUID.randomUUID().toJson(),
+                                Key.KONTEKST_ID to UUID.randomUUID().toJson(),
                                 Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
                                 Key.DATA to
                                     mockService
@@ -207,7 +207,7 @@ class ServiceRiverStatefulTest :
                         "med data som flagg" to
                             mapOf(
                                 Key.EVENT_NAME to mockService.eventName.toJson(),
-                                Key.UUID to UUID.randomUUID().toJson(),
+                                Key.KONTEKST_ID to UUID.randomUUID().toJson(),
                                 Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
                                 Key.DATA to "".toJson(),
                                 Key.PERSONER to "mock personer".toJson(),
@@ -215,7 +215,7 @@ class ServiceRiverStatefulTest :
                         "med uønsket event" to
                             mapOf(
                                 Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-                                Key.UUID to UUID.randomUUID().toJson(),
+                                Key.KONTEKST_ID to UUID.randomUUID().toJson(),
                                 Key.DATA to
                                     mapOf(
                                         Key.PERSONER to "mock personer".toJson(),
@@ -236,7 +236,7 @@ class ServiceRiverStatefulTest :
             test("melding som er hverken data- eller fail-melding") {
                 testRapid.sendJson(
                     Key.EVENT_NAME to mockService.eventName.toJson(),
-                    Key.UUID to UUID.randomUUID().toJson(),
+                    Key.KONTEKST_ID to UUID.randomUUID().toJson(),
                 )
 
                 verify(exactly = 0) {

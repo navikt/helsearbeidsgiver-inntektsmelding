@@ -64,7 +64,7 @@ class InnsendingIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.UUID to UUID.randomUUID().toJson(),
+            Key.KONTEKST_ID to UUID.randomUUID().toJson(),
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to Mock.forespoersel.fnr.toJson(),
@@ -132,7 +132,7 @@ class InnsendingIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.UUID to UUID.randomUUID().toJson(),
+            Key.KONTEKST_ID to UUID.randomUUID().toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
@@ -167,7 +167,7 @@ class InnsendingIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.UUID to UUID.randomUUID().toJson(),
+            Key.KONTEKST_ID to UUID.randomUUID().toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),

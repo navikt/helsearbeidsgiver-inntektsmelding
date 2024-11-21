@@ -25,6 +25,7 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.januar
@@ -103,11 +104,19 @@ class HentInntektRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                     Key.DATA to
                         innkommendeMelding.data
                             .plus(Key.INNTEKT to forventetInntekt.toJson(Inntekt.serializer()))
-                            .toJson(),
+                            .let {
+                                val verdi = innkommendeMelding.data[Key.ORGNRUNDERENHET].orDefault(JsonNull)
+
+                                if (innkommendeMelding.data.containsKey(Key.ORGNRUNDERENHET)) {
+                                    it.plus(Key.ORGNRUNDERENHET_V2 to verdi)
+                                } else {
+                                    it
+                                }
+                            }.toJson(),
                 )
 
             coVerifySequence {
@@ -189,7 +198,7 @@ private object Mock {
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to behovType.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to data.toJson(),
         )
 

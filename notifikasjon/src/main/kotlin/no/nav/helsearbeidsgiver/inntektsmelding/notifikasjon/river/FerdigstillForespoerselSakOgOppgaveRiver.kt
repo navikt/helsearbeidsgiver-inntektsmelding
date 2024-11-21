@@ -46,7 +46,7 @@ class FerdigstillForespoerselSakOgOppgaveRiver(
             } else {
                 FerdigstillForespoerselSakMelding(
                     eventName = eventName,
-                    transaksjonId = Key.UUID.les(UuidSerializer, json),
+                    transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                     forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, json) ?: Key.FORESPOERSEL_ID.les(UuidSerializer, data),
                 )
             }
@@ -60,7 +60,7 @@ class FerdigstillForespoerselSakOgOppgaveRiver(
 
         return mapOf(
             Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_FERDIGSTILT.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
     }

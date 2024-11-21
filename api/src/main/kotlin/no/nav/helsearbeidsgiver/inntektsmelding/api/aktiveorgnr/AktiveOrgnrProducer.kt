@@ -35,7 +35,7 @@ class AktiveOrgnrProducer(
                 .publish(
                     key = arbeidstagerFnr,
                     Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FNR to arbeidstagerFnr.toJson(),

@@ -24,7 +24,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import java.util.UUID
 
 class ForespoerselSvarRiverTest :
     FunSpec({
@@ -72,7 +71,7 @@ fun mockSvar(forespoerselSvar: ForespoerselSvar): Map<Key, JsonElement> {
 
     return mapOf(
         Key.EVENT_NAME to boomerangMap[Key.EVENT_NAME],
-        Key.UUID to boomerangMap[Key.UUID],
+        Key.KONTEKST_ID to boomerangMap[Key.KONTEKST_ID],
         Key.DATA to
             data
                 .plus(
@@ -94,7 +93,7 @@ fun mockFail(forespoerselSvar: ForespoerselSvar): Fail {
     val boomerangMap = forespoerselSvar.boomerang.toMap()
 
     val eventName = Key.EVENT_NAME.les(EventName.serializer(), boomerangMap)
-    val transaksjonId = Key.UUID.les(UuidSerializer, boomerangMap)
+    val transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, boomerangMap)
     val data = boomerangMap[Key.DATA]?.toMap().orEmpty()
 
     return Fail(
@@ -106,7 +105,7 @@ fun mockFail(forespoerselSvar: ForespoerselSvar): Fail {
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                Key.UUID to transaksjonId.toJson(),
+                Key.KONTEKST_ID to transaksjonId.toJson(),
                 Key.DATA to data.toJson(),
             ).toJson(),
     )

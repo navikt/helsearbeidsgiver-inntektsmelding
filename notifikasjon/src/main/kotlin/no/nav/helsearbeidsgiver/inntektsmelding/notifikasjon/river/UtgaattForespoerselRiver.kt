@@ -40,7 +40,7 @@ class UtgaattForespoerselRiver(
             null
         } else {
             val eventName = Key.EVENT_NAME.les(EventName.serializer(), json)
-            val transaksjonId = Key.UUID.les(UuidSerializer, json)
+            val transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json)
 
             when (eventName) {
                 // Forespørsler som ble forkastet nylig matcher her
@@ -99,7 +99,7 @@ class UtgaattForespoerselRiver(
 
         return mapOf(
             Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_UTGAATT.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
     }

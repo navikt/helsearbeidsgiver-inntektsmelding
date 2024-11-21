@@ -29,7 +29,7 @@ class InnsendingProducer(
             .publish(
                 key = skjemaInntektsmelding.forespoerselId,
                 Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-                Key.UUID to transaksjonId.toJson(),
+                Key.KONTEKST_ID to transaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),

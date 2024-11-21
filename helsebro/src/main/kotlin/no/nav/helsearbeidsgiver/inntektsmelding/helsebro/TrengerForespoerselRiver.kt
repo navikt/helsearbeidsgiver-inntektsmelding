@@ -43,7 +43,7 @@ class TrengerForespoerselRiver(
             TrengerForespoerselMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.HENT_TRENGER_IM, BehovType.serializer(), json),
-                transaksjonId = Key.UUID.les(UuidSerializer, json),
+                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
             )
@@ -57,7 +57,7 @@ class TrengerForespoerselRiver(
                 Pri.Key.BOOMERANG to
                     mapOf(
                         Key.EVENT_NAME to eventName.toJson(),
-                        Key.UUID to transaksjonId.toJson(),
+                        Key.KONTEKST_ID to transaksjonId.toJson(),
                         Key.DATA to data.toJson(),
                     ).toJson(),
             ).onSuccess {

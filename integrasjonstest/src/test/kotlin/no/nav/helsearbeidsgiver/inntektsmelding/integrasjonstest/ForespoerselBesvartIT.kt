@@ -45,7 +45,7 @@ class ForespoerselBesvartIT : EndToEndTest() {
             .filter(EventName.FORESPOERSEL_BESVART)
             .firstAsMap()
             .also {
-                it shouldContainKey Key.UUID
+                it shouldContainKey Key.KONTEKST_ID
 
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
                 Key.FORESPOERSEL_ID.les(UuidSerializer, data) shouldBe forespoerselId
@@ -55,7 +55,7 @@ class ForespoerselBesvartIT : EndToEndTest() {
             .filter(EventName.SAK_OG_OPPGAVE_FERDIGSTILT)
             .firstAsMap()
             .also {
-                it shouldContainKey Key.UUID
+                it shouldContainKey Key.KONTEKST_ID
 
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe forespoerselId
             }
@@ -64,7 +64,7 @@ class ForespoerselBesvartIT : EndToEndTest() {
             .filter(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT)
             .firstAsMap()
             .also {
-                it shouldContainKey Key.UUID
+                it shouldContainKey Key.KONTEKST_ID
 
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
                 Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data) shouldBe forespoerselId
@@ -75,7 +75,7 @@ class ForespoerselBesvartIT : EndToEndTest() {
             .filter(EventName.EKSTERN_INNTEKTSMELDING_LAGRET)
             .firstAsMap()
             .also {
-                it shouldContainKey Key.UUID
+                it shouldContainKey Key.KONTEKST_ID
 
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe forespoerselId
             }

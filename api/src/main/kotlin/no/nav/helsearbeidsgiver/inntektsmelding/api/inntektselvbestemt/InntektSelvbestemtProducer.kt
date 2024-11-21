@@ -33,7 +33,7 @@ class InntektSelvbestemtProducer(
                 .publish(
                     key = request.sykmeldtFnr,
                     Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FNR to request.sykmeldtFnr.toJson(),

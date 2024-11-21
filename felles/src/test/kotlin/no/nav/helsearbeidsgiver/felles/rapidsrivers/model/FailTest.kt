@@ -25,7 +25,7 @@ class FailTest :
                     mapOf(
                         Key.FAIL to fail.toJson(serializer()),
                         Key.EVENT_NAME to fail.event.toJson(),
-                        Key.UUID to fail.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to fail.transaksjonId.toJson(),
                         Key.FORESPOERSEL_ID to fail.forespoerselId.shouldNotBeNull().toJson(),
                     )
             }
@@ -37,7 +37,7 @@ class FailTest :
                     mapOf(
                         Key.FAIL to failUtenForespoerselId.toJson(serializer()),
                         Key.EVENT_NAME to failUtenForespoerselId.event.toJson(),
-                        Key.UUID to failUtenForespoerselId.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to failUtenForespoerselId.transaksjonId.toJson(),
                     )
             }
         }

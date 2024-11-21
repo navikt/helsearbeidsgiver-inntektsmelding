@@ -5,7 +5,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -57,7 +56,7 @@ class HentDataTilPaaminnelseServiceTest :
             testRapid.message(2).toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.OPPGAVE_ENDRE_PAAMINNELSE_REQUESTED.toJson(),
-                    Key.UUID to HentDataTilPaaminnelseServiceMock.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to HentDataTilPaaminnelseServiceMock.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to HentDataTilPaaminnelseServiceMock.forespoerselId.toJson(),
@@ -105,7 +104,7 @@ private object HentDataTilPaaminnelseServiceMock {
     fun steg0(): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.MANUELL_ENDRE_PAAMINNELSE.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),

@@ -28,7 +28,7 @@ class HentForespoerselProducer(
             .publish(
                 key = request.uuid,
                 Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
-                Key.UUID to transaksjonId.toString().toJson(),
+                Key.KONTEKST_ID to transaksjonId.toString().toJson(),
                 Key.DATA to
                     mapOf(
                         Key.FORESPOERSEL_ID to request.uuid.toJson(),

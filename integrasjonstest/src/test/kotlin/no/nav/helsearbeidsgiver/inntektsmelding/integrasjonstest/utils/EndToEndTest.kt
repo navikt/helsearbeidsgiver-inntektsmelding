@@ -3,8 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.micrometer.prometheusmetrics.PrometheusConfig
-import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
@@ -267,7 +266,7 @@ abstract class EndToEndTest : ContainerTest() {
                 JsonMessage(
                     originalMessage = it,
                     problems = MessageProblems(it),
-                    metrics = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
+                    metrics = SimpleMeterRegistry(),
                     randomIdGenerator = null,
                 )
             }.toJson()

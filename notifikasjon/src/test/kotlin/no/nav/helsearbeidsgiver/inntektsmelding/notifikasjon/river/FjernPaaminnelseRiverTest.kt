@@ -139,7 +139,7 @@ private fun forventetFail(innkommendeMelding: FjernPaaminnelseMelding): Fail =
 private fun FjernPaaminnelseMelding.toMap() =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
-        Key.UUID to transaksjonId.toJson(),
+        Key.KONTEKST_ID to transaksjonId.toJson(),
         Key.FORESPOERSEL_ID to forespoerselId.toJson(),
     )
 

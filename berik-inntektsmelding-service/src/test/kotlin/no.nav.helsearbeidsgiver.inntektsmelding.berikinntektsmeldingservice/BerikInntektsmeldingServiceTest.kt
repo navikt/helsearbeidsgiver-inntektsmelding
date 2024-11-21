@@ -216,7 +216,7 @@ private object Mock {
     fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to steg0data.toJson(),
         )
 

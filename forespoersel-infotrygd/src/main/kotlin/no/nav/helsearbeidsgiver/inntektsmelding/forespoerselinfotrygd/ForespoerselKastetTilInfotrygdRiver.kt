@@ -40,7 +40,7 @@ class ForespoerselKastetTilInfotrygdRiver : PriObjectRiver<KastetTilInfotrygdMel
 
         return mapOf(
             Key.EVENT_NAME to EventName.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
     }

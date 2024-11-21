@@ -41,7 +41,7 @@ class HentEksternImRiver(
 
             HentEksternImMelding(
                 eventName = Key.EVENT_NAME.krev(EventName.FORESPOERSEL_BESVART, EventName.serializer(), json),
-                transaksjonId = Key.UUID.les(UuidSerializer, json),
+                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
                 spinnImId = Key.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, data),
             )
@@ -57,7 +57,7 @@ class HentEksternImRiver(
         } else {
             mapOf(
                 Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
-                Key.UUID to transaksjonId.toJson(),
+                Key.KONTEKST_ID to transaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.FORESPOERSEL_ID to forespoerselId.toJson(),

@@ -45,7 +45,7 @@ class LagreImSkjemaRiver(
             LagreImSkjemaMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.LAGRE_IM_SKJEMA, BehovType.serializer(), json),
-                transaksjonId = Key.UUID.les(UuidSerializer, json),
+                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 inntektsmeldingSkjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), data),
             )
@@ -67,7 +67,7 @@ class LagreImSkjemaRiver(
             }
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 data
                     .plus(

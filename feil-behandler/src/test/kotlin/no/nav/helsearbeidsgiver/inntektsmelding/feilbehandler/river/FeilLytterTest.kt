@@ -91,7 +91,7 @@ class FeilLytterTest :
                 it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe forespoerselMottattFailMedUliktInnhold.event
                 it[Key.ER_DUPLIKAT_IM]?.fromJson(String.serializer()) shouldBe "kanskje"
 
-                it[Key.UUID]?.fromJson(UuidSerializer) shouldNotBe transaksjonId
+                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldNotBe transaksjonId
             }
         }
 
@@ -119,7 +119,7 @@ class FeilLytterTest :
             jobber[1].uuid shouldNotBe transaksjonId
             jobber[1].data.parseJson().toMap().also {
                 it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe forespoerselBesvartFail.event
-                it[Key.UUID]?.fromJson(UuidSerializer) shouldNotBe transaksjonId
+                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldNotBe transaksjonId
             }
         }
 
@@ -264,6 +264,6 @@ private fun lagFail(
         utloesendeMelding =
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
-                Key.UUID to transaksjonId.toJson(),
+                Key.KONTEKST_ID to transaksjonId.toJson(),
             ).toJson(),
     )

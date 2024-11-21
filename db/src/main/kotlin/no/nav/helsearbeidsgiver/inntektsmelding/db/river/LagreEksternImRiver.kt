@@ -39,7 +39,7 @@ class LagreEksternImRiver(
 
             LagreEksternImMelding(
                 eventName = Key.EVENT_NAME.krev(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT, EventName.serializer(), json),
-                transaksjonId = Key.UUID.les(UuidSerializer, json),
+                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
                 eksternInntektsmelding = Key.EKSTERN_INNTEKTSMELDING.les(EksternInntektsmelding.serializer(), data),
             )
@@ -55,7 +55,7 @@ class LagreEksternImRiver(
 
         return mapOf(
             Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_LAGRET.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
     }

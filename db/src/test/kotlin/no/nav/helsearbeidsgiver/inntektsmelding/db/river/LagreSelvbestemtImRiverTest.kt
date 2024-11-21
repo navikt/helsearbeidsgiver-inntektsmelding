@@ -71,7 +71,7 @@ class LagreSelvbestemtImRiverTest :
                 testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
                         Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                        Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                         Key.DATA to
                             mapOf(
                                 Key.SELVBESTEMT_INNTEKTSMELDING to nyInntektsmelding.toJson(Inntektsmelding.serializer()),
@@ -113,7 +113,7 @@ class LagreSelvbestemtImRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.SELVBESTEMT_INNTEKTSMELDING to nyInntektsmelding.toJson(Inntektsmelding.serializer()),
@@ -207,7 +207,7 @@ private fun LagreSelvbestemtImMelding.toMap(): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
         Key.BEHOV to behovType.toJson(),
-        Key.UUID to transaksjonId.toJson(),
+        Key.KONTEKST_ID to transaksjonId.toJson(),
         Key.DATA to data.toJson(),
     )
 

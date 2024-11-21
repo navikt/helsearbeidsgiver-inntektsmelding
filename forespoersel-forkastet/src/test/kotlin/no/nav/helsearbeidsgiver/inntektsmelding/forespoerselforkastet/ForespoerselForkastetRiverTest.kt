@@ -32,7 +32,7 @@ class ForespoerselForkastetRiverTest :
             val forventetPublisert =
                 mapOf(
                     Key.EVENT_NAME to EventName.FORESPOERSEL_FORKASTET.toJson(),
-                    Key.UUID to UUID.randomUUID().toJson(),
+                    Key.KONTEKST_ID to UUID.randomUUID().toJson(),
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 )
 
@@ -45,8 +45,8 @@ class ForespoerselForkastetRiverTest :
 
             val publisert = testRapid.firstMessage().toMap()
 
-            publisert shouldContainKey Key.UUID
+            publisert shouldContainKey Key.KONTEKST_ID
 
-            publisert.minus(Key.UUID) shouldContainExactly forventetPublisert.minus(Key.UUID)
+            publisert.minus(Key.KONTEKST_ID) shouldContainExactly forventetPublisert.minus(Key.KONTEKST_ID)
         }
     })

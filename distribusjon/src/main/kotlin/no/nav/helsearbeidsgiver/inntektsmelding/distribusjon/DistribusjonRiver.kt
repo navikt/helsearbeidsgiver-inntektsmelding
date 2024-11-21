@@ -50,7 +50,7 @@ class DistribusjonRiver(
         } else {
             Melding(
                 eventName = Key.EVENT_NAME.krev(EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET, EventName.serializer(), json),
-                transaksjonId = Key.UUID.les(UuidSerializer, json),
+                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), json),
                 bestemmendeFravaersdag = Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, json),
                 journalpostId = Key.JOURNALPOST_ID.les(String.serializer(), json),
@@ -72,7 +72,7 @@ class DistribusjonRiver(
 
         return mapOf(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_DISTRIBUERT.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag?.toJson(),

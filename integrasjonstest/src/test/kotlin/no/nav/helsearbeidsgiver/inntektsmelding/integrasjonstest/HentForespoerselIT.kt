@@ -37,7 +37,7 @@ class HentForespoerselIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(UuidSerializer),
+            Key.KONTEKST_ID to transaksjonId.toJson(UuidSerializer),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer),
@@ -50,7 +50,7 @@ class HentForespoerselIT : EndToEndTest() {
             .filter(BehovType.HENT_TRENGER_IM)
             .firstAsMap()
             .let {
-                it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
+                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
         messages
@@ -58,7 +58,7 @@ class HentForespoerselIT : EndToEndTest() {
             .filter(BehovType.HENT_VIRKSOMHET_NAVN)
             .firstAsMap()
             .let {
-                it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
+                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
         messages
@@ -66,7 +66,7 @@ class HentForespoerselIT : EndToEndTest() {
             .filter(BehovType.HENT_PERSONER)
             .firstAsMap()
             .let {
-                it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
+                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
         messages
@@ -74,7 +74,7 @@ class HentForespoerselIT : EndToEndTest() {
             .filter(BehovType.HENT_INNTEKT)
             .firstAsMap()
             .let {
-                it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
+                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
         val resultJson =
@@ -109,7 +109,7 @@ class HentForespoerselIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(UuidSerializer),
+            Key.KONTEKST_ID to transaksjonId.toJson(UuidSerializer),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer),
@@ -122,14 +122,14 @@ class HentForespoerselIT : EndToEndTest() {
             .filter(BehovType.HENT_TRENGER_IM)
             .firstAsMap()
             .let {
-                Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
             }
 
         messages
             .filter(EventName.SAK_OG_OPPGAVE_UTGAATT)
             .firstAsMap()
             .let {
-                Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
                 Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe forespoerselId
             }
 

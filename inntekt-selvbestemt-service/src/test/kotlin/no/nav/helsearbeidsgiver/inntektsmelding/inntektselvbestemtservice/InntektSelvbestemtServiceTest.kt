@@ -136,7 +136,7 @@ private object Mock {
     ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to data.toJson(),
         )
 }

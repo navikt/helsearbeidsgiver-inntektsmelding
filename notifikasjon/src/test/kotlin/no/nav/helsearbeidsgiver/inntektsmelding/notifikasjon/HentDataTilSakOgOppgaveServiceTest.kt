@@ -60,7 +60,7 @@ class HentDataTilSakOgOppgaveServiceTest :
             testRapid.message(2).toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED.toJson(),
-                    Key.UUID to Mock.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to Mock.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
@@ -115,7 +115,7 @@ private object Mock {
     fun steg0(): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.FORESPOERSEL_MOTTATT.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),

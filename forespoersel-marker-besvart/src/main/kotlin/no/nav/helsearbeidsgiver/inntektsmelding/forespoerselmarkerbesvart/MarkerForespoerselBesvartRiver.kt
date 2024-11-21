@@ -39,7 +39,7 @@ class MarkerForespoerselBesvartRiver(
 
             Melding(
                 eventName = Key.EVENT_NAME.krev(EventName.INNTEKTSMELDING_MOTTATT, EventName.serializer(), json),
-                transaksjonId = Key.UUID.les(UuidSerializer, json),
+                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, json) ?: Key.FORESPOERSEL_ID.les(UuidSerializer, data),
             )
         }

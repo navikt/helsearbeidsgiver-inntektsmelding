@@ -43,7 +43,10 @@ class MarkerForespoerselBesvartRiverTest :
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
                 Key.KONTEKST_ID to UUID.randomUUID().toJson(),
-                Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
+                    ).toJson(),
             )
 
             testRapid.inspektør.size shouldBeExactly 0

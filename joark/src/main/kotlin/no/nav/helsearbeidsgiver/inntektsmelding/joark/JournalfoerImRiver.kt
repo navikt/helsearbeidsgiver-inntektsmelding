@@ -51,21 +51,15 @@ class JournalfoerImRiver(
                     JournalfoerImMelding(
                         eventName = eventName,
                         transaksjonId = transaksjonId,
-                        inntektsmelding =
-                            Key.INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), json)
-                                ?: Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
-                        bestemmendeFravaersdag =
-                            Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, json)
-                                ?: Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, data),
+                        inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
+                        bestemmendeFravaersdag = Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, data),
                     )
 
                 EventName.SELVBESTEMT_IM_LAGRET ->
                     JournalfoerImMelding(
                         eventName = eventName,
                         transaksjonId = transaksjonId,
-                        inntektsmelding =
-                            Key.SELVBESTEMT_INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), json)
-                                ?: Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
+                        inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
                         bestemmendeFravaersdag = null,
                     )
 
@@ -88,7 +82,7 @@ class JournalfoerImRiver(
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag?.toJson(),
-            Key.INNSENDING_ID to (json[Key.INNSENDING_ID] ?: json[Key.DATA]?.toMap().orEmpty()[Key.INNSENDING_ID]),
+            Key.INNSENDING_ID to json[Key.DATA]?.toMap()?.get(Key.INNSENDING_ID),
         ).mapValuesNotNull { it }
             .also {
                 logger.info("Publiserte melding med event '${EventName.INNTEKTSMELDING_JOURNALFOERT}' og journalpost-ID '$journalpostId'.")
@@ -112,10 +106,7 @@ class JournalfoerImRiver(
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
-        return fail
-            .tilMelding()
-            .plus(Key.INNSENDING_ID to json[Key.INNSENDING_ID])
-            .mapValuesNotNull { it }
+        return fail.tilMelding()
     }
 
     override fun JournalfoerImMelding.loggfelt(): Map<String, String> =

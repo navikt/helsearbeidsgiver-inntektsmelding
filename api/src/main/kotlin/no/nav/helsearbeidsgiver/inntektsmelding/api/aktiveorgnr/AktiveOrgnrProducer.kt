@@ -33,6 +33,7 @@ class AktiveOrgnrProducer(
         ) {
             rapid
                 .publish(
+                    key = arbeidstagerFnr,
                     Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
                     Key.KONTEKST_ID to transaksjonId.toJson(),
                     Key.DATA to

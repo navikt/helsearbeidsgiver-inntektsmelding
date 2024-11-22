@@ -33,6 +33,7 @@ class LagreSelvbestemtImProducer(
         ) {
             rapid
                 .publish(
+                    key = skjema.sykmeldtFnr,
                     Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
                     Key.KONTEKST_ID to transaksjonId.toJson(),
                     Key.DATA to

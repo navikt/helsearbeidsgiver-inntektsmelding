@@ -31,6 +31,6 @@ internal class OpenRiver(
             .toJson()
             .parseJson()
             .haandterMelding()
-            ?.also(context::publish)
+            ?.also { context.publish(null, it) }
     }
 }

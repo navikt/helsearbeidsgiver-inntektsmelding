@@ -31,7 +31,7 @@ import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAaregRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
-import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice.createBerikInntektsmeldingService
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createHentEksternImRiver
@@ -252,7 +252,7 @@ abstract class EndToEndTest : ContainerTest() {
 
     fun publish(vararg messageFields: Pair<Key, JsonElement>) {
         println("Publiserer melding med felt: ${messageFields.toMap()}")
-        imTestRapid.publish(messageFields.toMap())
+        imTestRapid.publish(UUID.randomUUID(), *messageFields)
     }
 
     fun publish(vararg messageFields: Pair<Pri.Key, JsonElement>): JsonElement {

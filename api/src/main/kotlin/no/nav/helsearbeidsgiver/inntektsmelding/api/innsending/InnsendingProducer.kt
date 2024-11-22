@@ -27,6 +27,7 @@ class InnsendingProducer(
     ) {
         rapid
             .publish(
+                key = skjemaInntektsmelding.forespoerselId,
                 Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
                 Key.KONTEKST_ID to transaksjonId.toJson(),
                 Key.DATA to

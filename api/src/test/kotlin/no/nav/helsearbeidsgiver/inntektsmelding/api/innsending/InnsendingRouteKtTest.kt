@@ -7,6 +7,7 @@ import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -39,7 +40,7 @@ class InnsendingRouteKtTest : ApiTest() {
                     harTilgangResultat,
                     ResultJson(
                         success = skjema.forespoerselId.toJson(),
-                    ).toJson(ResultJson.serializer())
+                    ).toJson()
                         .toString(),
                 )
 
@@ -59,7 +60,7 @@ class InnsendingRouteKtTest : ApiTest() {
                     harTilgangResultat,
                     ResultJson(
                         success = delvisSkjema.forespoerselId.toJson(),
-                    ).toJson(ResultJson.serializer())
+                    ).toJson()
                         .toString(),
                 )
 

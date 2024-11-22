@@ -167,7 +167,7 @@ private object MockHentIm {
             Key.DATA to data.toJson(),
         )
 
-    fun tomResultJson(): JsonElement = ResultJson().toJson(ResultJson.serializer())
+    fun tomResultJson(): JsonElement = ResultJson().toJson()
 
     val fail =
         Fail(
@@ -179,4 +179,4 @@ private object MockHentIm {
         )
 }
 
-private fun JsonElement.toSuccessJson(): JsonElement = ResultJson(success = this).toJson(ResultJson.serializer())
+private fun JsonElement.toSuccessJson(): JsonElement = ResultJson(success = this).toJson()

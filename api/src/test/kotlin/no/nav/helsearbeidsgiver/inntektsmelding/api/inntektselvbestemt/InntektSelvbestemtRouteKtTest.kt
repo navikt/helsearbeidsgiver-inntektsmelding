@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.Inntekt
 import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
@@ -167,16 +168,16 @@ private object Mock {
     fun successResult(inntekt: Inntekt): String =
         ResultJson(
             success = inntekt.toJson(Inntekt.serializer()),
-        ).toJson(ResultJson.serializer())
+        ).toJson()
             .toString()
 
     fun failureResult(feilmelding: String): String =
         ResultJson(
             failure = feilmelding.toJson(),
-        ).toJson(ResultJson.serializer())
+        ).toJson()
             .toString()
 
-    fun emptyResult(): String = ResultJson().toJson(ResultJson.serializer()).toString()
+    fun emptyResult(): String = ResultJson().toJson().toString()
 }
 
 private fun Inntekt.hardcodedJson(): String =

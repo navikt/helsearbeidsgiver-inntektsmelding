@@ -205,7 +205,7 @@ private object Mock {
             fnr to Person(fnr, navn)
         }
 
-    fun successResult(orgnr: Orgnr): JsonElement =
+    fun successResult(orgnr: Orgnr): ResultJson =
         ResultJson(
             success =
                 AktiveArbeidsgivere(
@@ -219,9 +219,9 @@ private object Mock {
                             ),
                         ),
                 ).toJson(AktiveArbeidsgivere.serializer()),
-        ).toJson(ResultJson.serializer())
+        )
 
-    fun successResultTomListe(): JsonElement =
+    fun successResultTomListe(): ResultJson =
         ResultJson(
             success =
                 AktiveArbeidsgivere(
@@ -229,12 +229,12 @@ private object Mock {
                     avsenderNavn = AVSENDER_NAVN,
                     underenheter = emptyList(),
                 ).toJson(AktiveArbeidsgivere.serializer()),
-        ).toJson(ResultJson.serializer())
+        )
 
-    fun failureResult(feilmelding: String): JsonElement =
+    fun failureResult(feilmelding: String): ResultJson =
         ResultJson(
             failure = feilmelding.toJson(),
-        ).toJson(ResultJson.serializer())
+        )
 
     fun startmelding(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(

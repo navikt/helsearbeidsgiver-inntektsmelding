@@ -11,7 +11,6 @@ import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
@@ -71,7 +70,6 @@ class InntektServiceTest {
                 withArg {
                     runCatching {
                         it
-                            .fromJson(ResultJson.serializer())
                             .failure
                             ?.fromJson(String.serializer())
                     }.shouldBeSuccess()

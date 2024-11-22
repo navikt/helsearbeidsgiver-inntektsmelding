@@ -182,7 +182,7 @@ class AktiveOrgnrService(
                             avsenderNavn = avsenderNavn,
                             underenheter = gyldigeUnderenheter,
                         ).toJson(AktiveArbeidsgivere.serializer()),
-                ).toJson(ResultJson.serializer())
+                )
 
             redisStore.skrivResultat(steg0.transaksjonId, gyldigResponse)
         } else {
@@ -207,10 +207,7 @@ class AktiveOrgnrService(
         logger.error(feilmelding)
         sikkerLogger.error(feilmelding)
 
-        val feilResponse =
-            ResultJson(
-                failure = feilmelding.toJson(),
-            ).toJson(ResultJson.serializer())
+        val feilResponse = ResultJson(failure = feilmelding.toJson())
 
         redisStore.skrivResultat(transaksjonId, feilResponse)
     }

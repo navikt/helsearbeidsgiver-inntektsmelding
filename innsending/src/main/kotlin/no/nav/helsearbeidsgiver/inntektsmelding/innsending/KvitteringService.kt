@@ -99,7 +99,7 @@ class KvitteringService(
             ResultJson(
                 success =
                     InnsendtInntektsmelding(steg1.inntektsmeldingDokument, steg1.eksternInntektsmelding).toJson(InnsendtInntektsmelding.serializer()),
-            ).toJson(ResultJson.serializer())
+            )
 
         redisStore.skrivResultat(steg0.transaksjonId, resultJson)
     }
@@ -118,10 +118,7 @@ class KvitteringService(
                 sikkerLogger.warn(it)
             }
 
-            val resultJson =
-                ResultJson(
-                    failure = fail.feilmelding.toJson(),
-                ).toJson(ResultJson.serializer())
+            val resultJson = ResultJson(failure = fail.feilmelding.toJson())
 
             redisStore.skrivResultat(fail.transaksjonId, resultJson)
         }

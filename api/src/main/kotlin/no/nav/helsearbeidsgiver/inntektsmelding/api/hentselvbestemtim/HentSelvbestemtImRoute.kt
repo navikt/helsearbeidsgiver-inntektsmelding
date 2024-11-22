@@ -62,9 +62,7 @@ fun Route.hentSelvbestemtImRoute(
 
                 runCatching {
                     redisPoller.hent(transaksjonId)
-                }.onSuccess {
-                    val result = it.fromJson(ResultJson.serializer())
-
+                }.onSuccess { result ->
                     val inntektsmelding = result.success?.fromJson(Inntektsmelding.serializer())
 
                     if (inntektsmelding != null) {

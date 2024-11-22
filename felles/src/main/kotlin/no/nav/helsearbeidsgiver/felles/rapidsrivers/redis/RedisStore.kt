@@ -3,6 +3,8 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers.redis
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.utils.collection.mapKeysNotNull
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -17,16 +19,16 @@ private const val KEY_PART_SEPARATOR = "#"
 private const val KEY_FEIL_POSTFIX = "feil"
 
 class RedisStore(
-// class RedisStore<Success : Any, Failure : Any>(
     private val redis: RedisConnection,
     private val keyPrefix: RedisPrefix,
-//    private val successSerializer: KSerializer<Success>,
-//    private val failureSerializer: KSerializer<Failure>,
 ) {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    fun lesResultat(transaksjonId: UUID): JsonElement? = resultatKey(transaksjonId).les()
+    fun lesResultat(transaksjonId: UUID): ResultJson? =
+        resultatKey(transaksjonId)
+            .les()
+            ?.fromJson(ResultJson.serializer())
 
     fun lesAlleMellomlagrede(transaksjonId: UUID): Map<Key, JsonElement> {
         val prefix = listOf(keyPrefix.name, transaksjonId.toString()).joinKeySeparator(withPostfix = true)
@@ -50,9 +52,9 @@ class RedisStore(
 
     fun skrivResultat(
         transaksjonId: UUID,
-        value: JsonElement,
+        value: ResultJson,
     ) {
-        resultatKey(transaksjonId).skriv(value)
+        resultatKey(transaksjonId).skriv(value.toJson())
     }
 
     fun skrivMellomlagring(

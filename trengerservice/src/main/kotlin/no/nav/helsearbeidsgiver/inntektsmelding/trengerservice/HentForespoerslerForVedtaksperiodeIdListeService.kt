@@ -78,7 +78,7 @@ class HentForespoerslerForVedtaksperiodeIdListeService(
         val resultJson =
             ResultJson(
                 success = steg1.forespoersler.toJson(MapSerializer(UuidSerializer, Forespoersel.serializer())),
-            ).toJson(ResultJson.serializer())
+            )
 
         redisStore.skrivResultat(steg0.transaksjonId, resultJson)
     }
@@ -92,10 +92,7 @@ class HentForespoerslerForVedtaksperiodeIdListeService(
             sikkerLogger.warn(it)
         }
 
-        val resultJson =
-            ResultJson(
-                failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(),
-            ).toJson(ResultJson.serializer())
+        val resultJson = ResultJson(failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson())
 
         redisStore.skrivResultat(fail.transaksjonId, resultJson)
     }

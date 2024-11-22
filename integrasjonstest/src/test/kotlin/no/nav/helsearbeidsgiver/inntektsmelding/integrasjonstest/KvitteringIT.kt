@@ -124,6 +124,6 @@ class KvitteringIT : EndToEndTest() {
     }
 
     private object Mock {
-        val tomResultJson = ResultJson(success = null).toJson(ResultJson.serializer())
+        val tomResultJson = ResultJson(success = null).toJson()
     }
 }

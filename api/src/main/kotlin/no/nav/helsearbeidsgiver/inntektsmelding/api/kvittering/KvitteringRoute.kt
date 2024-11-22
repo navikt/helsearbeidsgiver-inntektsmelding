@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.KvitteringSimb
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.InnsendtInntektsmelding
-import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
@@ -68,7 +67,7 @@ fun Route.kvittering(
                     tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
 
                     kvitteringProducer.publish(transaksjonId, forespoerselId)
-                    val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
+                    val resultatJson = redisPoller.hent(transaksjonId)
 
                     sikkerLogger.info("Resultat for henting av kvittering for $forespoerselId: $resultatJson")
 

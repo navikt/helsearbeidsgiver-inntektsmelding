@@ -31,6 +31,7 @@ class HentSelvbestemtImProducer(
         ) {
             rapid
                 .publish(
+                    key = selvbestemtId,
                     Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
                     Key.KONTEKST_ID to transaksjonId.toJson(),
                     Key.DATA to

@@ -18,7 +18,7 @@ import no.nav.helsearbeidsgiver.felles.domene.HentForespoerselResultat
 import no.nav.helsearbeidsgiver.felles.domene.Inntekt
 import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
-import no.nav.helsearbeidsgiver.felles.domene.TilgangResultat
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedForrigeInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -137,9 +137,9 @@ class HentForespoerselRouteKtTest : ApiTest() {
     fun `skal returnere Forbidden hvis feil i Tilgangsresultet`() =
         testApi {
             coEvery { mockRedisConnection.get(any()) } returns
-                TilgangResultat(
-                    feilmelding = "Noe er riv ruskende galt!",
-                ).toJson(TilgangResultat.serializer())
+                ResultJson(
+                    failure = "Noe er riv ruskende galt!".toJson(),
+                ).toJson()
                     .toString()
 
             val response = post(PATH, Mock.request, HentForespoerselRequest.serializer())
@@ -199,7 +199,7 @@ private object Mock {
                     forespoersel = forespoersel,
                     feil = emptyMap(),
                 ).toJson(HentForespoerselResultat.serializer()),
-        ).toJson(ResultJson.serializer())
+        ).toJson()
             .toString()
 
     val resultatOkMedForrigeInntektJson =
@@ -216,7 +216,7 @@ private object Mock {
                         ),
                     feil = emptyMap(),
                 ).toJson(HentForespoerselResultat.serializer()),
-        ).toJson(ResultJson.serializer())
+        ).toJson()
             .toString()
 
     fun responseJson(): String =

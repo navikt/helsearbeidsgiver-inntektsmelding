@@ -10,7 +10,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
-import no.nav.helsearbeidsgiver.felles.domene.TilgangResultat
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -60,13 +60,13 @@ class TilgangOrgServiceTest {
             service.onError(emptyMap(), fail)
         }
 
-        val expectedResultJson =
-            TilgangResultat(
-                feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE,
-            ).toJson(TilgangResultat.serializer())
+        val expectedResult =
+            ResultJson(
+                failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(),
+            )
 
         verify {
-            mockRedisStore.skrivResultat(transaksjonId, expectedResultJson)
+            mockRedisStore.skrivResultat(transaksjonId, expectedResult)
         }
     }
 }

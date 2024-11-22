@@ -9,7 +9,6 @@ import io.ktor.server.routing.post
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Tekst
-import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
@@ -86,12 +85,7 @@ fun Route.innsending(
 
                     producer.publish(transaksjonId, skjema, avsenderFnr)
 
-                    val resultat =
-                        runCatching {
-                            redisPoller.hent(transaksjonId)
-                        }.map {
-                            it.fromJson(ResultJson.serializer())
-                        }
+                    val resultat = runCatching { redisPoller.hent(transaksjonId) }
 
                     resultat
                         .onSuccess {

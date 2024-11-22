@@ -6,8 +6,8 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.domene.Tilgang
-import no.nav.helsearbeidsgiver.felles.domene.TilgangResultat
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -87,12 +87,12 @@ class TilgangOrgService(
         steg0: Steg0,
         steg1: Steg1,
     ) {
-        val tilgangJson =
-            TilgangResultat(
-                tilgang = steg1.tilgang,
-            ).toJson(TilgangResultat.serializer())
+        val resultat =
+            ResultJson(
+                success = steg1.tilgang.toJson(Tilgang.serializer()),
+            )
 
-        redisStore.skrivResultat(steg0.transaksjonId, tilgangJson)
+        redisStore.skrivResultat(steg0.transaksjonId, resultat)
 
         sikkerLogger.info("$eventName fullført.")
     }
@@ -106,14 +106,12 @@ class TilgangOrgService(
             Log.event(eventName),
             Log.transaksjonId(fail.transaksjonId),
         ) {
-            val tilgangResultat =
-                TilgangResultat(
-                    feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE,
+            val resultat =
+                ResultJson(
+                    failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(),
                 )
 
-            sikkerLogger.error("Returnerer feilmelding: '${tilgangResultat.feilmelding}'")
-
-            redisStore.skrivResultat(fail.transaksjonId, tilgangResultat.toJson(TilgangResultat.serializer()))
+            redisStore.skrivResultat(fail.transaksjonId, resultat)
 
             sikkerLogger.error("$eventName terminert.")
         }

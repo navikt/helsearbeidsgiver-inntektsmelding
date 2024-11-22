@@ -3,13 +3,11 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.auth
 import io.ktor.server.request.ApplicationRequest
 import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.felles.domene.Tilgang
-import no.nav.helsearbeidsgiver.felles.domene.TilgangResultat
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -57,12 +55,13 @@ class Tilgangskontroll(
 
                     publish(transaksjonId, innloggerFnr)
 
-                    val resultat =
+                    val tilgang =
                         redisPoller
                             .hent(transaksjonId)
-                            .fromJson(TilgangResultat.serializer())
+                            .success
+                            ?.fromJson(Tilgang.serializer())
 
-                    resultat.tilgang ?: throw ManglerAltinnRettigheterException()
+                    tilgang ?: throw ManglerAltinnRettigheterException()
                 }
             }
 

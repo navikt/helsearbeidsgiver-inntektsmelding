@@ -283,7 +283,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                         avsenderNavn = "Max Mekker",
                         underenheter = emptyList(),
                     ).toJson(AktiveArbeidsgivere.serializer()),
-            ).toJson(ResultJson.serializer())
+            ).toJson()
 
         val fnr = Fnr.genererGyldig()
         val fnrAg = Fnr.genererGyldig()

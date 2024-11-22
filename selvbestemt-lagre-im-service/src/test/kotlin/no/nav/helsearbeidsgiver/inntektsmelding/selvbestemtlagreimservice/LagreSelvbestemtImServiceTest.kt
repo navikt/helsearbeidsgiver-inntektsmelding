@@ -137,7 +137,7 @@ class LagreSelvbestemtImServiceTest :
                     transaksjonId,
                     ResultJson(
                         success = nyInntektsmelding.type.id.toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -186,7 +186,7 @@ class LagreSelvbestemtImServiceTest :
                     transaksjonId,
                     ResultJson(
                         success = endretInntektsmelding.type.id.toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -230,7 +230,7 @@ class LagreSelvbestemtImServiceTest :
                     transaksjonId,
                     ResultJson(
                         success = duplikatInntektsmelding.type.id.toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -330,7 +330,7 @@ class LagreSelvbestemtImServiceTest :
                     transaksjonId,
                     ResultJson(
                         success = inntektsmeldingMedDefaults.type.id.toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -379,7 +379,7 @@ class LagreSelvbestemtImServiceTest :
                     transaksjonId,
                     ResultJson(
                         failure = feilmelding.toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -409,7 +409,7 @@ class LagreSelvbestemtImServiceTest :
                     transaksjonId,
                     ResultJson(
                         failure = "Mangler arbeidsforhold i perioden".toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }

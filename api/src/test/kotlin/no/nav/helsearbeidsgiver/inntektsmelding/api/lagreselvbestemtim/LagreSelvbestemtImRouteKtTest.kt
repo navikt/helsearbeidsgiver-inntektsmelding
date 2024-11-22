@@ -9,6 +9,7 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -283,14 +284,14 @@ private object Mock {
     fun successResult(selvbestemtId: UUID): String =
         ResultJson(
             success = selvbestemtId.toJson(),
-        ).toJson(ResultJson.serializer())
+        ).toJson()
             .toString()
 
     fun failureResult(feilmelding: String): String =
         ResultJson(
             failure = feilmelding.toJson(String.serializer()),
-        ).toJson(ResultJson.serializer())
+        ).toJson()
             .toString()
 
-    fun emptyResult(): String = ResultJson().toJson(ResultJson.serializer()).toString()
+    fun emptyResult(): String = ResultJson().toJson().toString()
 }

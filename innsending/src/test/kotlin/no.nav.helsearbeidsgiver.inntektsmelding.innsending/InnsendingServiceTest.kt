@@ -102,7 +102,7 @@ class InnsendingServiceTest :
                     transaksjonId,
                     ResultJson(
                         success = nyttSkjema.forespoerselId.toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -128,7 +128,7 @@ class InnsendingServiceTest :
                     transaksjonId,
                     ResultJson(
                         success = Mock.skjema.forespoerselId.toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -177,7 +177,7 @@ class InnsendingServiceTest :
                     transaksjonId,
                     ResultJson(
                         failure = feilmelding.toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }

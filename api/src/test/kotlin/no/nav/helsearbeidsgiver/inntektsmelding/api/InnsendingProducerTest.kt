@@ -33,7 +33,7 @@ class InnsendingProducerTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),

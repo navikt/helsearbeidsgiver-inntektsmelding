@@ -45,7 +45,7 @@ class HentForespoerslerForVedtaksperiodeIdListeService(
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            transaksjonId = Key.UUID.les(UuidSerializer, melding),
+            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             vedtaksperiodeIdListe = Key.VEDTAKSPERIODE_ID_LISTE.les(UuidSerializer.list(), melding),
         )
 
@@ -62,7 +62,7 @@ class HentForespoerslerForVedtaksperiodeIdListeService(
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(),
-                Key.UUID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.VEDTAKSPERIODE_ID_LISTE to steg0.vedtaksperiodeIdListe.toJson(UuidSerializer),
@@ -78,7 +78,7 @@ class HentForespoerslerForVedtaksperiodeIdListeService(
         val resultJson =
             ResultJson(
                 success = steg1.forespoersler.toJson(MapSerializer(UuidSerializer, Forespoersel.serializer())),
-            ).toJson(ResultJson.serializer())
+            )
 
         redisStore.skrivResultat(steg0.transaksjonId, resultJson)
     }
@@ -92,10 +92,7 @@ class HentForespoerslerForVedtaksperiodeIdListeService(
             sikkerLogger.warn(it)
         }
 
-        val resultJson =
-            ResultJson(
-                failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(),
-            ).toJson(ResultJson.serializer())
+        val resultJson = ResultJson(failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson())
 
         redisStore.skrivResultat(fail.transaksjonId, resultJson)
     }

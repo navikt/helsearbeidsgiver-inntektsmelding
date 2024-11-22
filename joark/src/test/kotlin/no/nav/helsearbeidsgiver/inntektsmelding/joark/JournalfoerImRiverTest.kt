@@ -75,7 +75,7 @@ class JournalfoerImRiverTest :
                 testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
-                        Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                         Key.JOURNALPOST_ID to journalpostId.toJson(),
                         Key.INNTEKTSMELDING to Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
                         Key.BESTEMMENDE_FRAVAERSDAG to Mock.bestemmendeFravaersdag.toJson(),
@@ -121,7 +121,7 @@ class JournalfoerImRiverTest :
                 testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
-                        Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                         Key.JOURNALPOST_ID to journalpostId.toJson(),
                         Key.INNTEKTSMELDING to Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
                     )
@@ -230,7 +230,7 @@ private object Mock {
     fun JournalfoerImMelding.toMap(imKey: Key = Key.INNTEKTSMELDING): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     imKey to inntektsmelding.toJson(Inntektsmelding.serializer()),

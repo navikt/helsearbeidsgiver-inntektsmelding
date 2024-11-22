@@ -7,8 +7,8 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.domene.Tilgang
-import no.nav.helsearbeidsgiver.felles.domene.TilgangResultat
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -54,7 +54,7 @@ class TilgangForespoerselService(
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            transaksjonId = Key.UUID.les(UuidSerializer, melding),
+            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
             avsenderFnr = Key.FNR.les(Fnr.serializer(), melding),
         )
@@ -77,7 +77,7 @@ class TilgangForespoerselService(
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                Key.UUID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     data
                         .plus(
@@ -101,7 +101,7 @@ class TilgangForespoerselService(
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
-                Key.UUID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     data
                         .plus(
@@ -125,12 +125,12 @@ class TilgangForespoerselService(
         steg1: Steg1,
         steg2: Steg2,
     ) {
-        val tilgangJson =
-            TilgangResultat(
-                tilgang = steg2.tilgang,
-            ).toJson(TilgangResultat.serializer())
+        val tilgang =
+            ResultJson(
+                success = steg2.tilgang.toJson(Tilgang.serializer()),
+            )
 
-        redisStore.skrivResultat(steg0.transaksjonId, tilgangJson)
+        redisStore.skrivResultat(steg0.transaksjonId, tilgang)
 
         sikkerLogger.info("$eventName fullført.")
     }
@@ -145,13 +145,12 @@ class TilgangForespoerselService(
             Log.transaksjonId(fail.transaksjonId),
         ) {
             val tilgangResultat =
-                TilgangResultat(
-                    feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE,
+                ResultJson(
+                    failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(),
                 )
 
-            sikkerLogger.error("Returnerer feilmelding: '${tilgangResultat.feilmelding}'")
+            redisStore.skrivResultat(fail.transaksjonId, tilgangResultat)
 
-            redisStore.skrivResultat(fail.transaksjonId, tilgangResultat.toJson(TilgangResultat.serializer()))
             sikkerLogger.error("$eventName terminert.")
         }
     }

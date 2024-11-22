@@ -61,7 +61,7 @@ class HentSelvbestemtImServiceTest :
                     transaksjonId,
                     ResultJson(
                         success = Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -97,7 +97,7 @@ class HentSelvbestemtImServiceTest :
                     transaksjonId,
                     ResultJson(
                         failure = feilmelding.toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -110,7 +110,7 @@ private object Mock {
     fun startMelding(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
@@ -120,7 +120,7 @@ private object Mock {
     fun dataMelding(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SELVBESTEMT_ID to selvbestemtId.toJson(),

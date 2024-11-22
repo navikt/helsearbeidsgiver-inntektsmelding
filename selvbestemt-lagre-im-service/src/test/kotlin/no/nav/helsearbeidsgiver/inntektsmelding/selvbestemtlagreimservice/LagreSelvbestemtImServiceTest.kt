@@ -127,7 +127,7 @@ class LagreSelvbestemtImServiceTest :
             testRapid.inspektør.size shouldBeExactly 6
             testRapid.message(5).toMap().also {
                 Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.SELVBESTEMT_IM_LAGRET
-                Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
 
                 it.lesInntektsmelding().shouldBeEqualToIgnoringFields(nyInntektsmelding, Inntektsmelding::id)
             }
@@ -137,7 +137,7 @@ class LagreSelvbestemtImServiceTest :
                     transaksjonId,
                     ResultJson(
                         success = nyInntektsmelding.type.id.toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -176,7 +176,7 @@ class LagreSelvbestemtImServiceTest :
             testRapid.inspektør.size shouldBeExactly 5
             testRapid.message(4).toMap().also {
                 Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.SELVBESTEMT_IM_LAGRET
-                Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
 
                 it.lesInntektsmelding().shouldBeEqualToIgnoringFields(endretInntektsmelding, Inntektsmelding::id)
             }
@@ -186,7 +186,7 @@ class LagreSelvbestemtImServiceTest :
                     transaksjonId,
                     ResultJson(
                         success = endretInntektsmelding.type.id.toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -230,7 +230,7 @@ class LagreSelvbestemtImServiceTest :
                     transaksjonId,
                     ResultJson(
                         success = duplikatInntektsmelding.type.id.toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -308,7 +308,7 @@ class LagreSelvbestemtImServiceTest :
             testRapid.inspektør.size shouldBeExactly 5
             testRapid.message(4).toMap().also {
                 Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.SELVBESTEMT_IM_LAGRET
-                Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
 
                 it.lesInntektsmelding().shouldBeEqualToIgnoringFields(inntektsmeldingMedDefaults, Inntektsmelding::id)
             }
@@ -330,7 +330,7 @@ class LagreSelvbestemtImServiceTest :
                     transaksjonId,
                     ResultJson(
                         success = inntektsmeldingMedDefaults.type.id.toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -379,7 +379,7 @@ class LagreSelvbestemtImServiceTest :
                     transaksjonId,
                     ResultJson(
                         failure = feilmelding.toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -409,7 +409,7 @@ class LagreSelvbestemtImServiceTest :
                     transaksjonId,
                     ResultJson(
                         failure = "Mangler arbeidsforhold i perioden".toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -511,7 +511,7 @@ private object Mock {
     fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
@@ -522,7 +522,7 @@ private object Mock {
     fun steg1(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.VIRKSOMHETER to mapOf(skjema.avsender.orgnr.verdi to ORG_NAVN).toJson(),
@@ -541,7 +541,7 @@ private object Mock {
     ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
@@ -552,7 +552,7 @@ private object Mock {
     fun steg3(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SAK_ID to "folkelig-lurendreier-sak-id".toJson(),

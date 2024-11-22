@@ -65,7 +65,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FNR to Mock.fnr.toJson(),
@@ -146,7 +146,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FNR to Mock.fnr.toJson(),
@@ -219,7 +219,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                     mapOf(
                         Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
                         Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
-                        Key.UUID to transaksjonId.toJson(),
+                        Key.KONTEKST_ID to transaksjonId.toJson(),
                         Key.DATA to
                             mapOf(
                                 Key.FNR_LISTE to
@@ -233,7 +233,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FNR to Mock.fnr.toJson(),
@@ -283,7 +283,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                         avsenderNavn = "Max Mekker",
                         underenheter = emptyList(),
                     ).toJson(AktiveArbeidsgivere.serializer()),
-            ).toJson(ResultJson.serializer())
+            ).toJson()
 
         val fnr = Fnr.genererGyldig()
         val fnrAg = Fnr.genererGyldig()

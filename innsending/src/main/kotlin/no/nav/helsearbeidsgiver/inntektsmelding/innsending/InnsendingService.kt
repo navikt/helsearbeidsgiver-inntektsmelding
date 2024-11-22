@@ -46,7 +46,7 @@ class InnsendingService(
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            transaksjonId = Key.UUID.les(UuidSerializer, melding),
+            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
             skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding),
         )
@@ -65,7 +65,7 @@ class InnsendingService(
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.LAGRE_IM_SKJEMA.toJson(),
-                Key.UUID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                 Key.DATA to data.toJson(),
             ).also { loggBehovPublisert(BehovType.LAGRE_IM_SKJEMA, it) }
     }
@@ -78,7 +78,7 @@ class InnsendingService(
         val resultJson =
             ResultJson(
                 success = steg0.skjema.forespoerselId.toJson(),
-            ).toJson(ResultJson.serializer())
+            )
 
         redisStore.skrivResultat(steg0.transaksjonId, resultJson)
 
@@ -87,7 +87,7 @@ class InnsendingService(
                 rapid
                     .publish(
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
-                        Key.UUID to steg0.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                         Key.DATA to
                             data
                                 .plus(Key.INNSENDING_ID to steg1.innsendingId.toJson(Long.serializer()))
@@ -131,6 +131,6 @@ class InnsendingService(
     ) {
         val resultJson = ResultJson(failure = fail.feilmelding.toJson())
 
-        redisStore.skrivResultat(fail.transaksjonId, resultJson.toJson(ResultJson.serializer()))
+        redisStore.skrivResultat(fail.transaksjonId, resultJson)
     }
 }

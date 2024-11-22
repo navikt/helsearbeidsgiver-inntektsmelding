@@ -53,7 +53,7 @@ fun Route.hentForespoersel(
 
                     hentForespoerselProducer.publish(transaksjonId, request, arbeidsgiverFnr)
 
-                    val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
+                    val resultatJson = redisPoller.hent(transaksjonId)
 
                     sikkerLogger.info("Hentet forespørsel: $resultatJson")
 

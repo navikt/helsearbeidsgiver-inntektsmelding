@@ -15,15 +15,23 @@ import io.ktor.server.testing.testApplication
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.KSerializer
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.domene.Tilgang
-import no.nav.helsearbeidsgiver.felles.domene.TilgangResultat
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.inntektsmelding.api.apiModule
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
-val harTilgangResultat = TilgangResultat(Tilgang.HAR_TILGANG).toJson(TilgangResultat.serializer()).toString()
-val ikkeTilgangResultat = TilgangResultat(Tilgang.IKKE_TILGANG).toJson(TilgangResultat.serializer()).toString()
+val harTilgangResultat =
+    ResultJson(
+        success = Tilgang.HAR_TILGANG.toJson(Tilgang.serializer()),
+    ).toJson().toString()
+
+val ikkeTilgangResultat =
+    ResultJson(
+        success = Tilgang.IKKE_TILGANG.toJson(Tilgang.serializer()),
+    ).toJson().toString()
 
 abstract class ApiTest : MockAuthToken() {
     val mockRedisConnection = mockk<RedisConnection>()

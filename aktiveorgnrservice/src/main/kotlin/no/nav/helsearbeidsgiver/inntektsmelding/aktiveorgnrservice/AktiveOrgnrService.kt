@@ -61,7 +61,7 @@ class AktiveOrgnrService(
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            transaksjonId = Key.UUID.les(UuidSerializer, melding),
+            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             sykmeldtFnr = Key.FNR.les(Fnr.serializer(), melding),
             avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
         )
@@ -98,7 +98,7 @@ class AktiveOrgnrService(
         rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
-            Key.UUID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
@@ -108,7 +108,7 @@ class AktiveOrgnrService(
         rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_ARBEIDSFORHOLD.toJson(),
-            Key.UUID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FNR to steg0.sykmeldtFnr.toJson(),
@@ -118,7 +118,7 @@ class AktiveOrgnrService(
         rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
-            Key.UUID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FNR_LISTE to
@@ -146,7 +146,7 @@ class AktiveOrgnrService(
                 rapid.publish(
                     Key.EVENT_NAME to eventName.toJson(),
                     Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
-                    Key.UUID to steg0.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.ORGNR_UNDERENHETER to arbeidsgivere.toJson(String.serializer()),
@@ -182,7 +182,7 @@ class AktiveOrgnrService(
                             avsenderNavn = avsenderNavn,
                             underenheter = gyldigeUnderenheter,
                         ).toJson(AktiveArbeidsgivere.serializer()),
-                ).toJson(ResultJson.serializer())
+                )
 
             redisStore.skrivResultat(steg0.transaksjonId, gyldigResponse)
         } else {
@@ -207,10 +207,7 @@ class AktiveOrgnrService(
         logger.error(feilmelding)
         sikkerLogger.error(feilmelding)
 
-        val feilResponse =
-            ResultJson(
-                failure = feilmelding.toJson(),
-            ).toJson(ResultJson.serializer())
+        val feilResponse = ResultJson(failure = feilmelding.toJson())
 
         redisStore.skrivResultat(transaksjonId, feilResponse)
     }

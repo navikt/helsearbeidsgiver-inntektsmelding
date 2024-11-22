@@ -66,7 +66,7 @@ class InntektSelvbestemtServiceTest :
                     transaksjonId,
                     ResultJson(
                         success = Mock.inntekt.toJson(Inntekt.serializer()),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -102,7 +102,7 @@ class InntektSelvbestemtServiceTest :
                     transaksjonId,
                     ResultJson(
                         failure = feilmelding.toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -136,7 +136,7 @@ private object Mock {
     ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to data.toJson(),
         )
 }

@@ -100,7 +100,7 @@ private object MockKvittering {
     fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to foresporselId.toJson(),
@@ -114,7 +114,7 @@ private object MockKvittering {
     ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to foresporselId.toJson(),
@@ -122,27 +122,27 @@ private object MockKvittering {
                         ResultJson(
                             success =
                                 inntektsmelding?.toJson(Inntektsmelding.serializer()),
-                        ).toJson(ResultJson.serializer()),
+                        ).toJson(),
                     Key.EKSTERN_INNTEKTSMELDING to
                         ResultJson(
                             success =
                                 eksternInntektsmelding?.toJson(EksternInntektsmelding.serializer()),
-                        ).toJson(ResultJson.serializer()),
+                        ).toJson(),
                 ).toJson(),
         )
 
     fun successResult(
         inntektsmelding: Inntektsmelding?,
         eksternInntektsmelding: EksternInntektsmelding?,
-    ): JsonElement =
+    ): ResultJson =
         ResultJson(
             success = InnsendtInntektsmelding(inntektsmelding, eksternInntektsmelding).toJson(InnsendtInntektsmelding.serializer()),
-        ).toJson(ResultJson.serializer())
+        )
 
-    fun failureResult(): JsonElement =
+    fun failureResult(): ResultJson =
         ResultJson(
             failure = fail.feilmelding.toJson(),
-        ).toJson(ResultJson.serializer())
+        )
 
     val fail =
         Fail(

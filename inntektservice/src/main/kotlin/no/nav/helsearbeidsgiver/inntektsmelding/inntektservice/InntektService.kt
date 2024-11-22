@@ -51,7 +51,7 @@ class InntektService(
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            transaksjonId = Key.UUID.les(UuidSerializer, melding),
+            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
             skjaeringstidspunkt = Key.INNTEKTSDATO.les(LocalDateSerializer, melding),
         )
@@ -74,7 +74,7 @@ class InntektService(
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                Key.UUID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     data
                         .plus(
@@ -98,7 +98,7 @@ class InntektService(
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
-                Key.UUID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     data
                         .plus(
@@ -126,7 +126,7 @@ class InntektService(
         val resultJson =
             ResultJson(
                 success = steg2.inntekt.toJson(Inntekt.serializer()),
-            ).toJson(ResultJson.serializer())
+            )
 
         redisStore.skrivResultat(steg0.transaksjonId, resultJson)
 
@@ -138,10 +138,7 @@ class InntektService(
         fail: Fail,
     ) {
         val feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
-        val resultJson =
-            ResultJson(
-                failure = feilmelding.toJson(),
-            ).toJson(ResultJson.serializer())
+        val resultJson = ResultJson(failure = feilmelding.toJson())
 
         "Returnerer feilmelding: '$feilmelding'".also {
             logger.error(it)

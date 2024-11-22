@@ -32,8 +32,9 @@ class InntektProducer(
         ) {
             rapid
                 .publish(
+                    key = request.forespoerselId,
                     Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to request.forespoerselId.toJson(),

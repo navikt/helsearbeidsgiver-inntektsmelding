@@ -39,7 +39,7 @@ class HentForespoerslerForVedtaksperiodeIdListeIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.FORESPOERSLER_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(UuidSerializer),
+            Key.KONTEKST_ID to transaksjonId.toJson(UuidSerializer),
             Key.DATA to
                 mapOf(
                     Key.VEDTAKSPERIODE_ID_LISTE to listOf(vedtaksperiodeId1, vedtaksperiodeId2).toJson(UuidSerializer),
@@ -52,7 +52,7 @@ class HentForespoerslerForVedtaksperiodeIdListeIT : EndToEndTest() {
             .filter(BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE)
             .firstAsMap()
             .let {
-                it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
+                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
         // Forespørsler hentet
@@ -62,7 +62,7 @@ class HentForespoerslerForVedtaksperiodeIdListeIT : EndToEndTest() {
             .firstAsMap()
             .let {
                 // Verifiser transaksjon-ID
-                it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
+                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldBe transaksjonId
 
                 // Verifiser forespoersler
                 val data = it[Key.DATA].shouldNotBeNull().toMap()

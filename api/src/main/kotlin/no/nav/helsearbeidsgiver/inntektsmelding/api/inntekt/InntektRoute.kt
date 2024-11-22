@@ -11,7 +11,6 @@ import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.Inntekt
-import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -53,7 +52,7 @@ fun Route.inntektRoute(
         try {
             inntektProducer.publish(transaksjonId, request)
 
-            val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
+            val resultatJson = redisPoller.hent(transaksjonId)
             sikkerLogger.info("Fikk inntektresultat:\n$resultatJson")
 
             val resultat = resultatJson.success?.fromJson(Inntekt.serializer())

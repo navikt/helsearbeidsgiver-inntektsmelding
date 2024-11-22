@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
@@ -38,7 +39,7 @@ class KvitteringRouteKtTest : ApiTest() {
                     harTilgangResultat,
                     ResultJson(
                         success = resultatMedInntektsmelding.parseJson(),
-                    ).toJson(ResultJson.serializer())
+                    ).toJson()
                         .toString(),
                 )
 

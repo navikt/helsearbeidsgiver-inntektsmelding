@@ -75,7 +75,7 @@ class InnsendingServiceIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to Mock.skjema.forespoerselId.toJson(),
@@ -105,7 +105,7 @@ class InnsendingServiceIT : EndToEndTest() {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
 
                 shouldNotThrowAny {
-                    it[Key.UUID]
+                    it[Key.KONTEKST_ID]
                         .shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
@@ -140,7 +140,7 @@ class InnsendingServiceIT : EndToEndTest() {
 
     private fun Map<Key, JsonElement>.verifiserTransaksjonId(transaksjonId: UUID): Map<Key, JsonElement> =
         also {
-            Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+            Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
         }
 
     private fun Map<Key, JsonElement>.verifiserForespoerselIdFraSkjema(): Map<Key, JsonElement> =

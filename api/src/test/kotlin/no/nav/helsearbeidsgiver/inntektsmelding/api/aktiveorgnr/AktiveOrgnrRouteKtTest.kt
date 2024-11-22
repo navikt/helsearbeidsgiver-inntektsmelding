@@ -9,6 +9,7 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import no.nav.helsearbeidsgiver.felles.domene.AktiveArbeidsgivere
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -35,7 +36,7 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
             coEvery { mockRedisConnection.get(any()) } returns
                 ResultJson(
                     success = Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE.parseJson(),
-                ).toJson(ResultJson.serializer())
+                ).toJson()
                     .toString()
 
             val requestBody = """
@@ -61,7 +62,7 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
             coEvery { mockRedisConnection.get(any()) } returns
                 ResultJson(
                     success = resultatUtenArbeidsforhold.toJson(AktiveArbeidsgivere.serializer()),
-                ).toJson(ResultJson.serializer())
+                ).toJson()
                     .toString()
 
             val response = post(path, AktiveOrgnrRequest(Fnr.genererGyldig()), AktiveOrgnrRequest.serializer())

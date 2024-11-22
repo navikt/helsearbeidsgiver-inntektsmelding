@@ -61,7 +61,7 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
                     transaksjonId,
                     ResultJson(
                         success = forespoersler.toJson(MapSerializer(UuidSerializer, Forespoersel.serializer())),
-                    ).toJson(ResultJson.serializer()),
+                    ),
                 )
             }
         }
@@ -93,9 +93,7 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
             verify {
                 mockRedis.store.skrivResultat(
                     transaksjonId,
-                    ResultJson(
-                        failure = feilmelding.toJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ResultJson(failure = feilmelding.toJson()),
                 )
             }
         }
@@ -118,7 +116,7 @@ private object Mock {
     fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.FORESPOERSLER_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIdListe.toJson(UuidSerializer),
@@ -128,7 +126,7 @@ private object Mock {
     fun steg1(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.FORESPOERSLER_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIdListe.toJson(UuidSerializer),

@@ -43,7 +43,7 @@ class LagreJournalpostIdRiver(
         } else {
             LagreJournalpostIdMelding(
                 eventName = Key.EVENT_NAME.krev(EventName.INNTEKTSMELDING_JOURNALFOERT, EventName.serializer(), json),
-                transaksjonId = Key.UUID.les(UuidSerializer, json),
+                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), json),
                 journalpostId = Key.JOURNALPOST_ID.les(String.serializer(), json),
                 innsendingId = Key.INNSENDING_ID.lesOrNull(Long.serializer(), json),
@@ -82,7 +82,7 @@ class LagreJournalpostIdRiver(
 
         return mapOf(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.BESTEMMENDE_FRAVAERSDAG to json[Key.BESTEMMENDE_FRAVAERSDAG],
             Key.JOURNALPOST_ID to journalpostId.toJson(),

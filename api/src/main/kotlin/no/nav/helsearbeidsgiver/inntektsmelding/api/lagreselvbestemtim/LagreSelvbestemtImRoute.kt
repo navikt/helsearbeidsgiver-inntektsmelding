@@ -8,7 +8,6 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
@@ -110,12 +109,10 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.lesRequestOrNull(): S
             }
         }.getOrNull()
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(resultatJson: Result<JsonElement>) {
-    resultatJson
-        .map {
-            it.fromJson(ResultJson.serializer())
-        }.onSuccess { resultat ->
-            val selvbestemtId = resultat.success?.fromJson(UuidSerializer)
+private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(result: Result<ResultJson>) {
+    result
+        .onSuccess { resultJson ->
+            val selvbestemtId = resultJson.success?.fromJson(UuidSerializer)
             if (selvbestemtId != null) {
                 MdcUtils.withLogFields(
                     Log.selvbestemtId(selvbestemtId),
@@ -127,7 +124,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(resultat
                 }
                 respondOk(LagreSelvbestemtImResponse(selvbestemtId), LagreSelvbestemtImResponse.serializer())
             } else {
-                val feilmelding = resultat.failure?.fromJson(String.serializer()).orDefault("Tomt resultat i Redis.")
+                val feilmelding = resultJson.failure?.fromJson(String.serializer()).orDefault("Tomt resultat i Redis.")
 
                 "Klarte ikke motta selvbestemt inntektsmelding pga. feil.".also {
                     logger.error(it)

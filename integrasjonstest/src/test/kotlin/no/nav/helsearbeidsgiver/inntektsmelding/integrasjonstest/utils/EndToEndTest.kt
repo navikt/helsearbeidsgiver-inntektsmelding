@@ -3,8 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.micrometer.prometheusmetrics.PrometheusConfig
-import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
@@ -32,7 +31,7 @@ import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAaregRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
-import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice.createBerikInntektsmeldingService
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createHentEksternImRiver
@@ -253,7 +252,7 @@ abstract class EndToEndTest : ContainerTest() {
 
     fun publish(vararg messageFields: Pair<Key, JsonElement>) {
         println("Publiserer melding med felt: ${messageFields.toMap()}")
-        imTestRapid.publish(messageFields.toMap())
+        imTestRapid.publish(UUID.randomUUID(), *messageFields)
     }
 
     fun publish(vararg messageFields: Pair<Pri.Key, JsonElement>): JsonElement {
@@ -267,7 +266,7 @@ abstract class EndToEndTest : ContainerTest() {
                 JsonMessage(
                     originalMessage = it,
                     problems = MessageProblems(it),
-                    metrics = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
+                    metrics = SimpleMeterRegistry(),
                     randomIdGenerator = null,
                 )
             }.toJson()

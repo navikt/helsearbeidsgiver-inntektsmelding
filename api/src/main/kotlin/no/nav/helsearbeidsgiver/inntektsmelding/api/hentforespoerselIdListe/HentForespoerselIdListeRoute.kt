@@ -12,7 +12,6 @@ import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.Tekst.TEKNISK_FEIL_FORBIGAAENDE
 import no.nav.helsearbeidsgiver.felles.Tekst.UGYLDIG_REQUEST
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
-import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.domene.VedtaksperiodeIdForespoerselIdPar
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
@@ -91,7 +90,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.hentForespoersler(
 
     hentForespoerslerProducer.publish(transaksjonId, request)
 
-    val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
+    val resultatJson = redisPoller.hent(transaksjonId)
 
     sikkerLogger.info("Hentet forespørslene: $resultatJson")
 

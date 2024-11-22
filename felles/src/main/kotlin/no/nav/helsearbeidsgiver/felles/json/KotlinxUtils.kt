@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Person
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
@@ -37,6 +38,8 @@ fun BehovType.toJson(): JsonElement = toJson(BehovType.serializer())
 fun Fnr.toJson(): JsonElement = toJson(Fnr.serializer())
 
 fun Orgnr.toJson(): JsonElement = toJson(Orgnr.serializer())
+
+fun ResultJson.toJson(): JsonElement = toJson(ResultJson.serializer())
 
 fun <T> Set<T>.toJson(elementSerializer: KSerializer<T>): JsonElement =
     toJson(

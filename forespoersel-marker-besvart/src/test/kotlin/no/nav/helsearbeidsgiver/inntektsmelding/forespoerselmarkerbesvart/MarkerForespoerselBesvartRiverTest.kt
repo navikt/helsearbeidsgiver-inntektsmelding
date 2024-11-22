@@ -42,7 +42,7 @@ class MarkerForespoerselBesvartRiverTest :
 
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
-                Key.UUID to UUID.randomUUID().toJson(),
+                Key.KONTEKST_ID to UUID.randomUUID().toJson(),
                 Key.DATA to
                     mapOf(
                         Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
@@ -68,7 +68,7 @@ class MarkerForespoerselBesvartRiverTest :
             ) { uoensketKeyMedVerdi ->
                 testRapid.sendJson(
                     Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
-                    Key.UUID to UUID.randomUUID().toJson(),
+                    Key.KONTEKST_ID to UUID.randomUUID().toJson(),
                     Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
                     uoensketKeyMedVerdi,
                 )

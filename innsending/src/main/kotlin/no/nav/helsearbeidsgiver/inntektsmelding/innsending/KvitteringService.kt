@@ -70,6 +70,7 @@ class KvitteringService(
     ) {
         val publisert =
             rapid.publish(
+                key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_LAGRET_IM.toJson(),
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),

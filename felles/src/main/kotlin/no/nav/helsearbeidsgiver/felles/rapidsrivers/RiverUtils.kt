@@ -13,8 +13,6 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
-fun MessageContext.publish(vararg messageFields: Pair<Key, JsonElement>): JsonElement = publish(null, messageFields.toMap())
-
 fun MessageContext.publish(
     key: Fnr,
     vararg messageFields: Pair<Key, JsonElement>,

@@ -30,25 +30,6 @@ class RiverUtilsKtTest :
 
         context("publish") {
 
-            test("vararg pairs (uten key)") {
-                val melding =
-                    arrayOf(
-                        Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
-                        Key.INNTEKTSMELDING to mockInntektsmeldingV1().toJson(Inntektsmelding.serializer()),
-                        Key.FNR_LISTE to setOf("111", "333", "555").toJson(String.serializer()),
-                    )
-
-                testRapid.publish(*melding)
-
-                verifySequence {
-                    testRapid.publish(
-                        withArg<String> {
-                            it.parseJson().toMap() shouldContainExactly melding.toMap()
-                        },
-                    )
-                }
-            }
-
             test("vararg pairs (fnr-key)") {
                 val key = Fnr.genererGyldig()
                 val melding =

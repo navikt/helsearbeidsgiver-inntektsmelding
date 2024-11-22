@@ -66,6 +66,7 @@ class InntektSelvbestemtService(
     ) {
         val publisert =
             rapid.publish(
+                key = steg0.fnr,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),

@@ -63,6 +63,7 @@ class InnsendingService(
     ) {
         rapid
             .publish(
+                key = steg0.skjema.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.LAGRE_IM_SKJEMA.toJson(),
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -84,15 +85,15 @@ class InnsendingService(
 
         if (!steg1.erDuplikat) {
             val publisert =
-                rapid
-                    .publish(
-                        Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
-                        Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
-                        Key.DATA to
-                            data
-                                .plus(Key.INNSENDING_ID to steg1.innsendingId.toJson(Long.serializer()))
-                                .toJson(),
-                    )
+                rapid.publish(
+                    key = steg0.skjema.forespoerselId,
+                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
+                    Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                    Key.DATA to
+                        data
+                            .plus(Key.INNSENDING_ID to steg1.innsendingId.toJson(Long.serializer()))
+                            .toJson(),
+                )
 
             MdcUtils.withLogFields(
                 Log.event(EventName.INNTEKTSMELDING_SKJEMA_LAGRET),

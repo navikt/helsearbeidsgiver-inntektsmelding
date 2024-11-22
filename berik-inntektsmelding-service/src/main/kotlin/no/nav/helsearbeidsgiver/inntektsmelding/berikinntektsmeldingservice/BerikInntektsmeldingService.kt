@@ -103,6 +103,7 @@ class BerikInntektsmeldingService(
     ) {
         rapid
             .publish(
+                key = steg0.skjema.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -120,6 +121,7 @@ class BerikInntektsmeldingService(
     ) {
         rapid
             .publish(
+                key = steg0.skjema.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -138,6 +140,7 @@ class BerikInntektsmeldingService(
     ) {
         rapid
             .publish(
+                key = steg0.skjema.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -187,6 +190,7 @@ class BerikInntektsmeldingService(
 
         rapid
             .publish(
+                key = steg0.skjema.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.LAGRE_IM.toJson(),
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -214,6 +218,7 @@ class BerikInntektsmeldingService(
         if (!steg4.erDuplikat) {
             val publisert =
                 rapid.publish(
+                    key = steg0.skjema.forespoerselId,
                     Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
                     Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                     Key.DATA to

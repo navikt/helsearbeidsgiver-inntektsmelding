@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
@@ -45,17 +46,22 @@ class ForespoerselBesvartRiver : PriObjectRiver<BesvartMelding>() {
 
         Metrics.forespoerslerBesvartFraSpleis.inc()
 
-        return mapOf(
-            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
-            Key.DATA to
-                mapOf(
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.SPINN_INNTEKTSMELDING_ID to spinnInntektsmeldingId?.toJson(),
-                    Key.SPINN_INNTEKTSMELDING_ID_V2 to spinnInntektsmeldingId?.toJson(),
-                ).mapValuesNotNull { it }
-                    .toJson(),
-        )
+        val resultat =
+            mapOf(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                Key.KONTEKST_ID to transaksjonId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                        Key.SPINN_INNTEKTSMELDING_ID to spinnInntektsmeldingId?.toJson(),
+                        Key.SPINN_INNTEKTSMELDING_ID_V2 to spinnInntektsmeldingId?.toJson(),
+                    ).mapValuesNotNull { it }
+                        .toJson(),
+            )
+        // midlertidlig logging for SPINN_INNTEKTSMELDING_ID_V2 key
+        logger.info("Sender fra pri-topic")
+        sikkerLogger.info("Sender fra pri-topic:\n${resultat.toJson().toPretty()}")
+        return resultat
     }
 
     override fun BesvartMelding.haandterFeil(

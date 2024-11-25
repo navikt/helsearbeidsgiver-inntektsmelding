@@ -50,7 +50,7 @@ enum class Key(
     VEDTAKSPERIODE_ID_LISTE("vedtaksperiode_id_liste"),
     VIRKSOMHET("virksomhet"),
     VIRKSOMHETER("virksomheter"),
-    ORGNR_UNDERENHET("orgnr_underenhet"),
+    ORGNRUNDERENHET("orgnr_underenhet"),
 
     // ulik formattering
     SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),

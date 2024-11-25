@@ -106,7 +106,7 @@ class TilgangForespoerselService(
                     data
                         .plus(
                             mapOf(
-                                Key.ORGNRUNDERENHET to steg1.forespoersel.orgnr.toJson(),
+                                Key.ORGNR_UNDERENHET to steg1.forespoersel.orgnr.toJson(),
                                 Key.FNR to steg0.avsenderFnr.toJson(),
                             ),
                         ).toJson(),

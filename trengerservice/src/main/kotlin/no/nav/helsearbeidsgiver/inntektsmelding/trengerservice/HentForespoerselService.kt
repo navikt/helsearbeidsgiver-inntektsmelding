@@ -162,7 +162,7 @@ class HentForespoerselService(
                 Key.DATA to
                     mapOf(
                         Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                        Key.ORGNRUNDERENHET to steg1.forespoersel.orgnr.toJson(),
+                        Key.ORGNR_UNDERENHET to steg1.forespoersel.orgnr.toJson(),
                         Key.FNR to steg1.forespoersel.fnr.toJson(),
                         Key.INNTEKTSDATO to inntektsdato.toJson(),
                     ).toJson(),

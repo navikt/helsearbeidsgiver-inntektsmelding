@@ -48,7 +48,7 @@ class TilgangRiver(
                 behovType = Key.BEHOV.krev(BehovType.TILGANGSKONTROLL, BehovType.serializer(), json),
                 transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
-                orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), data),
+                orgnr = Key.ORGNR_UNDERENHET.les(Orgnr.serializer(), data),
                 fnr = Key.FNR.les(Fnr.serializer(), data),
             )
         }

@@ -47,7 +47,7 @@ class TilgangOrgService(
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
             transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
-            orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding),
+            orgnr = Key.ORGNR_UNDERENHET.les(Orgnr.serializer(), melding),
             fnr = Key.FNR.les(Fnr.serializer(), melding),
         )
 
@@ -69,7 +69,7 @@ class TilgangOrgService(
                     data
                         .plus(
                             mapOf(
-                                Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
+                                Key.ORGNR_UNDERENHET to steg0.orgnr.toJson(),
                                 Key.FNR to steg0.fnr.toJson(),
                             ),
                         ).toJson(),

@@ -103,7 +103,7 @@ class InntektService(
                     data
                         .plus(
                             mapOf(
-                                Key.ORGNRUNDERENHET to steg1.forespoersel.orgnr.toJson(),
+                                Key.ORGNR_UNDERENHET to steg1.forespoersel.orgnr.toJson(),
                                 Key.FNR to steg1.forespoersel.fnr.toJson(),
                                 Key.INNTEKTSDATO to steg0.skjaeringstidspunkt.toJson(),
                             ),

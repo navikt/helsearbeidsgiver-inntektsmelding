@@ -51,7 +51,7 @@ class InntektSelvbestemtService(
         Steg0(
             transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             fnr = Key.FNR.les(Fnr.serializer(), melding),
-            orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding),
+            orgnr = Key.ORGNR_UNDERENHET.les(Orgnr.serializer(), melding),
             inntektsdato = Key.INNTEKTSDATO.les(LocalDateSerializer, melding),
         )
 
@@ -73,7 +73,7 @@ class InntektSelvbestemtService(
                     data
                         .plus(
                             mapOf(
-                                Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
+                                Key.ORGNR_UNDERENHET to steg0.orgnr.toJson(),
                                 Key.FNR to steg0.fnr.toJson(),
                                 Key.INNTEKTSDATO to steg0.inntektsdato.toJson(),
                             ),

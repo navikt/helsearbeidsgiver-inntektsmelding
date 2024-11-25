@@ -54,6 +54,7 @@ enum class Key(
 
     // ulik formattering
     SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
+    SPINN_INNTEKTSMELDING_ID_V2("spinn_inntektsmelding_id"),
 
     ;
 

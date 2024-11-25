@@ -145,10 +145,10 @@ class InntektService(
             sikkerLogger.error(it)
         }
 
-        redisStore.skrivResultat(fail.transaksjonId, resultJson)
+        redisStore.skrivResultat(fail.kontekstId, resultJson)
 
         MdcUtils.withLogFields(
-            Log.transaksjonId(fail.transaksjonId),
+            Log.transaksjonId(fail.kontekstId),
         ) {
             sikkerLogger.error("$eventName terminert.")
         }

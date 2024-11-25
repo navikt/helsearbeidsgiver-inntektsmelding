@@ -197,7 +197,7 @@ class AktiveOrgnrService(
         melding: Map<Key, JsonElement>,
         fail: Fail,
     ) {
-        onError(fail.transaksjonId, fail.feilmelding)
+        onError(fail.kontekstId, fail.feilmelding)
     }
 
     private fun onError(

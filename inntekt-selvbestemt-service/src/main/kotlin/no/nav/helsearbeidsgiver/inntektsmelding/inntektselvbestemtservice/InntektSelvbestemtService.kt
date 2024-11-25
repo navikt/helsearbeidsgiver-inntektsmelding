@@ -112,7 +112,7 @@ class InntektSelvbestemtService(
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(eventName),
-            Log.transaksjonId(fail.transaksjonId),
+            Log.transaksjonId(fail.kontekstId),
         ) {
             val feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
             val resultJson = ResultJson(failure = feilmelding.toJson())
@@ -122,7 +122,7 @@ class InntektSelvbestemtService(
                 sikkerLogger.error(it)
             }
 
-            redisStore.skrivResultat(fail.transaksjonId, resultJson)
+            redisStore.skrivResultat(fail.kontekstId, resultJson)
 
             sikkerLogger.error("$eventName terminert.")
         }

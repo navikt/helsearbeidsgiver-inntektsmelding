@@ -12,7 +12,6 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
@@ -22,6 +21,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -140,10 +140,8 @@ class LagreImSkjemaRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke lagre inntektsmeldingskjema i database.",
-                    event = innkommendeMelding.eventName,
-                    transaksjonId = innkommendeMelding.transaksjonId,
-                    forespoerselId = innkommendeMelding.inntektsmeldingSkjema.forespoerselId,
-                    utloesendeMelding = innkommendeMelding.toMap().toJson(),
+                    kontekstId = innkommendeMelding.transaksjonId,
+                    utloesendeMelding = innkommendeMelding.toMap(),
                 )
 
             testRapid.sendJson(innkommendeMelding.toMap())
@@ -203,11 +201,4 @@ private fun LagreImSkjemaMelding.toMap(): Map<Key, JsonElement> =
         Key.DATA to data.toJson(),
     )
 
-private val mockFail =
-    Fail(
-        feilmelding = "Jai mange penga, do raka blak",
-        event = EventName.INSENDING_STARTED,
-        transaksjonId = UUID.randomUUID(),
-        forespoerselId = UUID.randomUUID(),
-        utloesendeMelding = JsonNull,
-    )
+private val mockFail = mockFail("Jai mange penga, do raka blak", EventName.INSENDING_STARTED)

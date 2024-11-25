@@ -78,10 +78,8 @@ class TrengerForespoerselRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke spørre Storebror om forespørsel.",
-                event = eventName,
-                transaksjonId = transaksjonId,
-                forespoerselId = forespoerselId,
-                utloesendeMelding = json.toJson(),
+                kontekstId = transaksjonId,
+                utloesendeMelding = json,
             )
 
         logger.error(fail.feilmelding)

@@ -82,16 +82,14 @@ class VedtaksperiodeIdForespoerselSvarRiverTest :
             val forventetSvar =
                 Fail(
                     feilmelding = feilmelding,
-                    event = eventName,
-                    transaksjonId = transaksjonId,
-                    forespoerselId = null,
+                    kontekstId = transaksjonId,
                     utloesendeMelding =
                         mapOf(
                             Key.EVENT_NAME to eventName.toJson(),
                             Key.BEHOV to BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(),
                             Key.KONTEKST_ID to transaksjonId.toJson(),
                             Key.DATA to data.toJson(),
-                        ).toJson(),
+                        ),
                 )
 
             testRapid.sendJson(

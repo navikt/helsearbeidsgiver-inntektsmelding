@@ -8,7 +8,6 @@ import io.mockk.clearAllMocks
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -16,10 +15,10 @@ import no.nav.helsearbeidsgiver.felles.domene.Inntekt
 import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -72,36 +71,27 @@ class InntektSelvbestemtServiceTest :
         }
 
         test("svar med feilmelding ved uhåndterbare feil") {
-            val transaksjonId = UUID.randomUUID()
-            val feilmelding = "Teknisk feil, prøv igjen senere."
+            val fail =
+                mockFail(
+                    feilmelding = "Teknisk feil, prøv igjen senere.",
+                    eventName = EventName.INNTEKT_SELVBESTEMT_REQUESTED,
+                    behovType = BehovType.HENT_INNTEKT,
+                )
 
             testRapid.sendJson(
-                Mock.melding(transaksjonId, Mock.steg0Data),
+                Mock.melding(fail.kontekstId, Mock.steg0Data),
             )
 
-            testRapid.sendJson(
-                Fail(
-                    feilmelding = feilmelding,
-                    event = EventName.INNTEKT_SELVBESTEMT_REQUESTED,
-                    transaksjonId = transaksjonId,
-                    forespoerselId = null,
-                    utloesendeMelding =
-                        JsonObject(
-                            mapOf(
-                                Key.BEHOV.toString() to BehovType.HENT_INNTEKT.toJson(),
-                            ),
-                        ),
-                ).tilMelding(),
-            )
+            testRapid.sendJson(fail.tilMelding())
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_INNTEKT
 
             verify {
                 mockRedisStore.skrivResultat(
-                    transaksjonId,
+                    fail.kontekstId,
                     ResultJson(
-                        failure = feilmelding.toJson(),
+                        failure = fail.feilmelding.toJson(),
                     ),
                 )
             }

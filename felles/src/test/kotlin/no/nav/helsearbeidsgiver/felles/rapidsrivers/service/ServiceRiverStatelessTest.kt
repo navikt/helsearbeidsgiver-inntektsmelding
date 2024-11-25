@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -22,6 +23,7 @@ class ServiceRiverStatelessTest :
 
         val testRapid = TestRapid()
         val mockService = spyk(MockService())
+        val mockFail = mockFail("Noen har blandet ut flybensinen med Red Bull.", mockService.eventName)
 
         ServiceRiverStateless(mockService).connect(testRapid)
 
@@ -36,15 +38,15 @@ class ServiceRiverStatelessTest :
                     "over data" to
                         mapOf(
                             Key.EVENT_NAME to mockService.eventName.toJson(),
-                            Key.KONTEKST_ID to UUID.randomUUID().toJson(),
-                            Key.FAIL to Mock.fail.toJson(Fail.serializer()),
+                            Key.KONTEKST_ID to mockFail.kontekstId.toJson(),
+                            Key.FAIL to mockFail.toJson(Fail.serializer()),
                             Key.DATA to mockService.mockSteg1Data().toJson(),
                         ),
                     "over behov (som skal ignoreres)" to
                         mapOf(
                             Key.EVENT_NAME to mockService.eventName.toJson(),
-                            Key.KONTEKST_ID to UUID.randomUUID().toJson(),
-                            Key.FAIL to Mock.fail.toJson(Fail.serializer()),
+                            Key.KONTEKST_ID to mockFail.kontekstId.toJson(),
+                            Key.FAIL to mockFail.toJson(Fail.serializer()),
                             Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
                         ),
                 ),
@@ -87,15 +89,13 @@ class ServiceRiverStatelessTest :
         test("fail-melding håndteres korrekt") {
             val innkommendeMelding =
                 mapOf(
-                    Key.EVENT_NAME to mockService.eventName.toJson(),
-                    Key.KONTEKST_ID to UUID.randomUUID().toJson(),
-                    Key.FAIL to Mock.fail.toJson(Fail.serializer()),
+                    Key.FAIL to mockFail.toJson(Fail.serializer()),
                 )
 
             testRapid.sendJson(innkommendeMelding)
 
             verify {
-                mockService.onError(innkommendeMelding, Mock.fail)
+                mockService.onError(innkommendeMelding, mockFail)
             }
             verify(exactly = 0) {
                 mockService.onData(any())
@@ -133,14 +133,14 @@ class ServiceRiverStatelessTest :
                     mapOf(
                         "med uønsket event" to
                             mapOf(
-                                Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-                                Key.KONTEKST_ID to UUID.randomUUID().toJson(),
-                                Key.FAIL to Mock.fail.toJson(Fail.serializer()),
+                                Key.FAIL to
+                                    mockFail(
+                                        "You punched a bursar?",
+                                        EventName.KVITTERING_REQUESTED,
+                                    ).toJson(Fail.serializer()),
                             ),
                         "med ugyldig fail" to
                             mapOf(
-                                Key.EVENT_NAME to mockService.eventName.toJson(),
-                                Key.KONTEKST_ID to UUID.randomUUID().toJson(),
                                 Key.FAIL to "ugyldig fail".toJson(),
                             ),
                     ),

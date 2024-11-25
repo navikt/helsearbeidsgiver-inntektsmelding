@@ -17,7 +17,6 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -133,14 +132,13 @@ class HentSelvbestemtIT : EndToEndTest() {
 
         // Behov besvares med feil
         messages
-            .filter(EventName.SELVBESTEMT_IM_REQUESTED)
             .filterFeil()
             .firstAsMap()
             .let {
-                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
-
                 val fail = Key.FAIL.lesOrNull(Fail.serializer(), it).shouldNotBeNull()
-                fail.utloesendeMelding.lesBehov() shouldBe BehovType.HENT_SELVBESTEMT_IM
+
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, fail.utloesendeMelding) shouldBe transaksjonId
+                Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding) shouldBe BehovType.HENT_SELVBESTEMT_IM
             }
 
         // Funnet feilmelding legges i Redis

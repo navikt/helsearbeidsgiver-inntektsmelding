@@ -79,10 +79,8 @@ class HentForespoerslerForVedtaksperiodeIdListeRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke spørre Storebror om forespørsel for vedtaksperiode-IDer.",
-                event = eventName,
-                transaksjonId = transaksjonId,
-                forespoerselId = null,
-                utloesendeMelding = json.toJson(),
+                kontekstId = transaksjonId,
+                utloesendeMelding = json,
             )
 
         logger.error(fail.feilmelding)

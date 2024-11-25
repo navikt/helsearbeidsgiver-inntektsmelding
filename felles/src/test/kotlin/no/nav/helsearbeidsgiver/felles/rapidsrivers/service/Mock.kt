@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers.service
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Person
@@ -16,7 +15,6 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
-import java.util.UUID
 
 class MockServiceMedRedis(
     override val redisStore: RedisStore,
@@ -84,15 +82,4 @@ open class MockService : ServiceMed1Steg<MockService.Steg0, MockService.Steg1>()
     }
 
     override fun Steg0.loggfelt(): Map<String, String> = emptyMap()
-}
-
-object Mock {
-    val fail =
-        Fail(
-            feilmelding = "Noen har blandet ut flybensinen med Red Bull.",
-            event = EventName.INNTEKTSMELDING_MOTTATT,
-            transaksjonId = UUID.randomUUID(),
-            forespoerselId = UUID.randomUUID(),
-            utloesendeMelding = JsonNull,
-        )
 }

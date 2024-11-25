@@ -79,10 +79,8 @@ class HentLagretImRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke hente inntektsmelding fra database.",
-                event = eventName,
-                transaksjonId = transaksjonId,
-                forespoerselId = forespoerselId,
-                utloesendeMelding = json.toJson(),
+                kontekstId = transaksjonId,
+                utloesendeMelding = json,
             )
 
         logger.error(fail.feilmelding)

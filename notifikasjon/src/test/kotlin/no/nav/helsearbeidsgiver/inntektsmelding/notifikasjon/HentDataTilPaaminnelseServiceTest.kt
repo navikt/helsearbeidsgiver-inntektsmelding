@@ -6,7 +6,6 @@ import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -14,10 +13,10 @@ import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.json.plusData
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
@@ -71,17 +70,10 @@ class HentDataTilPaaminnelseServiceTest :
 
         test("publiserer ingen melding ved feil") {
             val fail =
-                Fail(
+                mockFail(
                     feilmelding = "He's just a little horse",
-                    event = EventName.MANUELL_ENDRE_PAAMINNELSE,
-                    transaksjonId = HentDataTilPaaminnelseServiceMock.transaksjonId,
-                    forespoerselId = null,
-                    utloesendeMelding =
-                        JsonObject(
-                            mapOf(
-                                Key.BEHOV.toString() to BehovType.HENT_TRENGER_IM.toJson(),
-                            ),
-                        ),
+                    eventName = EventName.MANUELL_ENDRE_PAAMINNELSE,
+                    behovType = BehovType.HENT_TRENGER_IM,
                 )
 
             testRapid.sendJson(HentDataTilPaaminnelseServiceMock.steg0())

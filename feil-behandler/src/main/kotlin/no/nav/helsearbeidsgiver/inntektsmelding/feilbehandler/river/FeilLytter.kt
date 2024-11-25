@@ -73,11 +73,10 @@ class FeilLytter(
             return
         }
 
-        val utloesendeMelding = fail.utloesendeMelding.toMap()
-        if (eventSkalHaandteres(utloesendeMelding)) {
+        if (eventSkalHaandteres(fail.utloesendeMelding)) {
             // slå opp transaksjonID. Hvis den finnes, kan det være en annen feilende melding i samme transaksjon: Lagre i så fall
             // med egen id. Denne id vil så sendes med som ny transaksjonID ved rekjøring.
-            val jobbId = fail.transaksjonId
+            val jobbId = fail.kontekstId
             val eksisterendeJobb = repository.getById(jobbId)
 
             when {
@@ -86,23 +85,23 @@ class FeilLytter(
                     sikkerLogger.info("Lagrer mottatt pakke!")
                     lagre(
                         Bakgrunnsjobb(
-                            uuid = fail.transaksjonId,
+                            uuid = fail.kontekstId,
                             type = jobbType,
-                            data = fail.utloesendeMelding.toString(),
+                            data = fail.utloesendeMelding.toJson().toString(),
                             maksAntallForsoek = 10,
                         ),
                     )
                 }
 
                 // Samme feil har inntruffet flere ganger i samme flyt
-                utloesendeMelding == eksisterendeJobb.data.parseJson().toMap() -> {
+                fail.utloesendeMelding == eksisterendeJobb.data.parseJson().toMap() -> {
                     oppdater(eksisterendeJobb)
                 }
 
                 // Feil i flyt som tidligere har opplevd annen type feil
                 else -> {
                     val nyTransaksjonId = UUID.randomUUID()
-                    val utloesendeMeldingMedNyTransaksjonId = utloesendeMelding.plus(Key.KONTEKST_ID to nyTransaksjonId.toJson())
+                    val utloesendeMeldingMedNyTransaksjonId = fail.utloesendeMelding.plus(Key.KONTEKST_ID to nyTransaksjonId.toJson())
 
                     sikkerLogger.info("ID $jobbId finnes fra før med annen utløsende melding. Lagrer en ny jobb på ID '$nyTransaksjonId'.")
 

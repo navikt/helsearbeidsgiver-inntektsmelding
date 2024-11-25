@@ -79,10 +79,8 @@ class TilgangRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke sjekke tilgang i Altinn.",
-                event = eventName,
-                transaksjonId = transaksjonId,
-                forespoerselId = null,
-                utloesendeMelding = json.toJson(),
+                kontekstId = transaksjonId,
+                utloesendeMelding = json,
             )
 
         logger.error(fail.feilmelding)

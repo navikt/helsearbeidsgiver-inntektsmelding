@@ -98,15 +98,13 @@ fun mockFail(forespoerselSvar: ForespoerselSvar): Fail {
 
     return Fail(
         feilmelding = feilmelding,
-        event = eventName,
-        transaksjonId = transaksjonId,
-        forespoerselId = forespoerselSvar.forespoerselId,
+        kontekstId = transaksjonId,
         utloesendeMelding =
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                 Key.KONTEKST_ID to transaksjonId.toJson(),
                 Key.DATA to data.toJson(),
-            ).toJson(),
+            ),
     )
 }

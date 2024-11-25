@@ -295,10 +295,8 @@ private fun forventetUtgaaendeMelding(innkommendeMelding: FerdigstillForespoerse
 private fun forventetFail(innkommendeMelding: FerdigstillForespoerselSakMelding): Fail =
     Fail(
         feilmelding = "Klarte ikke ferdigstille sak og/eller oppgave for forespurt inntektmelding.",
-        event = innkommendeMelding.eventName,
-        transaksjonId = innkommendeMelding.transaksjonId,
-        forespoerselId = innkommendeMelding.forespoerselId,
-        utloesendeMelding = innkommendeMelding.toMap().toJson(),
+        kontekstId = innkommendeMelding.transaksjonId,
+        utloesendeMelding = innkommendeMelding.toMap(),
     )
 
 private fun FerdigstillForespoerselSakMelding.toMap(): Map<Key, JsonElement> =

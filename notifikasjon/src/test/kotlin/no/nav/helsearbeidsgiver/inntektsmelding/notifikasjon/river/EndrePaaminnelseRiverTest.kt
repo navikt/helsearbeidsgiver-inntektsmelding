@@ -148,10 +148,8 @@ object EndrePaaminnelseMock {
 private fun forventetFail(innkommendeMelding: EndrePaaminnelseMelding): Fail =
     Fail(
         feilmelding = "Klarte ikke endre påminnelse på oppgave.",
-        event = innkommendeMelding.eventName,
-        transaksjonId = innkommendeMelding.transaksjonId,
-        forespoerselId = innkommendeMelding.forespoerselId,
-        utloesendeMelding = innkommendeMelding.toMap().toJson(),
+        kontekstId = innkommendeMelding.transaksjonId,
+        utloesendeMelding = innkommendeMelding.toMap(),
     )
 
 private fun EndrePaaminnelseMelding.toMap() =

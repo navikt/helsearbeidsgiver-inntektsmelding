@@ -14,7 +14,6 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
@@ -25,6 +24,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -145,10 +145,8 @@ class LagreImRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke lagre inntektsmelding i database.",
-                    event = innkommendeMelding.eventName,
-                    transaksjonId = innkommendeMelding.transaksjonId,
-                    forespoerselId = innkommendeMelding.inntektsmelding.type.id,
-                    utloesendeMelding = innkommendeMelding.toMap().toJson(),
+                    kontekstId = innkommendeMelding.transaksjonId,
+                    utloesendeMelding = innkommendeMelding.toMap(),
                 )
 
             testRapid.sendJson(innkommendeMelding.toMap())
@@ -218,11 +216,4 @@ private fun LagreImMelding.toMap(): Map<Key, JsonElement> =
         Key.DATA to data.toJson(),
     )
 
-private val mockFail =
-    Fail(
-        feilmelding = "My name is Inigo Montoya...",
-        event = EventName.INSENDING_STARTED,
-        transaksjonId = UUID.randomUUID(),
-        forespoerselId = UUID.randomUUID(),
-        utloesendeMelding = JsonNull,
-    )
+private val mockFail = mockFail("My name is Inigo Montoya...", EventName.INSENDING_STARTED)

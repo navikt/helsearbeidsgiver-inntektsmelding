@@ -77,16 +77,14 @@ class VedtaksperiodeIdForespoerselSvarRiver : PriObjectRiver<VedtaksperiodeIdFor
         val fail =
             Fail(
                 feilmelding = "Klarte ikke hente forespørsler for vedtaksperiode-IDer. Ukjent feil.",
-                event = eventName,
-                transaksjonId = transaksjonId,
-                forespoerselId = null,
+                kontekstId = transaksjonId,
                 utloesendeMelding =
                     mapOf(
                         Key.EVENT_NAME to eventName.toJson(),
                         Key.BEHOV to BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(),
                         Key.KONTEKST_ID to transaksjonId.toJson(),
                         Key.DATA to data.toJson(),
-                    ).toJson(),
+                    ),
             )
 
         logger.error(fail.feilmelding)

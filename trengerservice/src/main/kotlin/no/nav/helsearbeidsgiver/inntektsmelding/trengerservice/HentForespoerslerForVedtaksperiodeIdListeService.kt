@@ -60,6 +60,7 @@ class HentForespoerslerForVedtaksperiodeIdListeService(
     ) {
         rapid
             .publish(
+                key = UUID.randomUUID(),
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(),
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),

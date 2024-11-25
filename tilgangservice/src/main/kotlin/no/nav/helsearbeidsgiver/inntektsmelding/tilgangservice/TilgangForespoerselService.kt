@@ -75,6 +75,7 @@ class TilgangForespoerselService(
     ) {
         rapid
             .publish(
+                key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -99,6 +100,7 @@ class TilgangForespoerselService(
     ) {
         rapid
             .publish(
+                key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),

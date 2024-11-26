@@ -53,6 +53,7 @@ class ForespoerselBesvartRiver : PriObjectRiver<BesvartMelding>() {
                     mapOf(
                         Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                         Key.SPINN_INNTEKTSMELDING_ID to spinnInntektsmeldingId?.toJson(),
+                        Key.SPINN_INNTEKTSMELDING_ID_V2 to spinnInntektsmeldingId?.toJson(),
                     ).mapValuesNotNull { it }
                         .toJson(),
             )

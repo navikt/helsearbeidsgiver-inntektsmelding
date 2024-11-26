@@ -45,13 +45,17 @@ enum class Key(
     SELVBESTEMT_INNTEKTSMELDING("selvbestemt_inntektsmelding"),
     SKAL_HA_PAAMINNELSE("skal_ha_paaminnelse"),
     SKJEMA_INNTEKTSMELDING("skjema_inntektsmelding"),
-    SPINN_INNTEKTSMELDING_ID("spinn_inntektsmelding_id"),
     SYKMELDT("sykmeldt"),
     TILGANG("tilgang"),
     VEDTAKSPERIODE_ID_LISTE("vedtaksperiode_id_liste"),
     VIRKSOMHET("virksomhet"),
     VIRKSOMHETER("virksomheter"),
     ORGNR_UNDERENHET("orgnr_underenhet"),
+
+    // ulik formattering
+    SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
+    SPINN_INNTEKTSMELDING_ID_V2("spinn_inntektsmelding_id"),
+
     ;
 
     override fun toString(): String = str

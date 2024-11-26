@@ -175,7 +175,7 @@ private object Mock {
             transaksjonId = UUID.randomUUID(),
             data =
                 mapOf(
-                    Key.ORGNRUNDERENHET to orgnr.toJson(),
+                    Key.ORGNR_UNDERENHET to orgnr.toJson(),
                     Key.FNR to fnr.toJson(),
                     Key.INNTEKTSDATO to inntektsdato.toJson(),
                 ),

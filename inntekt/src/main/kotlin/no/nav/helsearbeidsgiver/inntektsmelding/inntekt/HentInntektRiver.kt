@@ -54,7 +54,7 @@ class HentInntektRiver(
                 behovType = Key.BEHOV.krev(BehovType.HENT_INNTEKT, BehovType.serializer(), json),
                 transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
-                orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), data),
+                orgnr = Key.ORGNR_UNDERENHET.les(Orgnr.serializer(), data),
                 fnr = Key.FNR.les(Fnr.serializer(), data),
                 inntektsdato = Key.INNTEKTSDATO.les(LocalDateSerializer, data),
             )

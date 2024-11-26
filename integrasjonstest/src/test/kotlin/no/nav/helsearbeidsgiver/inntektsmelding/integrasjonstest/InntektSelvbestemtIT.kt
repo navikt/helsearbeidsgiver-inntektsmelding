@@ -34,7 +34,7 @@ class InntektSelvbestemtIT : EndToEndTest() {
             Key.DATA to
                 mapOf(
                     Key.FNR to Mock.fnr.toJson(),
-                    Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
+                    Key.ORGNR_UNDERENHET to Mock.orgnr.toJson(),
                     Key.INNTEKTSDATO to Mock.inntektsdato.toJson(),
                 ).toJson(),
         )
@@ -49,7 +49,7 @@ class InntektSelvbestemtIT : EndToEndTest() {
                     Key.KONTEKST_ID to Mock.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
-                            Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
+                            Key.ORGNR_UNDERENHET to Mock.orgnr.toJson(),
                             Key.FNR to Mock.fnr.toJson(),
                             Key.INNTEKTSDATO to Mock.inntektsdato.toJson(),
                         ).toJson(),
@@ -65,7 +65,7 @@ class InntektSelvbestemtIT : EndToEndTest() {
                     Key.KONTEKST_ID to Mock.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
-                            Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
+                            Key.ORGNR_UNDERENHET to Mock.orgnr.toJson(),
                             Key.FNR to Mock.fnr.toJson(),
                             Key.INNTEKTSDATO to Mock.inntektsdato.toJson(),
                             Key.INNTEKT to Mock.inntektPerMaaned.toJson(Inntekt.serializer()),

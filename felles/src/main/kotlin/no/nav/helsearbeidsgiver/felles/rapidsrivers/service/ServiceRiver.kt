@@ -73,11 +73,11 @@ class ServiceRiverStateful<S>(
                 }
 
                 val meldingMedRedisData =
-                    mapOf(
-                        Key.EVENT_NAME to eventName.toJson(),
-                        Key.KONTEKST_ID to transaksjonId.toJson(),
-                    ).plus(
-                        service.redisStore.lesAlleMellomlagrede(transaksjonId),
+                    service.redisStore.lesAlleMellomlagrede(transaksjonId).plus(
+                        mapOf(
+                            Key.EVENT_NAME to eventName.toJson(),
+                            Key.KONTEKST_ID to transaksjonId.toJson(),
+                        ),
                     )
 
                 service.onError(meldingMedRedisData, fail)

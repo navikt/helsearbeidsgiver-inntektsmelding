@@ -75,6 +75,7 @@ class HentDataTilSakOgOppgaveService(
         }
 
         rapid.publish(
+            key = steg0.forespoerselId,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
             Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -91,17 +92,17 @@ class HentDataTilSakOgOppgaveService(
         steg0: Steg0,
         steg1: Steg1,
     ) {
-        rapid
-            .publish(
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
-                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
-                Key.DATA to
-                    data
-                        .plus(
-                            Key.FNR_LISTE to setOf(steg0.forespoersel.fnr).toJson(String.serializer()),
-                        ).toJson(),
-            )
+        rapid.publish(
+            key = steg0.forespoerselId,
+            Key.EVENT_NAME to eventName.toJson(),
+            Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
+            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+            Key.DATA to
+                data
+                    .plus(
+                        Key.FNR_LISTE to setOf(steg0.forespoersel.fnr).toJson(String.serializer()),
+                    ).toJson(),
+        )
     }
 
     override fun utfoerSteg2(
@@ -119,6 +120,7 @@ class HentDataTilSakOgOppgaveService(
         val sykmeldt = steg2.personer[steg0.forespoersel.fnr.let(::Fnr)] ?: personDefault(steg0.forespoersel.fnr.let(::Fnr))
 
         rapid.publish(
+            key = steg0.forespoerselId,
             Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED.toJson(),
             Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
             Key.DATA to

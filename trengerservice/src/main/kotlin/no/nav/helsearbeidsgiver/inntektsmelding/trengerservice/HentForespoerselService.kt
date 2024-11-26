@@ -109,6 +109,7 @@ class HentForespoerselService(
     ) {
         rapid
             .publish(
+                key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -128,6 +129,7 @@ class HentForespoerselService(
 
         rapid
             .publish(
+                key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -140,6 +142,7 @@ class HentForespoerselService(
 
         rapid
             .publish(
+                key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -156,6 +159,7 @@ class HentForespoerselService(
 
         rapid
             .publish(
+                key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),

@@ -55,6 +55,7 @@ class HentDataTilPaaminnelseService(
         }
 
         rapid.publish(
+            key = steg0.forespoerselId,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
             Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -71,17 +72,17 @@ class HentDataTilPaaminnelseService(
         steg0: Steg0,
         steg1: Steg1,
     ) {
-        rapid
-            .publish(
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
-                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
-                Key.DATA to
-                    data
-                        .plus(
-                            Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(String.serializer()),
-                        ).toJson(),
-            )
+        rapid.publish(
+            key = steg0.forespoerselId,
+            Key.EVENT_NAME to eventName.toJson(),
+            Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
+            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+            Key.DATA to
+                data
+                    .plus(
+                        Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(String.serializer()),
+                    ).toJson(),
+        )
     }
 
     override fun utfoerSteg2(
@@ -98,6 +99,7 @@ class HentDataTilPaaminnelseService(
         val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr.let(::Orgnr)] ?: ORG_NAVN_DEFAULT
 
         rapid.publish(
+            key = steg0.forespoerselId,
             Key.EVENT_NAME to EventName.OPPGAVE_ENDRE_PAAMINNELSE_REQUESTED.toJson(),
             Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
             Key.DATA to

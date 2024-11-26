@@ -50,8 +50,8 @@ class InntektSelvbestemtService(
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
             transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
-            sykmeldtFnr = Key.FNR.les(Fnr.serializer(), melding),
             orgnr = Key.ORGNR_UNDERENHET.les(Orgnr.serializer(), melding),
+            sykmeldtFnr = Key.FNR.les(Fnr.serializer(), melding),
             inntektsdato = Key.INNTEKTSDATO.les(LocalDateSerializer, melding),
         )
 

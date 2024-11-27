@@ -50,7 +50,7 @@ class ForespoerselMottattRiverTest :
 
             publisert.minus(Key.KONTEKST_ID) shouldContainExactly
                 mapOf(
-                    Key.EVENT_NAME to EventName.FORESPOERSEL_MOTTATT.toJson(EventName.serializer()),
+                    Key.EVENT_NAME to EventName.FORESPOERSEL_MOTTATT.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),

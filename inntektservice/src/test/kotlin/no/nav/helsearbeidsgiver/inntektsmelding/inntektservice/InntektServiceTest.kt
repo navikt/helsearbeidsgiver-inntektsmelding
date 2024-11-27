@@ -55,7 +55,7 @@ class InntektServiceTest {
                 utloesendeMelding =
                     JsonObject(
                         mapOf(
-                            Key.BEHOV.str to BehovType.HENT_INNTEKT.toJson(),
+                            Key.BEHOV.toString() to BehovType.HENT_INNTEKT.toJson(),
                         ),
                     ),
             )

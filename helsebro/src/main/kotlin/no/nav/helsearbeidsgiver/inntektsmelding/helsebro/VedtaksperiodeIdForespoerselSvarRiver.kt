@@ -34,7 +34,7 @@ class VedtaksperiodeIdForespoerselSvarRiver : PriObjectRiver<VedtaksperiodeIdFor
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Pri.Key, JsonElement>): VedtaksperiodeIdForespoerselSvarMelding {
-        val forespoerselSvar = Pri.Key.LØSNING.les(ForespoerselListeSvar.serializer(), json)
+        val forespoerselSvar = Pri.Key.LOESNING.les(ForespoerselListeSvar.serializer(), json)
         val boomerang = forespoerselSvar.boomerang.toMap()
 
         return VedtaksperiodeIdForespoerselSvarMelding(

@@ -3,61 +3,59 @@ package no.nav.helsearbeidsgiver.felles
 import kotlinx.serialization.Serializable
 import no.nav.helsearbeidsgiver.utils.json.serializer.AsStringSerializer
 
-interface IKey {
-    val str: String
-}
+interface IKey
 
 @Serializable(KeySerializer::class)
-enum class Key(
-    override val str: String,
-) : IKey {
+enum class Key : IKey {
     // Predefinerte fra rapids-and-rivers-biblioteket
-    EVENT_NAME("@event_name"),
-    BEHOV("@behov"),
+    EVENT_NAME,
+    BEHOV,
 
     // Egendefinerte
-    ARBEIDSFORHOLD("arbeidsforhold"),
-    ARBEIDSGIVER_FNR("arbeidsgiver_fnr"),
-    BESTEMMENDE_FRAVAERSDAG("bestemmende_fravaersdag"),
-    DATA("data"),
-    EKSTERN_INNTEKTSMELDING("ekstern_inntektsmelding"),
-    ER_DUPLIKAT_IM("er_duplikat_im"),
-    FAIL("fail"),
-    FNR("fnr"),
-    FNR_LISTE("fnr_liste"),
-    FORESPOERSEL("forespoersel"),
-    FORESPOERSEL_ID("forespoersel_id"),
-    FORESPOERSEL_MAP("forespoersel_map"),
-    FORESPOERSEL_SVAR("forespoersel_svar"),
-    INNSENDING_ID("innsending_id"),
-    INNTEKT("inntekt"),
-    INNTEKTSDATO("inntektsdato"),
-    INNTEKTSMELDING("inntektsmelding"),
-    JOURNALPOST_ID("journalpost_id"),
-    KONTEKST_ID("kontekst_id"),
-    LAGRET_INNTEKTSMELDING("lagret_inntektsmelding"),
-    OPPGAVE_ID("oppgave_id"),
-    ORGNR_UNDERENHETER("orgnr_underenheter"),
-    ORG_RETTIGHETER("org_rettigheter"),
-    PERSONER("personer"),
-    SAK_ID("sak_id"),
-    SELVBESTEMT_ID("selvbestemt_id"),
-    SELVBESTEMT_INNTEKTSMELDING("selvbestemt_inntektsmelding"),
-    SKAL_HA_PAAMINNELSE("skal_ha_paaminnelse"),
-    SKJEMA_INNTEKTSMELDING("skjema_inntektsmelding"),
-    SYKMELDT("sykmeldt"),
-    TILGANG("tilgang"),
-    VEDTAKSPERIODE_ID_LISTE("vedtaksperiode_id_liste"),
-    VIRKSOMHET("virksomhet"),
-    VIRKSOMHETER("virksomheter"),
-    ORGNRUNDERENHET("orgnr_underenhet"),
-
-    // ulik formattering
-    SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
-
+    ARBEIDSFORHOLD,
+    ARBEIDSGIVER_FNR,
+    BESTEMMENDE_FRAVAERSDAG,
+    DATA,
+    EKSTERN_INNTEKTSMELDING,
+    ER_DUPLIKAT_IM,
+    FAIL,
+    FNR,
+    FNR_LISTE,
+    FORESPOERSEL,
+    FORESPOERSEL_ID,
+    FORESPOERSEL_MAP,
+    FORESPOERSEL_SVAR,
+    INNSENDING_ID,
+    INNTEKT,
+    INNTEKTSDATO,
+    INNTEKTSMELDING,
+    JOURNALPOST_ID,
+    KONTEKST_ID,
+    LAGRET_INNTEKTSMELDING,
+    OPPGAVE_ID,
+    ORGNR_UNDERENHET,
+    ORGNR_UNDERENHETER,
+    ORG_RETTIGHETER,
+    PERSONER,
+    SAK_ID,
+    SELVBESTEMT_ID,
+    SELVBESTEMT_INNTEKTSMELDING,
+    SKAL_HA_PAAMINNELSE,
+    SKJEMA_INNTEKTSMELDING,
+    SPINN_INNTEKTSMELDING_ID,
+    SYKMELDT,
+    TILGANG,
+    VEDTAKSPERIODE_ID_LISTE,
+    VIRKSOMHET,
+    VIRKSOMHETER,
     ;
 
-    override fun toString(): String = str
+    override fun toString(): String =
+        when (this) {
+            EVENT_NAME -> "@event_name"
+            BEHOV -> "@behov"
+            else -> name.lowercase()
+        }
 
     companion object {
         internal fun fromString(key: String): Key =

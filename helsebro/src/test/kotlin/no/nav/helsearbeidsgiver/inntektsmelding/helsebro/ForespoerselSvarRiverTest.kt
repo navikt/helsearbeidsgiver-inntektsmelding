@@ -43,7 +43,7 @@ class ForespoerselSvarRiverTest :
         ) { expectedIncoming ->
             testRapid.sendJson(
                 Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LØSNING to expectedIncoming.toJson(ForespoerselSvar.serializer()),
+                Pri.Key.LOESNING to expectedIncoming.toJson(ForespoerselSvar.serializer()),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
@@ -56,7 +56,7 @@ class ForespoerselSvarRiverTest :
 
             testRapid.sendJson(
                 Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LØSNING to expectedIncoming.toJson(ForespoerselSvar.serializer()),
+                Pri.Key.LOESNING to expectedIncoming.toJson(ForespoerselSvar.serializer()),
             )
 
             testRapid.inspektør.size shouldBeExactly 1

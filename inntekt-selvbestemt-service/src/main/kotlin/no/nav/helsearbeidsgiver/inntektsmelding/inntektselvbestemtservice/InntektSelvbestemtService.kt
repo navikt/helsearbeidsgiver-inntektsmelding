@@ -30,7 +30,7 @@ import java.util.UUID
 data class Steg0(
     val transaksjonId: UUID,
     val orgnr: Orgnr,
-    val fnr: Fnr,
+    val sykmeldtFnr: Fnr,
     val inntektsdato: LocalDate,
 )
 
@@ -50,8 +50,8 @@ class InntektSelvbestemtService(
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
             transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
-            fnr = Key.FNR.les(Fnr.serializer(), melding),
-            orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding),
+            orgnr = Key.ORGNR_UNDERENHET.les(Orgnr.serializer(), melding),
+            sykmeldtFnr = Key.FNR.les(Fnr.serializer(), melding),
             inntektsdato = Key.INNTEKTSDATO.les(LocalDateSerializer, melding),
         )
 
@@ -66,6 +66,7 @@ class InntektSelvbestemtService(
     ) {
         val publisert =
             rapid.publish(
+                key = steg0.sykmeldtFnr,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -73,8 +74,8 @@ class InntektSelvbestemtService(
                     data
                         .plus(
                             mapOf(
-                                Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
-                                Key.FNR to steg0.fnr.toJson(),
+                                Key.ORGNR_UNDERENHET to steg0.orgnr.toJson(),
+                                Key.FNR to steg0.sykmeldtFnr.toJson(),
                                 Key.INNTEKTSDATO to steg0.inntektsdato.toJson(),
                             ),
                         ).toJson(),

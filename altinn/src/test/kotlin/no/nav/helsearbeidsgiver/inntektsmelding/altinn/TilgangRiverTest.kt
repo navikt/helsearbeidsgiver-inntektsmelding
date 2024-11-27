@@ -131,7 +131,7 @@ private object MockTilgang {
             transaksjonId = UUID.randomUUID(),
             data =
                 mapOf(
-                    Key.ORGNRUNDERENHET to orgnr.toJson(Orgnr.serializer()),
+                    Key.ORGNR_UNDERENHET to orgnr.toJson(Orgnr.serializer()),
                     Key.FNR to fnr.toJson(Fnr.serializer()),
                 ),
             orgnr = orgnr,

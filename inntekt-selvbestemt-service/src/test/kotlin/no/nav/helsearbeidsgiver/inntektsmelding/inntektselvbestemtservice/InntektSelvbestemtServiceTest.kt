@@ -110,7 +110,7 @@ private object Mock {
 
     val steg0Data =
         mapOf(
-            Key.ORGNRUNDERENHET to Orgnr.genererGyldig().toJson(),
+            Key.ORGNR_UNDERENHET to Orgnr.genererGyldig().toJson(),
             Key.FNR to Fnr.genererGyldig().toJson(),
             Key.INNTEKTSDATO to 14.april.toJson(),
         )

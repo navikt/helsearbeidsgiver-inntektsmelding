@@ -32,7 +32,7 @@ class KotlinxUtilsKtTest :
                 val json =
                     JsonObject(
                         expectedMap
-                            .mapKeys { it.key.str }
+                            .mapKeys { it.key.toString() }
                             .mapValues { it.value.toJson() },
                     )
 
@@ -51,7 +51,7 @@ class KotlinxUtilsKtTest :
                 val json =
                     JsonObject(
                         expectedMap
-                            .mapKeys { it.key.str }
+                            .mapKeys { it.key.toString() }
                             .plus(
                                 "ikke en key" to "skal ikke være med",
                             ).mapValues { it.value.toJson() },

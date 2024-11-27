@@ -30,7 +30,7 @@ class RedisStoreTest :
                                         "$keyPrefix#$transaksjonId" to "\"mango\"",
                                         "$keyPrefix#$transaksjonId#${Key.SAK_ID}#feil" to "\"papaya\"",
                                         "$keyPrefix#$transaksjonId#${Key.FNR}" to "\"ananas\"",
-                                        "$keyPrefix#$transaksjonId#${Key.ORGNRUNDERENHET}" to "\"kokosnøtt\"",
+                                        "$keyPrefix#$transaksjonId#${Key.ORGNR_UNDERENHET}" to "\"kokosnøtt\"",
                                         "$keyPrefix#$transaksjonId#${Key.TILGANG}" to null,
                                     ),
                             ),
@@ -42,7 +42,7 @@ class RedisStoreTest :
                 redisStore.lesAlleMellomlagrede(transaksjonId) shouldContainExactly
                     mapOf(
                         Key.FNR to "ananas".toJson(),
-                        Key.ORGNRUNDERENHET to "kokosnøtt".toJson(),
+                        Key.ORGNR_UNDERENHET to "kokosnøtt".toJson(),
                     )
             }
 
@@ -60,7 +60,7 @@ class RedisStoreTest :
                                         "${Key.FNR}" to "\"bringebær\"",
                                         "$transaksjonId#${Key.FNR}" to "\"blåbær\"",
                                         "$keyPrefix#$transaksjonId#ikkeEnKey" to "\"tyttebær\"",
-                                        "$keyPrefix#$transaksjonId#${Key.ORGNRUNDERENHET}" to "\"kokosnøtt\"",
+                                        "$keyPrefix#$transaksjonId#${Key.ORGNR_UNDERENHET}" to "\"kokosnøtt\"",
                                     ),
                             ),
                         keyPrefix = keyPrefix,
@@ -70,7 +70,7 @@ class RedisStoreTest :
 
                 redisStore.lesAlleMellomlagrede(transaksjonId) shouldContainExactly
                     mapOf(
-                        Key.ORGNRUNDERENHET to "kokosnøtt".toJson(),
+                        Key.ORGNR_UNDERENHET to "kokosnøtt".toJson(),
                     )
             }
 
@@ -85,7 +85,7 @@ class RedisStoreTest :
                                 mockStorageInit =
                                     mapOf(
                                         "$keyPrefix#$transaksjonId#${Key.FNR}" to "\"ananas\"",
-                                        "$keyPrefix#$transaksjonId#${Key.ORGNRUNDERENHET}" to "streng uten ekstra fnutter",
+                                        "$keyPrefix#$transaksjonId#${Key.ORGNR_UNDERENHET}" to "streng uten ekstra fnutter",
                                         "$keyPrefix#$transaksjonId#${Key.PERSONER}" to "{true}",
                                         "$keyPrefix#$transaksjonId#${Key.VIRKSOMHETER}" to "]]42[[",
                                     ),

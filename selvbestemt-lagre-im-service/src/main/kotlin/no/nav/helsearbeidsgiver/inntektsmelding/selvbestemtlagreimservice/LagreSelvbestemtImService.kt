@@ -127,6 +127,7 @@ class LagreSelvbestemtImService(
         kontrollerSkjema(steg0.skjema)
 
         rapid.publish(
+            key = steg0.skjema.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
             Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -139,6 +140,7 @@ class LagreSelvbestemtImService(
         )
 
         rapid.publish(
+            key = steg0.skjema.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
             Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -155,6 +157,7 @@ class LagreSelvbestemtImService(
         )
 
         rapid.publish(
+            key = steg0.skjema.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_ARBEIDSFORHOLD.toJson(),
             Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -197,6 +200,7 @@ class LagreSelvbestemtImService(
             if (erAktivtArbeidsforhold) {
                 rapid
                     .publish(
+                        key = inntektsmelding.type.id,
                         Key.EVENT_NAME to eventName.toJson(),
                         Key.BEHOV to BehovType.LAGRE_SELVBESTEMT_IM.toJson(),
                         Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -233,6 +237,7 @@ class LagreSelvbestemtImService(
             AarsakInnsending.Ny -> {
                 rapid
                     .publish(
+                        key = steg2.inntektsmelding.type.id,
                         Key.EVENT_NAME to eventName.toJson(),
                         Key.BEHOV to BehovType.OPPRETT_SELVBESTEMT_SAK.toJson(),
                         Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -269,6 +274,7 @@ class LagreSelvbestemtImService(
             if (!steg2.erDuplikat) {
                 val publisert =
                     rapid.publish(
+                        key = steg2.inntektsmelding.type.id,
                         Key.EVENT_NAME to EventName.SELVBESTEMT_IM_LAGRET.toJson(),
                         Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                         Key.DATA to

@@ -33,7 +33,7 @@ class ForespoerselSvarRiver : PriObjectRiver<ForespoerselSvarMelding>() {
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Pri.Key, JsonElement>): ForespoerselSvarMelding {
-        val forespoerselSvar = Pri.Key.LØSNING.les(ForespoerselSvar.serializer(), json)
+        val forespoerselSvar = Pri.Key.LOESNING.les(ForespoerselSvar.serializer(), json)
         val boomerang = forespoerselSvar.boomerang.toMap()
 
         return ForespoerselSvarMelding(

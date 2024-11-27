@@ -26,8 +26,8 @@ class HentForespoerslerProducer(
         rapid
             .publish(
                 key = UUID.randomUUID(),
-                Key.EVENT_NAME to EventName.FORESPOERSLER_REQUESTED.toJson(EventName.serializer()),
-                Key.KONTEKST_ID to transaksjonId.toString().toJson(),
+                Key.EVENT_NAME to EventName.FORESPOERSLER_REQUESTED.toJson(),
+                Key.KONTEKST_ID to transaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.VEDTAKSPERIODE_ID_LISTE to request.vedtaksperiodeIdListe.toJson(UuidSerializer),

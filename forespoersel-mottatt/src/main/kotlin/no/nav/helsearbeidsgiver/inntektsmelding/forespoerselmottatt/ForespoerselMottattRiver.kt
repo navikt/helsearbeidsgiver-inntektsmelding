@@ -47,7 +47,7 @@ class ForespoerselMottattRiver : PriObjectRiver<Melding>() {
         sikkerLogger.info("Mottok melding på pri-topic:\n${json.toPretty()}")
 
         return mapOf(
-            Key.EVENT_NAME to EventName.FORESPOERSEL_MOTTATT.toJson(EventName.serializer()),
+            Key.EVENT_NAME to EventName.FORESPOERSEL_MOTTATT.toJson(),
             Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(

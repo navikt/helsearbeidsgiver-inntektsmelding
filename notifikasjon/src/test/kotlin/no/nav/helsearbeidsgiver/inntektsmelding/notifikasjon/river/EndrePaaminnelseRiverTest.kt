@@ -141,7 +141,7 @@ object EndrePaaminnelseMock {
                 orgNavn = orgNavn,
                 sykmeldingsperioder = forespoersel.sykmeldingsperioder,
             ),
-            tidMellomOppgaveopprettelseOgPaaminnelse = "P21D",
+            tidMellomOppgaveopprettelseOgPaaminnelse = "P28D",
         )
 }
 

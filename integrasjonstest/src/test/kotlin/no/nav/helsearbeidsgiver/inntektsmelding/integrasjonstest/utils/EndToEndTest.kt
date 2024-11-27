@@ -301,7 +301,7 @@ abstract class EndToEndTest : ContainerTest() {
         } answers {
             publish(
                 Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LØSNING to
+                Pri.Key.LOESNING to
                     ForespoerselSvar(
                         forespoerselId = forespoerselId,
                         resultat = forespoerselSvar,
@@ -341,7 +341,7 @@ abstract class EndToEndTest : ContainerTest() {
         } answers {
             publish(
                 Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LØSNING to
+                Pri.Key.LOESNING to
                     ForespoerselListeSvar(
                         resultat = forespoerselListeSvar,
                         boomerang = boomerang.shouldNotBeNull(),

@@ -42,7 +42,7 @@ class TilgangProducer(
         EventName.TILGANG_ORG_REQUESTED,
         transaksjonId,
         fnr,
-        Key.ORGNRUNDERENHET to orgnr.toJson(),
+        Key.ORGNR_UNDERENHET to orgnr.toJson(),
     )
 
     private fun publish(

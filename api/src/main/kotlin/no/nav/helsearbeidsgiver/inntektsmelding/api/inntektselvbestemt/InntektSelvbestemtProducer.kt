@@ -37,7 +37,7 @@ class InntektSelvbestemtProducer(
                     Key.DATA to
                         mapOf(
                             Key.FNR to request.sykmeldtFnr.toJson(),
-                            Key.ORGNRUNDERENHET to request.orgnr.toJson(),
+                            Key.ORGNR_UNDERENHET to request.orgnr.toJson(),
                             Key.INNTEKTSDATO to request.inntektsdato.toJson(),
                         ).toJson(),
                 ).also { json ->

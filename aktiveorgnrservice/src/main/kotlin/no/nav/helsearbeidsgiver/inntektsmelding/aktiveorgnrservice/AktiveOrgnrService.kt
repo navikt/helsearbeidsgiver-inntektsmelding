@@ -96,6 +96,7 @@ class AktiveOrgnrService(
         steg0: Steg0,
     ) {
         rapid.publish(
+            key = steg0.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
             Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -106,6 +107,7 @@ class AktiveOrgnrService(
         )
 
         rapid.publish(
+            key = steg0.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_ARBEIDSFORHOLD.toJson(),
             Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -116,6 +118,7 @@ class AktiveOrgnrService(
         )
 
         rapid.publish(
+            key = steg0.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
             Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
@@ -144,6 +147,7 @@ class AktiveOrgnrService(
                 utfoerSteg2(data, steg0, steg1, Steg2(emptyMap()))
             } else {
                 rapid.publish(
+                    key = steg0.sykmeldtFnr,
                     Key.EVENT_NAME to eventName.toJson(),
                     Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                     Key.KONTEKST_ID to steg0.transaksjonId.toJson(),

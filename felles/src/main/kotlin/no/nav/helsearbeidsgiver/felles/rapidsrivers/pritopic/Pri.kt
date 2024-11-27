@@ -12,33 +12,38 @@ object Pri {
     const val TOPIC = "helsearbeidsgiver.pri"
 
     @Serializable(KeySerializer::class)
-    enum class Key(
-        override val str: String,
-    ) : IKey {
+    enum class Key : IKey {
         // Predefinerte fra rapids-and-rivers-biblioteket
-        BEHOV("@behov"),
-        LØSNING("@løsning"),
+        BEHOV,
+        LOESNING,
 
         // Egendefinerte
-        NOTIS("notis"),
-        BOOMERANG("boomerang"),
-        ORGNR("orgnr"),
-        FNR("fnr"),
-        FORESPOERSEL_ID("forespoerselId"),
-        SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
-        VEDTAKSPERIODE_ID_LISTE("vedtaksperiode_id_liste"),
-        SKAL_HA_PAAMINNELSE("skal_ha_paaminnelse"),
-        FORESPOERSEL("forespoersel"),
+        BOOMERANG,
+        FNR,
+        FORESPOERSEL,
+        FORESPOERSEL_ID,
+        NOTIS,
+        ORGNR,
+        SKAL_HA_PAAMINNELSE,
+        SPINN_INNTEKTSMELDING_ID,
+        VEDTAKSPERIODE_ID_LISTE,
         ;
 
-        override fun toString(): String = str
+        override fun toString(): String =
+            when (this) {
+                BEHOV -> "@behov"
+                LOESNING -> "@løsning"
+                FORESPOERSEL_ID -> "forespoerselId"
+                SPINN_INNTEKTSMELDING_ID -> "spinnInntektsmeldingId"
+                else -> name.lowercase()
+            }
 
         companion object {
-            internal fun fromJson(json: String): Key =
+            internal fun fromJson(key: String): Key =
                 Key.entries.firstOrNull {
-                    json == it.str
+                    key == it.toString()
                 }
-                    ?: throw IllegalArgumentException("Fant ingen Pri.Key med verdi som matchet '$json'.")
+                    ?: throw IllegalArgumentException("Fant ingen Pri.Key med verdi som matchet '$key'.")
         }
     }
 

@@ -49,7 +49,7 @@ class FeilLytter(
         River(rapidsConnection)
             .apply {
                 validate { msg ->
-                    msg.demandKey(Key.FAIL.str)
+                    msg.demandKey(Key.FAIL.toString())
                 }
             }.register(this)
     }

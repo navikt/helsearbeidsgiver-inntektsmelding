@@ -9,9 +9,12 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 
 class MessagesTest :
     FunSpec({
@@ -55,7 +58,7 @@ class MessagesTest :
 
             funnetMelding.also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-                data[Key.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe Mock.ORGNR
+                data[Key.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe Mock.orgnr
             }
         }
 
@@ -68,15 +71,15 @@ class MessagesTest :
     })
 
 private object Mock {
-    const val ORGNR = "orgnr-pai"
+    val orgnr = Orgnr.genererGyldig().verdi
 
     val meldinger =
         mapOf(
-            Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
-            Key.BEHOV.str to BehovType.HENT_VIRKSOMHET_NAVN.toJson(BehovType.serializer()),
-            Key.DATA.str to
+            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+            Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
+            Key.DATA to
                 mapOf(
-                    Key.VIRKSOMHET.str to ORGNR.toJson(),
+                    Key.VIRKSOMHET to orgnr.toJson(),
                 ).toJson(),
         ).toJson()
             .toMessages()

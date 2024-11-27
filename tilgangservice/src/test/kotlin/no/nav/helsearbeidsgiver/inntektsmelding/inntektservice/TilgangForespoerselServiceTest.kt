@@ -52,7 +52,7 @@ class TilgangForespoerselServiceTest {
                 utloesendeMelding =
                     JsonObject(
                         mapOf(
-                            Key.BEHOV.str to BehovType.TILGANGSKONTROLL.toJson(),
+                            Key.BEHOV.toString() to BehovType.TILGANGSKONTROLL.toJson(),
                         ),
                     ),
             )

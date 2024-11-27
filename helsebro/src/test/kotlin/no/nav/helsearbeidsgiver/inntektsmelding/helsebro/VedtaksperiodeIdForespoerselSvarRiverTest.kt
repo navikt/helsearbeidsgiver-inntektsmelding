@@ -60,7 +60,7 @@ class VedtaksperiodeIdForespoerselSvarRiverTest :
 
             testRapid.sendJson(
                 Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LØSNING to forespoerselListeSvarMock.toJson(ForespoerselListeSvar.serializer()),
+                Pri.Key.LOESNING to forespoerselListeSvarMock.toJson(ForespoerselListeSvar.serializer()),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
@@ -96,7 +96,7 @@ class VedtaksperiodeIdForespoerselSvarRiverTest :
 
             testRapid.sendJson(
                 Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LØSNING to forespoerselListeSvarMock.toJson(ForespoerselListeSvar.serializer()),
+                Pri.Key.LOESNING to forespoerselListeSvarMock.toJson(ForespoerselListeSvar.serializer()),
             )
 
             val actual = testRapid.firstMessage().lesFail()

@@ -9,6 +9,9 @@ import java.util.UUID
 value class KafkaKey private constructor(
     internal val key: String,
 ) {
-    constructor(forespoerselId: UUID) : this(forespoerselId.toString())
-    constructor(sykmeldtFnr: Fnr) : this(sykmeldtFnr.verdi)
+    companion object {
+        operator fun invoke(forespoerselId: UUID): KafkaKey = KafkaKey(forespoerselId.toString())
+
+        operator fun invoke(sykmeldtFnr: Fnr): KafkaKey = KafkaKey(sykmeldtFnr.verdi)
+    }
 }

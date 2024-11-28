@@ -57,46 +57,42 @@ class BerikInntektsmeldingServiceTest :
         }
 
         test("nytt inntektsmeldingskjema berikes, lagres og sendes videre til journalføring") {
-            testRapid.sendJson(Mock.steg0(Mock.transaksjonId))
+            val transaksjonId = UUID.randomUUID()
+
+            testRapid.sendJson(Mock.steg0(transaksjonId))
 
             // Melding med forventet behov og data sendt for å hente forespørsel
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.message(0).also {
                 it.lesBehov() shouldBe BehovType.HENT_TRENGER_IM
 
-                Key.FORESPOERSEL_ID.lesOrNull(
-                    serializer = UuidSerializer,
-                    melding = it.lesData(),
-                ) shouldBe Mock.skjema.forespoerselId
+                val data = it.lesData()
+                Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data) shouldBe Mock.skjema.forespoerselId
             }
 
-            testRapid.sendJson(Mock.steg1(Mock.transaksjonId))
+            testRapid.sendJson(Mock.steg1(transaksjonId))
 
             // Melding med forventet behov og data sendt for å hente virksomhetsnavn
             testRapid.inspektør.size shouldBeExactly 2
             testRapid.message(1).also {
                 it.lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
 
-                Key.ORGNR_UNDERENHETER.lesOrNull(
-                    serializer = Orgnr.serializer().set(),
-                    melding = it.lesData(),
-                ) shouldNotBe null
+                val data = it.lesData()
+                Key.ORGNR_UNDERENHETER.lesOrNull(Orgnr.serializer().set(), data) shouldNotBe null
             }
 
-            testRapid.sendJson(Mock.steg2(Mock.transaksjonId))
+            testRapid.sendJson(Mock.steg2(transaksjonId))
 
             // Melding med forventet behov og data sendt for å hente personnavn
             testRapid.inspektør.size shouldBeExactly 3
             testRapid.message(2).also {
                 it.lesBehov() shouldBe BehovType.HENT_PERSONER
 
-                Key.FNR_LISTE.lesOrNull(
-                    serializer = Fnr.serializer().set(),
-                    melding = it.lesData(),
-                ) shouldNotBe null
+                val data = it.lesData()
+                Key.FNR_LISTE.lesOrNull(Fnr.serializer().set(), data) shouldNotBe null
             }
 
-            testRapid.sendJson(Mock.steg3(Mock.transaksjonId))
+            testRapid.sendJson(Mock.steg3(transaksjonId))
 
             // Melding med forventet behov og data sendt for å lagre inntektsmelding
             testRapid.inspektør.size shouldBeExactly 4
@@ -109,7 +105,7 @@ class BerikInntektsmeldingServiceTest :
                 Key.INNSENDING_ID.lesOrNull(Long.serializer(), data) shouldBe Mock.INNSENDING_ID
             }
 
-            testRapid.sendJson(Mock.steg4(Mock.transaksjonId))
+            testRapid.sendJson(Mock.steg4(transaksjonId))
 
             // Inntektsmelding sendt videre til journalføring med forventet data
             testRapid.inspektør.size shouldBeExactly 5
@@ -127,7 +123,7 @@ class BerikInntektsmeldingServiceTest :
         test("duplikat IM sendes _ikke_ videre til journalføring") {
             testRapid.sendJson(
                 Mock
-                    .steg4(Mock.transaksjonId)
+                    .steg4(UUID.randomUUID())
                     .plusData(Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer())),
             )
 
@@ -159,72 +155,63 @@ class BerikInntektsmeldingServiceTest :
 private object Mock {
     const val INNSENDING_ID = 1L
 
-    val transaksjonId: UUID = UUID.randomUUID()
-    val forespoersel = mockForespoersel()
     val skjema = mockSkjemaInntektsmelding()
-    val inntektsmelding = mockInntektsmeldingV1()
 
-    val avsender =
+    private val forespoersel = mockForespoersel()
+
+    private val avsender =
         Person(
             fnr = Fnr.genererGyldig(),
             navn = "Skrue McDuck",
         )
 
-    val sykmeldt =
+    private val sykmeldt =
         Person(
             fnr = Fnr(forespoersel.fnr),
             navn = "Dolly Duck",
         )
 
-    val orgnrMedNavn = mapOf(Orgnr(forespoersel.orgnr) to "Lasses kasserollesjappe")
+    private val orgnrMedNavn = mapOf(Orgnr(forespoersel.orgnr) to "Lasses kasserollesjappe")
 
-    val personer =
+    private val personer =
         mapOf(
             avsender.fnr to avsender,
             sykmeldt.fnr to sykmeldt,
-        )
-
-    val steg0data =
-        mapOf(
-            Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
-            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
-            Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
-        )
-
-    val steg1data =
-        mapOf(
-            Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
-        )
-
-    val steg2data =
-        mapOf(
-            Key.VIRKSOMHETER to orgnrMedNavn.toJson(orgMapSerializer),
-        )
-
-    val steg3data =
-        mapOf(
-            Key.PERSONER to personer.toJson(personMapSerializer),
-        )
-
-    val steg4data =
-        mapOf(
-            Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
-            Key.INNTEKTSMELDING to inntektsmelding.toJson(InntektsmeldingV1.serializer()),
-            Key.BESTEMMENDE_FRAVAERSDAG to 20.oktober.toJson(),
         )
 
     fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
             Key.KONTEKST_ID to transaksjonId.toJson(),
-            Key.DATA to steg0data.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
+                    Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
+                    Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
+                ).toJson(),
         )
 
-    fun steg1(transaksjonId: UUID): Map<Key, JsonElement> = steg0(transaksjonId).plusData(steg1data)
+    fun steg1(transaksjonId: UUID): Map<Key, JsonElement> =
+        steg0(transaksjonId).plusData(
+            Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
+        )
 
-    fun steg2(transaksjonId: UUID): Map<Key, JsonElement> = steg1(transaksjonId).plusData(steg2data)
+    fun steg2(transaksjonId: UUID): Map<Key, JsonElement> =
+        steg1(transaksjonId).plusData(
+            Key.VIRKSOMHETER to orgnrMedNavn.toJson(orgMapSerializer),
+        )
 
-    fun steg3(transaksjonId: UUID): Map<Key, JsonElement> = steg2(transaksjonId).plusData(steg3data)
+    fun steg3(transaksjonId: UUID): Map<Key, JsonElement> =
+        steg2(transaksjonId).plusData(
+            Key.PERSONER to personer.toJson(personMapSerializer),
+        )
 
-    fun steg4(transaksjonId: UUID): Map<Key, JsonElement> = steg3(transaksjonId).plusData(steg4data)
+    fun steg4(transaksjonId: UUID): Map<Key, JsonElement> =
+        steg3(transaksjonId).plusData(
+            mapOf(
+                Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
+                Key.INNTEKTSMELDING to mockInntektsmeldingV1().toJson(InntektsmeldingV1.serializer()),
+                Key.BESTEMMENDE_FRAVAERSDAG to 20.oktober.toJson(),
+            ),
+        )
 }

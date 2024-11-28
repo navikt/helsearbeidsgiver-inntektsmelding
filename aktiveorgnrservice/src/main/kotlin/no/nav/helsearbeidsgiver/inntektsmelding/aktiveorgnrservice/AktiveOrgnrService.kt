@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -95,6 +96,8 @@ class AktiveOrgnrService(
         data: Map<Key, JsonElement>,
         steg0: Steg0,
     ) {
+        val svarKafkaKey = KafkaKey(steg0.sykmeldtFnr)
+
         rapid.publish(
             key = steg0.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
@@ -102,6 +105,7 @@ class AktiveOrgnrService(
             Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
+                    Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
                     Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
                 ).toJson(),
         )
@@ -113,6 +117,7 @@ class AktiveOrgnrService(
             Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
+                    Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
                     Key.FNR to steg0.sykmeldtFnr.toJson(),
                 ).toJson(),
         )
@@ -124,6 +129,7 @@ class AktiveOrgnrService(
             Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
+                    Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
                     Key.FNR_LISTE to
                         setOf(
                             steg0.sykmeldtFnr,

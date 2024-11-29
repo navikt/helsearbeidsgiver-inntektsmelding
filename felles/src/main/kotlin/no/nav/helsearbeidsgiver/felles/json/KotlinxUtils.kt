@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
@@ -34,6 +35,8 @@ val personMapSerializer =
 fun EventName.toJson(): JsonElement = toJson(EventName.serializer())
 
 fun BehovType.toJson(): JsonElement = toJson(BehovType.serializer())
+
+fun KafkaKey.toJson(): JsonElement = toJson(KafkaKey.serializer())
 
 fun Fnr.toJson(): JsonElement = toJson(Fnr.serializer())
 

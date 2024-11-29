@@ -25,6 +25,7 @@ import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.tilArbeidsforhold
@@ -222,6 +223,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                         Key.KONTEKST_ID to transaksjonId.toJson(),
                         Key.DATA to
                             mapOf(
+                                Key.SVAR_KAFKA_KEY to KafkaKey(Mock.fnr).toJson(),
                                 Key.FNR_LISTE to
                                     listOf(
                                         Mock.fnr,

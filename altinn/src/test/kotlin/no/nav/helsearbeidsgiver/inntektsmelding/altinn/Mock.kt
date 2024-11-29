@@ -25,6 +25,7 @@ object Mock {
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to fnr.toJson(),
                 ),
+            svarKafkaKey = null,
             fnr = fnr,
         )
     }

@@ -19,12 +19,15 @@ import no.nav.helsearbeidsgiver.felles.domene.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.domene.PeriodeNullable
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
+import no.nav.helsearbeidsgiver.felles.test.json.lesData
 import no.nav.helsearbeidsgiver.felles.test.json.plusData
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
@@ -63,9 +66,18 @@ class AktiveOrgnrServiceTest :
             )
 
             testRapid.inspektør.size shouldBeExactly 3
-            testRapid.message(0).lesBehov() shouldBe BehovType.ARBEIDSGIVERE
-            testRapid.message(1).lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
-            testRapid.message(2).lesBehov() shouldBe BehovType.HENT_PERSONER
+            testRapid.message(0).also {
+                it.lesBehov() shouldBe BehovType.ARBEIDSGIVERE
+                Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.sykmeldtFnr)
+            }
+            testRapid.message(1).also {
+                it.lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
+                Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.sykmeldtFnr)
+            }
+            testRapid.message(2).also {
+                it.lesBehov() shouldBe BehovType.HENT_PERSONER
+                Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.sykmeldtFnr)
+            }
 
             testRapid.sendJson(
                 Mock.steg1Data(transaksjonId, orgnr),
@@ -190,11 +202,12 @@ class AktiveOrgnrServiceTest :
     })
 
 private object Mock {
+    val sykmeldtFnr = Fnr.genererGyldig()
+
     private const val SYKMELDT_NAVN = "Ole Idole"
     private const val AVSENDER_NAVN = "Ole Jacob Evenrud"
     private const val ORG_NAVN = "Mexican Standup A/S"
 
-    private val sykmeldtFnr = Fnr.genererGyldig()
     private val avsenderFnr = Fnr.genererGyldig()
 
     private val personer =

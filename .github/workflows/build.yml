@@ -49,9 +49,8 @@ jobs:
 
       - name: Determine changes files
         run: |
-          PREVIOUS_TAG=$(git tag --sort version:refname | tail -n 2 | head -n 1)
           # Create a comma-separated list of changed files for use in build.gradle.kts
-          CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r -m $PREVIOUS_TAG $GITHUB_REF | tr '\r\n' ',' | sed -e 's/,$//' | tr -d '"')
+          CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r -m  v0.10.9 v0.10.10 | tr '\r\n' ',' | sed -e 's/,$//' | tr -d '"')
           echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
 
       - name: Determine projects to deploy

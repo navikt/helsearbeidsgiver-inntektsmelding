@@ -1,36 +1,51 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt
 
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.BehovType
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
-import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
+import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
+import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import java.util.UUID
 
 class InntektProducer(
-    private val rapid: RapidsConnection
+    private val rapid: RapidsConnection,
 ) {
     init {
-        logger.info("Starter InntektProducer...")
+        logger.info("Starter ${InntektProducer::class.simpleName}...")
     }
 
-    fun publish(request: InntektRequest): UUID {
-        val initiateId = UUID.randomUUID()
-        val spleisForesporselId = request.forespoerselId
-        rapid.publish(
-            Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
-            Key.FORESPOERSEL_ID to spleisForesporselId.toJson(),
-            Key.BOOMERANG to mapOf(
-                Key.NESTE_BEHOV.str to listOf(BehovType.INNTEKT).toJson(BehovType.serializer()),
-                Key.INITIATE_ID.str to initiateId.toJson(UuidSerializer), // Akkumulator velger denne som ny UUID v / neste behov!
-                Key.INNTEKT_DATO.str to request.skjaeringstidspunkt.toJson(LocalDateSerializer)
-            ).toJson()
+    fun publish(
+        transaksjonId: UUID,
+        request: InntektRequest,
+    ) {
+        MdcUtils.withLogFields(
+            Log.klasse(this),
+            Log.event(EventName.INNTEKT_REQUESTED),
+            Log.transaksjonId(transaksjonId),
+            Log.forespoerselId(request.forespoerselId),
         ) {
-            logger.info("Publiserte Behov: ${BehovType.HENT_TRENGER_IM} for spleisId $spleisForesporselId (oppdater inntekt)")
+            rapid
+                .publish(
+                    key = request.forespoerselId,
+                    Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),
+                    Key.KONTEKST_ID to transaksjonId.toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.FORESPOERSEL_ID to request.forespoerselId.toJson(),
+                            Key.INNTEKTSDATO to request.skjaeringstidspunkt.toJson(),
+                        ).toJson(),
+                ).also { json ->
+                    "Publiserte request om inntekt.".let {
+                        logger.info(it)
+                        sikkerLogger.info("$it\n${json.toPretty()}")
+                    }
+                }
         }
-        return initiateId
     }
 }

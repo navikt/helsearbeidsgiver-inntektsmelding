@@ -1,25 +1,27 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.brreg
 
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.brreg.BrregClient
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
 
-val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
-internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-brreg")
+private val logger = "im-brreg".logger()
 
 fun main() {
-    val environment = setUpEnvironment()
-    val isDevelopmentMode = environment.brregUrl.contains("localhost")
+    val brregClient = BrregClient(Env.brregUrl)
+    val isDevelopmentMode = Env.brregUrl.contains("localhost")
+
     RapidApplication
         .create(System.getenv())
-        .createBrreg(BrregClient(environment.brregUrl), isDevelopmentMode)
+        .createBrregRiver(brregClient, isDevelopmentMode)
         .start()
 }
 
-fun RapidsConnection.createBrreg(brregClient: BrregClient, isDevelopmentMode: Boolean): RapidsConnection {
-    sikkerlogg.info("Starting VirksomhetLøser... developmentMode: $isDevelopmentMode")
-    VirksomhetLøser(this, brregClient, isDevelopmentMode)
-    return this
-}
+fun RapidsConnection.createBrregRiver(
+    brregClient: BrregClient,
+    isDevelopmentMode: Boolean,
+): RapidsConnection =
+    also {
+        logger.info("Starter ${HentVirksomhetNavnRiver::class.simpleName}... (isDevelopmentMode: $isDevelopmentMode)")
+        HentVirksomhetNavnRiver(brregClient, isDevelopmentMode).connect(this)
+    }

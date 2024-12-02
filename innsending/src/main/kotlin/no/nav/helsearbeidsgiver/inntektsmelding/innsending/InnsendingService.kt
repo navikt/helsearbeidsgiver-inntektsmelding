@@ -1,148 +1,137 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
+import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import java.util.UUID
 
-class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: RedisStore) : River.PacketListener {
+data class Steg0(
+    val transaksjonId: UUID,
+    val avsenderFnr: Fnr,
+    val skjema: SkjemaInntektsmelding,
+)
 
-    val event: EventName = EventName.INSENDING_STARTED
+data class Steg1(
+    val erDuplikat: Boolean,
+    val innsendingId: Long,
+)
 
-    init {
-        InnsendingStartedListener(this, rapidsConnection)
-        DelegatingFailKanal(EventName.INSENDING_STARTED, this, rapidsConnection)
-        StatefullDataKanal(DataFelter.values().map { it.str }.toTypedArray(), EventName.INSENDING_STARTED, this, rapidsConnection, redisStore)
-    }
+class InnsendingService(
+    private val rapid: RapidsConnection,
+    private val redisStore: RedisStore,
+) : ServiceMed1Steg<Steg0, Steg1>() {
+    override val logger = logger()
+    override val sikkerLogger = sikkerLogger()
 
-    class InnsendingStartedListener(val mainListener: River.PacketListener, rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
+    override val eventName = EventName.INSENDING_STARTED
 
-        override val event: EventName = EventName.INSENDING_STARTED
-
-        override fun accept(): River.PacketValidation {
-            return River.PacketValidation {
-                it.interestedIn(Key.INNTEKTSMELDING.str)
-                it.requireKey(Key.ORGNRUNDERENHET.str)
-                it.requireKey(Key.IDENTITETSNUMMER.str)
-            }
-        }
-
-        override fun onEvent(packet: JsonMessage) {
-            mainListener.onPacket(packet, rapidsConnection)
-        }
-    }
-
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val transaction: Transaction = startStransactionIfAbsent(packet)
-
-        when (transaction) {
-            Transaction.NEW -> dispatchBehov(packet, transaction)
-            Transaction.IN_PROGRESS -> dispatchBehov(packet, transaction)
-            Transaction.FINALIZE -> finalize(packet)
-            Transaction.TERMINATE -> terminate(packet)
-        }
-    }
-
-    fun terminate(message: JsonMessage) {
-        redisStore.set(message[Key.UUID.str].asText(), message[Key.FAIL.str].asText())
-    }
-
-    fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
-        val uuid: String = message[Key.UUID.str].asText()
-        when (transaction) {
-            Transaction.NEW -> {
-                rapidsConnection.publish(
-                    JsonMessage.newMessage(
-                        mapOf(
-                            Key.EVENT_NAME.str to event.name,
-                            Key.BEHOV.str to listOf(BehovType.VIRKSOMHET.name),
-                            Key.ORGNRUNDERENHET.str to message[Key.ORGNRUNDERENHET.str].asText(),
-                            Key.UUID.str to uuid
-                        )
-                    ).toJson()
-                )
-                rapidsConnection.publish(
-                    JsonMessage.newMessage(
-                        mapOf(
-                            Key.EVENT_NAME.str to event.name,
-                            Key.BEHOV.str to listOf(BehovType.ARBEIDSFORHOLD.name),
-                            Key.IDENTITETSNUMMER.str to message[Key.IDENTITETSNUMMER.str].asText(),
-                            Key.UUID.str to uuid
-                        )
-                    ).toJson()
-                )
-            }
-            Transaction.IN_PROGRESS -> {
-                if (isDataCollected(*step1data(message[Key.UUID.str].asText()))) {
-                    rapidsConnection.publish(
-                        JsonMessage.newMessage(
-                            mapOf(
-                                Key.EVENT_NAME.str to event.name,
-                                Key.BEHOV.str to listOf(BehovType.PERSISTER_IM.name),
-                                Key.INNTEKTSMELDING.str to customObjectMapper().readTree(redisStore.get(uuid + DataFelter.INNTEKTSMELDING_REQUEST.str)!!),
-                                Key.UUID.str to uuid
-                            )
-                        ).toJson()
-                    )
-                }
-            }
-            Transaction.FINALIZE -> {
-                println("I was not supposed to be hereeeeeeeeeeeeeeeeeeeeeee")
-            }
-            Transaction.TERMINATE -> {}
-        }
-    }
-
-    fun finalize(message: JsonMessage) {
-        redisStore.set(message[Key.UUID.str].asText(), message[Key.INNTEKTSMELDING_DOKUMENT.str].asText())
-        rapidsConnection.publish(
-            JsonMessage.newMessage(
-                mapOf(
-                    Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
-                    Key.INNTEKTSMELDING_DOKUMENT.str to message[Key.INNTEKTSMELDING_DOKUMENT.str],
-                    Key.UUID.str to message[Key.UUID.str]
-                )
-            ).toJson()
+    override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
+        Steg0(
+            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
+            avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
+            skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding),
         )
+
+    override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
+        Steg1(
+            erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
+            innsendingId = Key.INNSENDING_ID.les(Long.serializer(), melding),
+        )
+
+    override fun utfoerSteg0(
+        data: Map<Key, JsonElement>,
+        steg0: Steg0,
+    ) {
+        rapid
+            .publish(
+                key = steg0.skjema.forespoerselId,
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.BEHOV to BehovType.LAGRE_IM_SKJEMA.toJson(),
+                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                Key.DATA to data.toJson(),
+            ).also { loggBehovPublisert(BehovType.LAGRE_IM_SKJEMA, it) }
     }
 
-    fun startStransactionIfAbsent(message: JsonMessage): Transaction {
-        if (isFailMelding(message)) {
-            return Transaction.TERMINATE
+    override fun utfoerSteg1(
+        data: Map<Key, JsonElement>,
+        steg0: Steg0,
+        steg1: Steg1,
+    ) {
+        val resultJson =
+            ResultJson(
+                success = steg0.skjema.forespoerselId.toJson(),
+            )
+
+        redisStore.skrivResultat(steg0.transaksjonId, resultJson)
+
+        if (!steg1.erDuplikat) {
+            val publisert =
+                rapid.publish(
+                    key = steg0.skjema.forespoerselId,
+                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
+                    Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                    Key.DATA to
+                        data
+                            .plus(Key.INNSENDING_ID to steg1.innsendingId.toJson(Long.serializer()))
+                            .toJson(),
+                )
+
+            MdcUtils.withLogFields(
+                Log.event(EventName.INNTEKTSMELDING_SKJEMA_LAGRET),
+            ) {
+                logger.info("Publiserte melding.")
+                sikkerLogger.info("Publiserte melding:\n${publisert.toPretty()}")
+            }
         }
-        val uuid = message.get(Key.UUID.str).asText()
-        val eventKey = "${uuid}${event.name}"
-        val value = redisStore.get(eventKey)
-        if (value.isNullOrEmpty()) {
-            redisStore.set(eventKey, uuid)
-            val uuid = redisStore.get(eventKey)
-            val requestKey = "${uuid}${DataFelter.INNTEKTSMELDING_REQUEST.str}"
-            redisStore.set(requestKey, message[DataFelter.INNTEKTSMELDING_REQUEST.str].toString())
-            return Transaction.NEW
-        } else {
-            if (isDataCollected(*allData(uuid))) return Transaction.FINALIZE
-        }
-        return Transaction.IN_PROGRESS
     }
 
-    fun isFailMelding(jsonMessage: JsonMessage): Boolean {
-        try {
-            return !jsonMessage[Key.FAIL.str].asText().isNullOrEmpty()
-        } catch (e: NoSuchFieldError) {
-            return false
-        } catch (e: IllegalArgumentException) {
-            return false
+    override fun Steg0.loggfelt(): Map<String, String> =
+        mapOf(
+            Log.klasse(this@InnsendingService),
+            Log.event(eventName),
+            Log.transaksjonId(transaksjonId),
+            Log.forespoerselId(skjema.forespoerselId),
+        )
+
+    private fun loggBehovPublisert(
+        behovType: BehovType,
+        publisert: JsonElement,
+    ) {
+        MdcUtils.withLogFields(
+            Log.behov(behovType),
+        ) {
+            "Publiserte melding med behov $behovType.".let {
+                logger.info(it)
+                sikkerLogger.info("$it\n${publisert.toPretty()}")
+            }
         }
     }
 
-    fun step1data(uuid: String): Array<String> = arrayOf(uuid + DataFelter.VIRKSOMHET.str, uuid + DataFelter.ARBEIDSFORHOLD.str)
-    fun allData(uuid: String) = step1data(uuid) + (uuid + DataFelter.INNTEKTSMELDING_DOKUMENT.str)
+    override fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    ) {
+        val resultJson = ResultJson(failure = fail.feilmelding.toJson())
 
-    fun isDataCollected(vararg keys: String): Boolean = redisStore.exist(*keys) == keys.size.toLong()
+        redisStore.skrivResultat(fail.transaksjonId, resultJson)
+    }
 }

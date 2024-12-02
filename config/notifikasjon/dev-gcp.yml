@@ -1,18 +1,17 @@
 kafkaPool: nav-dev
 azure:
   enabled: true
-ingress: https://helsearbeidsgiver-im-notifikasjon.intern.dev.nav.no
-secureLogs:
-  enabled: true
+apps:
+  - name: notifikasjon-produsent-api
+    namespace: fager
 env:
   - name: ARBEIDSGIVER_NOTIFIKASJON_API_URL
-    value: "https://ag-notifikasjon-produsent-api.dev.nav.no/api/graphql"
+    value: "http://notifikasjon-produsent-api.fager/api/graphql"
   - name: ARBEIDSGIVER_NOTIFIKASJON_SCOPE
     value: "api://dev-gcp.fager.notifikasjon-produsent-api/.default"
   - name: LINK_URL
     value: "https://arbeidsgiver.intern.dev.nav.no"
-apps:
-  - name: notifikasjon-produsent-api
-    namespace: fager
-externalHosts:
-  - ag-notifikasjon-produsent-api.dev.nav.no
+  - name: OPPGAVEPAAMINNELSER_AKTIVERT
+    value: "true"
+  - name: TID_MELLOM_OPPGAVEOPPRETTELSE_OG_PAAMINNELSE
+    value: "PT10M"

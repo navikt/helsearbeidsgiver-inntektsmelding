@@ -1,28 +1,31 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.tokenprovider.oauth2ClientCredentialsTokenGetter
+import no.nav.helsearbeidsgiver.utils.log.logger
 
-val sikkerLogger: Logger = LoggerFactory.getLogger("tjenestekall")
-internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-joark")
+private val logger = "helsearbeidsgiver-im-joark".logger()
 
 fun main() {
     RapidApplication
         .create(System.getenv())
-        .createJoark(buildDokArkivClient(setUpEnvironment()))
+        .createJournalfoerImRiver(createDokArkivClient())
         .start()
 }
 
-fun RapidsConnection.createJoark(buildDokArkivClient: DokArkivClient): RapidsConnection {
-    sikkerLogger.info("Starting JournalførInntektsmeldingLøser...")
-    JournalførInntektsmeldingLøser(
-        this,
-        buildDokArkivClient
+fun RapidsConnection.createJournalfoerImRiver(dokArkivClient: DokArkivClient): RapidsConnection =
+    also {
+        logger.info("Starter ${JournalfoerImRiver::class.simpleName}...")
+        JournalfoerImRiver(dokArkivClient).connect(this)
+    }
+
+private fun createDokArkivClient(): DokArkivClient {
+    val tokenGetter = oauth2ClientCredentialsTokenGetter(Env.oauth2Environment)
+    return DokArkivClient(
+        url = Env.dokArkivUrl,
+        maxRetries = 3,
+        getAccessToken = tokenGetter,
     )
-    sikkerLogger.info("Starting JournalfoerInntektsmeldingMottattListener...")
-    JournalfoerInntektsmeldingMottattListener(this)
-    return this
 }

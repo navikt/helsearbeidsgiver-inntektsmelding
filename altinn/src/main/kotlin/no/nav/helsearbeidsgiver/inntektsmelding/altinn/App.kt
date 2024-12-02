@@ -1,30 +1,56 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.altinn.CacheConfig
-import java.time.Duration
-import kotlin.time.toKotlinDuration
+import no.nav.helsearbeidsgiver.maskinporten.MaskinportenClient
+import no.nav.helsearbeidsgiver.maskinporten.MaskinportenClientConfig
+import no.nav.helsearbeidsgiver.utils.log.logger
+import kotlin.time.Duration.Companion.minutes
+
+private val logger = "helsearbeidsgiver-im-altinn".logger()
 
 fun main() {
     RapidApplication
         .create(System.getenv())
-        .createAltinn(buildAltinnClient())
+        .createAltinn(createAltinnClient())
         .start()
 }
 
-fun buildAltinnClient(): AltinnClient {
+fun RapidsConnection.createAltinn(altinnClient: AltinnClient): RapidsConnection =
+    also {
+        logger.info("Starter ${TilgangRiver::class.simpleName}...")
+        TilgangRiver(altinnClient).connect(this)
+
+        logger.info("Starter ${AltinnRiver::class.simpleName}...")
+        AltinnRiver(altinnClient).connect(this)
+    }
+
+private fun createAltinnClient(): AltinnClient {
+    val maskinportenClient = createMaskinportenClient()
     return AltinnClient(
         url = Env.url,
         serviceCode = Env.serviceCode,
-        apiGwApiKey = Env.apiGwApiKey,
+        getToken = maskinportenClient::getToken,
         altinnApiKey = Env.altinnApiKey,
-        cacheConfig = CacheConfig(Duration.ofMinutes(60).toKotlinDuration(), 100)
+        cacheConfig = CacheConfig(60.minutes, 100),
     )
 }
 
-fun RapidsConnection.createAltinn(altinnClient: AltinnClient): RapidsConnection {
-    TilgangskontrollLøser(this, altinnClient)
-    return this
-}
+private fun createMaskinportenClient(): MaskinportenClient =
+    MaskinportenClient(
+        MaskinportenClientConfig(
+            scope = Env.Maskinporten.altinnScope,
+            endpoint = Env.Maskinporten.endpoint,
+            clientJwk = Env.Maskinporten.clientJwk,
+            issuer = Env.Maskinporten.issuer,
+            clientId = Env.Maskinporten.clientId,
+        ),
+    )
+
+private fun MaskinportenClient.getToken() =
+    runBlocking {
+        fetchNewAccessToken().tokenResponse.accessToken
+    }

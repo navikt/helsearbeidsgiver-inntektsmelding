@@ -1,78 +1,159 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.TilgangskontrollLøsning
-import no.nav.helsearbeidsgiver.felles.json.fromJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.BeforeAll
+import no.nav.helsearbeidsgiver.felles.domene.Tilgang
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TilgangskontrollIT : EndToEndTest() {
+    @BeforeEach
+    fun beforeEach() {
+        clearAllMocks()
 
-    val INNLOGGET_FNR = "fnr-456"
-    val FORESPØRSEL_ID_HAR_TILGANG = UUID.randomUUID().toString()
-    val FORESPØRSEL_ID_IKKE_TILGANG = UUID.randomUUID().toString()
-    val FORESPØRSEL_ID_FINNES_IKKE = UUID.randomUUID().toString()
-    val ORGNR_HAR_TILGANG = "org-456"
-    val ORGNR_IKKE_TILGANG = "org-789"
-
-    @BeforeAll
-    fun before() {
-        forespoerselRepository.lagreForespørsel(FORESPØRSEL_ID_HAR_TILGANG, ORGNR_HAR_TILGANG)
-        forespoerselRepository.lagreForespørsel(FORESPØRSEL_ID_IKKE_TILGANG, ORGNR_IKKE_TILGANG)
         coEvery {
-            altinnClient.harRettighetForOrganisasjon(INNLOGGET_FNR, ORGNR_IKKE_TILGANG)
-        } returns false
-        coEvery {
-            altinnClient.harRettighetForOrganisasjon(INNLOGGET_FNR, ORGNR_HAR_TILGANG)
+            altinnClient.harRettighetForOrganisasjon(Mock.innloggetFnr.verdi, Mock.orgnrMedTilgang.verdi)
         } returns true
+
+        coEvery {
+            altinnClient.harRettighetForOrganisasjon(Mock.innloggetFnr.verdi, Mock.orgnrUtenTilgang.verdi)
+        } returns false
     }
 
     @Test
-    fun `skal få melding om at forespørsel ikke finnes`() {
-        results.clear()
-        producer.publish(INNLOGGET_FNR, FORESPØRSEL_ID_FINNES_IKKE)
-        Thread.sleep(4000)
-        with(getMessage(0)) {
-            assertEquals(BehovType.HENT_IM_ORGNR.name, get(Key.BEHOV.str)[0].asText())
-            assertEquals(
-                "Fant ikke forespørselId $FORESPØRSEL_ID_FINNES_IKKE",
-                get(Key.LØSNING.str).get(BehovType.HENT_IM_ORGNR.name).get("error").get("melding").asText()
-            )
-        }
+    fun `forespoersel - skal få tilgang`() {
+        val transaksjonId: UUID = UUID.randomUUID()
+
+        mockForespoerselSvarFraHelsebro(
+            forespoerselId = Mock.forespoerselId,
+            forespoerselSvar =
+                mockForespoerselSvarSuksess().copy(
+                    forespoerselId = Mock.forespoerselId,
+                    orgnr = Mock.orgnrMedTilgang,
+                ),
+        )
+
+        tilgangProducer.publishForespoerselId(transaksjonId, Mock.innloggetFnr, Mock.forespoerselId)
+
+        messages
+            .filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
+            .filter(BehovType.HENT_TRENGER_IM)
+            .firstAsMap()
+            .also {
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data) shouldBe Mock.forespoerselId
+            }
+
+        val result =
+            messages
+                .filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
+                .filter(Key.TILGANG)
+                .firstAsMap()
+
+        val tilgang =
+            result[Key.DATA]
+                .shouldNotBeNull()
+                .toMap()[Key.TILGANG]
+                .shouldNotBeNull()
+                .fromJson(Tilgang.serializer())
+
+        tilgang shouldBe Tilgang.HAR_TILGANG
     }
 
     @Test
-    fun `skal bli nektet tilgang`() {
-        results.clear()
-        producer.publish(INNLOGGET_FNR, FORESPØRSEL_ID_IKKE_TILGANG)
-        Thread.sleep(4000)
-        with(getMessage(3)) {
-            assertNotNull(get(Key.LØSNING.str))
-            val løsning: TilgangskontrollLøsning = get(Key.LØSNING.str).get(BehovType.TILGANGSKONTROLL.name).toJsonElement().fromJson(
-                TilgangskontrollLøsning.serializer()
-            )
-            assertEquals(Tilgang.IKKE_TILGANG, løsning.value)
-            assertEquals(BehovType.HENT_IM_ORGNR.name, get(Key.BEHOV.str)[0].asText())
-        }
+    fun `forespoersel - skal bli nektet tilgang`() {
+        mockForespoerselSvarFraHelsebro(
+            forespoerselId = Mock.forespoerselId,
+            forespoerselSvar =
+                mockForespoerselSvarSuksess().copy(
+                    forespoerselId = Mock.forespoerselId,
+                    orgnr = Mock.orgnrUtenTilgang,
+                ),
+        )
+
+        tilgangProducer.publishForespoerselId(UUID.randomUUID(), Mock.innloggetFnr, Mock.forespoerselId)
+
+        val result =
+            messages
+                .filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
+                .filter(Key.TILGANG)
+                .firstAsMap()
+
+        val tilgang =
+            result[Key.DATA]
+                .shouldNotBeNull()
+                .toMap()[Key.TILGANG]
+                .shouldNotBeNull()
+                .fromJson(Tilgang.serializer())
+
+        tilgang shouldBe Tilgang.IKKE_TILGANG
     }
 
     @Test
-    fun `skal få tilgang`() {
-        results.clear()
-        producer.publish(INNLOGGET_FNR, FORESPØRSEL_ID_HAR_TILGANG)
-        Thread.sleep(6000)
-        assertNotNull(results)
-        with(getMessage(1)) {
-            assertEquals(BehovType.HENT_IM_ORGNR.name, get(Key.BEHOV.str)[0].asText())
-        }
+    fun `organisasjon - skal få tilgang`() {
+        tilgangProducer.publishOrgnr(UUID.randomUUID(), Mock.innloggetFnr, Mock.orgnrMedTilgang.verdi)
+
+        val result =
+            messages
+                .filter(EventName.TILGANG_ORG_REQUESTED)
+                .filter(Key.TILGANG)
+                .firstAsMap()
+
+        val tilgang =
+            result[Key.DATA]
+                .shouldNotBeNull()
+                .toMap()[Key.TILGANG]
+                .shouldNotBeNull()
+                .fromJson(Tilgang.serializer())
+
+        tilgang shouldBe Tilgang.HAR_TILGANG
+    }
+
+    @Test
+    fun `organisasjon - skal bli nektet tilgang`() {
+        tilgangProducer.publishOrgnr(UUID.randomUUID(), Mock.innloggetFnr, Mock.orgnrUtenTilgang.verdi)
+
+        val result =
+            messages
+                .filter(EventName.TILGANG_ORG_REQUESTED)
+                .filter(Key.TILGANG)
+                .firstAsMap()
+
+        val tilgang =
+            result[Key.DATA]
+                .shouldNotBeNull()
+                .toMap()[Key.TILGANG]
+                .shouldNotBeNull()
+                .fromJson(Tilgang.serializer())
+
+        tilgang shouldBe Tilgang.IKKE_TILGANG
+    }
+
+    private object Mock {
+        val innloggetFnr = Fnr.genererGyldig()
+
+        val orgnrMedTilgang = Orgnr.genererGyldig()
+        val orgnrUtenTilgang = Orgnr.genererGyldig()
+
+        val forespoerselId: UUID = UUID.randomUUID()
     }
 }

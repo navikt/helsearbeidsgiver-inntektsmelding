@@ -1,10 +1,10 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt
 
 import kotlinx.serialization.Serializable
-import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
+import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 
 @Serializable
 data class InntektResponse(
     val bruttoinntekt: Double,
-    val tidligereInntekter: List<MottattHistoriskInntekt>
+    val tidligereInntekter: List<InntektPerMaaned>,
 )

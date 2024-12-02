@@ -1,43 +1,53 @@
-#
 # Templated nais.yml for all apps in all clusters.
 #
-# Run the deploy tool with 'dry run' to see the results:
+# Run the deployment tool with 'dry run' to see the results:
 # docker run --rm -it -v $(PWD)/config:/config \
 #   -e CLUSTER=dev-fss \
-#   -e VAR="team=tbd,app=aareg" \
+#   -e VAR="app=aareg" \
 #   ghcr.io/nais/deploy/deploy:latest /app/deploy \
-#     --dry-run --print-payload --resource /config/nais.yml --vars /config/myapp/dev-fss.yml
+#     --dry-run --print-payload --resource /config/nais.yml --vars /config/myapp/dev-
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
   name: im-{{ app }}
-  namespace: {{ team }}
+  namespace: helsearbeidsgiver
   labels:
-    team: {{ team }}
+    team: helsearbeidsgiver
 spec:
   image: {{ image }}
-  port: 8080
+  resources:
+    requests:
+      cpu: 50m
+      memory: 512Mi
+    limits:
+      memory: 1024Mi
+  replicas:
+    min: {{#if replicasMin }}{{ replicasMin }}{{else}}1{{/if}}
+    max: {{#if replicasMax }}{{ replicasMax }}{{else}}1{{/if}}
+    scalingStrategy:
+      cpu:
+        thresholdPercentage: 75
+  startup:
+    path: /isalive
+    initialDelay: 10
+    periodSeconds: 5
+    failureThreshold: 22
+  liveness:
+    path: /isalive
+  readiness:
+    path: /isready
+  secureLogs:
+    enabled: true
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+  prometheus:
+    enabled: true
   {{#if ingress}}
   ingresses:
     - {{ ingress }}
   {{/if}}
-  liveness:
-    path: isalive
-    initialDelay: 5
-  readiness:
-    path: isready
-    initialDelay: 5
-  resources:
-    limits:
-      cpu: 2000m
-      memory: 512Mi
-    requests:
-      cpu: 50m
-      memory: 128Mi
-  replicas:
-    min: 1
-    max: 1
-    cpuThresholdPercentage: 75
   {{#if kafkaPool}}
   kafka:
     pool: {{ kafkaPool }}
@@ -46,46 +56,57 @@ spec:
   azure:
     application:
       enabled: {{ azure.enabled }}
-      {{#if azure.tenant}}
-      tenant: {{ azure.tenant }}
-      {{/if}}
   {{/if}}
   {{#if database}}
   gcp:
     sqlInstances:
       - type: POSTGRES_14
+        {{#if database.cascadingDelete}}
+        cascadingDelete: {{ database.cascadingDelete }}
+        {{/if}}
+        tier: {{ database.tier }}
         databases:
-          - name: {{ database }}
+          - name: {{ database.name }}
+            {{#if database.user}}
+            users:
+              - name: {{ database.user }}
+            {{/if}}
+        {{#if database.logicalDecoding}}
+        flags:
+          - name: cloudsql.logical_decoding
+            value: "on"
+        {{/if}}
   {{/if}}
-  prometheus:
-    enabled: true
-    path: /metrics
-  webproxy: true
-  secureLogs:
-    enabled: true
-  vault:
-    enabled: true
-    {{#if mountPaths}}
-    paths:
-    {{# each mountPaths as |item| }}
-      - mountPath: {{ item.mountPath }}
-        kvPath: {{ item.kvPath }}
-    {{/each}}
-    {{/if}}
   {{#if envFrom}}
   envFrom:
-  {{# each envFrom as |item| }}
+    {{# each envFrom as |item| }}
     - {{ item.type }}: {{ item.name }}
-  {{/each}}{{/if}}
+    {{/each}}
+  {{/if}}
   env:
     - name: KAFKA_CONSUMER_GROUP_ID
-      value: {{#if kafkaConsumerGroup }}{{ kafkaConsumerGroup }}{{else}}{{team}}-im-{{app}}-v1{{/if}}
+      value: helsearbeidsgiver-im-{{app}}-v1
     - name: KAFKA_RAPID_TOPIC
       value: helsearbeidsgiver.rapid
     {{#if env}}{{# each env as |item| }}
     - name: {{ item.name }}
       value: "{{ item.value }}"
     {{/each}}{{/if}}
+  {{#if idportenEnabled}}
+  idporten:
+    enabled: true
+    sidecar:
+      enabled: true
+  {{/if}}
+  {{#if maskinporten}}
+  maskinporten:
+    enabled: true
+    scopes:
+      consumes:
+        {{#each maskinporten.consumes as |consume| }}
+        - name: "{{ consume }}"
+        {{/each}}
+  {{/if}}
   accessPolicy:
     outbound:
       external:
@@ -99,3 +120,13 @@ spec:
           namespace: {{ app.namespace }}
           {{/if}}
         {{/each}}{{/if}}
+    {{#if inboundApps}}
+    inbound:
+      rules:
+        {{# each inboundApps as |app| }}
+        - application: {{ app.name }}
+          {{#if app.namespace}}
+          namespace: {{ app.namespace }}
+          {{/if}}
+        {{/each}}
+    {{/if}}

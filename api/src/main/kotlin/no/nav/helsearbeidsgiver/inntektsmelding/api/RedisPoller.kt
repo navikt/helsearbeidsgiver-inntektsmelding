@@ -1,53 +1,32 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
-import io.lettuce.core.RedisClient
 import kotlinx.coroutines.delay
-import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.felles.Resultat
-import no.nav.helsearbeidsgiver.felles.json.fromJson
-import no.nav.helsearbeidsgiver.felles.json.parseJson
-import no.nav.helsearbeidsgiver.felles.log.loggerSikker
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
+
+private const val MAX_RETRIES = 10
+private const val WAIT_MILLIS_DEFAULT = 500L
+private val WAIT_MILLIS = List(MAX_RETRIES) { 100L * (1 + it) }
 
 // TODO Bruke kotlin.Result istedenfor exceptions?
-// TODO rydd opp i sikkerlogg vs loggerSikker
-class RedisPoller {
-    private val redisClient = RedisClient.create(
-        Env.Redis.url
-    )
-    private val loggerSikker = loggerSikker()
+class RedisPoller(
+    private val redisStore: RedisStore,
+) {
+    private val sikkerLogger = sikkerLogger()
 
-    suspend fun hent(key: String, maxRetries: Int = 10, waitMillis: Long = 500): JsonElement {
-        val json = getString(key, maxRetries, waitMillis)
+    suspend fun hent(key: UUID): ResultJson {
+        repeat(MAX_RETRIES) {
+            sikkerLogger.debug("Polling redis: $it time(s) for key $key")
 
-        loggerSikker.info("Hentet verdi for: $key = $json")
+            val result = redisStore.lesResultat(key)
 
-        return try {
-            json.parseJson()
-        } catch (e: Exception) {
-            "JSON-parsing feilet.".let {
-                sikkerlogg.error("$it key=$key json=$json")
-                throw RedisPollerJsonParseException("$it Se sikker logg for mer info. key=$key", e)
-            }
-        }
-    }
-
-    suspend fun getResultat(key: String, maxRetries: Int = 10, waitMillis: Long = 500): Resultat {
-        val json = hent(key, maxRetries, waitMillis)
-        return try {
-            json.fromJson(Resultat.serializer())
-        } catch (_: Exception) {
-            throw RedisPollerJsonException(key, json.toString())
-        }
-    }
-
-    suspend fun getString(key: String, maxRetries: Int, waitMillis: Long): String {
-        redisClient.connect().use { connection ->
-            repeat(maxRetries) {
-                val str = connection.sync().get(key)
-
-                if (!str.isNullOrEmpty()) return str
-
-                delay(waitMillis)
+            if (result != null) {
+                sikkerLogger.info("Hentet verdi for: '$key' = $result")
+                return result
+            } else {
+                delay(WAIT_MILLIS.getOrNull(it) ?: WAIT_MILLIS_DEFAULT)
             }
         }
 
@@ -55,17 +34,6 @@ class RedisPoller {
     }
 }
 
-sealed class RedisPollerException(
-    message: String,
-    cause: Throwable? = null
-) : Exception(message, cause)
-
-class RedisPollerJsonParseException(message: String, cause: Throwable) : RedisPollerException(message, cause)
-
-class RedisPollerJsonException(uuid: String, json: String) : RedisPollerException(
-    "Klarte ikke å parse ($uuid) med json: $json"
-)
-
-class RedisPollerTimeoutException(uuid: String) : RedisPollerException(
-    "Brukte for lang tid på å svare ($uuid)."
-)
+class RedisPollerTimeoutException(
+    uuid: UUID,
+) : Exception("Brukte for lang tid på å svare ($uuid).")

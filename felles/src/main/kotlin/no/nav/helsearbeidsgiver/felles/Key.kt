@@ -1,78 +1,72 @@
 package no.nav.helsearbeidsgiver.felles
 
-import com.fasterxml.jackson.databind.JsonNode
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.JsonElement
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.isMissingOrNull
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.utils.json.serializer.AsStringSerializer
+
+interface IKey
 
 @Serializable(KeySerializer::class)
-enum class Key(val str: String) {
+enum class Key : IKey {
     // Predefinerte fra rapids-and-rivers-biblioteket
-    ID("@id"),
-    EVENT_NAME("@event_name"),
-    BEHOV("@behov"),
-    LØSNING("@løsning"),
-    OPPRETTET("@opprettet"),
+    EVENT_NAME,
+    BEHOV,
 
     // Egendefinerte
-    NOTIS("notis"),
-    BOOMERANG("boomerang"),
-    SESSION("session"),
-    NESTE_BEHOV("neste_behov"),
-    IDENTITETSNUMMER("identitetsnummer"),
-    INITIATE_ID("initiateId"),
-    UUID("uuid"),
-    ORGNRUNDERENHET("orgnrUnderenhet"),
-    ORGNR("orgnr"),
-    FNR("fnr"),
-    FORESPOERSEL_ID("forespoerselId"),
-    INNTEKTSMELDING("inntektsmelding"),
-    INNTEKTSMELDING_DOKUMENT("inntektsmelding_dokument"),
-    JOURNALPOST_ID("journalpostId"),
-    INNTEKT_DATO("inntektDato"),
-    NAVN("navn"),
-    SAK_ID("sak_id"),
-    DATA("data"),
-    FAIL("fail"),
-    OPPGAVE_ID("oppgave_id");
+    ARBEIDSFORHOLD,
+    ARBEIDSGIVER_FNR,
+    BESTEMMENDE_FRAVAERSDAG,
+    DATA,
+    EKSTERN_INNTEKTSMELDING,
+    ER_DUPLIKAT_IM,
+    FAIL,
+    FNR,
+    FNR_LISTE,
+    FORESPOERSEL,
+    FORESPOERSEL_ID,
+    FORESPOERSEL_MAP,
+    FORESPOERSEL_SVAR,
+    INNSENDING_ID,
+    INNTEKT,
+    INNTEKTSDATO,
+    INNTEKTSMELDING,
+    JOURNALPOST_ID,
+    KONTEKST_ID,
+    LAGRET_INNTEKTSMELDING,
+    OPPGAVE_ID,
+    ORGNR_UNDERENHET,
+    ORGNR_UNDERENHETER,
+    ORG_RETTIGHETER,
+    PERSONER,
+    SAK_ID,
+    SELVBESTEMT_ID,
+    SELVBESTEMT_INNTEKTSMELDING,
+    SKAL_HA_PAAMINNELSE,
+    SKJEMA_INNTEKTSMELDING,
+    SPINN_INNTEKTSMELDING_ID,
+    SYKMELDT,
+    TILGANG,
+    VEDTAKSPERIODE_ID_LISTE,
+    VIRKSOMHET,
+    VIRKSOMHETER,
+    ;
 
     override fun toString(): String =
-        str
+        when (this) {
+            EVENT_NAME -> "@event_name"
+            BEHOV -> "@behov"
+            else -> name.lowercase()
+        }
 
     companion object {
-        internal fun fromJson(json: String): Key? =
-            Key.values().firstOrNull {
-                json == it.str
+        internal fun fromString(key: String): Key =
+            Key.entries.firstOrNull {
+                key == it.toString()
             }
-    }
-
-    fun fra(message: JsonMessage): JsonElement =
-        message[str].toJsonElement()
-}
-
-enum class DataFelt(val str: String) {
-    VIRKSOMHET("virksomhet")
-}
-
-fun JsonMessage.value(key: Key): JsonNode =
-    this[key.str]
-
-fun JsonMessage.valueNullable(key: Key): JsonNode? =
-    value(key).takeUnless(JsonNode::isMissingOrNull)
-
-internal object KeySerializer : KSerializer<Key> {
-    override val descriptor = PrimitiveSerialDescriptor("helsearbeidsgiver.felles.Key", PrimitiveKind.STRING)
-    override fun serialize(encoder: Encoder, value: Key) = value.str.let(encoder::encodeString)
-    override fun deserialize(decoder: Decoder): Key = decoder.decodeString().let { json ->
-        Key.fromJson(json)
-            ?: throw SerializationException("Fant ingen Key med verdi som matchet '$json'.")
+                ?: throw IllegalArgumentException("Fant ingen Key med verdi som matchet '$key'.")
     }
 }
+
+internal object KeySerializer : AsStringSerializer<Key>(
+    serialName = "helsearbeidsgiver.kotlinx.felles.Key",
+    parse = Key::fromString,
+)

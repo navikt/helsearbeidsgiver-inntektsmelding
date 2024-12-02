@@ -1,14 +1,9 @@
-val ktorVersion: String by project
-val dokarkivVersion: String by project
+val dokarkivKlientVersion: String by project
 val hagImXmlKontraktVersion: String by project
 val jacksonVersion: String by project
 val jaxbAPIVersion: String by project
 val jaxbRuntimeVersion: String by project
-val mapstructVersion: String by project
-
-plugins {
-    kotlin("kapt")
-}
+val pdfboxVersion: String by project
 
 tasks {
     withType<JavaCompile> {
@@ -17,21 +12,12 @@ tasks {
 }
 
 dependencies {
-    val pdfboxVersion: String by project
-    implementation(project(":dokument"))
-    implementation("org.apache.pdfbox:pdfbox:$pdfboxVersion")
-    implementation("no.nav.helsearbeidsgiver:dokarkiv-client:$dokarkivVersion")
-    implementation("no.nav.helsearbeidsgiver:helsearbeidsgiver-kontrakt-inntektsmelding:$hagImXmlKontraktVersion")
-    implementation("io.ktor:ktor-client-core:$ktorVersion")
-    implementation("io.ktor:ktor-client-cio:$ktorVersion")
-    implementation("io.ktor:ktor-client-json:$ktorVersion")
     implementation("javax.xml.bind:jaxb-api:$jaxbAPIVersion")
+    implementation("no.nav.helsearbeidsgiver:dokarkiv-client:$dokarkivKlientVersion")
+    implementation("no.nav.helsearbeidsgiver:helsearbeidsgiver-kontrakt-inntektsmelding:$hagImXmlKontraktVersion")
+    implementation("org.apache.pdfbox:pdfbox:$pdfboxVersion")
     implementation("org.glassfish.jaxb:jaxb-runtime:$jaxbRuntimeVersion")
-    implementation("com.fasterxml.jackson.module:jackson-module-jaxb-annotations:$jacksonVersion")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
-    implementation("io.ktor:ktor-client-serialization:$ktorVersion")
-    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-    implementation("org.mapstruct:mapstruct:$mapstructVersion")
-    kapt("org.mapstruct:mapstruct-processor:$mapstructVersion")
+
+    testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
+    testImplementation("com.fasterxml.jackson.module:jackson-module-jaxb-annotations:$jacksonVersion")
 }

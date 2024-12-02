@@ -1,36 +1,43 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.RapidsConnection
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
-import java.time.LocalDateTime
+import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class InnsendingProducer(
-    private val rapidsConnection: RapidsConnection
+    private val rapid: RapidsConnection,
 ) {
     init {
-        logger.info("Starter InnsendingProducer...")
+        logger.info("Starter ${InnsendingProducer::class.simpleName}...")
     }
 
-    fun publish(forespørselId: String, request: InnsendingRequest): String {
-        val packet: JsonMessage = JsonMessage.newMessage(
-            mapOf(
-                Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
-                Key.OPPRETTET.str to LocalDateTime.now(),
-                Key.UUID.str to forespørselId,
-                Key.ORGNRUNDERENHET.str to request.orgnrUnderenhet,
-                Key.IDENTITETSNUMMER.str to request.identitetsnummer,
-                Key.INNTEKTSMELDING.str to request
-            )
-        )
-        rapidsConnection.publish(request.identitetsnummer, packet.toJson())
-        logger.info("Publiserte til kafka forespørselId: $forespørselId")
-        sikkerlogg.info("Publiserte til kafka forespørselId: $forespørselId json=${packet.toJson()}")
-        return forespørselId
+    fun publish(
+        transaksjonId: UUID,
+        skjemaInntektsmelding: SkjemaInntektsmelding,
+        arbeidsgiverFnr: Fnr,
+    ) {
+        rapid
+            .publish(
+                key = skjemaInntektsmelding.forespoerselId,
+                Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+                Key.KONTEKST_ID to transaksjonId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
+                        Key.SKJEMA_INNTEKTSMELDING to skjemaInntektsmelding.toJson(SkjemaInntektsmelding.serializer()),
+                    ).toJson(),
+            ).also {
+                logger.info("Publiserte til kafka forespørselId: ${skjemaInntektsmelding.forespoerselId} og transaksjonId=$transaksjonId")
+                sikkerLogger.info("Publiserte til kafka forespørselId: ${skjemaInntektsmelding.forespoerselId} json=${it.toPretty()}")
+            }
     }
 }

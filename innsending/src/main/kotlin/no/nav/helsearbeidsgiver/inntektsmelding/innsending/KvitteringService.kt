@@ -1,123 +1,135 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
+import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.domene.InnsendtInntektsmelding
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
+import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
 
-// TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
-class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: RedisStore) : River.PacketListener {
+class KvitteringService(
+    private val rapid: RapidsConnection,
+    private val redisStore: RedisStore,
+) : ServiceMed1Steg<KvitteringService.Steg0, KvitteringService.Steg1>() {
+    override val logger = logger()
+    override val sikkerLogger = sikkerLogger()
 
-    val event: EventName = EventName.KVITTERING_REQUESTED
-    val listener: KvitteringStartedListener
-    init {
-        logger.info("Starter kvitteringservice")
-        listener = KvitteringStartedListener(this, rapidsConnection)
-        DelegatingFailKanal(EventName.KVITTERING_REQUESTED, this, rapidsConnection)
-        StatefullDataKanal(DataFelter.values().map { it.str }.toTypedArray(), EventName.KVITTERING_REQUESTED, this, rapidsConnection, redisStore)
-    }
+    override val eventName = EventName.KVITTERING_REQUESTED
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val transaction: Transaction = startTransactionIfAbsent(packet)
+    data class Steg0(
+        val transaksjonId: UUID,
+        val forespoerselId: UUID,
+    )
 
-        when (transaction) {
-            Transaction.NEW -> dispatchBehov(packet, transaction)
-            Transaction.IN_PROGRESS -> dispatchBehov(packet, transaction)
-            Transaction.FINALIZE -> finalize(packet)
-            Transaction.TERMINATE -> terminate(packet)
-        }
-    }
+    data class Steg1(
+        val inntektsmeldingDokument: Inntektsmelding?,
+        val eksternInntektsmelding: EksternInntektsmelding?,
+    )
 
-    private fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
-        when (transaction) {
-            Transaction.NEW -> {
-                val uuid: String = message[Key.UUID.str].asText()
-                val transactionId: String = message[Key.INITIATE_ID.str].asText()
-                logger.info("Sender event: ${event.name} for forespørsel $uuid")
-                val msg = JsonMessage.newMessage(
-                    mapOf(
-                        Key.BEHOV.str to listOf(BehovType.HENT_PERSISTERT_IM.name),
-                        Key.EVENT_NAME.str to event.name,
-                        Key.UUID.str to uuid,
-                        Key.INITIATE_ID.str to transactionId
-                    )
-                ).toJson()
-                logger.info("Publiserer melding: $msg")
-                rapidsConnection.publish(msg)
-            }
-            Transaction.IN_PROGRESS -> {
-                logger.error("Mottok ${Transaction.IN_PROGRESS}, skal ikke skje")
-            }
-            Transaction.FINALIZE -> {
-                logger.error("Mottok ${Transaction.FINALIZE}, skal ikke skje")
-            }
-            Transaction.TERMINATE -> {
-                logger.error("Mottok ${Transaction.TERMINATE}, skal ikke skje")
-            }
-        }
-    }
+    override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
+        Steg0(
+            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
+            forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
+        )
 
-    fun finalize(message: JsonMessage) {
-        val uuid = message[Key.UUID.str].asText()
-        val transactionId = message[Key.INITIATE_ID.str].asText()
-        val dok = message[Key.INNTEKTSMELDING_DOKUMENT.str].asText()
-        logger.info("Finalize kvittering med id=$uuid")
-        redisStore.set(transactionId, dok)
-    }
+    override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
+        Steg1(
+            inntektsmeldingDokument =
+                Key.LAGRET_INNTEKTSMELDING
+                    .les(ResultJson.serializer(), melding)
+                    .success
+                    ?.fromJson(Inntektsmelding.serializer()),
+            eksternInntektsmelding =
+                Key.EKSTERN_INNTEKTSMELDING
+                    .les(ResultJson.serializer(), melding)
+                    .success
+                    ?.fromJson(EksternInntektsmelding.serializer()),
+        )
 
-    fun terminate(message: JsonMessage) {
-        val uuid = message[Key.UUID.str].asText()
-        logger.info("Terminate kvittering med id=$uuid")
-        redisStore.set(message[Key.INITIATE_ID.str].asText(), message[Key.FAIL.str].asText())
-    }
+    override fun utfoerSteg0(
+        data: Map<Key, JsonElement>,
+        steg0: Steg0,
+    ) {
+        val publisert =
+            rapid.publish(
+                key = steg0.forespoerselId,
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.BEHOV to BehovType.HENT_LAGRET_IM.toJson(),
+                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                Key.DATA to
+                    data
+                        .plus(
+                            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                        ).toJson(),
+            )
 
-    private fun startTransactionIfAbsent(message: JsonMessage): Transaction {
-        sikkerlogg.info("Mottok melding ${message.toJson()}")
-        val uuid = message[Key.UUID.str].asText()
-        val transactionId = message[Key.INITIATE_ID.str].asText()
-        logger.info("Sjekker transaksjon $transactionId for forespørsel: $uuid")
-        if (feilmelding(message)) {
-            logger.info("Mottok feilmelding på forespørsel $uuid, avslutter transaksjon")
-            return Transaction.TERMINATE
-        }
-        val eventKey = "$uuid-$transactionId"
-        // ^ bruke event.name + transactionId for mer generisk løsning hvis flere samtidige behov
-        val value = redisStore.get(eventKey)
-        return if (value.isNullOrEmpty()) {
-            redisStore.set(eventKey, uuid)
-            Transaction.NEW
-        } else {
-            Transaction.FINALIZE // Vi venter kun på en melding, ellers må man sjekke at man har fått alt i redis
-        }
-    }
-
-    private fun feilmelding(jsonMessage: JsonMessage): Boolean {
-        try {
-            return !jsonMessage[Key.FAIL.str].asText().isNullOrEmpty()
-        } catch (e: NoSuchFieldError) {
-            return false
-        } catch (e: IllegalArgumentException) {
-            return false
-        }
-    }
-
-    class KvitteringStartedListener(val mainListener: River.PacketListener, rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
-
-        override val event: EventName = EventName.KVITTERING_REQUESTED
-
-        override fun accept(): River.PacketValidation {
-            return River.PacketValidation {
-                it.requireKey(Key.INITIATE_ID.str, Key.UUID.str)
+        MdcUtils.withLogFields(
+            Log.behov(BehovType.HENT_LAGRET_IM),
+        ) {
+            "Publiserte melding med behov ${BehovType.HENT_LAGRET_IM}.".let {
+                logger.info(it)
+                sikkerLogger.info("$it\n${publisert.toPretty()}")
             }
         }
+    }
 
-        override fun onEvent(packet: JsonMessage) {
-            mainListener.onPacket(packet, rapidsConnection)
+    override fun utfoerSteg1(
+        data: Map<Key, JsonElement>,
+        steg0: Steg0,
+        steg1: Steg1,
+    ) {
+        val resultJson =
+            ResultJson(
+                success =
+                    InnsendtInntektsmelding(steg1.inntektsmeldingDokument, steg1.eksternInntektsmelding).toJson(InnsendtInntektsmelding.serializer()),
+            )
+
+        redisStore.skrivResultat(steg0.transaksjonId, resultJson)
+    }
+
+    override fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    ) {
+        MdcUtils.withLogFields(
+            Log.klasse(this),
+            Log.event(eventName),
+            Log.transaksjonId(fail.transaksjonId),
+        ) {
+            "Klarte ikke hente kvittering for forespørsel '${fail.forespoerselId}'.".also {
+                logger.warn(it)
+                sikkerLogger.warn(it)
+            }
+
+            val resultJson = ResultJson(failure = fail.feilmelding.toJson())
+
+            redisStore.skrivResultat(fail.transaksjonId, resultJson)
         }
     }
+
+    override fun Steg0.loggfelt(): Map<String, String> =
+        mapOf(
+            Log.klasse(this@KvitteringService),
+            Log.event(eventName),
+            Log.transaksjonId(transaksjonId),
+            Log.forespoerselId(forespoerselId),
+        )
 }

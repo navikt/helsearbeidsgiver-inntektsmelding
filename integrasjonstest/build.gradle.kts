@@ -1,61 +1,63 @@
 val aaregClientVersion: String by project
 val altinnClientVersion: String by project
-val arbeidsgiverNotifikasjonVersion: String by project
+val arbeidsgiverNotifikasjonKlientVersion: String by project
+val bakgrunnsjobbVersion: String by project
 val brregKlientVersion: String by project
 val dokarkivKlientVersion: String by project
-val exposedVersion: String by project
-val flywayVersion: String by project
-val hikariVersion: String by project
 val inntektKlientVersion: String by project
 val junitJupiterVersion: String by project
-val ktorVersion: String by project
 val pdlKlientVersion: String by project
-val postgresqlVersion: String by project
 val testcontainersRedisJunitVersion: String by project
 val testcontainersVersion: String by project
 
 dependencies {
-    implementation(project(":aareg"))
-    implementation(project(":akkumulator"))
-    implementation(project(":altinn"))
-    implementation(project(":api"))
-    implementation(project(":brreg"))
-    implementation(project(":db"))
-    implementation(project(":distribusjon"))
-    implementation(project(":dokument"))
-    implementation(project(":felles"))
-    implementation(project(":forespoersel-mottatt"))
-    implementation(project(":helsebro"))
-    implementation(project(":innsending"))
-    implementation(project(":inntekt"))
-    implementation(project(":joark"))
-    implementation(project(":notifikasjon"))
-    implementation(project(":pdl"))
-    implementation(project(":preutfylt"))
+    testImplementation(project(":aareg"))
+    testImplementation(project(":aktiveorgnrservice"))
+    testImplementation(project(":altinn"))
+    testImplementation(project(":api"))
+    testImplementation(project(":bro-spinn"))
+    testImplementation(project(":brreg"))
+    testImplementation(project(":db"))
+    testImplementation(project(":distribusjon"))
+    testImplementation(project(":forespoersel-besvart"))
+    testImplementation(project(":forespoersel-forkastet"))
+    testImplementation(project(":forespoersel-infotrygd"))
+    testImplementation(project(":forespoersel-marker-besvart"))
+    testImplementation(project(":forespoersel-mottatt"))
+    testImplementation(project(":helsebro"))
+    testImplementation(project(":innsending"))
+    testImplementation(project(":inntekt"))
+    testImplementation(project(":inntekt-selvbestemt-service"))
+    testImplementation(project(":inntektservice"))
+    testImplementation(project(":joark"))
+    testImplementation(project(":notifikasjon"))
+    testImplementation(project(":pdl"))
+    testImplementation(project(":selvbestemt-hent-im-service"))
+    testImplementation(project(":selvbestemt-lagre-im-service"))
+    testImplementation(project(":tilgangservice"))
+    testImplementation(project(":trengerservice"))
+    testImplementation(project(":berik-inntektsmelding-service"))
+    testImplementation(project(":feil-behandler"))
 
-    implementation("no.nav.helsearbeidsgiver:aareg-client:$aaregClientVersion")
-    implementation("no.nav.helsearbeidsgiver:altinn-client:$altinnClientVersion")
-    implementation("no.nav.helsearbeidsgiver:arbeidsgiver-notifikasjon-klient:$arbeidsgiverNotifikasjonVersion")
-    implementation("no.nav.helsearbeidsgiver:brreg-client:$brregKlientVersion")
-    implementation("no.nav.helsearbeidsgiver:dokarkiv-client:$dokarkivKlientVersion")
-    implementation("no.nav.helsearbeidsgiver:inntekt-klient:$inntektKlientVersion")
-    implementation("no.nav.helsearbeidsgiver:pdl-client:$pdlKlientVersion")
+    testImplementation(project(":felles"))
+    testImplementation(project(":felles-db-exposed"))
 
-    implementation("com.zaxxer:HikariCP:$hikariVersion")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-    implementation("org.flywaydb:flyway-core:$flywayVersion")
-    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
-    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
-    implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
-    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
-    implementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
+    testImplementation("no.nav.helsearbeidsgiver:hag-bakgrunnsjobb:$bakgrunnsjobbVersion")
 
-    runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")
+    testImplementation(testFixtures(project(":felles")))
+    testImplementation(testFixtures(project(":felles-db-exposed")))
 
-    testApi(project(":api"))
+    // Klienter
+    testImplementation("no.nav.helsearbeidsgiver:aareg-client:$aaregClientVersion")
+    testImplementation("no.nav.helsearbeidsgiver:altinn-client:$altinnClientVersion")
+    testImplementation("no.nav.helsearbeidsgiver:arbeidsgiver-notifikasjon-klient:$arbeidsgiverNotifikasjonKlientVersion")
+    testImplementation("no.nav.helsearbeidsgiver:brreg-client:$brregKlientVersion")
+    testImplementation("no.nav.helsearbeidsgiver:dokarkiv-client:$dokarkivKlientVersion")
+    testImplementation("no.nav.helsearbeidsgiver:inntekt-klient:$inntektKlientVersion")
+    testImplementation("no.nav.helsearbeidsgiver:pdl-client:$pdlKlientVersion")
 
     testImplementation("com.redis.testcontainers:testcontainers-redis-junit:$testcontainersRedisJunitVersion")
-    testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
 }

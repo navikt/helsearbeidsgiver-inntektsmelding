@@ -1,29 +1,27 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.aareg
 
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.aareg.AaregClient
-import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.tokenprovider.oauth2ClientCredentialsTokenGetter
+import no.nav.helsearbeidsgiver.utils.log.logger
 
-val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
-internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-aareg")
+private val logger = "im-aareg".logger()
 
 fun main() {
     RapidApplication
         .create(System.getenv())
-        .createAareg(buildClient(setUpEnvironment()))
+        .createAaregRiver(buildClient())
         .start()
 }
 
-fun RapidsConnection.createAareg(aaregClient: AaregClient): RapidsConnection {
-    sikkerlogg.info("Starter ArbeidsforholdLøser...")
-    ArbeidsforholdLøser(this, aaregClient)
-    return this
-}
+fun RapidsConnection.createAaregRiver(aaregClient: AaregClient): RapidsConnection =
+    also {
+        logger.info("Starter ${HentArbeidsforholdRiver::class.simpleName}...")
+        HentArbeidsforholdRiver(aaregClient).connect(this)
+    }
 
-fun buildClient(environment: Environment): AaregClient {
-    val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
-    return AaregClient(url = environment.aaregUrl, getAccessToken = tokenProvider::getToken)
+private fun buildClient(): AaregClient {
+    val tokenGetter = oauth2ClientCredentialsTokenGetter(Env.oauth2Environment)
+    return AaregClient(url = Env.aaregUrl, getAccessToken = tokenGetter)
 }

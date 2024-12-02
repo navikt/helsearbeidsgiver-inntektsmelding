@@ -1,27 +1,42 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidsConnection
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
+import no.nav.helsearbeidsgiver.utils.log.logger
 
-val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
-internal val logger: Logger = LoggerFactory.getLogger("innsending")
+private val logger = "helsearbeidsgiver-im-innsending".logger()
 
 fun main() {
+    val redisConnection = RedisConnection(Env.redisUrl)
+
     RapidApplication
         .create(System.getenv())
-        .createInnsending(buildRedisStore(setUpEnvironment()))
-        .start()
+        .createInnsending(redisConnection)
+        .registerShutdownLifecycle {
+            redisConnection.close()
+        }.start()
 }
 
-fun RapidsConnection.createInnsending(redisStore: RedisStore): RapidsConnection {
-    InnsendingService(this, redisStore)
-    KvitteringService(this, redisStore)
-    return this
-}
+fun RapidsConnection.createInnsending(redisConnection: RedisConnection): RapidsConnection =
+    also {
+        logger.info("Starter ${InnsendingService::class.simpleName}...")
+        ServiceRiverStateless(
+            InnsendingService(
+                rapid = this,
+                redisStore = RedisStore(redisConnection, RedisPrefix.Innsending),
+            ),
+        ).connect(this)
 
-fun buildRedisStore(environment: Environment): RedisStore {
-    sikkerlogg.info("Redis url er " + environment.redisUrl)
-    return RedisStore(environment.redisUrl)
-}
+        logger.info("Starter ${KvitteringService::class.simpleName}...")
+        ServiceRiverStateless(
+            KvitteringService(
+                rapid = this,
+                redisStore = RedisStore(redisConnection, RedisPrefix.Kvittering),
+            ),
+        ).connect(this)
+    }

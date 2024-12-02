@@ -1,56 +1,155 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.data.row
+import io.kotest.datatest.withData
+import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.shouldBe
+import io.mockk.clearAllMocks
+import io.mockk.mockk
+import io.mockk.verify
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.Test
+import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.domene.InnsendtInntektsmelding
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
+import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
+import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import java.util.UUID
 
-@Disabled // Må starte lokal redis for å kjøre denne
-class KvitteringServiceTest {
-    private val redisStore = RedisStore("redis://localhost:6379/0")
+class KvitteringServiceTest :
+    FunSpec({
+        val testRapid = TestRapid()
+        val mockRedisStore = mockk<RedisStore>(relaxed = true)
 
-    private val testRapid: TestRapid = TestRapid()
+        ServiceRiverStateless(
+            KvitteringService(testRapid, mockRedisStore),
+        ).connect(testRapid)
 
-    val foresporselid = "abc"
-    val transactionId = "123456"
+        beforeTest {
+            testRapid.reset()
+            clearAllMocks()
+        }
 
-    @BeforeEach
-    fun setup() {
-        testRapid.reset()
-    }
+        context("kvittering hentes") {
+            withData(
+                mapOf(
+                    "inntektsmelding hentes" to row(mockInntektsmelding(), null),
+                    "ekstern inntektsmelding hentes" to row(null, mockEksternInntektsmelding()),
+                    "ingen inntektsmelding funnet" to row(null, null),
+                    "begge typer inntektsmelding funnet (skal ikke skje)" to row(mockInntektsmelding(), mockEksternInntektsmelding()),
+                ),
+            ) { (expectedInntektsmelding, expectedEksternInntektsmelding) ->
+                val transaksjonId: UUID = UUID.randomUUID()
+                val expectedSuccess = MockKvittering.successResult(expectedInntektsmelding, expectedEksternInntektsmelding)
 
-    @Test
-    fun `kvitteringServiceTest`() {
-        val service = KvitteringService(testRapid, redisStore)
+                testRapid.sendJson(
+                    MockKvittering.steg0(transaksjonId),
+                )
 
-        val packet: JsonMessage = JsonMessage.newMessage(
-            mapOf(
-                Key.EVENT_NAME.str to service.event.name,
-                Key.UUID.str to foresporselid,
-                Key.INITIATE_ID.str to transactionId
+                testRapid.inspektør.size shouldBeExactly 1
+                testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_LAGRET_IM
+
+                testRapid.sendJson(
+                    MockKvittering.steg1(transaksjonId, expectedInntektsmelding, expectedEksternInntektsmelding),
+                )
+
+                testRapid.inspektør.size shouldBeExactly 1
+
+                verify {
+                    mockRedisStore.skrivResultat(transaksjonId, expectedSuccess)
+                }
+            }
+        }
+
+        test("svarer med feilmelding dersom man ikke klarer å hente inntektsmelding") {
+            val expectedFailure = MockKvittering.failureResult()
+
+            testRapid.sendJson(
+                MockKvittering.steg0(MockKvittering.fail.transaksjonId),
             )
-        )
-        assertNull(redisStore.get(transactionId))
-        testRapid.sendTestMessage(packet.toJson())
 
-        assertNotNull(redisStore.get(transactionId))
-
-        val im = "inntektsmelding_FTW"
-        val svarMelding: JsonMessage = JsonMessage.newMessage(
-            mapOf(
-                Key.EVENT_NAME.str to service.event.name,
-                Key.UUID.str to foresporselid,
-                Key.INITIATE_ID.str to transactionId,
-                Key.INNTEKTSMELDING_DOKUMENT.str to im
+            testRapid.sendJson(
+                MockKvittering.fail.tilMelding(),
             )
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            verify {
+                mockRedisStore.skrivResultat(MockKvittering.fail.transaksjonId, expectedFailure)
+            }
+        }
+    })
+
+private object MockKvittering {
+    val foresporselId: UUID = UUID.randomUUID()
+
+    fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
+        mapOf(
+            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to foresporselId.toJson(),
+                ).toJson(),
         )
-        testRapid.reset()
-        testRapid.sendTestMessage(svarMelding.toJson())
-        assertEquals(im, redisStore.get(transactionId))
-    }
+
+    fun steg1(
+        transaksjonId: UUID,
+        inntektsmelding: Inntektsmelding?,
+        eksternInntektsmelding: EksternInntektsmelding?,
+    ): Map<Key, JsonElement> =
+        mapOf(
+            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to foresporselId.toJson(),
+                    Key.LAGRET_INNTEKTSMELDING to
+                        ResultJson(
+                            success =
+                                inntektsmelding?.toJson(Inntektsmelding.serializer()),
+                        ).toJson(),
+                    Key.EKSTERN_INNTEKTSMELDING to
+                        ResultJson(
+                            success =
+                                eksternInntektsmelding?.toJson(EksternInntektsmelding.serializer()),
+                        ).toJson(),
+                ).toJson(),
+        )
+
+    fun successResult(
+        inntektsmelding: Inntektsmelding?,
+        eksternInntektsmelding: EksternInntektsmelding?,
+    ): ResultJson =
+        ResultJson(
+            success = InnsendtInntektsmelding(inntektsmelding, eksternInntektsmelding).toJson(InnsendtInntektsmelding.serializer()),
+        )
+
+    fun failureResult(): ResultJson =
+        ResultJson(
+            failure = fail.feilmelding.toJson(),
+        )
+
+    val fail =
+        Fail(
+            feilmelding = "Fool of a Took!",
+            event = EventName.KVITTERING_REQUESTED,
+            transaksjonId = UUID.randomUUID(),
+            forespoerselId = null,
+            utloesendeMelding = JsonNull,
+        )
 }

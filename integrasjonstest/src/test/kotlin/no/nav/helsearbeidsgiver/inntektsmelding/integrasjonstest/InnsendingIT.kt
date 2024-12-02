@@ -1,188 +1,250 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
+import io.kotest.matchers.booleans.shouldBeFalse
+import io.kotest.matchers.booleans.shouldBeTrue
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.maps.shouldContainKey
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.nyStatusSak
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.nyStatusSakByGrupperingsid
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.oppgaveUtfoert
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNyOppgave
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNySak
-import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostResponse
-import no.nav.helsearbeidsgiver.felles.BehovType
+import io.mockk.verify
+import kotlinx.serialization.builtins.serializer
+import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.OppgaveFerdigLøsning
-import no.nav.helsearbeidsgiver.felles.PersisterImLøsning
-import no.nav.helsearbeidsgiver.felles.SakFerdigLøsning
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
-import no.nav.helsearbeidsgiver.felles.json.fromJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.DisplayName
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
+import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro
+import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
+import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.august
+import no.nav.helsearbeidsgiver.utils.test.date.juli
+import no.nav.helsearbeidsgiver.utils.test.date.juni
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@DisplayName("Innsending av skjema fra frontend")
-internal class InnsendingIT : EndToEndTest() {
-
-    val FNR = "fnr-123"
-    val ORGNR = "orgnr-456"
-    val SAK_ID = "sak_id_123"
-    val OPPGAVE_ID = "oppgave_id_456"
-    val FORESPØRSEL_ID = UUID.randomUUID().toString()
-    val REQUEST = mockRequest()
-    val JOURNALPOST_ID = "jp-789"
-
+class InnsendingIT : EndToEndTest() {
+    @BeforeEach
     fun setup() {
-        forespoerselRepository.lagreForespørsel(FORESPØRSEL_ID, ORGNR)
-        forespoerselRepository.oppdaterSakId(SAK_ID, FORESPØRSEL_ID)
-        forespoerselRepository.oppdaterOppgaveId(FORESPØRSEL_ID, OPPGAVE_ID)
-
-        // Mocking
-        val arbeidsgiverNotifikasjonKlient = this.arbeidsgiverNotifikasjonKlient
-
-        coEvery {
-            arbeidsgiverNotifikasjonKlient.nyStatusSak(any(), any(), any(), any())
-        } answers {
-            "?"
-        }
-
-        coEvery {
-            arbeidsgiverNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any())
-        } answers {
-            "?"
-        }
-
-        coEvery {
-            arbeidsgiverNotifikasjonKlient.oppgaveUtfoert(any())
-        } answers {
-            "?"
-        }
-
-        coEvery {
-            arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any())
-        } answers {
-            SAK_ID
-        }
-        coEvery {
-            arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any())
-        } answers {
-            OPPGAVE_ID
-        }
-        coEvery {
-            aaregClient.hentArbeidsforhold(any(), any())
-        } answers {
-            emptyList()
-        }
-        coEvery {
-            dokarkivClient.opprettJournalpost(any(), any(), any())
-        } answers {
-            OpprettJournalpostResponse(JOURNALPOST_ID, journalpostFerdigstilt = true, "FERDIGSTILT", "", emptyList())
-        }
+        truncateDatabase()
     }
 
     @Test
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
-        setup()
-        publish(
-            mapOf(
-                Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
-                Key.OPPRETTET.str to LocalDateTime.now(),
-                Key.UUID.str to FORESPØRSEL_ID,
-                Key.ORGNRUNDERENHET.str to REQUEST.orgnrUnderenhet,
-                Key.IDENTITETSNUMMER.str to REQUEST.identitetsnummer,
-                Key.INNTEKTSMELDING.str to REQUEST
-            )
+        mockForespoerselSvarFraHelsebro(
+            forespoerselId = Mock.forespoerselId,
+            forespoerselSvar = Mock.forespoerselSvar,
         )
-        Thread.sleep(10000)
 
-        assertNotNull(meldinger)
+        coEvery {
+            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
+        } returns
+            OpprettOgFerdigstillResponse(
+                journalpostId = Mock.JOURNALPOST_ID,
+                journalpostFerdigstilt = true,
+                melding = "Ha en fin dag!",
+                dokumenter = emptyList(),
+            )
 
-        with(filter(EventName.INSENDING_STARTED, BehovType.PERSISTER_IM, true).first()) {
-            // Ble lagret i databasen
-            assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
-            assertNotNull(get(Key.INNTEKTSMELDING.str).asText())
-            val løsning: PersisterImLøsning = get(Key.LØSNING.str).get(BehovType.PERSISTER_IM.name).toJsonElement().fromJson(PersisterImLøsning.serializer())
-            assertNull(løsning.error)
-        }
+        publish(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.KONTEKST_ID to UUID.randomUUID().toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.ARBEIDSGIVER_FNR to Mock.forespoersel.fnr.toJson(),
+                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                ).toJson(),
+        )
 
-        with(filter(EventName.INNTEKTSMELDING_MOTTATT, BehovType.JOURNALFOER, true).first()) {
-            // Journalført i dokarkiv
-            assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
-        }
+        messages
+            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+            .filter(Key.ER_DUPLIKAT_IM)
+            .firstAsMap()
+            .also {
+                // Ble lagret i databasen
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.ER_DUPLIKAT_IM].shouldNotBeNull().fromJson(Boolean.serializer()).shouldBeFalse()
+            }
 
-        with(filter(EventName.INNTEKTSMELDING_MOTTATT, null, false).first()) {
-            // EVENT: Mottatt inntektsmelding
-            assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
-        }
+        messages
+            .filter(EventName.INNTEKTSMELDING_MOTTATT)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
+            }
 
-        with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, null, false).first()) {
-            // EVENT: Journalføring
-            assertEquals(JOURNALPOST_ID, get(Key.JOURNALPOST_ID.str).asText())
-            assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
-            assertEquals(OPPGAVE_ID, get(Key.OPPGAVE_ID.str).asText())
-        }
+        messages
+            .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
+            .firstAsMap()
+            .also {
+                it shouldContainKey Key.INNTEKTSMELDING
+                it[Key.JOURNALPOST_ID]?.fromJson(String.serializer()) shouldBe Mock.JOURNALPOST_ID
+            }
 
-        with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, BehovType.DISTRIBUER_IM, false).first()) {
-            // Be om å distribuere
-            assertEquals(JOURNALPOST_ID, get(Key.JOURNALPOST_ID.str).asText())
-        }
+        messages
+            .filter(EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET)
+            .firstAsMap()
+            .also {
+                it shouldContainKey Key.INNTEKTSMELDING
+                it[Key.JOURNALPOST_ID]?.fromJson(String.serializer()) shouldBe Mock.JOURNALPOST_ID
+            }
 
-        with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, BehovType.ENDRE_SAK_STATUS, true).first()) {
-            // Endre status for arbeidsgivernotifikasjon sak
-            assertEquals(SAK_ID, get(Key.SAK_ID.str).asText())
-            val løsning: SakFerdigLøsning =
-                get(Key.LØSNING.str).get(BehovType.ENDRE_SAK_STATUS.name).toJsonElement().fromJson(SakFerdigLøsning.serializer())
-            assertEquals(SAK_ID, løsning.value)
-        }
+        messages
+            .filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
+            .firstAsMap()
+            .also {
+                // Verifiser at inntektsmelding er distribuert på ekstern kafka
+                it[Key.JOURNALPOST_ID]?.fromJson(String.serializer()) shouldBe Mock.JOURNALPOST_ID
 
-        with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, BehovType.ENDRE_OPPGAVE_STATUS, true).first()) {
-            // Endre status for arbeidsgivernotifikasjon oppgave
-            assertEquals(OPPGAVE_ID, get(Key.OPPGAVE_ID.str).asText())
-            val løsning: OppgaveFerdigLøsning =
-                get(Key.LØSNING.str).get(BehovType.ENDRE_OPPGAVE_STATUS.name).toJsonElement().fromJson(OppgaveFerdigLøsning.serializer())
-            assertEquals(OPPGAVE_ID, løsning.value)
+                it[Key.INNTEKTSMELDING].shouldNotBeNull()
+            }
+
+        messages
+            .filter(EventName.SAK_OG_OPPGAVE_FERDIGSTILT)
+            .firstAsMap()
+            .also {
+                Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
+            }
+
+        bekreftMarkeringAvForespoerselSomBesvart()
+    }
+
+    @Test
+    fun `skal ikke lagre duplikat inntektsmelding`() {
+        imRepository.lagreInntektsmeldingSkjema(Mock.skjema)
+
+        publish(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.KONTEKST_ID to UUID.randomUUID().toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                    Key.ARBEIDSGIVER_FNR to Mock.forespoersel.fnr.toJson(),
+                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                ).toJson(),
+        )
+
+        messages
+            .filter(EventName.INSENDING_STARTED)
+            .filter(Key.ER_DUPLIKAT_IM)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.ER_DUPLIKAT_IM].shouldNotBeNull().fromJson(Boolean.serializer()).shouldBeTrue()
+            }
+
+        messages.filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET).all() shouldHaveSize 0
+
+        messages.filter(EventName.INNTEKTSMELDING_MOTTATT).all() shouldHaveSize 0
+
+        messages.filter(EventName.INNTEKTSMELDING_JOURNALFOERT).all() shouldHaveSize 0
+
+        messages.filter(EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET).all() shouldHaveSize 0
+
+        messages.filter(EventName.INNTEKTSMELDING_DISTRIBUERT).all() shouldHaveSize 0
+    }
+
+    @Test
+    fun `skal ikke lagre duplikat inntektsmeldingskjema`() {
+        imRepository.lagreInntektsmeldingSkjema(Mock.skjema)
+
+        publish(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.KONTEKST_ID to UUID.randomUUID().toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                    Key.ARBEIDSGIVER_FNR to Mock.forespoersel.fnr.toJson(),
+                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                ).toJson(),
+        )
+
+        messages
+            .filter(EventName.INSENDING_STARTED)
+            .filter(Key.ER_DUPLIKAT_IM)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.ER_DUPLIKAT_IM].shouldNotBeNull().fromJson(Boolean.serializer()).shouldBeTrue()
+            }
+
+        messages.filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET).all() shouldHaveSize 0
+
+        messages.filter(EventName.INNTEKTSMELDING_MOTTATT).all() shouldHaveSize 0
+
+        messages.filter(EventName.INNTEKTSMELDING_JOURNALFOERT).all() shouldHaveSize 0
+
+        messages.filter(EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET).all() shouldHaveSize 0
+
+        messages.filter(EventName.INNTEKTSMELDING_DISTRIBUERT).all() shouldHaveSize 0
+    }
+
+    private fun bekreftMarkeringAvForespoerselSomBesvart() {
+        verify(exactly = 1) {
+            priProducer.send(
+                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
+                Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+            )
         }
     }
 
-    private fun mockRequest(): InnsendingRequest {
-        return InnsendingRequest(
-            ORGNR,
-            FNR,
-            listOf(LocalDate.now().plusDays(5)),
-            listOf(
-                no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode(
-                    LocalDate.now(),
-                    LocalDate.now().plusDays(2)
-                )
-            ),
-            emptyList(),
-            LocalDate.now(),
-            emptyList(),
-            Inntekt(true, 32100.0.toBigDecimal(), endringÅrsak = null, false),
-            FullLonnIArbeidsgiverPerioden(
-                true,
-                BegrunnelseIngenEllerRedusertUtbetalingKode.ARBEID_OPPHOERT
-            ),
-            Refusjon(true, 200.0.toBigDecimal(), LocalDate.now()),
-            listOf(
-                no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse(
-                    no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode.KOST_DOEGN,
-                    LocalDate.now(),
-                    300.0.toBigDecimal()
-                )
-            ),
-            no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending.ENDRING,
-            true
-        )
+    private object Mock {
+        const val JOURNALPOST_ID = "journalpost-id-skoleboller"
+
+        val skjema = mockSkjemaInntektsmelding()
+
+        val forespoerselId: UUID = skjema.forespoerselId
+
+        private val orgnr = Orgnr.genererGyldig()
+
+        val forespoersel =
+            Forespoersel(
+                orgnr = orgnr.verdi,
+                fnr = bjarneBetjent.ident!!,
+                vedtaksperiodeId = UUID.randomUUID(),
+                sykmeldingsperioder =
+                    listOf(
+                        1.juli til 12.juli,
+                        15.juli til 2.august,
+                    ),
+                egenmeldingsperioder =
+                    listOf(
+                        26.juni til 27.juni,
+                        29.juni til 29.juni,
+                    ),
+                bestemmendeFravaersdager = mapOf(orgnr.verdi to 15.juli),
+                forespurtData = mockForespurtData(),
+                erBesvart = false,
+            )
+
+        val forespoerselSvar =
+            ForespoerselFraBro(
+                orgnr = Orgnr(forespoersel.orgnr),
+                fnr = Fnr(forespoersel.fnr),
+                forespoerselId = forespoerselId,
+                vedtaksperiodeId = forespoersel.vedtaksperiodeId,
+                egenmeldingsperioder = forespoersel.egenmeldingsperioder,
+                sykmeldingsperioder = forespoersel.sykmeldingsperioder,
+                bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager.mapKeys { Orgnr(it.key) },
+                forespurtData = mockForespurtData(),
+                erBesvart = false,
+            )
     }
 }

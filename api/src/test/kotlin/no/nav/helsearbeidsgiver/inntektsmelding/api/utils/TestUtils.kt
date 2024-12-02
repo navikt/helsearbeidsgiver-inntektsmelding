@@ -9,61 +9,76 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import io.ktor.serialization.jackson.jackson
+import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.mockk
-import no.nav.helsearbeidsgiver.felles.json.configure
-import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
-import no.nav.helsearbeidsgiver.felles.test.mock.mockConstructor
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.KSerializer
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.domene.Tilgang
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.inntektsmelding.api.apiModule
+import no.nav.helsearbeidsgiver.utils.json.jsonConfig
+import no.nav.helsearbeidsgiver.utils.json.toJson
+
+val harTilgangResultat =
+    ResultJson(
+        success = Tilgang.HAR_TILGANG.toJson(Tilgang.serializer()),
+    ).toJson().toString()
+
+val ikkeTilgangResultat =
+    ResultJson(
+        success = Tilgang.IKKE_TILGANG.toJson(Tilgang.serializer()),
+    ).toJson().toString()
 
 abstract class ApiTest : MockAuthToken() {
-    fun testApi(block: suspend TestClient.() -> Unit): Unit = testApplication {
-        application {
-            apiModule(mockk(relaxed = true))
-        }
+    val mockRedisConnection = mockk<RedisConnection>()
 
-        val testClient = TestClient(this) { mockAuthToken() }
+    fun testApi(block: suspend TestClient.() -> Unit): Unit =
+        testApplication {
+            application {
+                apiModule(mockk(relaxed = true), mockRedisConnection)
+            }
 
-        mockConstructor(RedisPoller::class) {
+            val testClient = TestClient(this, ::mockAuthToken)
+
             testClient.block()
         }
-    }
 }
 
 class TestClient(
     appTestBuilder: ApplicationTestBuilder,
-    val authToken: () -> String
+    private val authToken: () -> String,
 ) {
-    private val httpClient = appTestBuilder.createClient {
-        install(ContentNegotiation) {
-            jackson {
-                configure()
+    private val httpClient =
+        appTestBuilder.createClient {
+            install(ContentNegotiation) {
+                json(jsonConfig)
             }
         }
-    }
 
     fun get(
         path: String,
-        block: HttpRequestBuilder.() -> Unit = { withAuth() }
+        block: HttpRequestBuilder.() -> Unit = { withAuth() },
     ): HttpResponse =
-        MockUuid.with {
+        runBlocking {
             httpClient.get(path) {
                 block()
             }
         }
 
-    fun post(
+    fun <T : Any> post(
         path: String,
-        body: Any,
-        block: HttpRequestBuilder.() -> Unit = { withAuth() }
+        body: T,
+        bodySerializer: KSerializer<T>,
+        block: HttpRequestBuilder.() -> Unit = { withAuth() },
     ): HttpResponse =
-        MockUuid.with {
+        runBlocking {
             httpClient.post(path) {
                 contentType(ContentType.Application.Json)
-                setBody(body)
+                setBody(body.toJson(bodySerializer))
 
                 block()
             }

@@ -32,6 +32,6 @@
     "utbetalerHeleEllerDeler": false
   },
   "bekreftOpplysninger": true,
-  "behandlingsdager": [],
-  "årsakInnsending": "Ny"
+  "årsakInnsending": "NY",
+  "telefonnummer": "004612345678"
 }

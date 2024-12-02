@@ -1,9 +1,11 @@
 kafkaPool: nav-dev
 azure:
   enabled: true
-ingress: https://helsearbeidsgiver-im-db.intern.dev.nav.no 
-database: inntektsmelding
+database:
+  name: inntektsmelding
+  tier: db-custom-1-3840
+  logicalDecoding: true
+  user: simba_datastream_bruker
 envFrom:
   - type: secret
     name: google-sql-im-db
-env:

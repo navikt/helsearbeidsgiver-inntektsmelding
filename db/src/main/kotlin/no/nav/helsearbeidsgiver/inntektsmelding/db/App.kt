@@ -1,56 +1,62 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
-import com.zaxxer.hikari.HikariConfig
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidsConnection
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.felles.db.exposed.Database
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentLagretImRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentSelvbestemtImRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreEksternImRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreImRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreImSkjemaRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreJournalpostIdRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreSelvbestemtImRiver
+import no.nav.helsearbeidsgiver.utils.log.logger
 
-val sikkerLogger: Logger = LoggerFactory.getLogger("tjenestekall")
-internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-db")
+private val logger = "helsearbeidsgiver-im-db".logger()
 
 fun main() {
-    buildApp(mapHikariConfig(DatabaseConfig()), System.getenv()).start()
-}
+    val database = Database("NAIS_DATABASE_IM_DB_INNTEKTSMELDING")
 
-fun buildApp(config: HikariConfig, env: Map<String, String>): RapidsConnection {
-    val database = Database(config)
-    sikkerLogger.info("Bruker database url: ${config.jdbcUrl}")
     logger.info("Migrering starter...")
     database.migrate()
     logger.info("Migrering ferdig.")
+
     val imRepo = InntektsmeldingRepository(database.db)
-    val forespoerselRepo = ForespoerselRepository(database.db)
-    val rapid = RapidApplication
-        .create(env)
-        .createDb(database, imRepo, forespoerselRepo)
-    return rapid
+    val selvbestemtImRepo = SelvbestemtImRepo(database.db)
+
+    return RapidApplication
+        .create(System.getenv())
+        .createDbRivers(imRepo, selvbestemtImRepo)
+        .registerShutdownLifecycle {
+            logger.info("Stoppsignal mottatt, lukker databasetilkobling.")
+            database.dataSource.close()
+        }.start()
 }
 
-fun RapidsConnection.createDb(database: Database, imRepo: InntektsmeldingRepository, forespoerselRepo: ForespoerselRepository): RapidsConnection {
-    logger.info("Starter ForespørselMottattListener...")
-    ForespørselMottattListener(this, forespoerselRepo)
-    logger.info("Starter PersisterImLøser...")
-    PersisterImLøser(this, imRepo)
-    logger.info("Starter HentPersistertLøser...")
-    HentPersistertLøser(this, imRepo)
-    logger.info("Starter LagreJournalpostIdLøser...")
-    LagreJournalpostIdLøser(this, imRepo, forespoerselRepo)
-    logger.info("Starter PersisterSakLøser...")
-    PersisterSakLøser(this, forespoerselRepo)
-    logger.info("Starter PersisterOppgaveLøser...")
-    PersisterOppgaveLøser(this, forespoerselRepo)
-    HentOrgnrLøser(this, forespoerselRepo)
-    this.registerDbLifecycle(database)
-    return this
-}
+fun RapidsConnection.createDbRivers(
+    imRepo: InntektsmeldingRepository,
+    selvbestemtImRepo: SelvbestemtImRepo,
+): RapidsConnection =
+    also {
+        logger.info("Starter ${HentLagretImRiver::class.simpleName}...")
+        HentLagretImRiver(imRepo).connect(this)
 
-private fun RapidsConnection.registerDbLifecycle(db: Database) {
-    register(object : RapidsConnection.StatusListener {
+        logger.info("Starter ${HentSelvbestemtImRiver::class.simpleName}...")
+        HentSelvbestemtImRiver(selvbestemtImRepo).connect(this)
 
-        override fun onShutdown(rapidsConnection: RapidsConnection) {
-            logger.info("Mottatt stoppsignal, lukker databasetilkobling")
-            db.dataSource.close()
-        }
-    })
-}
+        logger.info("Starter ${LagreImSkjemaRiver::class.simpleName}...")
+        LagreImSkjemaRiver(imRepo).connect(this)
+
+        logger.info("Starter ${LagreImRiver::class.simpleName}...")
+        LagreImRiver(imRepo).connect(this)
+
+        logger.info("Starter ${LagreJournalpostIdRiver::class.simpleName}...")
+        LagreJournalpostIdRiver(imRepo, selvbestemtImRepo).connect(this)
+
+        logger.info("Starter ${LagreEksternImRiver::class.simpleName}...")
+        LagreEksternImRiver(imRepo).connect(this)
+
+        logger.info("Starter ${LagreSelvbestemtImRiver::class.simpleName}...")
+        LagreSelvbestemtImRiver(selvbestemtImRepo).connect(this)
+    }

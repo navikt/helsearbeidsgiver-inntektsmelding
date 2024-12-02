@@ -6,8 +6,13 @@ envFrom:
     name: altinn-api-gw-keys-prod
 env:
   - name: ALTINN_URL
-    value: https://api-gw.oera.no/ekstern/altinn/api/serviceowner
+    value: https://altinn.no/api/serviceowner
   - name: ALTINN_SERVICE_CODE
     value: 4936
+  - name: ALTINN_SCOPE
+    value: altinn:serviceowner/reportees
 externalHosts:
-  - api-gw.oera.no
+  - altinn.no
+maskinporten:
+  consumes:
+    - "altinn:serviceowner/reportees"

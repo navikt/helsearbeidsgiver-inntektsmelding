@@ -1,24 +1,24 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt
 
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.log.logger
-import no.nav.helsearbeidsgiver.felles.log.loggerSikker
+import no.nav.helsearbeidsgiver.utils.log.logger
 
-val logger = "im-forespoersel-mottatt".logger()
-val loggerSikker = loggerSikker()
+private val logger = "im-forespoersel-mottatt".logger()
 
 fun main() {
     logger.info("Jeg er oppe og kjører!")
+
     RapidApplication
         .create(System.getenv())
-        .createForespoerselMottatt()
+        .createForespoerselMottattRiver()
         .start()
+
     logger.info("Hasta la vista, baby!")
 }
 
-fun RapidsConnection.createForespoerselMottatt(): RapidsConnection {
-    logger.info("Starting ForespoerselMottattLøser...")
-    ForespoerselMottattLøser(this)
-    return this
-}
+fun RapidsConnection.createForespoerselMottattRiver(): RapidsConnection =
+    also {
+        logger.info("Starter ${ForespoerselMottattRiver::class.simpleName}...")
+        ForespoerselMottattRiver().connect(this)
+    }

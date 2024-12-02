@@ -1,0 +1,28 @@
+{
+  "arbeidsgiverperiode": {
+    "paakrevd": true
+  },
+  "inntekt": {
+    "paakrevd": true,
+    "forslag": {
+      "type": "ForslagInntektGrunnlag",
+      "forrigeInntekt": null
+    }
+  },
+  "refusjon": {
+    "paakrevd": true,
+    "forslag": {
+      "perioder": [
+        {
+          "fom": "2017-01-10",
+          "beloep": 10.48
+        },
+        {
+          "fom": "2017-02-02",
+          "beloep": 98.26
+        }
+      ],
+      "opphoersdato": "2017-02-26"
+    }
+  }
+}

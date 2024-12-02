@@ -1,20 +1,23 @@
 name: Integrasjonstester
-
-on: [pull_request]
+on:
+  pull_request:
+  push:
+    branches:
+      - main
 
 jobs:
-  Test:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest-8-cores
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
-          java-version: 17
+          java-version: 21
           distribution: temurin
           cache: gradle
 
       - name: Cache Gradle wrapper
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
@@ -22,16 +25,67 @@ jobs:
             ${{ runner.os }}-gradle-wrapper-
 
       - name: Cache Gradle packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
-          path: ~/.gradle/caches
+          path: ~/.gradle/caches/build-cache-1/
           key: ${{ runner.os }}-gradle-cache-${{ hashFiles('build.gradle') }}
           restore-keys: |
             ${{ runner.os }}-gradle-cache-
 
-      - name: Integrasjonstest
-        uses: gradle/gradle-build-action@v2
+      - uses: gradle/actions/setup-gradle@v3
+
+      - name: Build
+        run: ./gradlew assemble --build-cache --parallel
+        env:
+          ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v4
         with:
-          arguments: test -P integrasjonstest
+          name: build-artifacts
+          path: build/libs/
+
+  generate-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up temurin JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+      - name: Generate matrix
+        id: set-matrix
+        run: |
+          TESTS=$(find ./integrasjonstest/ -name "*IT.kt" -exec basename {} .kt \; | jq -R -s -c 'split("\n")[:-1]' | jq -c '{"test": .}')
+          echo "matrix=${TESTS}" >> $GITHUB_OUTPUT
+
+  integrasjonstest:
+    needs: [build, generate-matrix]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.generate-matrix.outputs.matrix)}}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+          cache: gradle
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: build/libs/
+
+      - uses: gradle/actions/setup-gradle@v3
+
+      - name: Integrasjonstest
+        run: ./gradlew integrasjonstest:test --build-cache --tests no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.${{ matrix.test }}
         env:
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}

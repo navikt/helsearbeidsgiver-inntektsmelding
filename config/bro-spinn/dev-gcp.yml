@@ -1,0 +1,11 @@
+kafkaPool: nav-dev
+azure:
+  enabled: true
+env:
+  - name: SPINN_SCOPE
+    value: "api://dev-gcp.helsearbeidsgiver.spinosaurus/.default"
+  - name: SPINN_API_URL
+    value: "http://spinosaurus/api/v1/inntektsmelding"
+apps:
+  - name: spinosaurus
+

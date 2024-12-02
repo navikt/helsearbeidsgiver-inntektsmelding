@@ -1,14 +1,21 @@
 kafkaPool: nav-dev
 azure:
   enabled: true
+replicasMin: 2
+replicasMax: 2
 ingress: https://helsearbeidsgiver-im-altinn.intern.dev.nav.no
 envFrom:
   - type: secret
     name: altinn-api-gw-keys
 env:
   - name: ALTINN_URL
-    value: https://api-gw-q1.oera.no/ekstern/altinn/api/serviceowner
+    value: https://tt02.altinn.no/api/serviceowner
   - name: ALTINN_SERVICE_CODE
     value: 4936
+  - name: ALTINN_SCOPE
+    value: altinn:serviceowner/reportees
 externalHosts:
-  - api-gw-q1.oera.no
+  - tt02.altinn.no
+maskinporten:
+  consumes:
+    - "altinn:serviceowner/reportees"

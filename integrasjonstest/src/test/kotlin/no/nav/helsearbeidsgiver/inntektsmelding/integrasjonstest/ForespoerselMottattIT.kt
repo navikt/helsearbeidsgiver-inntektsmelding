@@ -1,153 +1,147 @@
-@file:Suppress("NonAsciiCharacters")
-
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNyOppgave
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNySak
+import kotlinx.serialization.builtins.serializer
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.NavnLøsning
-import no.nav.helsearbeidsgiver.felles.json.fromJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
+import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro
+import no.nav.helsearbeidsgiver.felles.domene.Person
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
+import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.pdl.PdlHentFullPerson
-import no.nav.helsearbeidsgiver.pdl.PdlHentPersonNavn
-import no.nav.helsearbeidsgiver.pdl.PdlPersonNavnMetadata
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.set
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.januar
+import no.nav.helsearbeidsgiver.utils.test.date.mars
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.time.LocalDate
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class ForespoerselMottattIT : EndToEndTest() {
-
-    val FNR = "fnr-123"
-    val ORGNR = "orgnr-456"
-    val FORESPOERSEL = UUID.randomUUID().toString()
-    val SAK_ID = "sak_id_123"
-    val OPPGAVE_ID = "oppgave_id_456"
-    val FORNAVN = "Ola"
-    val ETTERNAVN = "Normann"
-    val MELLOMNAVN = ""
-    val FØDSELSDATO = LocalDate.of(2012, 1, 15)
-
+class ForespoerselMottattIT : EndToEndTest() {
     @Test
-    fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
-        val arbeidsgiverNotifikasjonKlient = this.arbeidsgiverNotifikasjonKlient
+    fun `Oppretter sak og oppgave ved mottatt forespørsel`() {
+        coEvery {
+            agNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+        } returns Mock.sakId
 
         coEvery {
-            arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any())
-        } answers {
-            SAK_ID
-        }
-        coEvery {
-            arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any())
-        } answers {
-            OPPGAVE_ID
-        }
-
-        val pdlClient = this.pdlClient
-        coEvery {
-            pdlClient.personNavn(any())
-        } answers {
-            PdlHentPersonNavn.PdlPersonNavneliste(
-                listOf(PdlHentPersonNavn.PdlPersonNavneliste.PdlPersonNavn(FORNAVN, MELLOMNAVN, ETTERNAVN, PdlPersonNavnMetadata("")))
-            )
-        }
-        coEvery {
-            pdlClient.fullPerson(any())
-        } answers {
-            mockPerson(FORNAVN, MELLOMNAVN, ETTERNAVN, FØDSELSDATO)
-        }
+            agNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+        } returns Mock.oppgaveId
 
         publish(
-            mapOf(
-                Pri.Key.NOTIS.str to Pri.NotisType.FORESPØRSEL_MOTTATT.name,
-                Pri.Key.ORGNR.str to ORGNR,
-                Pri.Key.FNR.str to FNR,
-                Pri.Key.FORESPOERSEL_ID.str to FORESPOERSEL
-            )
+            Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
+            Pri.Key.FORESPOERSEL_ID to Mock.forespoersel.forespoerselId.toJson(),
+            Pri.Key.FORESPOERSEL to Mock.forespoersel.toJson(ForespoerselFraBro.serializer()),
+            Pri.Key.SKAL_HA_PAAMINNELSE to Mock.SKAL_HA_PAAMINNELSE.toJson(Boolean.serializer()),
         )
-        Thread.sleep(8000)
 
-        with(getMessage(0)) {
-            assertEquals(BehovType.NOTIFIKASJON_TRENGER_IM.name, get(Key.BEHOV.str).asText())
+        val messagesFilteredForespoerselMottatt = messages.filter(EventName.FORESPOERSEL_MOTTATT)
 
-            assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
-            assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
-            assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
-            assertEquals(FORESPOERSEL, get(Key.UUID.str).asText())
-        }
+        messagesFilteredForespoerselMottatt
+            .firstAsMap()
+            .also {
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it).shouldNotBeNull()
 
-        with(getMessage(1)) {
-            assertEquals(BehovType.FULLT_NAVN.name, get(Key.BEHOV.str)[0].asText())
+                Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.FORESPOERSEL_MOTTATT
 
-            assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
-            assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
-            assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
-            assertEquals(FORESPOERSEL, get(Key.UUID.str).asText())
-        }
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data) shouldBe Mock.forespoersel.forespoerselId
+                Key.FORESPOERSEL.lesOrNull(Forespoersel.serializer(), data) shouldBe Mock.forespoersel.toForespoersel()
+                Key.SKAL_HA_PAAMINNELSE.lesOrNull(Boolean.serializer(), data) shouldBe Mock.SKAL_HA_PAAMINNELSE
+            }
 
-        with(getMessage(2)) {
-            assertEquals(BehovType.FULLT_NAVN.name, get(Key.BEHOV.str)[0].asText())
-            assertNotNull(get(Key.LØSNING.str).get(BehovType.FULLT_NAVN.name).asText())
+        messagesFilteredForespoerselMottatt
+            .filter(BehovType.HENT_VIRKSOMHET_NAVN)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.ORGNR_UNDERENHETER]?.fromJson(Orgnr.serializer().set()) shouldBe setOf(Mock.forespoersel.orgnr)
+            }
 
-            val løsning = get(Key.LØSNING.str).get(BehovType.FULLT_NAVN.name).toJsonElement().fromJson(NavnLøsning.serializer())
-            assertNotNull(løsning)
+        messagesFilteredForespoerselMottatt
+            .filter(BehovType.HENT_PERSONER)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.FNR_LISTE]?.fromJson(Fnr.serializer().set()) shouldBe setOf(Mock.forespoersel.fnr)
+            }
 
-            assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
-            assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
-            assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
-            assertEquals(FORESPOERSEL, get(Key.UUID.str).asText())
-        }
+        messagesFilteredForespoerselMottatt
+            .filter(Key.VIRKSOMHETER)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.VIRKSOMHETER]
+                    ?.fromJson(orgMapSerializer)
+                    .shouldNotBeNull()
+            }
 
-        with(getMessage(3)) {
-            assertEquals(BehovType.PERSISTER_SAK_ID.name, get(Key.BEHOV.str)[0].asText())
-            assertEquals(BehovType.OPPRETT_OPPGAVE.name, get(Key.BEHOV.str)[1].asText())
+        messagesFilteredForespoerselMottatt
+            .filter(Key.PERSONER)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.PERSONER]
+                    ?.fromJson(personMapSerializer)
+                    .shouldNotBeNull()
+            }
 
-            assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
-            assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
-            assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
-            assertEquals(FORESPOERSEL, get(Key.UUID.str).asText())
-            assertEquals(SAK_ID, get(Key.SAK_ID.str).asText())
-        }
+        messages
+            .filter(EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED)
+            .firstAsMap()
+            .also {
+                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer).shouldNotBeNull()
 
-        with(getMessage(4)) {
-            assertEquals(BehovType.PERSISTER_OPPGAVE_ID.name, get(Key.BEHOV.str)[0].asText())
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.SYKMELDT]?.fromJson(Person.serializer()).shouldNotBeNull()
+                data[Key.VIRKSOMHET]?.fromJson(String.serializer()).shouldNotBeNull()
 
-            assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
-            assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
-            assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
-            assertEquals(FORESPOERSEL, get(Key.UUID.str).asText())
-            assertEquals(SAK_ID, get(Key.SAK_ID.str).asText())
-            assertEquals(OPPGAVE_ID, get(Key.OPPGAVE_ID.str).asText())
-        }
+                data[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoersel.forespoerselId
+                data[Key.FORESPOERSEL]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel.toForespoersel()
+                data[Key.SKAL_HA_PAAMINNELSE]?.fromJson(Boolean.serializer()) shouldBe Mock.SKAL_HA_PAAMINNELSE
+            }
+
+        messages
+            .filter(EventName.SAK_OG_OPPGAVE_OPPRETTET)
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoersel.forespoerselId
+                data[Key.SAK_ID]?.fromJson(String.serializer()) shouldBe Mock.sakId
+                data[Key.OPPGAVE_ID]?.fromJson(String.serializer()) shouldBe Mock.oppgaveId
+            }
     }
 
-    fun mockPerson(fornavn: String, mellomNavn: String, etternavn: String, fødselsdato: LocalDate): PdlHentFullPerson {
-        return PdlHentFullPerson(
-            hentPerson = PdlHentFullPerson.PdlFullPersonliste(
-                navn = listOf(PdlHentFullPerson.PdlFullPersonliste.PdlNavn(fornavn, mellomNavn, etternavn, PdlPersonNavnMetadata(""))),
-                foedsel = listOf(PdlHentFullPerson.PdlFullPersonliste.PdlFoedsel(fødselsdato)),
-                doedsfall = emptyList(),
-                adressebeskyttelse = emptyList(),
-                statsborgerskap = emptyList(),
-                bostedsadresse = emptyList(),
-                kjoenn = emptyList()
-            ),
-            hentIdenter = PdlHentFullPerson.PdlIdentResponse(
-                emptyList()
-            ),
-            hentGeografiskTilknytning = PdlHentFullPerson.PdlGeografiskTilknytning(
-                PdlHentFullPerson.PdlGeografiskTilknytning.PdlGtType.KOMMUNE,
-                null,
-                null,
-                null
+    private object Mock {
+        const val SKAL_HA_PAAMINNELSE = false
+        val forespoersel =
+            ForespoerselFraBro(
+                orgnr = Orgnr.genererGyldig(),
+                fnr = Fnr.genererGyldig(),
+                forespoerselId = UUID.randomUUID(),
+                vedtaksperiodeId = UUID.randomUUID(),
+                sykmeldingsperioder = listOf(23.januar til 15.mars),
+                egenmeldingsperioder = emptyList(),
+                bestemmendeFravaersdager = emptyMap(),
+                forespurtData = mockForespurtData(),
+                erBesvart = false,
             )
-        )
+        val sakId = UUID.randomUUID().toString()
+        val oppgaveId = UUID.randomUUID().toString()
     }
 }

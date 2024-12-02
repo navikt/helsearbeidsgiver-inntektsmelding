@@ -1,29 +1,28 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
+import no.nav.helsearbeidsgiver.pdl.Behandlingsgrunnlag
 import no.nav.helsearbeidsgiver.pdl.PdlClient
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.tokenprovider.oauth2ClientCredentialsTokenGetter
+import no.nav.helsearbeidsgiver.utils.log.logger
 
-val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
-internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-pdl")
+private val logger = "im-pdl".logger()
 
 fun main() {
     RapidApplication
         .create(System.getenv())
-        .createPdl(buildClient(setUpEnvironment()))
+        .createPdlRiver(buildClient())
         .start()
 }
 
-fun RapidsConnection.createPdl(pdlClient: PdlClient): RapidsConnection {
-    sikkerlogg.info("Starting FulltNavnLøser...")
-    FulltNavnLøser(this, pdlClient)
-    return this
-}
+fun RapidsConnection.createPdlRiver(pdlClient: PdlClient): RapidsConnection =
+    also {
+        logger.info("Starter ${HentPersonerRiver::class.simpleName}...")
+        HentPersonerRiver(pdlClient).connect(this)
+    }
 
-fun buildClient(environment: Environment): PdlClient {
-    val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
-    return PdlClient(environment.pdlUrl) { tokenProvider.getToken() }
+fun buildClient(): PdlClient {
+    val tokenGetter = oauth2ClientCredentialsTokenGetter(Env.oauth2Environment)
+    return PdlClient(Env.pdlUrl, Behandlingsgrunnlag.INNTEKTSMELDING, tokenGetter)
 }

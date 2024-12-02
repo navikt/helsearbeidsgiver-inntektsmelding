@@ -8,25 +8,26 @@ import no.nav.security.token.support.v2.TokenSupportConfig
 import no.nav.security.token.support.v2.tokenValidationSupport
 
 object Auth {
-    const val ISSUER = "loginservice-issuer"
+    const val ISSUER = "idporten-issuer"
     const val CLAIM_PID = "pid"
 }
 
 private val pidRegex = Regex("\\d{11}")
 
 fun Application.customAuthentication() {
-    val config = TokenSupportConfig(
-        IssuerConfig(
-            name = Auth.ISSUER,
-            discoveryUrl = Env.Auth.discoveryUrl,
-            acceptedAudience = Env.Auth.acceptedAudience
+    val config =
+        TokenSupportConfig(
+            IssuerConfig(
+                name = Auth.ISSUER,
+                discoveryUrl = Env.Auth.discoveryUrl,
+                acceptedAudience = Env.Auth.acceptedAudience,
+            ),
         )
-    )
 
     authentication {
         tokenValidationSupport(
             config = config,
-            additionalValidation = TokenValidationContext::containsPid
+            additionalValidation = TokenValidationContext::containsPid,
         )
     }
 }

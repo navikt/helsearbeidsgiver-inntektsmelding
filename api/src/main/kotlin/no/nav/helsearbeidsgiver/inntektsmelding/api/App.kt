@@ -1,7 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.ktor.http.HttpStatusCode
-import io.ktor.serialization.jackson.jackson
+import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
 import io.ktor.server.application.install
@@ -14,92 +15,117 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.json.configure
-import no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere.ArbeidsgivereRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.cache.LocalCache
-import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.InntektRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.KvitteringRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.TrengerRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.routeExtra
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
+import no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr.aktiveOrgnrRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.TilgangProducer
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
+import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoersel.hentForespoersel
+import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIdListe.hentForespoerselIdListe
+import no.nav.helsearbeidsgiver.inntektsmelding.api.hentselvbestemtim.hentSelvbestemtImRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.innsending
+import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.inntektRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.inntektselvbestemt.inntektSelvbestemtRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.kvittering
+import no.nav.helsearbeidsgiver.inntektsmelding.api.lagreselvbestemtim.lagreSelvbestemtImRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgangorgnr.tilgangOrgnrRoute
+import no.nav.helsearbeidsgiver.utils.cache.LocalCache
+import no.nav.helsearbeidsgiver.utils.json.jsonConfig
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import kotlin.time.Duration.Companion.minutes
 
-val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
-val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-api")
+val logger = "helsearbeidsgiver-im-api".logger()
+val sikkerLogger = sikkerLogger()
 
 object Routes {
     const val PREFIX = "/api/v1"
 
-    const val ARBEIDSGIVERE = "/arbeidsgivere"
-    const val INNSENDING = "/inntektsmelding"
-    const val TRENGER = "/trenger"
+    const val HENT_FORESPOERSEL = "/hent-forespoersel"
+    const val HENT_FORESPOERSEL_ID_LISTE = "/hent-forespoersel-id-liste"
     const val INNTEKT = "/inntekt"
+    const val INNTEKT_SELVBESTEMT = "/inntekt-selvbestemt"
+    const val INNSENDING = "/inntektsmelding"
+    const val SELVBESTEMT_INNTEKTSMELDING = "/selvbestemt-inntektsmelding"
+    const val SELVBESTEMT_INNTEKTSMELDING_MED_ID = "$SELVBESTEMT_INNTEKTSMELDING/{selvbestemtId}"
     const val KVITTERING = "/kvittering"
+    const val AKTIVEORGNR = "/aktiveorgnr"
+    const val TILGANG_ORGNR = "/tilgangorgnr/{orgnr}"
 }
 
 fun main() {
-    val env = System.getenv()
-    RapidApplication.create(env).also(::startServer)
-        .start()
+    startServer()
 }
 
-fun startServer(connection: RapidsConnection) {
-    embeddedServer(Netty, port = 8080) {
-        apiModule(connection)
-    }.start(wait = true)
+fun startServer(env: Map<String, String> = System.getenv()) {
+    val rapid = RapidApplication.create(env)
+    val redisConnection = RedisConnection(Env.Redis.url)
+
+    embeddedServer(
+        factory = Netty,
+        port = 8080,
+        module = { apiModule(rapid, redisConnection) },
+    ).start(wait = true)
+
+    rapid
+        .registerShutdownLifecycle {
+            redisConnection.close()
+        }.start()
 }
 
-fun Application.apiModule(connection: RapidsConnection) {
+fun Application.apiModule(
+    rapid: RapidsConnection,
+    redisConnection: RedisConnection,
+) {
+    val tilgangskontroll =
+        Tilgangskontroll(
+            TilgangProducer(rapid),
+            LocalCache(60.minutes, 1000),
+            redisConnection,
+        )
+
     customAuthentication()
 
     install(ContentNegotiation) {
-        jackson {
-            configure()
-        }
+        json(jsonConfig)
     }
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
+            "Ukjent feil.".also {
+                logger.error(it)
+                sikkerLogger.error(it, cause)
+            }
+
             call.respondText(
-                text = "Error 500: $cause",
-                status = HttpStatusCode.InternalServerError
+                text = "Error 500: $cause".toJsonStr(String.serializer()),
+                status = HttpStatusCode.InternalServerError,
             )
         }
     }
 
-    HelsesjekkerRouting()
+    helsesjekkerRouting()
 
     routing {
         get("/") {
             call.respondText("helsearbeidsgiver inntektsmelding")
         }
 
-        val redisPoller = RedisPoller()
-
-        val tilgangCache = LocalCache<Tilgang>(60.minutes, 100)
-
         authenticate {
             route(Routes.PREFIX) {
-                routeExtra(connection, redisPoller) {
-                    ArbeidsgivereRoute()
-                    TrengerRoute(tilgangCache)
-                    InntektRoute(tilgangCache)
-                    InnsendingRoute(tilgangCache)
-                    KvitteringRoute(tilgangCache)
-                }
-            }
-        }
-
-        route(Routes.PREFIX) {
-            routeExtra(connection, redisPoller) {
-//                InnsendingRoute()
-//                InntektRoute()
-//                TrengerRoute()
+                hentForespoersel(rapid, tilgangskontroll, redisConnection)
+                hentForespoerselIdListe(rapid, tilgangskontroll, redisConnection)
+                inntektRoute(rapid, tilgangskontroll, redisConnection)
+                inntektSelvbestemtRoute(rapid, tilgangskontroll, redisConnection)
+                innsending(rapid, tilgangskontroll, redisConnection)
+                kvittering(rapid, tilgangskontroll, redisConnection)
+                lagreSelvbestemtImRoute(rapid, tilgangskontroll, redisConnection)
+                hentSelvbestemtImRoute(rapid, tilgangskontroll, redisConnection)
+                aktiveOrgnrRoute(rapid, redisConnection)
+                tilgangOrgnrRoute(tilgangskontroll)
             }
         }
     }

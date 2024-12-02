@@ -4,14 +4,13 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class FjernLedendeSlashTest {
-
+class FjernLedendeSlashTest {
     @Test
     fun testFjernLedendeSlash() {
         assertEquals("abc", fjernLedendeSlash("/abc"))
         assertEquals("abc", fjernLedendeSlash("abc"))
         val uuid = UUID.randomUUID().toString()
-        assertEquals(uuid, fjernLedendeSlash("/" + uuid))
+        assertEquals(uuid, fjernLedendeSlash("/$uuid"))
         assertEquals(uuid, fjernLedendeSlash(uuid))
     }
 }

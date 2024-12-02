@@ -1,68 +1,99 @@
 package no.nav.helsearbeidsgiver.felles.json
 
-import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.builtins.SetSerializer
+import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.felles.loeser.Løsning
-import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
-import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
-import java.time.LocalDate
-import java.util.UUID
+import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.IKey
+import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.Person
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
+import no.nav.helsearbeidsgiver.utils.json.serializer.set
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 
-val jsonIgnoreUnknown = Json {
-    ignoreUnknownKeys = true
-}
-
-fun <T : Any> T.toJson(serializer: KSerializer<T>): JsonElement =
-    Json.encodeToJsonElement(serializer, this)
-
-fun <T : Any> T.toJsonStr(serializer: KSerializer<T>): String =
-    toJson(serializer).toString()
-
-fun <T : Any> List<T>.toJson(elementSerializer: KSerializer<T>): JsonElement =
-    toJson(
-        elementSerializer.list()
+val orgMapSerializer =
+    MapSerializer(
+        Orgnr.serializer(),
+        String.serializer(),
     )
 
-fun String.toJson(): JsonElement =
-    toJson(String.serializer())
+val personMapSerializer =
+    MapSerializer(
+        Fnr.serializer(),
+        Person.serializer(),
+    )
 
-fun LocalDate.toJson(): JsonElement =
-    toJson(LocalDateSerializer)
+fun EventName.toJson(): JsonElement = toJson(EventName.serializer())
 
-fun UUID.toJson(): JsonElement =
-    toJson(UuidSerializer)
+fun BehovType.toJson(): JsonElement = toJson(BehovType.serializer())
 
-fun Map<String, JsonElement>.toJson(): JsonElement =
+fun Fnr.toJson(): JsonElement = toJson(Fnr.serializer())
+
+fun Orgnr.toJson(): JsonElement = toJson(Orgnr.serializer())
+
+fun ResultJson.toJson(): JsonElement = toJson(ResultJson.serializer())
+
+fun <T> Set<T>.toJson(elementSerializer: KSerializer<T>): JsonElement =
+    toJson(
+        elementSerializer.set(),
+    )
+
+@JvmName("toJsonMapKeyStringValueString")
+fun Map<String, String>.toJson(): JsonElement =
     toJson(
         MapSerializer(
             String.serializer(),
-            JsonElement.serializer()
-        )
+            String.serializer(),
+        ),
     )
 
-fun <T : Any> JsonElement.fromJson(serializer: KSerializer<T>): T =
-    jsonIgnoreUnknown.decodeFromJsonElement(serializer, this)
+@JvmName("toJsonMapKeyKeyValueJsonElement")
+fun Map<Key, JsonElement>.toJson(): JsonElement =
+    toJson(
+        MapSerializer(
+            Key.serializer(),
+            JsonElement.serializer(),
+        ),
+    )
 
-fun <T : Any> String.fromJson(serializer: KSerializer<T>): T =
-    parseJson().fromJson(serializer)
+fun JsonElement.toMap(): Map<Key, JsonElement> = fromJsonMapFiltered(Key.serializer())
 
-fun String.parseJson(): JsonElement =
-    Json.parseToJsonElement(this)
+fun <K : IKey, T : Any> K.lesOrNull(
+    serializer: KSerializer<T>,
+    melding: Map<K, JsonElement>,
+): T? = melding[this]?.fromJson(serializer.nullable)
 
-fun JsonNode.toJsonElement(): JsonElement =
-    toString().parseJson()
+fun <K : IKey, T : Any> K.les(
+    serializer: KSerializer<T>,
+    melding: Map<K, JsonElement>,
+): T =
+    lesOrNull(serializer, melding)
+        ?: throw MeldingException("Felt '$this' mangler i JSON-map.")
 
-fun <T : Any> KSerializer<T>.list(): KSerializer<List<T>> =
-    ListSerializer(this)
+fun <K : IKey, T : Any> K.krev(
+    krav: T,
+    serializer: KSerializer<T>,
+    melding: Map<K, JsonElement>,
+): T =
+    les(serializer, melding).also {
+        if (it != krav) {
+            throw MeldingException("Nøkkel '$this' har verdi '$it', som ikke matcher med påkrevd verdi '$krav'.")
+        }
+    }
 
-fun <T : Any> KSerializer<T>.set(): KSerializer<Set<T>> =
-    SetSerializer(this)
+fun Map<Key, JsonElement>.toPretty(): String = toJson().toPretty()
 
-fun <T : Any> KSerializer<T>.løsning(): KSerializer<Løsning<T>> =
-    Løsning.serializer(this)
+// Exception uten stacktrace, som er billigere å kaste
+internal class MeldingException(
+    message: String,
+) : IllegalArgumentException(message) {
+    override fun fillInStackTrace(): Throwable? = null
+}

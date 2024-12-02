@@ -1,47 +1,24 @@
-import com.fasterxml.jackson.databind.ObjectMapper
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter")
-    id("maven-publish")
-    java
-    jacoco
-    `jacoco-report-aggregation`
-    `jvm-test-suite`
+    id("java")
+    id("jacoco")
+    id("jacoco-report-aggregation")
+    id("jvm-test-suite")
 }
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath("com.fasterxml.jackson.core:jackson-databind:2.13.4.2")
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_21
     }
 }
 
 allprojects {
-    tasks {
-        val jvmTargetVersion: String by project
-
-        withType<KotlinCompile> {
-            kotlinOptions.jvmTarget = jvmTargetVersion
-        }
-
-        withType<Test> {
-            useJUnitPlatform()
-            testLogging {
-                events("skipped", "failed")
-            }
-        }
-    }
-
     repositories {
         val githubPassword: String by project
-
-        maven("https://packages.confluent.io/maven/")
-        maven("https://oss.sonatype.org")
         mavenCentral()
         maven {
             setUrl("https://maven.pkg.github.com/navikt/*")
@@ -55,40 +32,49 @@ allprojects {
 
 subprojects {
     group = "no.nav.helsearbeidsgiver.inntektsmelding"
-    version = properties["version"] ?: "local-build"
 
     applyPlugins(
         "org.jetbrains.kotlin.jvm",
         "org.jetbrains.kotlin.plugin.serialization",
         "org.jmailen.kotlinter",
-        "maven-publish",
         "java",
-        "jacoco"
+        "jacoco",
     )
 
     tasks {
-        if (!project.erFellesModul() && !project.erFellesTestModul()) {
+        withType<Test> {
+            useJUnitPlatform()
+            testLogging {
+                events("skipped", "failed")
+            }
+        }
+
+        if (!project.erFellesModul() && !project.erFellesDatabaseModul()) {
             named<Jar>("jar") {
                 archiveBaseName.set("app")
 
                 val mainClass = project.mainClass()
+                val dependencies = configurations.runtimeClasspath.get()
 
                 doLast {
-                    if (project.name != "dokument") {
-                        validateMainClassFound(mainClass)
-                    }
+                    validateMainClassFound(mainClass)
                 }
 
                 manifest {
                     attributes["Main-Class"] = mainClass
-                    attributes["Class-Path"] = configurations.runtimeClasspath.get().joinToString(separator = " ") { it.name }
+                    attributes["Class-Path"] = dependencies.joinToString(separator = " ") { it.name }
                 }
 
                 doLast {
-                    configurations.runtimeClasspath.get().forEach { file ->
-                        File("$buildDir/libs/${file.name}")
-                            .takeUnless(File::exists)
-                            ?.let(file::copyTo)
+                    dependencies.forEach {
+                        val file =
+                            layout.buildDirectory
+                                .file("libs/${it.name}")
+                                .get()
+                                .asFile
+                        if (!file.exists()) {
+                            it.copyTo(file)
+                        }
                     }
                 }
             }
@@ -98,30 +84,35 @@ subprojects {
             dependsOn(test)
             reports {
                 xml.required.set(true)
-                csv.required.set(false)
+                html.required.set(true)
+                csv.required.set(true)
                 html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
             }
         }
     }
 
+    val hagDomeneInntektsmeldingVersion: String by project
     val junitJupiterVersion: String by project
     val kotestVersion: String by project
     val kotlinCoroutinesVersion: String by project
     val kotlinSerializationVersion: String by project
     val mockkVersion: String by project
+    val tokenProviderVersion: String by project
+    val utilsVersion: String by project
 
     dependencies {
         if (!erFellesModul()) {
             implementation(project(":felles"))
-            implementation(project(":dokument"))
-        }
-        if (!erFellesTestModul() && project.name != "dokument") {
-            testImplementation(project(":felles-test"))
+            testImplementation(testFixtures(project(":felles")))
         }
 
+        implementation("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion")
+        implementation("no.nav.helsearbeidsgiver:tokenprovider:$tokenProviderVersion")
+        implementation("no.nav.helsearbeidsgiver:utils:$utilsVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
 
+        testImplementation(testFixtures("no.nav.helsearbeidsgiver:utils:$utilsVersion"))
         testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
         testImplementation("io.kotest:kotest-framework-datatest:$kotestVersion")
         testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
@@ -132,56 +123,74 @@ subprojects {
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
     }
 }
-tasks {
-    val mapper = ObjectMapper()
 
+dependencies {
+    subprojects
+        .filterNot { it.erIntegrasjonstestModul() }
+        .forEach {
+            jacocoAggregation(project(":${it.name}"))
+        }
+}
+
+tasks {
     create("buildMatrix") {
         doLast {
-            mapper.taskOutput(
-                "project" to getBuildableProjects()
+            taskOutputJson(
+                "project" to getBuildableProjects().toJsonList(),
             )
         }
     }
 
     create("buildAllMatrix") {
         doLast {
-            mapper.taskOutput(
-                "project" to getBuildableProjects(buildAll = true)
+            taskOutputJson(
+                "project" to getBuildableProjects(buildAll = true).toJsonList(),
             )
         }
     }
 
     create("deployMatrix") {
-        deployMatrix(mapper)
+        deployMatrix()
     }
 
     create("deployMatrixDev") {
-        deployMatrix(mapper, includeCluster = "dev-gcp")
+        deployMatrix(includeCluster = "dev-gcp")
     }
 
     create("deployMatrixProd") {
-        deployMatrix(mapper, includeCluster = "prod-gcp")
+        deployMatrix(includeCluster = "prod-gcp")
+    }
+
+    check {
+        dependsOn(named<JacocoReport>("testCodeCoverageReport"))
     }
 }
 
 fun getBuildableProjects(buildAll: Boolean = false): List<String> {
     if (buildAll) return subprojects.map { it.name }
-    val changedFiles = System.getenv("CHANGED_FILES")
-        ?.takeIf(String::isNotBlank)
-        ?.split(",")
-        ?: throw IllegalStateException("Ingen endrede filer funnet.")
+    val changedFiles =
+        System
+            .getenv("CHANGED_FILES")
+            ?.takeIf(String::isNotBlank)
+            ?.split(",")
+            ?: throw IllegalStateException("Ingen endrede filer funnet.")
 
-    val hasCommonChanges = changedFiles.any { it.startsWith("felles/") } ||
-        changedFiles.containsAny(
-            ".github/workflows/build.yml",
-            "config/nais.yml",
-            "build.gradle.kts",
-            "Dockerfile",
-            "gradle.properties",
-            "spesifikasjon.yaml"
-        )
+    val hasCommonChanges =
+        changedFiles.any {
+            it.startsWith("felles/") ||
+                it in
+                listOf(
+                    "Dockerfile",
+                    ".github/workflows/build.yml",
+                    "config/nais.yml",
+                    "build.gradle.kts",
+                    "gradle.properties",
+                )
+        }
 
-    return subprojects.map { it.name }
+    return subprojects
+        .filterNot { it.erIntegrasjonstestModul() }
+        .map { it.name }
         .let { projects ->
             if (hasCommonChanges) {
                 projects
@@ -200,41 +209,38 @@ fun getDeployMatrixVariables(
     includeCluster: String? = null,
     deployAll: Boolean = false,
 ): Triple<Set<String>, Set<String>, List<Pair<String, String>>> {
-    val clustersByProject = getBuildableProjects(deployAll).associateWith { project ->
-        File("config", project)
-            .listFiles()
-            ?.filter { it.isFile && it.name.endsWith(".yml") }
-            ?.map { it.name.removeSuffix(".yml") }
-            ?.let { clusters ->
-                if (includeCluster != null) {
-                    listOf(includeCluster).intersect(clusters)
-                } else {
-                    clusters
-                }
-            }
-            ?.toSet()
-            ?.ifEmpty { null }
-    }
-        .mapNotNull { (key, value) ->
-            if (value == null) {
-                null
-            } else {
-                key to value
-            }
-        }
-        .toMap()
+    val clustersByProject =
+        getBuildableProjects(deployAll)
+            .associateWith { project ->
+                File("config", project)
+                    .listFiles()
+                    ?.filter { it.isFile && it.name.endsWith(".yml") }
+                    ?.map { it.name.removeSuffix(".yml") }
+                    ?.let { clusters ->
+                        if (includeCluster != null) {
+                            listOf(includeCluster).intersect(clusters.toSet())
+                        } else {
+                            clusters
+                        }
+                    }?.toSet()
+                    ?.ifEmpty { null }
+            }.mapNotNull { (key, value) ->
+                value?.let { key to it }
+            }.toMap()
 
     val allClusters = clustersByProject.values.flatten().toSet()
 
-    val exclusions = clustersByProject.flatMap { (project, clusters) ->
-        allClusters.subtract(clusters)
-            .map { Pair(project, it) }
-    }
+    val exclusions =
+        clustersByProject.flatMap { (project, clusters) ->
+            allClusters
+                .subtract(clusters)
+                .map { Pair(project, it) }
+        }
 
     return Triple(
         clustersByProject.keys,
         allClusters,
-        exclusions
+        exclusions,
     )
 }
 
@@ -247,36 +253,30 @@ fun PluginAware.applyPlugins(vararg ids: String) {
 fun Task.validateMainClassFound(mainClass: String) {
     val mainClassOsSpecific = mainClass.replace(".", File.separator)
 
-    val mainClassFound = this.project.sourceSets
-        .findByName("main")
-        ?.output
-        ?.classesDirs
-        ?.asFileTree
-        ?.any { it.path.contains(mainClassOsSpecific) }
-        ?: false
+    val mainClassFound =
+        this.project.sourceSets
+            .findByName("main")
+            ?.output
+            ?.classesDirs
+            ?.asFileTree
+            ?.any { it.path.contains(mainClassOsSpecific) }
+            ?: false
 
     if (!mainClassFound) throw RuntimeException("Kunne ikke finne main class: $mainClass")
 }
 
-fun Project.mainClass() =
-    "$group.${name.replace("-", "")}.AppKt"
+fun Project.mainClass(): String = "$group.${name.replace("-", "")}.AppKt"
 
-fun Project.erFellesModul() =
-    name == "felles" || name == "dokument"
+fun Project.erFellesModul(): Boolean = name == "felles"
 
-fun Project.erFellesTestModul() =
-    name == "felles-test"
+fun Project.erFellesDatabaseModul(): Boolean = name == "felles-db-exposed"
 
-fun ObjectMapper.taskOutput(vararg keyValuePairs: Pair<String, Any>) {
-    mapOf(*keyValuePairs)
-        .let(this::writeValueAsString)
-        .let(::println)
-}
+fun Project.erIntegrasjonstestModul(): Boolean = name == "integrasjonstest"
 
-fun List<String>.containsAny(vararg others: String) =
-    this.intersect(others.toSet()).isNotEmpty()
-
-fun Task.deployMatrix(mapper: ObjectMapper, includeCluster: String? = null, deployAll: Boolean = false) {
+fun Task.deployMatrix(
+    includeCluster: String? = null,
+    deployAll: Boolean = false,
+) {
     doLast {
         val (
             deployableProjects,
@@ -284,15 +284,33 @@ fun Task.deployMatrix(mapper: ObjectMapper, includeCluster: String? = null, depl
             exclusions,
         ) = getDeployMatrixVariables(includeCluster, deployAll)
 
-        mapper.taskOutput(
-            "project" to deployableProjects,
-            "cluster" to clusters,
-            "exclude" to exclusions.map { (project, cluster) ->
-                mapOf(
-                    "project" to project,
-                    "cluster" to cluster
-                )
-            }
+        taskOutputJson(
+            "project" to deployableProjects.toJsonList(),
+            "cluster" to clusters.toJsonList(),
+            "exclude" to
+                exclusions
+                    .map { (project, cluster) ->
+                        listOf(
+                            "project" to project,
+                            "cluster" to cluster,
+                        ).toJsonObject()
+                    }.toJsonList { it },
         )
     }
 }
+
+fun taskOutputJson(vararg keyValuePairs: Pair<String, String>) {
+    keyValuePairs
+        .toList()
+        .toJsonObject { it }
+        .let(::println)
+}
+
+fun Iterable<String>.toJsonList(transform: (String) -> String = { it.inQuotes() }): String = joinToString(prefix = "[", postfix = "]", transform = transform)
+
+fun Iterable<Pair<String, String>>.toJsonObject(transformValue: (String) -> String = { it.inQuotes() }): String =
+    joinToString(prefix = "{", postfix = "}") { (key, value) ->
+        "${key.inQuotes()}: ${transformValue(value)}"
+    }
+
+fun String.inQuotes(): String = "\"$this\""

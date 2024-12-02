@@ -1,83 +1,49 @@
-@file:Suppress("NonAsciiCharacters")
-
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
+import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.builtins.serializer
-import no.nav.helsearbeidsgiver.felles.ForespurtData
-import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
-import no.nav.helsearbeidsgiver.felles.Periode
-import no.nav.helsearbeidsgiver.felles.Resultat
-import no.nav.helsearbeidsgiver.felles.json.list
-import no.nav.helsearbeidsgiver.felles.json.løsning
-import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonStr
-import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
-import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
-import org.junit.jupiter.api.Test
+import io.mockk.clearAllMocks
+import io.mockk.every
+import io.mockk.mockk
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.assertThrows
+import java.util.UUID
 
-class RedisPollerTest {
-    private val id = "123"
-    private val løsningSuccess = "noe data".toLøsningSuccess().toJson(String.serializer().løsning())
-    private val gyldigRedisInnholdListe = List(4) { "" } + løsningSuccess.toString()
+class RedisPollerTest :
+    FunSpec({
+        // For å skippe kall til 'delay'
+        coroutineTestScope = true
 
-    @Test
-    fun `skal finne med tillatt antall forsøk`() {
-        val redisPoller = mockRedisPoller(gyldigRedisInnholdListe)
+        val mockRedisStore = mockk<RedisStore>()
+        val redisPoller = RedisPoller(mockRedisStore)
 
-        val json = runBlocking {
-            redisPoller.hent(id, 5, 0)
+        val key = UUID.randomUUID()
+        val etSlagsResultat = ResultJson(success = "noe data".toJson())
+
+        beforeEach {
+            clearAllMocks()
         }
 
-        json shouldBe løsningSuccess
-    }
+        test("skal finne med tillatt antall forsøk") {
+            every { mockRedisStore.lesResultat(any()) } returnsMany answers(answerOnAttemptNo = 10, answer = etSlagsResultat)
 
-    @Test
-    fun `skal gi opp etter flere forsøk`() {
-        val redisPoller = mockRedisPoller(gyldigRedisInnholdListe)
+            val json = redisPoller.hent(key)
 
-        assertThrows<RedisPollerTimeoutException> {
-            runBlocking {
-                redisPoller.hent(id, 2, 0)
+            json shouldBe etSlagsResultat
+        }
+
+        test("skal ikke finne etter maks forsøk") {
+            every { mockRedisStore.lesResultat(any()) } returnsMany answers(answerOnAttemptNo = 11, answer = etSlagsResultat)
+
+            assertThrows<RedisPollerTimeoutException> {
+                redisPoller.hent(key)
             }
         }
-    }
+    })
 
-    @Test
-    fun `skal ikke finne etter maks forsøk`() {
-        val redisPoller = mockRedisPoller(gyldigRedisInnholdListe)
-
-        assertThrows<RedisPollerTimeoutException> {
-            runBlocking {
-                redisPoller.hent(id, 1, 0)
-            }
-        }
-    }
-
-    @Test
-    fun `skal parse liste med forespurt data korrekt`() {
-        val expectedTrengerInntekt = mockTrengerInntekt()
-        val expected = Resultat(HENT_TRENGER_IM = HentTrengerImLøsning(value = expectedTrengerInntekt))
-        val expectedJson = """
-            {
-                "HENT_TRENGER_IM": {
-                    "value": {
-                        "orgnr": "${expectedTrengerInntekt.orgnr}",
-                        "fnr": "${expectedTrengerInntekt.fnr}",
-                        "sykmeldingsperioder": ${expectedTrengerInntekt.sykmeldingsperioder.toJsonStr(Periode.serializer().list())},
-                        "forespurtData": ${expectedTrengerInntekt.forespurtData.toJsonStr(ForespurtData.serializer().list())}
-                    }
-                }
-            }
-        """
-
-        val redisPoller = mockRedisPoller(listOf(expectedJson))
-
-        runBlocking {
-            val resultat = redisPoller.getResultat(id, 1, 0)
-            resultat shouldBe expected
-        }
-    }
-}
+private fun answers(
+    answerOnAttemptNo: Int,
+    answer: ResultJson,
+): List<ResultJson?> = List(answerOnAttemptNo - 1) { null }.plus(answer)

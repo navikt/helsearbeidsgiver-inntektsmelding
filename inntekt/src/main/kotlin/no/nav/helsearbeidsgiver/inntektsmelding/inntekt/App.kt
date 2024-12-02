@@ -1,41 +1,27 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.inntekt
 
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.json.jsonIgnoreUnknown
-import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.tokenprovider.oauth2ClientCredentialsTokenGetter
+import no.nav.helsearbeidsgiver.utils.log.logger
 
-val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
-internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-inntekt")
+private val logger = "helsearbeidsgiver-im-inntekt".logger()
 
 fun main() {
     RapidApplication
         .create(System.getenv())
-        .createInntekt(buildInntektKlient(setUpEnvironment()))
+        .createHentInntektRiver(createInntektKlient())
         .start()
 }
 
-fun RapidsConnection.createInntekt(inntektKlient: InntektKlient): RapidsConnection {
-    sikkerlogg.info("Starter InntektLøser...")
-    InntektLøser(this, inntektKlient)
-    return this
-}
-
-fun buildInntektKlient(environment: Environment): InntektKlient {
-    val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
-    return InntektKlient(environment.inntektUrl, tokenProvider, buildClient())
-}
-
-fun buildClient(): HttpClient {
-    return HttpClient {
-        install(ContentNegotiation) {
-            json(jsonIgnoreUnknown)
-        }
+fun RapidsConnection.createHentInntektRiver(inntektKlient: InntektKlient): RapidsConnection =
+    also {
+        logger.info("Starter ${HentInntektRiver::class.simpleName}...")
+        HentInntektRiver(inntektKlient).connect(this)
     }
+
+fun createInntektKlient(): InntektKlient {
+    val tokenGetter = oauth2ClientCredentialsTokenGetter(Env.oauth2Environment)
+    return InntektKlient(Env.inntektUrl, tokenGetter)
 }

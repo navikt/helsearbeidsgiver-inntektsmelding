@@ -164,12 +164,10 @@ fun getBuildableProjects(): List<String> {
 
     val hasCommonChanges =
         changedFiles.any {
-            it.startsWith("felles/") ||
+            it.startsWith("felles/src/main/") ||
                 it in
                 listOf(
                     "Dockerfile",
-                    ".github/workflows/build.yml",
-                    "config/nais.yml",
                     "build.gradle.kts",
                     "gradle.properties",
                 )

@@ -200,8 +200,7 @@ fun getDeployMatrixVariables(includeCluster: String): Triple<Set<String>, Set<St
                     ?.map { it.name.removeSuffix(".yml") }
                     ?.let { clusters ->
                         setOf(includeCluster).intersect(clusters.toSet())
-                    }
-                    ?.ifEmpty { null }
+                    }?.ifEmpty { null }
             }.mapNotNull { (key, value) ->
                 value?.let { key to it }
             }.toMap()

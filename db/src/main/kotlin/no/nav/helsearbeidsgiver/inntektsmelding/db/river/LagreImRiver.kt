@@ -15,7 +15,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
-import no.nav.helsearbeidsgiver.inntektsmelding.db.erDuplikatAv
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -60,17 +59,8 @@ class LagreImRiver(
     override fun LagreImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val inntektsmeldingGammeltFormat = inntektsmelding.convert().copy(bestemmendeFraværsdag = bestemmendeFravaersdag)
 
-        val nyesteIm = imRepo.hentNyesteInntektsmelding(inntektsmelding.type.id)
-
-        // TODO: Fjernes etter at vi har gått i prod med den nye innsending-flyten
-        val erDuplikat = nyesteIm?.erDuplikatAv(inntektsmeldingGammeltFormat) ?: false
-
-        if (erDuplikat) {
-            sikkerLogger.warn("Fant duplikat av inntektsmelding.")
-        } else {
-            imRepo.oppdaterMedBeriketDokument(inntektsmelding.type.id, innsendingId, inntektsmeldingGammeltFormat)
-            sikkerLogger.info("Lagret inntektsmelding.")
-        }
+        imRepo.oppdaterMedBeriketDokument(inntektsmelding.type.id, innsendingId, inntektsmeldingGammeltFormat)
+        sikkerLogger.info("Lagret inntektsmelding.")
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
@@ -79,7 +69,7 @@ class LagreImRiver(
                 data
                     .plus(
                         mapOf(
-                            Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer()),
+                            Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
                         ),
                     ).toJson(),
         )

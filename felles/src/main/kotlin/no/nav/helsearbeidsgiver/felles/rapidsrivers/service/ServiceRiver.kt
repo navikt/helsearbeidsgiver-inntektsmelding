@@ -5,12 +5,14 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.json.toPretty
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -70,7 +72,13 @@ class ServiceRiverStateful<S>(
                     sikkerLogger.error("$it Utløsende melding er \n${fail.utloesendeMelding.toPretty()}")
                 }
 
-                val meldingMedRedisData = service.redisStore.lesAlleMellomlagrede(transaksjonId).plus(json)
+                val meldingMedRedisData =
+                    service.redisStore.lesAlleMellomlagrede(transaksjonId).plus(
+                        mapOf(
+                            Key.EVENT_NAME to eventName.toJson(),
+                            Key.KONTEKST_ID to transaksjonId.toJson(),
+                        ),
+                    )
 
                 service.onError(meldingMedRedisData, fail)
             }
@@ -89,10 +97,12 @@ sealed class ServiceRiver : ObjectRiver<ServiceMelding>() {
     final override fun les(json: Map<Key, JsonElement>): ServiceMelding? =
         when {
             Key.FAIL in json -> {
+                val fail = Key.FAIL.les(Fail.serializer(), json)
+
                 FailMelding(
-                    eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), json),
-                    transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
-                    fail = Key.FAIL.les(Fail.serializer(), json),
+                    eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), fail.utloesendeMelding),
+                    transaksjonId = Key.KONTEKST_ID.krev(fail.kontekstId, UuidSerializer, fail.utloesendeMelding),
+                    fail = fail,
                 )
             }
 

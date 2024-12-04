@@ -13,7 +13,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
@@ -73,10 +72,8 @@ class EndrePaaminnelseRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke endre påminnelse på oppgave.",
-                event = eventName,
-                transaksjonId = transaksjonId,
-                forespoerselId = forespoerselId,
-                utloesendeMelding = json.toJson(),
+                kontekstId = transaksjonId,
+                utloesendeMelding = json,
             )
 
         logger.error(fail.feilmelding)

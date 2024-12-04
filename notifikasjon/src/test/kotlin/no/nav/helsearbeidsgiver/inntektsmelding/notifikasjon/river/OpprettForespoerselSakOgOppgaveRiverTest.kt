@@ -305,8 +305,6 @@ private fun forventetUtgaaendeMelding(
 private fun forventetFail(innkommendeMelding: OpprettForespoerselSakOgOppgaveMelding): Fail =
     Fail(
         feilmelding = "Klarte ikke opprette sak og/eller oppgave for forespurt inntektmelding.",
-        event = innkommendeMelding.eventName,
-        transaksjonId = innkommendeMelding.transaksjonId,
-        forespoerselId = innkommendeMelding.forespoerselId,
-        utloesendeMelding = innkommendeMelding.toMap().toJson(),
+        kontekstId = innkommendeMelding.transaksjonId,
+        utloesendeMelding = innkommendeMelding.toMap(),
     )

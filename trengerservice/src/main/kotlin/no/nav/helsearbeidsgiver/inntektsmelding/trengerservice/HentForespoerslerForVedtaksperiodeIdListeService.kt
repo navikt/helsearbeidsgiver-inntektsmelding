@@ -95,7 +95,7 @@ class HentForespoerslerForVedtaksperiodeIdListeService(
 
         val resultJson = ResultJson(failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson())
 
-        redisStore.skrivResultat(fail.transaksjonId, resultJson)
+        redisStore.skrivResultat(fail.kontekstId, resultJson)
     }
 
     override fun Steg0.loggfelt(): Map<String, String> =

@@ -132,6 +132,6 @@ class InnsendingService(
     ) {
         val resultJson = ResultJson(failure = fail.feilmelding.toJson())
 
-        redisStore.skrivResultat(fail.transaksjonId, resultJson)
+        redisStore.skrivResultat(fail.kontekstId, resultJson)
     }
 }

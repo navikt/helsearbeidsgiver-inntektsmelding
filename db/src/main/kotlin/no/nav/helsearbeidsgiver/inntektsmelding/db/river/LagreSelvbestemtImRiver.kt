@@ -92,19 +92,14 @@ class LagreSelvbestemtImRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke lagre selvbestemt inntektsmelding i database.",
-                event = eventName,
-                transaksjonId = transaksjonId,
-                forespoerselId = null,
-                utloesendeMelding = json.toJson(),
+                kontekstId = transaksjonId,
+                utloesendeMelding = json,
             )
 
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
-        return fail
-            .tilMelding()
-            .minus(Key.FORESPOERSEL_ID)
-            .plus(Key.SELVBESTEMT_ID to selvbestemtInntektsmelding.type.id.toJson())
+        return fail.tilMelding()
     }
 
     override fun LagreSelvbestemtImMelding.loggfelt(): Map<String, String> =

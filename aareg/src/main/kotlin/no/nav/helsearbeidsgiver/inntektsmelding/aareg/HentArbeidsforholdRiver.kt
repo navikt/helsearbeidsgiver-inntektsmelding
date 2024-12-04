@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -87,10 +86,8 @@ class HentArbeidsforholdRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke hente arbeidsforhold fra Aareg.",
-                event = eventName,
-                transaksjonId = transaksjonId,
-                forespoerselId = json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer),
-                utloesendeMelding = json.toJson(),
+                kontekstId = transaksjonId,
+                utloesendeMelding = json,
             )
 
         logger.error(fail.feilmelding)

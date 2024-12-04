@@ -10,7 +10,6 @@ import io.mockk.clearAllMocks
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -19,11 +18,11 @@ import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.InnsendtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -79,7 +78,7 @@ class KvitteringServiceTest :
             val expectedFailure = MockKvittering.failureResult()
 
             testRapid.sendJson(
-                MockKvittering.steg0(MockKvittering.fail.transaksjonId),
+                MockKvittering.steg0(MockKvittering.fail.kontekstId),
             )
 
             testRapid.sendJson(
@@ -89,7 +88,7 @@ class KvitteringServiceTest :
             testRapid.inspektør.size shouldBeExactly 1
 
             verify {
-                mockRedisStore.skrivResultat(MockKvittering.fail.transaksjonId, expectedFailure)
+                mockRedisStore.skrivResultat(MockKvittering.fail.kontekstId, expectedFailure)
             }
         }
     })
@@ -144,12 +143,5 @@ private object MockKvittering {
             failure = fail.feilmelding.toJson(),
         )
 
-    val fail =
-        Fail(
-            feilmelding = "Fool of a Took!",
-            event = EventName.KVITTERING_REQUESTED,
-            transaksjonId = UUID.randomUUID(),
-            forespoerselId = null,
-            utloesendeMelding = JsonNull,
-        )
+    val fail = mockFail("Fool of a Took!", EventName.KVITTERING_REQUESTED)
 }

@@ -82,19 +82,14 @@ class OpprettSelvbestemtSakRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke lagre sak for selvbestemt inntektsmelding.",
-                event = eventName,
-                transaksjonId = transaksjonId,
-                forespoerselId = null,
-                utloesendeMelding = json.toJson(),
+                kontekstId = transaksjonId,
+                utloesendeMelding = json,
             )
 
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
-        return fail
-            .tilMelding()
-            .minus(Key.FORESPOERSEL_ID)
-            .plus(Key.SELVBESTEMT_ID to inntektsmelding.type.id.toJson())
+        return fail.tilMelding()
     }
 
     override fun OpprettSelvbestemtSakMelding.loggfelt(): Map<String, String> =

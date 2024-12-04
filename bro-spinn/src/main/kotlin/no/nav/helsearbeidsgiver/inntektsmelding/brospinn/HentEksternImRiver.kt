@@ -80,10 +80,8 @@ class HentEksternImRiver(
         val fail =
             Fail(
                 feilmelding = feilmelding,
-                event = eventName,
-                transaksjonId = transaksjonId,
-                forespoerselId = forespoerselId,
-                utloesendeMelding = json.toJson(),
+                kontekstId = transaksjonId,
+                utloesendeMelding = json,
             )
 
         logger.error(feilmelding)

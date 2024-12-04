@@ -112,16 +112,16 @@ class KvitteringService(
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(eventName),
-            Log.transaksjonId(fail.transaksjonId),
+            Log.transaksjonId(fail.kontekstId),
         ) {
-            "Klarte ikke hente kvittering for forespørsel '${fail.forespoerselId}'.".also {
+            "Klarte ikke hente kvittering for forespørsel.".also {
                 logger.warn(it)
                 sikkerLogger.warn(it)
             }
 
             val resultJson = ResultJson(failure = fail.feilmelding.toJson())
 
-            redisStore.skrivResultat(fail.transaksjonId, resultJson)
+            redisStore.skrivResultat(fail.kontekstId, resultJson)
         }
     }
 

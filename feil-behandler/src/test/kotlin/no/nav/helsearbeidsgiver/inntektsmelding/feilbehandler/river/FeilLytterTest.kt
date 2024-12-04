@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.prosessor.FeilProsessor
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -38,7 +38,7 @@ class FeilLytterTest :
 
         test("ved flere feil på samme transaksjon-ID og event, så oppdateres eksisterende jobb") {
             val omEttMinutt = LocalDateTime.now().plusMinutes(1)
-            val forespoerselMottattFail = lagFail(EventName.FORESPOERSEL_MOTTATT)
+            val forespoerselMottattFail = mockFail("skux life", EventName.FORESPOERSEL_MOTTATT)
 
             rapid.sendJson(forespoerselMottattFail.tilMelding())
 
@@ -52,22 +52,21 @@ class FeilLytterTest :
 
             jobber.size shouldBeExactly 1
 
-            jobber[0].uuid shouldBe forespoerselMottattFail.transaksjonId
-            jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail.utloesendeMelding.toMap()
+            jobber[0].uuid shouldBe forespoerselMottattFail.kontekstId
+            jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail.utloesendeMelding
         }
 
         test("ved flere feil på samme transaksjon-ID og event, men ulikt innhold, så lagres to jobber med ulik transaksjon-ID") {
             val omEttMinutt = LocalDateTime.now().plusMinutes(1)
             val transaksjonId = UUID.randomUUID()
-            val forespoerselMottattFail = lagFail(EventName.FORESPOERSEL_MOTTATT, transaksjonId)
+            val forespoerselMottattFail = mockFail("tux life", EventName.FORESPOERSEL_MOTTATT, transaksjonId)
             val forespoerselMottattFailMedUliktInnhold =
-                lagFail(EventName.FORESPOERSEL_MOTTATT, transaksjonId).let {
+                mockFail("hux life", EventName.FORESPOERSEL_MOTTATT, transaksjonId).let {
                     it.copy(
                         utloesendeMelding =
-                            it.utloesendeMelding
-                                .toMap()
-                                .plus(Key.ER_DUPLIKAT_IM to "kanskje".toJson())
-                                .toJson(),
+                            it.utloesendeMelding.plus(
+                                Key.ER_DUPLIKAT_IM to "kanskje".toJson(),
+                            ),
                     )
                 }
 
@@ -84,11 +83,12 @@ class FeilLytterTest :
             jobber.size shouldBeExactly 2
 
             jobber[0].uuid shouldBe transaksjonId
-            jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail.utloesendeMelding.toMap()
+            jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail.utloesendeMelding
 
             jobber[1].uuid shouldNotBe transaksjonId
             jobber[1].data.parseJson().toMap().also {
-                it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe forespoerselMottattFailMedUliktInnhold.event
+                it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe
+                    forespoerselMottattFailMedUliktInnhold.utloesendeMelding[Key.EVENT_NAME]?.fromJson(EventName.serializer())
                 it[Key.ER_DUPLIKAT_IM]?.fromJson(String.serializer()) shouldBe "kanskje"
 
                 it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldNotBe transaksjonId
@@ -98,8 +98,8 @@ class FeilLytterTest :
         test("ved flere feil på samme transaksjon-ID, men ulik event, så lagres to jobber med ulik transaksjon-ID") {
             val omEttMinutt = LocalDateTime.now().plusMinutes(1)
             val transaksjonId = UUID.randomUUID()
-            val forespoerselMottattFail = lagFail(EventName.FORESPOERSEL_MOTTATT, transaksjonId)
-            val forespoerselBesvartFail = lagFail(EventName.FORESPOERSEL_BESVART, transaksjonId)
+            val forespoerselMottattFail = mockFail("fox life", EventName.FORESPOERSEL_MOTTATT, transaksjonId)
+            val forespoerselBesvartFail = mockFail("nox life", EventName.FORESPOERSEL_BESVART, transaksjonId)
 
             rapid.sendJson(forespoerselMottattFail.tilMelding())
 
@@ -114,19 +114,20 @@ class FeilLytterTest :
             jobber.size shouldBeExactly 2
 
             jobber[0].uuid shouldBe transaksjonId
-            jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail.utloesendeMelding.toMap()
+            jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail.utloesendeMelding
 
             jobber[1].uuid shouldNotBe transaksjonId
             jobber[1].data.parseJson().toMap().also {
-                it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe forespoerselBesvartFail.event
+                it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe
+                    forespoerselBesvartFail.utloesendeMelding[Key.EVENT_NAME]?.fromJson(EventName.serializer())
                 it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldNotBe transaksjonId
             }
         }
 
         test("ved flere feil på ulik transaksjon-ID, men samme event, så lagres to jobber (med ulik transaksjon-ID)") {
             val omEttMinutt = LocalDateTime.now().plusMinutes(1)
-            val forespoerselMottattFail1 = lagFail(EventName.FORESPOERSEL_MOTTATT)
-            val forespoerselMottattFail2 = lagFail(EventName.FORESPOERSEL_MOTTATT)
+            val forespoerselMottattFail1 = mockFail("ux life", EventName.FORESPOERSEL_MOTTATT)
+            val forespoerselMottattFail2 = mockFail("ux life", EventName.FORESPOERSEL_MOTTATT)
 
             rapid.sendJson(forespoerselMottattFail1.tilMelding())
 
@@ -140,17 +141,17 @@ class FeilLytterTest :
 
             jobber.size shouldBeExactly 2
 
-            jobber[0].uuid shouldBe forespoerselMottattFail1.transaksjonId
-            jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail1.utloesendeMelding.toMap()
+            jobber[0].uuid shouldBe forespoerselMottattFail1.kontekstId
+            jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail1.utloesendeMelding
 
-            jobber[1].uuid shouldBe forespoerselMottattFail2.transaksjonId
-            jobber[1].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail2.utloesendeMelding.toMap()
+            jobber[1].uuid shouldBe forespoerselMottattFail2.kontekstId
+            jobber[1].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail2.utloesendeMelding
         }
 
         test("ved flere feil på ulik transaksjon-ID og ulik event, så lagres to jobber (med ulik transaksjon-ID)") {
             val omEttMinutt = LocalDateTime.now().plusMinutes(1)
-            val forespoerselMottattFail = lagFail(EventName.FORESPOERSEL_MOTTATT)
-            val forespoerselBesvartFail = lagFail(EventName.FORESPOERSEL_BESVART)
+            val forespoerselMottattFail = mockFail("lux life", EventName.FORESPOERSEL_MOTTATT)
+            val forespoerselBesvartFail = mockFail("rux life", EventName.FORESPOERSEL_BESVART)
 
             rapid.sendJson(forespoerselMottattFail.tilMelding())
 
@@ -164,24 +165,24 @@ class FeilLytterTest :
 
             jobber.size shouldBeExactly 2
 
-            jobber[0].uuid shouldBe forespoerselMottattFail.transaksjonId
-            jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail.utloesendeMelding.toMap()
+            jobber[0].uuid shouldBe forespoerselMottattFail.kontekstId
+            jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail.utloesendeMelding
 
-            jobber[1].uuid shouldBe forespoerselBesvartFail.transaksjonId
-            jobber[1].data.parseJson().toMap() shouldContainExactly forespoerselBesvartFail.utloesendeMelding.toMap()
+            jobber[1].uuid shouldBe forespoerselBesvartFail.kontekstId
+            jobber[1].data.parseJson().toMap() shouldContainExactly forespoerselBesvartFail.utloesendeMelding
         }
 
         test("setter jobb til STOPPET når maks antall forsøk er overskredet") {
             val omEttMinutt = LocalDateTime.now().plusMinutes(1)
-            val feil = lagFail(EventName.INNTEKTSMELDING_JOURNALFOERT)
+            val feil = mockFail("bux life", EventName.INNTEKTSMELDING_JOURNALFOERT)
 
             repository.save(
                 Bakgrunnsjobb(
-                    feil.transaksjonId,
+                    feil.kontekstId,
                     FeilProsessor.JOB_TYPE,
                     forsoek = 4,
                     maksAntallForsoek = 3,
-                    data = feil.utloesendeMelding.toString(),
+                    data = feil.utloesendeMelding.toJson().toString(),
                 ),
             )
 
@@ -195,7 +196,7 @@ class FeilLytterTest :
         context("ignorerer melding") {
             test("med event som ikke støttes") {
                 val omEttMinutt = LocalDateTime.now().plusMinutes(1)
-                val ikkeStoettetFail = lagFail(EventName.TILGANG_ORG_REQUESTED)
+                val ikkeStoettetFail = mockFail("pux life", EventName.TILGANG_ORG_REQUESTED)
 
                 rapid.sendJson(ikkeStoettetFail.tilMelding())
 
@@ -207,13 +208,11 @@ class FeilLytterTest :
             test("uten event") {
                 val omEttMinutt = LocalDateTime.now().plusMinutes(1)
                 val stoettetFailUtenEvent =
-                    lagFail(EventName.INNTEKTSMELDING_JOURNALFOERT).let {
+                    mockFail("mux life", EventName.INNTEKTSMELDING_JOURNALFOERT).let {
                         it.copy(
                             utloesendeMelding =
                                 it.utloesendeMelding
-                                    .toMap()
-                                    .minus(Key.EVENT_NAME)
-                                    .toJson(),
+                                    .minus(Key.EVENT_NAME),
                         )
                     }
 
@@ -226,7 +225,7 @@ class FeilLytterTest :
 
             test("med event som støttes, men med ugyldig feil") {
                 val omEttMinutt = LocalDateTime.now().plusMinutes(1)
-                val stoettetFail = lagFail(EventName.INNTEKTSMELDING_JOURNALFOERT)
+                val stoettetFail = mockFail("shux life", EventName.INNTEKTSMELDING_JOURNALFOERT)
 
                 rapid.sendJson(
                     stoettetFail.tilMelding().plus(Key.FAIL to "ikke en fail".toJson()),
@@ -239,7 +238,7 @@ class FeilLytterTest :
 
             test("med event som støttes, men uten feil") {
                 val omEttMinutt = LocalDateTime.now().plusMinutes(1)
-                val stoettetFail = lagFail(EventName.INNTEKTSMELDING_JOURNALFOERT)
+                val stoettetFail = mockFail("delux life", EventName.INNTEKTSMELDING_JOURNALFOERT)
 
                 rapid.sendJson(
                     stoettetFail.tilMelding().minus(Key.FAIL),
@@ -251,19 +250,3 @@ class FeilLytterTest :
             }
         }
     })
-
-private fun lagFail(
-    eventName: EventName,
-    transaksjonId: UUID = UUID.randomUUID(),
-): Fail =
-    Fail(
-        feilmelding = "skux life",
-        event = eventName,
-        transaksjonId = transaksjonId,
-        forespoerselId = null,
-        utloesendeMelding =
-            mapOf(
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.KONTEKST_ID to transaksjonId.toJson(),
-            ).toJson(),
-    )

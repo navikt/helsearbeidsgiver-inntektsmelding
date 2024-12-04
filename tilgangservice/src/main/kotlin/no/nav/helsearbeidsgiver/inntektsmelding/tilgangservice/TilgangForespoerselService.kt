@@ -144,14 +144,14 @@ class TilgangForespoerselService(
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(eventName),
-            Log.transaksjonId(fail.transaksjonId),
+            Log.transaksjonId(fail.kontekstId),
         ) {
             val tilgangResultat =
                 ResultJson(
                     failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(),
                 )
 
-            redisStore.skrivResultat(fail.transaksjonId, tilgangResultat)
+            redisStore.skrivResultat(fail.kontekstId, tilgangResultat)
 
             sikkerLogger.error("$eventName terminert.")
         }

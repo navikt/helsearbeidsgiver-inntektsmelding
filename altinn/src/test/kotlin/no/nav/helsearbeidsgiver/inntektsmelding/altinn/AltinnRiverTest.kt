@@ -74,10 +74,8 @@ class AltinnRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke hente organisasjonsrettigheter fra Altinn.",
-                    event = innkommendeMelding.eventName,
-                    transaksjonId = innkommendeMelding.transaksjonId,
-                    forespoerselId = null,
-                    utloesendeMelding = innkommendeJsonMap.toJson(),
+                    kontekstId = innkommendeMelding.transaksjonId,
+                    utloesendeMelding = innkommendeJsonMap,
                 )
 
             coEvery { mockAltinnClient.hentRettighetOrganisasjoner(any()) } throws NullPointerException()

@@ -86,10 +86,8 @@ class DistribusjonRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke distribuere IM med journalpost-ID: '$journalpostId'.",
-                event = eventName,
-                transaksjonId = transaksjonId,
-                forespoerselId = null,
-                utloesendeMelding = json.toJson(),
+                kontekstId = transaksjonId,
+                utloesendeMelding = json,
             )
 
         logger.error(fail.feilmelding)

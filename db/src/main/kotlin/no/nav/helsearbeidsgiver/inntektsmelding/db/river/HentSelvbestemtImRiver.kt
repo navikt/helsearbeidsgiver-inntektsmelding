@@ -98,18 +98,13 @@ class HentSelvbestemtImRiver(
         val fail =
             Fail(
                 feilmelding = feilmelding,
-                event = eventName,
-                transaksjonId = transaksjonId,
-                forespoerselId = null,
-                utloesendeMelding = json.toJson(),
+                kontekstId = transaksjonId,
+                utloesendeMelding = json,
             )
 
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
-        return fail
-            .tilMelding()
-            .minus(Key.FORESPOERSEL_ID)
-            .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
+        return fail.tilMelding()
     }
 }

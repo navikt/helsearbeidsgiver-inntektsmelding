@@ -5,7 +5,9 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.json.toPretty
@@ -39,52 +41,35 @@ class UtgaattForespoerselRiver(
         if (setOf(Key.BEHOV, Key.DATA).any(json::containsKey)) {
             null
         } else {
-            val eventName = Key.EVENT_NAME.les(EventName.serializer(), json)
-            val transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json)
-
-            when (eventName) {
+            val fail = Key.FAIL.lesOrNull(Fail.serializer(), json)
+            if (fail == null) {
                 // Forespørsler som ble forkastet nylig matcher her
-                EventName.FORESPOERSEL_FORKASTET -> {
-                    if (Key.FAIL in json) {
-                        null
-                    } else {
-                        UtgaattForespoerselMelding(
-                            eventName = eventName,
-                            transaksjonId = transaksjonId,
-                            forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json),
-                        )
-                    }
-                }
-
+                UtgaattForespoerselMelding(
+                    eventName = Key.EVENT_NAME.krev(EventName.FORESPOERSEL_FORKASTET, EventName.serializer(), json),
+                    transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                    forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json),
+                )
+            } else {
                 // Forespørsler som ble forkastet for lenge siden matcher her dersom noen prøver å hente dem
-                EventName.TRENGER_REQUESTED -> {
-                    val fail = Key.FAIL.les(Fail.serializer(), json)
-                    val behovType = Key.BEHOV.les(BehovType.serializer(), fail.utloesendeMelding.toMap())
+                val eventName = Key.EVENT_NAME.krev(EventName.TRENGER_REQUESTED, EventName.serializer(), fail.utloesendeMelding)
+                val behovType = Key.BEHOV.les(BehovType.serializer(), fail.utloesendeMelding)
 
-                    if (
-                        behovType != BehovType.HENT_TRENGER_IM ||
-                        fail.feilmelding != "Klarte ikke hente forespørsel. Feilet med kode 'FORESPOERSEL_IKKE_FUNNET'."
-                    ) {
-                        null
-                    } else {
-                        val data =
-                            fail.utloesendeMelding
-                                .toMap()[Key.DATA]
-                                ?.toMap()
-                                .orEmpty()
-                        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data)
+                if (
+                    behovType != BehovType.HENT_TRENGER_IM ||
+                    fail.feilmelding != "Klarte ikke hente forespørsel. Feilet med kode 'FORESPOERSEL_IKKE_FUNNET'."
+                ) {
+                    null
+                } else {
+                    val data = fail.utloesendeMelding[Key.DATA]?.toMap().orEmpty()
+                    val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data)
 
-                        "Setter sak og oppgave til utgått for forespørsel '$forespoerselId' som ikke ble funnet.".also {
-                            logger.info(it)
-                            sikkerLogger.info(it)
-                        }
-
-                        UtgaattForespoerselMelding(eventName, transaksjonId, forespoerselId)
+                    "Setter sak og oppgave til utgått for forespørsel '$forespoerselId' som ikke ble funnet.".also {
+                        logger.info(it)
+                        sikkerLogger.info(it)
                     }
-                }
 
-                // Alle andre eventer ignoreres
-                else -> null
+                    UtgaattForespoerselMelding(eventName, fail.kontekstId, forespoerselId)
+                }
             }
         }
 
@@ -111,10 +96,8 @@ class UtgaattForespoerselRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke sette oppgave til utgått og/eller avbryte sak for forespurt inntektmelding.",
-                event = eventName,
-                transaksjonId = transaksjonId,
-                forespoerselId = forespoerselId,
-                utloesendeMelding = json.toJson(),
+                kontekstId = transaksjonId,
+                utloesendeMelding = json,
             )
 
         logger.error(fail.feilmelding)

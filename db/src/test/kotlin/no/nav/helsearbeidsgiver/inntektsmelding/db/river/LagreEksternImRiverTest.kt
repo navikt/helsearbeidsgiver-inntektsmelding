@@ -13,7 +13,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -22,6 +21,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
@@ -69,10 +69,8 @@ class LagreEksternImRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke lagre ekstern inntektsmelding i database.",
-                    event = innkommendeMelding.eventName,
-                    transaksjonId = innkommendeMelding.transaksjonId,
-                    forespoerselId = innkommendeMelding.forespoerselId,
-                    utloesendeMelding = innkommendeJsonMap.toJson(),
+                    kontekstId = innkommendeMelding.transaksjonId,
+                    utloesendeMelding = innkommendeJsonMap,
                 )
 
             every { mockImRepo.lagreEksternInntektsmelding(any(), any()) } throws NullPointerException()
@@ -130,11 +128,4 @@ private fun LagreEksternImMelding.toMap(): Map<Key, JsonElement> =
             ).toJson(),
     )
 
-private val mockFail =
-    Fail(
-        feilmelding = "Get down! Get down again!",
-        event = EventName.EKSTERN_INNTEKTSMELDING_MOTTATT,
-        transaksjonId = UUID.randomUUID(),
-        forespoerselId = UUID.randomUUID(),
-        utloesendeMelding = JsonNull,
-    )
+private val mockFail = mockFail("Get down! Get down again!", EventName.EKSTERN_INNTEKTSMELDING_MOTTATT)

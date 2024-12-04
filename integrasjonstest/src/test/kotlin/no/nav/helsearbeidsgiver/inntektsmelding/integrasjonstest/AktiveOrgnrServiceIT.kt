@@ -212,9 +212,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         val expectedFail =
             Fail(
                 feilmelding = "Klarte ikke hente personer fra PDL.",
-                event = EventName.AKTIVE_ORGNR_REQUESTED,
-                transaksjonId = transaksjonId,
-                forespoerselId = null,
+                kontekstId = transaksjonId,
                 utloesendeMelding =
                     mapOf(
                         Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
@@ -228,7 +226,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                                         Mock.fnrAg,
                                     ).toJson(Fnr.serializer()),
                             ).toJson(),
-                    ).toJson(),
+                    ),
             )
 
         publish(
@@ -252,7 +250,6 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         val actualFail =
             messages
-                .filter(EventName.AKTIVE_ORGNR_REQUESTED)
                 .filterFeil()
                 .firstAsMap()
                 .get(Key.FAIL)
@@ -260,7 +257,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                 .shouldNotBeNull()
 
         actualFail.shouldBeEqualToIgnoringFields(expectedFail, Fail::utloesendeMelding)
-        actualFail.utloesendeMelding.toMap() shouldContainExactly expectedFail.utloesendeMelding.toMap()
+        actualFail.utloesendeMelding shouldContainExactly expectedFail.utloesendeMelding
     }
 
     private object Mock {

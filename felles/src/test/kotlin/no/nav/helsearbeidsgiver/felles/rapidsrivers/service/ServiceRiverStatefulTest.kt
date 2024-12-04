@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -29,6 +30,7 @@ class ServiceRiverStatefulTest :
             spyk(
                 MockServiceMedRedis(mockRedis.store),
             )
+        val mockFail = mockFail("Noen har blandet ut flybensinen med Red Bull.", mockService.eventName)
 
         ServiceRiverStateful(mockService).connect(testRapid)
 
@@ -44,15 +46,15 @@ class ServiceRiverStatefulTest :
                     "over data" to
                         mapOf(
                             Key.EVENT_NAME to mockService.eventName.toJson(),
-                            Key.KONTEKST_ID to UUID.randomUUID().toJson(),
-                            Key.FAIL to Mock.fail.toJson(Fail.serializer()),
+                            Key.KONTEKST_ID to mockFail.kontekstId.toJson(),
+                            Key.FAIL to mockFail.toJson(Fail.serializer()),
                             Key.DATA to mockService.mockSteg1Data().toJson(),
                         ),
                     "over behov (som skal ignoreres)" to
                         mapOf(
                             Key.EVENT_NAME to mockService.eventName.toJson(),
-                            Key.KONTEKST_ID to UUID.randomUUID().toJson(),
-                            Key.FAIL to Mock.fail.toJson(Fail.serializer()),
+                            Key.KONTEKST_ID to mockFail.kontekstId.toJson(),
+                            Key.FAIL to mockFail.toJson(Fail.serializer()),
                             Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
                         ),
                 ),
@@ -115,22 +117,22 @@ class ServiceRiverStatefulTest :
 
             every { mockRedis.store.lesAlleMellomlagrede(any()) } returns eksisterendeRedisValues
 
-            val transaksjonId = UUID.randomUUID()
-
             val innkommendeMelding =
                 mapOf(
-                    Key.EVENT_NAME to mockService.eventName.toJson(),
-                    Key.KONTEKST_ID to transaksjonId.toJson(),
-                    Key.FAIL to Mock.fail.toJson(Fail.serializer()),
+                    Key.FAIL to mockFail.toJson(Fail.serializer()),
                 )
 
             testRapid.sendJson(innkommendeMelding)
 
-            val beriketMelding = eksisterendeRedisValues + innkommendeMelding
+            val beriketMelding =
+                mapOf(
+                    Key.EVENT_NAME to mockService.eventName.toJson(),
+                    Key.KONTEKST_ID to mockFail.kontekstId.toJson(),
+                ).plus(eksisterendeRedisValues)
 
             verifyOrder {
-                mockRedis.store.lesAlleMellomlagrede(transaksjonId)
-                mockService.onError(beriketMelding, Mock.fail)
+                mockRedis.store.lesAlleMellomlagrede(mockFail.kontekstId)
+                mockService.onError(beriketMelding, mockFail)
             }
             verify(exactly = 0) {
                 mockService.onData(any())
@@ -169,14 +171,14 @@ class ServiceRiverStatefulTest :
                     mapOf(
                         "med uønsket event" to
                             mapOf(
-                                Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-                                Key.KONTEKST_ID to UUID.randomUUID().toJson(),
-                                Key.FAIL to Mock.fail.toJson(Fail.serializer()),
+                                Key.FAIL to
+                                    mockFail(
+                                        "You punched a bursar?",
+                                        EventName.KVITTERING_REQUESTED,
+                                    ).toJson(Fail.serializer()),
                             ),
                         "med ugyldig fail" to
                             mapOf(
-                                Key.EVENT_NAME to mockService.eventName.toJson(),
-                                Key.KONTEKST_ID to UUID.randomUUID().toJson(),
                                 Key.FAIL to "ugyldig fail".toJson(),
                             ),
                     ),

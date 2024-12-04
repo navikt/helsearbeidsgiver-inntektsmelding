@@ -96,7 +96,7 @@ class HentSelvbestemtImService(
         fail: Fail,
     ) {
         val resultJson = ResultJson(failure = fail.feilmelding.toJson())
-        redisStore.skrivResultat(fail.transaksjonId, resultJson)
+        redisStore.skrivResultat(fail.kontekstId, resultJson)
     }
 
     override fun Steg0.loggfelt(): Map<String, String> =

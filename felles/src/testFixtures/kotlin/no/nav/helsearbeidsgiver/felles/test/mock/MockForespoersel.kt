@@ -28,6 +28,7 @@ fun mockForespoersel(): Forespoersel {
             ),
         forespurtData = mockForespurtData(),
         erBesvart = false,
+        opprettetUpresisIkkeBruk = 17.januar,
     )
 }
 

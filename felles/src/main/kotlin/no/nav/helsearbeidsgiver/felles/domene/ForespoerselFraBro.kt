@@ -24,6 +24,7 @@ data class ForespoerselFraBro(
     val bestemmendeFravaersdager: Map<Orgnr, LocalDate>,
     val forespurtData: ForespurtData,
     val erBesvart: Boolean,
+    val opprettetUpresisIkkeBruk: LocalDate,
 ) {
     fun toForespoersel(): Forespoersel =
         Forespoersel(
@@ -35,5 +36,6 @@ data class ForespoerselFraBro(
             bestemmendeFravaersdager = bestemmendeFravaersdager.mapKeys { it.key.verdi },
             forespurtData = forespurtData,
             erBesvart = erBesvart,
+            opprettetUpresisIkkeBruk = opprettetUpresisIkkeBruk,
         )
 }

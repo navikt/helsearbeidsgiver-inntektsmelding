@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -140,6 +141,7 @@ class ForespoerselMottattIT : EndToEndTest() {
                 bestemmendeFravaersdager = emptyMap(),
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
+                opprettetUpresisIkkeBruk = 10.februar,
             )
         val sakId = UUID.randomUUID().toString()
         val oppgaveId = UUID.randomUUID().toString()

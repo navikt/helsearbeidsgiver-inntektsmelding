@@ -168,6 +168,7 @@ private object Mock {
             forespurtData = mockForespurtData(),
             erBesvart = false,
             vedtaksperiodeId = UUID.randomUUID(),
+            opprettetUpresisIkkeBruk = 31.mars,
         )
 
     private val inntekt =

@@ -42,6 +42,7 @@ fun mockForespoerselListeSvarMedSuksess(): ForespoerselListeSvar {
                     bestemmendeFravaersdager = mapOf(orgnr to 1.januar),
                     forespurtData = mockForespurtData(),
                     erBesvart = false,
+                    opprettetUpresisIkkeBruk = 17.januar,
                 ),
             ),
         boomerang = mockBoomerang(),
@@ -85,6 +86,7 @@ fun mockForespoerselSvarSuksess(forespoerselId: UUID): ForespoerselFraBro {
         bestemmendeFravaersdager = mapOf(orgnr to 1.januar),
         forespurtData = mockForespurtData(),
         erBesvart = false,
+        opprettetUpresisIkkeBruk = 17.januar,
     )
 }
 
@@ -104,6 +106,7 @@ fun mockForespoerselSvarSuksessMedFastsattInntekt(forespoerselId: UUID): Forespo
         bestemmendeFravaersdager = mapOf(orgnr to 1.januar),
         forespurtData = mockForespurtDataMedFastsattInntekt(),
         erBesvart = false,
+        opprettetUpresisIkkeBruk = 17.januar,
     )
 }
 

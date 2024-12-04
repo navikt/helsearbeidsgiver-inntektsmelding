@@ -235,6 +235,7 @@ private object Mock {
             "bruttoinntekt": ${inntekt.gjennomsnitt()},
             "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
             "forespurtData": ${forespoersel.forespurtData.hardcodedJson()},
+            "opprettetUpresisIkkeBruk": "${forespoersel.opprettetUpresisIkkeBruk}",
             "erBesvart": ${forespoersel.erBesvart},
             "success": {
                 "navn": "Ola Normann",
@@ -249,6 +250,7 @@ private object Mock {
                 "bruttoinntekt": ${inntekt.gjennomsnitt()},
                 "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
                 "forespurtData": ${forespoersel.forespurtData.hardcodedJson()},
+                "opprettetUpresisIkkeBruk": "${forespoersel.opprettetUpresisIkkeBruk}",
                 "erBesvart": ${forespoersel.erBesvart}
             }
         }
@@ -269,6 +271,7 @@ private object Mock {
             "bruttoinntekt": ${inntekt.gjennomsnitt()},
             "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
             "forespurtData": ${mockForespurtDataMedForrigeInntekt().hardcodedJson()},
+            "opprettetUpresisIkkeBruk": "${forespoersel.opprettetUpresisIkkeBruk}",
             "erBesvart": ${forespoersel.erBesvart},
             "success": {
                 "navn": "Ola Normann",
@@ -283,6 +286,7 @@ private object Mock {
                 "bruttoinntekt": ${inntekt.gjennomsnitt()},
                 "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
                 "forespurtData": ${mockForespurtDataMedForrigeInntekt().hardcodedJson()},
+                "opprettetUpresisIkkeBruk": "${forespoersel.opprettetUpresisIkkeBruk}",
                 "erBesvart": ${forespoersel.erBesvart}
             }
         }

@@ -4,6 +4,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.json.toPretty
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
@@ -77,7 +78,7 @@ abstract class ServiceMed1Steg<S0, S1> : Service {
         }.onFailure {
             "Klarte ikke lese startdata for service.".also {
                 logger.error(it)
-                sikkerLogger.error(it)
+                sikkerLogger.error("$it\n${melding.toPretty()}")
             }
         }
     }

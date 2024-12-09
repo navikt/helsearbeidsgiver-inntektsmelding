@@ -25,15 +25,6 @@ class InntektsmeldingRepository(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    fun hentNyesteInntektsmelding(forespoerselId: UUID): Inntektsmelding? =
-        Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::hentNyesteInntektsmelding) {
-            transaction(db) {
-                hentNyesteImQuery(forespoerselId)
-                    .firstOrNull()
-                    ?.getOrNull(InntektsmeldingEntitet.dokument)
-            }
-        }
-
     fun hentNyesteEksternEllerInternInntektsmelding(forespoerselId: UUID): Pair<Inntektsmelding?, EksternInntektsmelding?> =
         Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::hentNyesteEksternEllerInternInntektsmelding) {
             transaction(db) {
@@ -162,7 +153,7 @@ class InntektsmeldingRepository(
     private fun hentNyesteImSkjemaQuery(forespoerselId: UUID): Query =
         InntektsmeldingEntitet
             .selectAll()
-            .where { (InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()) and InntektsmeldingEntitet.skjema.isNotNull() }
+            .where { InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString() }
             .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
             .limit(1)
 }

@@ -68,7 +68,9 @@ class InntektsmeldingRepositoryTest :
                 inntektsmeldinger.first().getOrNull(InntektsmeldingEntitet.dokument) shouldBe beriketDokument
             }
 
-            inntektsmeldingRepo.hentNyesteInntektsmelding(skjema.forespoerselId) shouldBe beriketDokument
+            val record = testRepo.hentRecordFraInntektsmelding(skjema.forespoerselId).shouldNotBeNull()
+
+            record.getOrNull(InntektsmeldingEntitet.dokument) shouldBe beriketDokument
 
             inntektsmeldingRepo.hentNyesteBerikedeInnsendingId(skjema.forespoerselId) shouldBe innsendingId
         }

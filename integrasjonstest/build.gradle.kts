@@ -32,7 +32,8 @@ val apps =
     )
 
 val props = Properties()
-apps.map { file("../$it/gradle.properties") }
+apps
+    .map { file("../$it/gradle.properties") }
     .filter { it.exists() }
     .forEach { file ->
         file.inputStream().use { props.load(it) }

@@ -1,48 +1,64 @@
-val aaregClientVersion: String by project
-val altinnClientVersion: String by project
-val arbeidsgiverNotifikasjonKlientVersion: String by project
-val bakgrunnsjobbVersion: String by project
-val brregKlientVersion: String by project
-val dokarkivKlientVersion: String by project
-val inntektKlientVersion: String by project
+import java.util.Properties
+
+val apps =
+    setOf(
+        "aareg",
+        "aktiveorgnrservice",
+        "altinn",
+        "api",
+        "berik-inntektsmelding-service",
+        "bro-spinn",
+        "brreg",
+        "db",
+        "distribusjon",
+        "feil-behandler",
+        "forespoersel-besvart",
+        "forespoersel-forkastet",
+        "forespoersel-infotrygd",
+        "forespoersel-marker-besvart",
+        "forespoersel-mottatt",
+        "helsebro",
+        "innsending",
+        "inntekt",
+        "inntekt-selvbestemt-service",
+        "inntektservice",
+        "joark",
+        "notifikasjon",
+        "pdl",
+        "selvbestemt-hent-im-service",
+        "selvbestemt-lagre-im-service",
+        "tilgangservice",
+        "trengerservice",
+    )
+
+val props = Properties()
+apps
+    .map { file("../$it/gradle.properties") }
+    .filter { it.exists() }
+    .forEach { file ->
+        file.inputStream().use { props.load(it) }
+    }
+
+val aaregClientVersion: String by props
+val altinnClientVersion: String by props
+val arbeidsgiverNotifikasjonKlientVersion: String by props
+val bakgrunnsjobbVersion: String by props
+val brregKlientVersion: String by props
+val dokarkivKlientVersion: String by props
+val inntektKlientVersion: String by props
+val pdlKlientVersion: String by props
+
 val junitJupiterVersion: String by project
-val pdlKlientVersion: String by project
 val testcontainersRedisJunitVersion: String by project
 val testcontainersVersion: String by project
 
 dependencies {
-    testImplementation(project(":aareg"))
-    testImplementation(project(":aktiveorgnrservice"))
-    testImplementation(project(":altinn"))
-    testImplementation(project(":api"))
-    testImplementation(project(":bro-spinn"))
-    testImplementation(project(":brreg"))
-    testImplementation(project(":db"))
-    testImplementation(project(":distribusjon"))
-    testImplementation(project(":forespoersel-besvart"))
-    testImplementation(project(":forespoersel-forkastet"))
-    testImplementation(project(":forespoersel-infotrygd"))
-    testImplementation(project(":forespoersel-marker-besvart"))
-    testImplementation(project(":forespoersel-mottatt"))
-    testImplementation(project(":helsebro"))
-    testImplementation(project(":innsending"))
-    testImplementation(project(":inntekt"))
-    testImplementation(project(":inntekt-selvbestemt-service"))
-    testImplementation(project(":inntektservice"))
-    testImplementation(project(":joark"))
-    testImplementation(project(":notifikasjon"))
-    testImplementation(project(":pdl"))
-    testImplementation(project(":selvbestemt-hent-im-service"))
-    testImplementation(project(":selvbestemt-lagre-im-service"))
-    testImplementation(project(":tilgangservice"))
-    testImplementation(project(":trengerservice"))
-    testImplementation(project(":berik-inntektsmelding-service"))
-    testImplementation(project(":feil-behandler"))
+    apps.forEach {
+        testImplementation(project(":$it"))
+    }
 
     testImplementation(project(":felles"))
     testImplementation(project(":felles-db-exposed"))
-
-    testImplementation("no.nav.helsearbeidsgiver:hag-bakgrunnsjobb:$bakgrunnsjobbVersion")
 
     testImplementation(testFixtures(project(":felles")))
     testImplementation(testFixtures(project(":felles-db-exposed")))
@@ -57,6 +73,7 @@ dependencies {
     testImplementation("no.nav.helsearbeidsgiver:pdl-client:$pdlKlientVersion")
 
     testImplementation("com.redis.testcontainers:testcontainers-redis-junit:$testcontainersRedisJunitVersion")
+    testImplementation("no.nav.helsearbeidsgiver:hag-bakgrunnsjobb:$bakgrunnsjobbVersion")
     testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")

@@ -246,6 +246,7 @@ private object Mock {
                     Key.FORESPOERSEL_ID to forespoerselId?.toJson(),
                     Key.FNR_LISTE to fnrListe.toJson(Fnr.serializer()),
                 ).mapValuesNotNull { it },
+            svarKafkaKey = null,
             fnrListe = fnrListe,
         )
 

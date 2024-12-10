@@ -177,6 +177,7 @@ private object Mock {
                     Key.FNR to fnr.toJson(),
                     Key.INNTEKTSDATO to inntektsdato.toJson(),
                 ),
+            svarKafkaKey = null,
             orgnr = orgnr,
             fnr = fnr,
             inntektsdato = inntektsdato,

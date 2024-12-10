@@ -131,6 +131,7 @@ private object Mock {
                 mapOf(
                     Key.FNR to fnr.toJson(Fnr.serializer()),
                 ),
+            svarKafkaKey = null,
             fnr = fnr,
         )
     }

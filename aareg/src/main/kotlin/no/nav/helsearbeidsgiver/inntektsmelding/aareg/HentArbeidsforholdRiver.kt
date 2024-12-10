@@ -8,9 +8,11 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -26,6 +28,7 @@ data class HentArbeidsforholdMelding(
     val behovType: BehovType,
     val transaksjonId: UUID,
     val data: Map<Key, JsonElement>,
+    val svarKafkaKey: KafkaKey?,
     val fnr: Fnr,
 )
 
@@ -46,6 +49,7 @@ class HentArbeidsforholdRiver(
                 behovType = Key.BEHOV.krev(BehovType.HENT_ARBEIDSFORHOLD, BehovType.serializer(), json),
                 transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
+                svarKafkaKey = Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), data),
                 fnr = Key.FNR.les(Fnr.serializer(), data),
             )
         }

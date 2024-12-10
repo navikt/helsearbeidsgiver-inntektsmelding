@@ -19,6 +19,7 @@ import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -124,6 +125,8 @@ class LagreSelvbestemtImService(
         data: Map<Key, JsonElement>,
         steg0: Steg0,
     ) {
+        val svarKafkaKey = KafkaKey(steg0.skjema.sykmeldtFnr)
+
         kontrollerSkjema(steg0.skjema)
 
         rapid.publish(
@@ -133,6 +136,7 @@ class LagreSelvbestemtImService(
             Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
+                    Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
                     Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
                     Key.ORGNR_UNDERENHETER to setOf(steg0.skjema.avsender.orgnr).toJson(Orgnr.serializer()),
                 ).mapValuesNotNull { it }
@@ -146,6 +150,7 @@ class LagreSelvbestemtImService(
             Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
+                    Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
                     Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
                     Key.FNR_LISTE to
                         setOf(
@@ -163,6 +168,7 @@ class LagreSelvbestemtImService(
             Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
+                    Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
                     Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
                     Key.FNR to
                         steg0.skjema.sykmeldtFnr.verdi

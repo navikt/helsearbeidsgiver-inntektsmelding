@@ -23,7 +23,7 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.Mock.forespoersler
+import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.MockHent.forespoersler
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -46,12 +46,12 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
         test("forespørsler hentes og svar sendes ut på redis") {
             val transaksjonId = UUID.randomUUID()
 
-            testRapid.sendJson(Mock.steg0(transaksjonId))
+            testRapid.sendJson(MockHent.steg0(transaksjonId))
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.message(0).lesBehov() shouldBe BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE
 
-            testRapid.sendJson(Mock.steg1(transaksjonId))
+            testRapid.sendJson(MockHent.steg1(transaksjonId))
 
             testRapid.inspektør.size shouldBeExactly 1
 
@@ -73,7 +73,7 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
                     behovType = BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE,
                 )
 
-            testRapid.sendJson(Mock.steg0(fail.kontekstId))
+            testRapid.sendJson(MockHent.steg0(fail.kontekstId))
 
             testRapid.sendJson(fail.tilMelding())
 
@@ -89,7 +89,7 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
         }
     })
 
-private object Mock {
+private object MockHent {
     val vedtaksperiodeId1: UUID = UUID.randomUUID()
     val vedtaksperiodeId2: UUID = UUID.randomUUID()
     val forespoerselId1: UUID = UUID.randomUUID()

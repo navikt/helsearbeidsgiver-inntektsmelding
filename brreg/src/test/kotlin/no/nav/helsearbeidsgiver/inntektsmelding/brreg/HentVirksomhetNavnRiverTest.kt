@@ -190,6 +190,7 @@ private object Mock {
                 mapOf(
                     Key.ORGNR_UNDERENHETER to orgnr.toJson(Orgnr.serializer()),
                 ),
+            svarKafkaKey = null,
             orgnr = orgnr,
         )
 

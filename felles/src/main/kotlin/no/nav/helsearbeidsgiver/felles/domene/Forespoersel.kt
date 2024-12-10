@@ -21,6 +21,7 @@ data class Forespoersel(
     val bestemmendeFravaersdager: Map<String, LocalDate>,
     val forespurtData: ForespurtData,
     val erBesvart: Boolean,
+    val opprettetUpresisIkkeBruk: LocalDate,
 ) {
     fun forslagBestemmendeFravaersdag(): LocalDate {
         val forslag = bestemmendeFravaersdager[orgnr]

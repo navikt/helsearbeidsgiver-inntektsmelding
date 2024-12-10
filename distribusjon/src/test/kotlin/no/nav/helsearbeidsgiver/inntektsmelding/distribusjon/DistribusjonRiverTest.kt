@@ -11,7 +11,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -20,6 +19,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
@@ -139,10 +139,8 @@ class DistribusjonRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke distribuere IM med journalpost-ID: '${innkommendeMelding.journalpostId}'.",
-                    event = innkommendeMelding.eventName,
-                    transaksjonId = innkommendeMelding.transaksjonId,
-                    forespoerselId = null,
-                    utloesendeMelding = innkommendeJsonMap.toJson(),
+                    kontekstId = innkommendeMelding.transaksjonId,
+                    utloesendeMelding = innkommendeJsonMap,
                 )
 
             testRapid.sendJson(innkommendeJsonMap)
@@ -184,14 +182,7 @@ class DistribusjonRiverTest :
 private object Mock {
     val bestemmendeFravaersdag = 20.oktober
 
-    val fail =
-        Fail(
-            feilmelding = "I'm afraid I can't let you do that.",
-            event = EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET,
-            transaksjonId = UUID.randomUUID(),
-            forespoerselId = UUID.randomUUID(),
-            utloesendeMelding = JsonNull,
-        )
+    val fail = mockFail("I'm afraid I can't let you do that.", EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET)
 
     fun innkommendeMelding(): Melding =
         Melding(

@@ -14,7 +14,6 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
@@ -24,6 +23,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -139,25 +139,15 @@ class LagreSelvbestemtImRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke lagre selvbestemt inntektsmelding i database.",
-                    event = innkommendeMelding.eventName,
-                    transaksjonId = innkommendeMelding.transaksjonId,
-                    forespoerselId = null,
-                    utloesendeMelding = innkommendeMelding.toMap().toJson(),
+                    kontekstId = innkommendeMelding.transaksjonId,
+                    utloesendeMelding = innkommendeMelding.toMap(),
                 )
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly
-                forventetFail
-                    .tilMelding()
-                    .minus(Key.FORESPOERSEL_ID)
-                    .plus(
-                        Key.SELVBESTEMT_ID to
-                            innkommendeMelding.selvbestemtInntektsmelding.type.id
-                                .toJson(),
-                    )
+            testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             verifySequence {
                 mockSelvbestemtImRepo.hentNyesteIm(any())
@@ -211,11 +201,4 @@ private fun LagreSelvbestemtImMelding.toMap(): Map<Key, JsonElement> =
         Key.DATA to data.toJson(),
     )
 
-private val mockFail =
-    Fail(
-        feilmelding = "Vi har et KJEMPEPROBLEM!",
-        event = EventName.SELVBESTEMT_IM_MOTTATT,
-        transaksjonId = UUID.randomUUID(),
-        forespoerselId = null,
-        utloesendeMelding = JsonNull,
-    )
+private val mockFail = mockFail("Vi har et KJEMPEPROBLEM!", EventName.SELVBESTEMT_IM_MOTTATT)

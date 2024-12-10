@@ -11,7 +11,6 @@ import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -20,6 +19,7 @@ import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.Mock.toMap
@@ -184,19 +184,13 @@ class HentPersonerRiverTest :
 
             val innkommendeMelding = Mock.innkommendeMelding(setOf(randomFnr))
 
-            val innkommendeJsonMap =
-                innkommendeMelding
-                    .toMap()
-                    .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
-                    .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
+            val innkommendeJsonMap = innkommendeMelding.toMap()
 
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke hente personer fra PDL.",
-                    event = innkommendeMelding.eventName,
-                    transaksjonId = innkommendeMelding.transaksjonId,
-                    forespoerselId = forespoerselId,
-                    utloesendeMelding = innkommendeJsonMap.toJson(),
+                    kontekstId = innkommendeMelding.transaksjonId,
+                    utloesendeMelding = innkommendeJsonMap,
                 )
 
             coEvery { mockPdlClient.personBolk(any()) } throws IllegalArgumentException("Finner bare brødristere!")
@@ -205,11 +199,7 @@ class HentPersonerRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly
-                forventetFail
-                    .tilMelding()
-                    .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
-                    .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
+            testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             coVerifySequence {
                 mockPdlClient.personBolk(listOf(randomFnr.verdi))
@@ -268,14 +258,7 @@ private object Mock {
             Key.DATA to data.toJson(),
         )
 
-    val fail =
-        Fail(
-            feilmelding = "They have a cave troll.",
-            event = EventName.TRENGER_REQUESTED,
-            transaksjonId = UUID.randomUUID(),
-            forespoerselId = null,
-            utloesendeMelding = JsonNull,
-        )
+    val fail = mockFail("They have a cave troll.", EventName.TRENGER_REQUESTED)
 
     fun fullPerson(
         fornavn: String,

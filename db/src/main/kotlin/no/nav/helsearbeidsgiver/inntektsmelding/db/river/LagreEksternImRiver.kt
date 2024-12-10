@@ -67,10 +67,8 @@ class LagreEksternImRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke lagre ekstern inntektsmelding i database.",
-                event = eventName,
-                transaksjonId = transaksjonId,
-                forespoerselId = forespoerselId,
-                utloesendeMelding = json.toJson(),
+                kontekstId = transaksjonId,
+                utloesendeMelding = json,
             )
 
         logger.error(fail.feilmelding)

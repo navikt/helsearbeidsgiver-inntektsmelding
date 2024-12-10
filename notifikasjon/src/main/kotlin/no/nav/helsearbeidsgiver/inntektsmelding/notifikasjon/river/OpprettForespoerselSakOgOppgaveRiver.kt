@@ -103,10 +103,8 @@ class OpprettForespoerselSakOgOppgaveRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke opprette sak og/eller oppgave for forespurt inntektmelding.",
-                event = eventName,
-                transaksjonId = transaksjonId,
-                forespoerselId = forespoerselId,
-                utloesendeMelding = json.toJson(),
+                kontekstId = transaksjonId,
+                utloesendeMelding = json,
             )
 
         logger.error(fail.feilmelding)

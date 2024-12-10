@@ -92,10 +92,8 @@ class LagreImRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke lagre inntektsmelding i database.",
-                event = eventName,
-                transaksjonId = transaksjonId,
-                forespoerselId = inntektsmelding.type.id,
-                utloesendeMelding = json.toJson(),
+                kontekstId = transaksjonId,
+                utloesendeMelding = json,
             )
 
         logger.error(fail.feilmelding)

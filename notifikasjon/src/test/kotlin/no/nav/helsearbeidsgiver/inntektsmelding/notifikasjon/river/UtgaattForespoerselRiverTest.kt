@@ -220,8 +220,7 @@ class UtgaattForespoerselRiverTest :
             test("med korrekt fail så settes oppgaven til utgått og sak til ferdig") {
                 val innkommendeFail = Mock.forespoerselIkkeFunnetFail()
                 val forespoerselId =
-                    innkommendeFail.utloesendeMelding
-                        .toMap()[Key.DATA]
+                    innkommendeFail.utloesendeMelding[Key.DATA]
                         .shouldNotBeNull()
                         .toMap()[Key.FORESPOERSEL_ID]
                         .shouldNotBeNull()
@@ -233,7 +232,7 @@ class UtgaattForespoerselRiverTest :
                 testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
                         Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_UTGAATT.toJson(),
-                        Key.KONTEKST_ID to innkommendeFail.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to innkommendeFail.kontekstId.toJson(),
                         Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     )
 
@@ -260,9 +259,7 @@ class UtgaattForespoerselRiverTest :
                         it.copy(
                             utloesendeMelding =
                                 it.utloesendeMelding
-                                    .toMap()
-                                    .plus(Key.BEHOV to BehovType.HENT_INNTEKT.toJson())
-                                    .toJson(),
+                                    .plus(Key.BEHOV to BehovType.HENT_INNTEKT.toJson()),
                         )
                     }
 
@@ -346,10 +343,8 @@ private object Mock {
     fun forventetFail(innkommendeMelding: UtgaattForespoerselMelding): Fail =
         Fail(
             feilmelding = "Klarte ikke sette oppgave til utgått og/eller avbryte sak for forespurt inntektmelding.",
-            event = innkommendeMelding.eventName,
-            transaksjonId = innkommendeMelding.transaksjonId,
-            forespoerselId = innkommendeMelding.forespoerselId,
-            utloesendeMelding = innkommendeMelding.toMap().toJson(),
+            kontekstId = innkommendeMelding.transaksjonId,
+            utloesendeMelding = innkommendeMelding.toMap(),
         )
 
     fun forespoerselIkkeFunnetFail(): Fail {
@@ -359,9 +354,7 @@ private object Mock {
 
         return Fail(
             feilmelding = "Klarte ikke hente forespørsel. Feilet med kode 'FORESPOERSEL_IKKE_FUNNET'.",
-            event = eventName,
-            transaksjonId = transaksjonId,
-            forespoerselId = forespoerselId,
+            kontekstId = transaksjonId,
             utloesendeMelding =
                 mapOf(
                     Key.EVENT_NAME to eventName.toJson(),
@@ -371,7 +364,7 @@ private object Mock {
                         mapOf(
                             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                         ).toJson(),
-                ).toJson(),
+                ),
         )
     }
 }

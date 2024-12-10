@@ -1,13 +1,12 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -41,14 +40,7 @@ object Mock {
                 ).toJson(),
         )
 
-    val fail =
-        Fail(
-            feilmelding = "One does not simply walk into Mordor.",
-            event = EventName.AKTIVE_ORGNR_REQUESTED,
-            transaksjonId = UUID.randomUUID(),
-            forespoerselId = null,
-            utloesendeMelding = JsonNull,
-        )
+    val fail = mockFail("One does not simply walk into Mordor.", EventName.AKTIVE_ORGNR_REQUESTED)
 
     val altinnOrganisasjoner =
         setOf(

@@ -347,6 +347,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                 bestemmendeFravaersdager = mapOf(orgnr.verdi to 15.juli),
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
+                opprettetUpresisIkkeBruk = 2.august,
             )
 
         val forespoerselSvar =
@@ -360,6 +361,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                 bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager.mapKeys { Orgnr(it.key) },
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
+                opprettetUpresisIkkeBruk = forespoersel.opprettetUpresisIkkeBruk,
             )
     }
 }

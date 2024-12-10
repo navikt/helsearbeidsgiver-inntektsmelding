@@ -17,8 +17,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.pdl.PdlClient
-import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -91,19 +89,14 @@ class HentPersonerRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke hente personer fra PDL.",
-                event = eventName,
-                transaksjonId = transaksjonId,
-                forespoerselId = json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer),
-                utloesendeMelding = json.toJson(),
+                kontekstId = transaksjonId,
+                utloesendeMelding = json,
             )
 
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
-        return fail
-            .tilMelding()
-            .plus(Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID])
-            .mapValuesNotNull { it }
+        return fail.tilMelding()
     }
 
     override fun Melding.loggfelt(): Map<String, String> =

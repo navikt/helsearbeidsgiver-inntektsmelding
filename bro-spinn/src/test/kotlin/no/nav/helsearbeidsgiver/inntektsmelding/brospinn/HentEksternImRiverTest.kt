@@ -12,7 +12,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -21,6 +20,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.Mock.toMap
@@ -112,10 +112,8 @@ class HentEksternImRiverTest :
                 val forventetFail =
                     Fail(
                         feilmelding = expectedFeilmelding,
-                        event = innkommendeMelding.eventName,
-                        transaksjonId = innkommendeMelding.transaksjonId,
-                        forespoerselId = innkommendeMelding.forespoerselId,
-                        utloesendeMelding = innkommendeJsonMap.toJson(),
+                        kontekstId = innkommendeMelding.transaksjonId,
+                        utloesendeMelding = innkommendeJsonMap,
                     )
 
                 every { mockSpinnKlient.hentEksternInntektsmelding(any()) } throws error
@@ -175,12 +173,5 @@ private object Mock {
                 ).toJson(),
         )
 
-    val fail =
-        Fail(
-            feilmelding = "Vi spiller ikke Flo Rida sin versjon.",
-            event = EventName.FORESPOERSEL_BESVART,
-            transaksjonId = UUID.randomUUID(),
-            forespoerselId = UUID.randomUUID(),
-            utloesendeMelding = JsonNull,
-        )
+    val fail = mockFail("Vi spiller ikke Flo Rida sin versjon.", EventName.FORESPOERSEL_BESVART)
 }

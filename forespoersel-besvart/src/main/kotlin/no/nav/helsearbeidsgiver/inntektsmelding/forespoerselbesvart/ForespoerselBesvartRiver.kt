@@ -45,20 +45,16 @@ class ForespoerselBesvartRiver : PriObjectRiver<BesvartMelding>() {
 
         Metrics.forespoerslerBesvartFraSpleis.inc()
 
-        val resultat =
-            mapOf(
-                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.KONTEKST_ID to transaksjonId.toJson(),
-                Key.DATA to
-                    mapOf(
-                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                        Key.SPINN_INNTEKTSMELDING_ID to spinnInntektsmeldingId?.toJson(),
-                    ).mapValuesNotNull { it }
-                        .toJson(),
-            )
-        logger.info("Sendt en melding fra pri-topic.")
-        sikkerLogger.info("Sendt en melding fra pri-topic:\n${resultat.toJson()}")
-        return resultat
+        return mapOf(
+            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.SPINN_INNTEKTSMELDING_ID to spinnInntektsmeldingId?.toJson(),
+                ).mapValuesNotNull { it }
+                    .toJson(),
+        )
     }
 
     override fun BesvartMelding.haandterFeil(

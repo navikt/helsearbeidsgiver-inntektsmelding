@@ -19,7 +19,6 @@ import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -307,9 +306,9 @@ class LagreSelvbestemtImService(
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(eventName),
-            Log.transaksjonId(fail.transaksjonId),
+            Log.transaksjonId(fail.kontekstId),
         ) {
-            val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
+            val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding)
             val datafeil =
                 when (utloesendeBehov) {
                     BehovType.HENT_VIRKSOMHET_NAVN -> Key.VIRKSOMHETER to emptyMap<String, String>().toJson()
@@ -321,14 +320,14 @@ class LagreSelvbestemtImService(
                 }
 
             if (datafeil != null) {
-                redisStore.skrivMellomlagring(fail.transaksjonId, datafeil.first, datafeil.second)
+                redisStore.skrivMellomlagring(fail.kontekstId, datafeil.first, datafeil.second)
 
                 val meldingMedDefault = mapOf(datafeil) + melding
 
                 onData(meldingMedDefault)
             } else {
                 val resultJson = ResultJson(failure = fail.feilmelding.toJson())
-                redisStore.skrivResultat(fail.transaksjonId, resultJson)
+                redisStore.skrivResultat(fail.kontekstId, resultJson)
             }
         }
     }

@@ -11,7 +11,6 @@ import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -20,6 +19,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.Mock.toMap
@@ -141,10 +141,8 @@ class HentVirksomhetNavnRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke hente virksomhet fra Brreg.",
-                    event = innkommendeMelding.eventName,
-                    transaksjonId = innkommendeMelding.transaksjonId,
-                    forespoerselId = null,
-                    utloesendeMelding = innkommendeMelding.toMap().toJson(),
+                    kontekstId = innkommendeMelding.transaksjonId,
+                    utloesendeMelding = innkommendeMelding.toMap(),
                 )
 
             testRapid.sendJson(innkommendeMelding.toMap())
@@ -204,12 +202,5 @@ private object Mock {
             Key.DATA to data.toJson(),
         )
 
-    val fail =
-        Fail(
-            feilmelding = "failando, failando",
-            event = EventName.TRENGER_REQUESTED,
-            transaksjonId = UUID.randomUUID(),
-            forespoerselId = UUID.randomUUID(),
-            utloesendeMelding = JsonNull,
-        )
+    val fail = mockFail("failando, failando", EventName.TRENGER_REQUESTED)
 }

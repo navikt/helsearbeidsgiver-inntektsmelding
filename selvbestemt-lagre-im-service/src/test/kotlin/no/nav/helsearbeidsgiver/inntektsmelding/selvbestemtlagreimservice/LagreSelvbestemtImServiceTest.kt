@@ -13,7 +13,6 @@ import io.mockk.every
 import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferietrekk
@@ -40,7 +39,6 @@ import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
@@ -48,6 +46,7 @@ import no.nav.helsearbeidsgiver.felles.test.json.lesData
 import no.nav.helsearbeidsgiver.felles.test.json.minusData
 import no.nav.helsearbeidsgiver.felles.test.json.plusData
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -282,36 +281,38 @@ class LagreSelvbestemtImServiceTest :
             )
 
             testRapid.sendJson(
-                Fail(
+                mockFail(
                     feilmelding = "Denne bedriften er skummel.",
-                    event = EventName.SELVBESTEMT_IM_MOTTATT,
-                    transaksjonId = transaksjonId,
-                    forespoerselId = null,
-                    utloesendeMelding =
-                        JsonObject(
-                            mapOf(
-                                Key.BEHOV.toString() to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
+                    eventName = EventName.SELVBESTEMT_IM_MOTTATT,
+                    behovType = BehovType.HENT_VIRKSOMHET_NAVN,
+                ).let {
+                    it.copy(
+                        kontekstId = transaksjonId,
+                        utloesendeMelding =
+                            it.utloesendeMelding.plus(
+                                Key.KONTEKST_ID to transaksjonId.toJson(),
                             ),
-                        ),
-                ).tilMelding(),
+                    )
+                }.tilMelding(),
             )
 
             mockStatic(OffsetDateTime::class) {
                 every { OffsetDateTime.now() } returns inntektsmeldingMedDefaults.mottatt
 
                 testRapid.sendJson(
-                    Fail(
+                    mockFail(
                         feilmelding = "Denne personen jobber i PST.",
-                        event = EventName.SELVBESTEMT_IM_MOTTATT,
-                        transaksjonId = transaksjonId,
-                        forespoerselId = null,
-                        utloesendeMelding =
-                            JsonObject(
-                                mapOf(
-                                    Key.BEHOV.toString() to BehovType.HENT_PERSONER.toJson(),
+                        eventName = EventName.SELVBESTEMT_IM_MOTTATT,
+                        behovType = BehovType.HENT_PERSONER,
+                    ).let {
+                        it.copy(
+                            kontekstId = transaksjonId,
+                            utloesendeMelding =
+                                it.utloesendeMelding.plus(
+                                    Key.KONTEKST_ID to transaksjonId.toJson(),
                                 ),
-                            ),
-                    ).tilMelding(),
+                        )
+                    }.tilMelding(),
                 )
             }
 
@@ -356,37 +357,27 @@ class LagreSelvbestemtImServiceTest :
         }
 
         test("svar med feilmelding ved uhåndterbare feil") {
-            val transaksjonId = UUID.randomUUID()
-
-            val feilmelding = "Databasen er full :("
+            val fail =
+                mockFail(
+                    feilmelding = "Databasen er full :(",
+                    eventName = EventName.SELVBESTEMT_IM_MOTTATT,
+                    behovType = BehovType.LAGRE_SELVBESTEMT_IM,
+                )
             val endretInntektsmelding = Mock.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
 
             testRapid.sendJson(
-                Mock.steg0(transaksjonId),
+                Mock.steg0(fail.kontekstId),
             )
 
             mockStatic(OffsetDateTime::class) {
                 every { OffsetDateTime.now() } returns endretInntektsmelding.mottatt
 
                 testRapid.sendJson(
-                    Mock.steg1(transaksjonId),
+                    Mock.steg1(fail.kontekstId),
                 )
             }
 
-            testRapid.sendJson(
-                Fail(
-                    feilmelding = feilmelding,
-                    event = EventName.SELVBESTEMT_IM_MOTTATT,
-                    transaksjonId = transaksjonId,
-                    forespoerselId = null,
-                    utloesendeMelding =
-                        JsonObject(
-                            mapOf(
-                                Key.BEHOV.toString() to BehovType.LAGRE_SELVBESTEMT_IM.toJson(),
-                            ),
-                        ),
-                ).tilMelding(),
-            )
+            testRapid.sendJson(fail.tilMelding())
 
             testRapid.inspektør.size shouldBeExactly 4
             testRapid.message(3).toMap().also {
@@ -396,9 +387,9 @@ class LagreSelvbestemtImServiceTest :
 
             verify {
                 mockRedis.store.skrivResultat(
-                    transaksjonId,
+                    fail.kontekstId,
                     ResultJson(
-                        failure = feilmelding.toJson(),
+                        failure = fail.feilmelding.toJson(),
                     ),
                 )
             }

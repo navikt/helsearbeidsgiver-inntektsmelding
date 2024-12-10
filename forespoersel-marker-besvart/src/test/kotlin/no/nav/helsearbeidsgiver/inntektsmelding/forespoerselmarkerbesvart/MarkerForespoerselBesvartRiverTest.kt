@@ -18,6 +18,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -82,11 +83,4 @@ class MarkerForespoerselBesvartRiverTest :
         }
     })
 
-private val mockFail =
-    Fail(
-        feilmelding = "Life, eh, finds a way.",
-        event = EventName.INNTEKTSMELDING_MOTTATT,
-        transaksjonId = UUID.randomUUID(),
-        forespoerselId = UUID.randomUUID(),
-        utloesendeMelding = JsonNull,
-    )
+private val mockFail = mockFail("Life, eh, finds a way.", EventName.INNTEKTSMELDING_MOTTATT)

@@ -8,7 +8,6 @@ import io.mockk.clearAllMocks
 import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
@@ -20,12 +19,12 @@ import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.json.plusData
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -134,49 +133,24 @@ class InnsendingServiceTest :
         }
 
         test("svar med feilmelding ved feil") {
+            val fail =
+                mockFail(
+                    feilmelding = "Databasen er smekk full.",
+                    eventName = EventName.INSENDING_STARTED,
+                    behovType = BehovType.LAGRE_IM_SKJEMA,
+                )
 
-            val transaksjonId = UUID.randomUUID()
+            testRapid.sendJson(Mock.steg0(fail.kontekstId))
 
-            val feilmelding = "Databasen er smekk full."
-
-            val nyttSkjema =
-                Mock.skjema.let { skjema ->
-                    skjema.copy(
-                        agp =
-                            skjema.agp?.let { agp ->
-                                Arbeidsgiverperiode(
-                                    perioder = agp.perioder,
-                                    egenmeldinger = listOf(13.juli til 31.juli),
-                                    redusertLoennIAgp = agp.redusertLoennIAgp,
-                                )
-                            },
-                    )
-                }
-
-            testRapid.sendJson(Mock.steg0(transaksjonId))
-
-            testRapid.sendJson(
-                Fail(
-                    feilmelding = feilmelding,
-                    event = EventName.INSENDING_STARTED,
-                    transaksjonId = transaksjonId,
-                    forespoerselId = nyttSkjema.forespoerselId,
-                    utloesendeMelding =
-                        JsonObject(
-                            mapOf(
-                                Key.BEHOV.toString() to BehovType.LAGRE_IM_SKJEMA.toJson(),
-                            ),
-                        ),
-                ).tilMelding(),
-            )
+            testRapid.sendJson(fail.tilMelding())
 
             testRapid.inspektør.size shouldBeExactly 1
 
             verify {
                 mockRedis.store.skrivResultat(
-                    transaksjonId,
+                    fail.kontekstId,
                     ResultJson(
-                        failure = feilmelding.toJson(),
+                        failure = fail.feilmelding.toJson(),
                     ),
                 )
             }

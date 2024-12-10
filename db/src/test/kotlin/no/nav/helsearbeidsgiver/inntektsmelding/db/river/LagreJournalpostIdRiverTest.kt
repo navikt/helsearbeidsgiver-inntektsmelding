@@ -14,7 +14,6 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -22,6 +21,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
@@ -144,10 +144,8 @@ class LagreJournalpostIdRiverTest :
                 val forventetFail =
                     Fail(
                         feilmelding = "Klarte ikke lagre journalpost-ID '${innkommendeMelding.journalpostId}'.",
-                        event = innkommendeMelding.eventName,
-                        transaksjonId = innkommendeMelding.transaksjonId,
-                        forespoerselId = null,
-                        utloesendeMelding = innkommendeMelding.toMap().toJson(),
+                        kontekstId = innkommendeMelding.transaksjonId,
+                        utloesendeMelding = innkommendeMelding.toMap(),
                     )
 
                 testRapid.sendJson(innkommendeMelding.toMap())
@@ -180,10 +178,8 @@ class LagreJournalpostIdRiverTest :
                 val forventetFail =
                     Fail(
                         feilmelding = "Klarte ikke lagre journalpost-ID '${innkommendeMelding.journalpostId}'.",
-                        event = innkommendeMelding.eventName,
-                        transaksjonId = innkommendeMelding.transaksjonId,
-                        forespoerselId = null,
-                        utloesendeMelding = innkommendeMelding.toMap().toJson(),
+                        kontekstId = innkommendeMelding.transaksjonId,
+                        utloesendeMelding = innkommendeMelding.toMap(),
                     )
 
                 testRapid.sendJson(innkommendeMelding.toMap())
@@ -250,12 +246,5 @@ private object Mock {
             Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
         )
 
-    val fail =
-        Fail(
-            feilmelding = "I er et steinras og du skal falla med meg.",
-            event = EventName.INNTEKTSMELDING_MOTTATT,
-            transaksjonId = UUID.randomUUID(),
-            forespoerselId = UUID.randomUUID(),
-            utloesendeMelding = JsonNull,
-        )
+    val fail = mockFail("I er et steinras og du skal falla med meg.", EventName.INNTEKTSMELDING_MOTTATT)
 }

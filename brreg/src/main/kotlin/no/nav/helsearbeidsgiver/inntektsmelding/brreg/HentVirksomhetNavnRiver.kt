@@ -90,10 +90,8 @@ class HentVirksomhetNavnRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke hente virksomhet fra Brreg.",
-                event = eventName,
-                transaksjonId = transaksjonId,
-                forespoerselId = null,
-                utloesendeMelding = json.toJson(),
+                kontekstId = transaksjonId,
+                utloesendeMelding = json,
             )
 
         logger.error(fail.feilmelding)

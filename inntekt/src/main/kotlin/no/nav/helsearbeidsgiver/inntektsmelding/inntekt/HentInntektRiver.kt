@@ -97,10 +97,8 @@ class HentInntektRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke hente inntekt fra Inntektskomponenten.",
-                event = eventName,
-                transaksjonId = transaksjonId,
-                forespoerselId = null,
-                utloesendeMelding = json.toJson(),
+                kontekstId = transaksjonId,
+                utloesendeMelding = json,
             )
 
         logger.error(fail.feilmelding)

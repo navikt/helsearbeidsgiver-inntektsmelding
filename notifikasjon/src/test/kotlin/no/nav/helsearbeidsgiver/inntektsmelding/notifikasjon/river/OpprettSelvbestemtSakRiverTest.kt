@@ -11,7 +11,6 @@ import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveDuplikatException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
@@ -22,6 +21,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -122,15 +122,7 @@ class OpprettSelvbestemtSakRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly
-                forventetFail
-                    .tilMelding()
-                    .minus(Key.FORESPOERSEL_ID)
-                    .plus(
-                        Key.SELVBESTEMT_ID to
-                            innkommendeMelding.inntektsmelding.type.id
-                                .toJson(),
-                    )
+            testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             coVerifySequence {
                 mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
@@ -186,17 +178,8 @@ private fun OpprettSelvbestemtSakMelding.toMap(): Map<Key, JsonElement> =
 private fun OpprettSelvbestemtSakMelding.toFail(): Fail =
     Fail(
         feilmelding = "Klarte ikke lagre sak for selvbestemt inntektsmelding.",
-        event = EventName.SELVBESTEMT_IM_MOTTATT,
-        transaksjonId = transaksjonId,
-        forespoerselId = null,
-        utloesendeMelding = toMap().toJson(),
+        kontekstId = transaksjonId,
+        utloesendeMelding = toMap(),
     )
 
-private val mockFail =
-    Fail(
-        feilmelding = "I know kung-fu.",
-        event = EventName.SELVBESTEMT_IM_MOTTATT,
-        transaksjonId = UUID.randomUUID(),
-        forespoerselId = null,
-        utloesendeMelding = JsonNull,
-    )
+private val mockFail = mockFail("I know kung-fu.", EventName.SELVBESTEMT_IM_MOTTATT)

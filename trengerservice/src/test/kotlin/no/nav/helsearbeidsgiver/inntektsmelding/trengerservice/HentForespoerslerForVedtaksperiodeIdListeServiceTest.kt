@@ -8,18 +8,17 @@ import io.mockk.clearAllMocks
 import io.mockk.verify
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
@@ -67,33 +66,24 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
         }
 
         test("svar med feilmelding ved feil") {
-            val transaksjonId = UUID.randomUUID()
-            val feilmelding = "Teknisk feil, prøv igjen senere."
+            val fail =
+                mockFail(
+                    feilmelding = "Teknisk feil, prøv igjen senere.",
+                    eventName = EventName.FORESPOERSLER_REQUESTED,
+                    behovType = BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE,
+                )
 
-            testRapid.sendJson(MockHent.steg0(transaksjonId))
+            testRapid.sendJson(MockHent.steg0(fail.kontekstId))
 
-            testRapid.sendJson(
-                Fail(
-                    feilmelding = feilmelding,
-                    event = EventName.FORESPOERSLER_REQUESTED,
-                    transaksjonId = transaksjonId,
-                    forespoerselId = null,
-                    utloesendeMelding =
-                        JsonObject(
-                            mapOf(
-                                Key.BEHOV.toString() to BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(),
-                            ),
-                        ),
-                ).tilMelding(),
-            )
+            testRapid.sendJson(fail.tilMelding())
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE
 
             verify {
                 mockRedis.store.skrivResultat(
-                    transaksjonId,
-                    ResultJson(failure = feilmelding.toJson()),
+                    fail.kontekstId,
+                    ResultJson(failure = fail.feilmelding.toJson()),
                 )
             }
         }

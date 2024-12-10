@@ -8,7 +8,6 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.clearAllMocks
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -20,12 +19,12 @@ import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.json.lesData
 import no.nav.helsearbeidsgiver.felles.test.json.lesEventName
 import no.nav.helsearbeidsgiver.felles.test.json.plusData
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
@@ -131,22 +130,14 @@ class BerikInntektsmeldingServiceTest :
         }
 
         test("skal ved feil ikke foreta seg noe (FeilLytter skal plukke opp og rekjøre meldingen som utløste feilen)") {
-
-            val transaksjonId = UUID.randomUUID()
-            testRapid.sendJson(
-                Fail(
+            val fail =
+                mockFail(
                     feilmelding = "Detta gikk jo ikke så bra.",
-                    event = EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
-                    transaksjonId = transaksjonId,
-                    forespoerselId = Mock.skjema.forespoerselId,
-                    utloesendeMelding =
-                        JsonObject(
-                            mapOf(
-                                Key.BEHOV.toString() to BehovType.HENT_TRENGER_IM.toJson(),
-                            ),
-                        ),
-                ).tilMelding(),
-            )
+                    eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
+                    behovType = BehovType.HENT_TRENGER_IM,
+                )
+
+            testRapid.sendJson(fail.tilMelding())
 
             testRapid.inspektør.size shouldBeExactly 0
         }

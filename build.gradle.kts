@@ -141,24 +141,12 @@ tasks {
         }
     }
 
-    create("buildAllMatrix") {
-        doLast {
-            taskOutputJson(
-                "project" to getBuildableProjects(buildAll = true).toJsonList(),
-            )
-        }
-    }
-
-    create("deployMatrix") {
-        deployMatrix()
-    }
-
     create("deployMatrixDev") {
         deployMatrix(includeCluster = "dev-gcp")
     }
 
     create("deployMatrixProd") {
-        deployMatrix(includeCluster = "prod-gcp", deployAll = true)
+        deployMatrix(includeCluster = "prod-gcp")
     }
 
     check {
@@ -166,8 +154,7 @@ tasks {
     }
 }
 
-fun getBuildableProjects(buildAll: Boolean = false): List<String> {
-    if (buildAll) return subprojects.map { it.name }
+fun getBuildableProjects(): List<String> {
     val changedFiles =
         System
             .getenv("CHANGED_FILES")
@@ -177,12 +164,10 @@ fun getBuildableProjects(buildAll: Boolean = false): List<String> {
 
     val hasCommonChanges =
         changedFiles.any {
-            it.startsWith("felles/") ||
+            it.startsWith("felles/src/main/") ||
                 it in
                 listOf(
                     "Dockerfile",
-                    ".github/workflows/build.yml",
-                    "config/nais.yml",
                     "build.gradle.kts",
                     "gradle.properties",
                 )
@@ -205,25 +190,17 @@ fun getBuildableProjects(buildAll: Boolean = false): List<String> {
         }
 }
 
-fun getDeployMatrixVariables(
-    includeCluster: String? = null,
-    deployAll: Boolean = false,
-): Triple<Set<String>, Set<String>, List<Pair<String, String>>> {
+fun getDeployMatrixVariables(includeCluster: String): Triple<Set<String>, Set<String>, List<Pair<String, String>>> {
     val clustersByProject =
-        getBuildableProjects(deployAll)
+        getBuildableProjects()
             .associateWith { project ->
                 File("config", project)
                     .listFiles()
                     ?.filter { it.isFile && it.name.endsWith(".yml") }
                     ?.map { it.name.removeSuffix(".yml") }
                     ?.let { clusters ->
-                        if (includeCluster != null) {
-                            listOf(includeCluster).intersect(clusters.toSet())
-                        } else {
-                            clusters
-                        }
-                    }?.toSet()
-                    ?.ifEmpty { null }
+                        setOf(includeCluster).intersect(clusters.toSet())
+                    }?.ifEmpty { null }
             }.mapNotNull { (key, value) ->
                 value?.let { key to it }
             }.toMap()
@@ -273,16 +250,13 @@ fun Project.erFellesDatabaseModul(): Boolean = name == "felles-db-exposed"
 
 fun Project.erIntegrasjonstestModul(): Boolean = name == "integrasjonstest"
 
-fun Task.deployMatrix(
-    includeCluster: String? = null,
-    deployAll: Boolean = false,
-) {
+fun Task.deployMatrix(includeCluster: String) {
     doLast {
         val (
             deployableProjects,
             clusters,
             exclusions,
-        ) = getDeployMatrixVariables(includeCluster, deployAll)
+        ) = getDeployMatrixVariables(includeCluster)
 
         taskOutputJson(
             "project" to deployableProjects.toJsonList(),

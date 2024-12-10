@@ -11,7 +11,6 @@ import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -20,6 +19,7 @@ import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
@@ -123,10 +123,8 @@ class HentInntektRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke hente inntekt fra Inntektskomponenten.",
-                    event = innkommendeMelding.eventName,
-                    transaksjonId = innkommendeMelding.transaksjonId,
-                    forespoerselId = null,
-                    utloesendeMelding = innkommendeMelding.toMap().toJson(),
+                    kontekstId = innkommendeMelding.transaksjonId,
+                    utloesendeMelding = innkommendeMelding.toMap(),
                 )
 
             testRapid.sendJson(innkommendeMelding.toMap())
@@ -194,12 +192,5 @@ private object Mock {
             Key.DATA to data.toJson(),
         )
 
-    val fail =
-        Fail(
-            feilmelding = "Elementary, my dear Watson.",
-            event = EventName.TRENGER_REQUESTED,
-            transaksjonId = UUID.randomUUID(),
-            forespoerselId = UUID.randomUUID(),
-            utloesendeMelding = JsonNull,
-        )
+    val fail = mockFail("Elementary, my dear Watson.", EventName.TRENGER_REQUESTED)
 }

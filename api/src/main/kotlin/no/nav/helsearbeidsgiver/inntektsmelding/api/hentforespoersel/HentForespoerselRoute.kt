@@ -109,6 +109,7 @@ private fun HentForespoerselResultat.toResponse(): HentForespoerselResponse {
             bruttoinntekt = inntekt?.gjennomsnitt(),
             tidligereinntekter = inntekt?.maanedOversikt.orEmpty(),
             forespurtData = forespoersel.forespurtData,
+            opprettetUpresisIkkeBruk = forespoersel.opprettetUpresisIkkeBruk,
             erBesvart = forespoersel.erBesvart,
             feilReport =
                 if (feil.isEmpty()) {

@@ -8,7 +8,6 @@ import io.mockk.clearAllMocks
 import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -23,13 +22,13 @@ import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.json.lesData
 import no.nav.helsearbeidsgiver.felles.test.json.plusData
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -172,31 +171,22 @@ class AktiveOrgnrServiceTest :
         }
 
         test("svarer med feilmelding dersom man ikke klarer å hente noe") {
-            val transaksjonId = UUID.randomUUID()
-            val feilmelding = "Kafka streiker for bedre vilkår :("
-            val expectedFailure = Mock.failureResult(feilmelding)
+            val fail =
+                mockFail(
+                    feilmelding = "Kafka streiker for bedre vilkår :(",
+                    eventName = EventName.AKTIVE_ORGNR_REQUESTED,
+                    behovType = BehovType.ARBEIDSGIVERE,
+                )
+            val expectedFailure = Mock.failureResult(fail.feilmelding)
 
             testRapid.sendJson(
-                Mock.startmelding(transaksjonId),
+                Mock.startmelding(fail.kontekstId),
             )
 
-            testRapid.sendJson(
-                Fail(
-                    feilmelding = feilmelding,
-                    event = EventName.AKTIVE_ORGNR_REQUESTED,
-                    transaksjonId = transaksjonId,
-                    forespoerselId = null,
-                    utloesendeMelding =
-                        JsonObject(
-                            mapOf(
-                                Key.BEHOV.toString() to BehovType.ARBEIDSGIVERE.toJson(),
-                            ),
-                        ),
-                ).tilMelding(),
-            )
+            testRapid.sendJson(fail.tilMelding())
 
             verify {
-                mockRedis.store.skrivResultat(transaksjonId, expectedFailure)
+                mockRedis.store.skrivResultat(fail.kontekstId, expectedFailure)
             }
         }
     })

@@ -14,7 +14,6 @@ import io.mockk.coVerifySequence
 import io.mockk.mockk
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.DokumentVariant
 import no.nav.helsearbeidsgiver.dokarkiv.domene.GjelderPerson
@@ -27,6 +26,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.json.plusData
+import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -160,10 +160,8 @@ class JournalfoerImRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke journalføre.",
-                    event = innkommendeMelding.eventName,
-                    transaksjonId = innkommendeMelding.transaksjonId,
-                    forespoerselId = null,
-                    utloesendeMelding = innkommendeJsonMap.toJson(),
+                    kontekstId = innkommendeMelding.transaksjonId,
+                    utloesendeMelding = innkommendeJsonMap,
                 )
 
             testRapid.sendJson(innkommendeJsonMap)
@@ -206,14 +204,7 @@ private object Mock {
     val inntektsmelding = mockInntektsmeldingV1()
     val bestemmendeFravaersdag = 20.oktober
 
-    val fail =
-        Fail(
-            feilmelding = "I don't think we're in Kansas anymore.",
-            event = EventName.INNTEKTSMELDING_MOTTATT,
-            transaksjonId = UUID.randomUUID(),
-            forespoerselId = UUID.randomUUID(),
-            utloesendeMelding = JsonNull,
-        )
+    val fail = mockFail("I don't think we're in Kansas anymore.", EventName.INNTEKTSMELDING_MOTTATT)
 
     fun innkommendeMelding(
         eventName: EventName,

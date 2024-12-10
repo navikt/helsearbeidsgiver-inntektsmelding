@@ -17,7 +17,6 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -212,7 +211,7 @@ class HentForespoerselService(
         melding: Map<Key, JsonElement>,
         fail: Fail,
     ) {
-        val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
+        val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding)
 
         val overkommeligFeil =
             when (utloesendeBehov) {
@@ -244,8 +243,8 @@ class HentForespoerselService(
             }
 
         if (overkommeligFeil != null) {
-            redisStore.skrivFeil(fail.transaksjonId, overkommeligFeil.key, overkommeligFeil.feilmelding)
-            redisStore.skrivMellomlagring(fail.transaksjonId, overkommeligFeil.key, overkommeligFeil.defaultVerdi)
+            redisStore.skrivFeil(fail.kontekstId, overkommeligFeil.key, overkommeligFeil.feilmelding)
+            redisStore.skrivMellomlagring(fail.kontekstId, overkommeligFeil.key, overkommeligFeil.defaultVerdi)
 
             val meldingMedDefault =
                 mapOf(overkommeligFeil.key to overkommeligFeil.defaultVerdi)
@@ -260,7 +259,7 @@ class HentForespoerselService(
 
             val resultJson = ResultJson(failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson())
 
-            redisStore.skrivResultat(fail.transaksjonId, resultJson)
+            redisStore.skrivResultat(fail.kontekstId, resultJson)
         }
     }
 

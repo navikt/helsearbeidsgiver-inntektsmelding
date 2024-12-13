@@ -176,7 +176,6 @@ private object Mock {
         )
 
     val skjema = mockSkjemaInntektsmelding()
-    val forespoersel = mockForespoersel()
 
     fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
@@ -191,7 +190,7 @@ private object Mock {
 
     fun steg1(transaksjonId: UUID): Map<Key, JsonElement> =
         steg0(transaksjonId).plusData(
-            Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
+            Key.FORESPOERSEL_SVAR to mockForespoersel().toJson(Forespoersel.serializer()),
         )
 
     fun steg2(transaksjonId: UUID): Map<Key, JsonElement> =

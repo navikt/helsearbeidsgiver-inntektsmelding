@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
@@ -25,6 +26,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateles
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.json.plusData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -68,24 +70,27 @@ class InnsendingServiceTest :
                 }
 
             testRapid.sendJson(
-                Mock
-                    .steg0(transaksjonId)
-                    .plusData(
-                        Key.SKJEMA_INNTEKTSMELDING to nyttSkjema.toJson(SkjemaInntektsmelding.serializer()),
-                    ),
-            )
-
-            testRapid.inspektør.size shouldBeExactly 1
-            testRapid.message(0).lesBehov() shouldBe BehovType.LAGRE_IM_SKJEMA
-
-            testRapid.sendJson(
-                Mock.steg1(transaksjonId).plusData(
+                Mock.steg0(transaksjonId).plusData(
                     Key.SKJEMA_INNTEKTSMELDING to nyttSkjema.toJson(SkjemaInntektsmelding.serializer()),
                 ),
             )
 
+            testRapid.inspektør.size shouldBeExactly 1
+            testRapid.message(0).lesBehov() shouldBe BehovType.HENT_TRENGER_IM
+
+            testRapid.sendJson(Mock.steg1(transaksjonId))
+
             testRapid.inspektør.size shouldBeExactly 2
-            testRapid.message(1).toMap().also {
+            testRapid.message(1).lesBehov() shouldBe BehovType.LAGRE_IM_SKJEMA
+
+            testRapid.sendJson(
+                Mock.steg2(transaksjonId).plusData(
+                    Key.SKJEMA_INNTEKTSMELDING to nyttSkjema.toJson(SkjemaInntektsmelding.serializer()),
+                ),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 3
+            testRapid.message(2).toMap().also {
                 Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.INNTEKTSMELDING_SKJEMA_LAGRET
                 Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
 
@@ -111,15 +116,20 @@ class InnsendingServiceTest :
             testRapid.sendJson(Mock.steg0(transaksjonId))
 
             testRapid.inspektør.size shouldBeExactly 1
-            testRapid.message(0).lesBehov() shouldBe BehovType.LAGRE_IM_SKJEMA
+            testRapid.message(0).lesBehov() shouldBe BehovType.HENT_TRENGER_IM
+
+            testRapid.sendJson(Mock.steg1(transaksjonId))
+
+            testRapid.inspektør.size shouldBeExactly 2
+            testRapid.message(1).lesBehov() shouldBe BehovType.LAGRE_IM_SKJEMA
 
             testRapid.sendJson(
-                Mock
-                    .steg1(transaksjonId)
-                    .plusData(Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer())),
+                Mock.steg2(transaksjonId).plusData(
+                    Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
+                ),
             )
 
-            testRapid.inspektør.size shouldBeExactly 1
+            testRapid.inspektør.size shouldBeExactly 2
 
             verify {
                 mockRedisStore.skrivResultat(
@@ -136,7 +146,7 @@ class InnsendingServiceTest :
                 mockFail(
                     feilmelding = "Databasen er smekk full.",
                     eventName = EventName.INSENDING_STARTED,
-                    behovType = BehovType.LAGRE_IM_SKJEMA,
+                    behovType = BehovType.HENT_TRENGER_IM,
                 )
 
             testRapid.sendJson(Mock.steg0(fail.kontekstId))
@@ -166,6 +176,7 @@ private object Mock {
         )
 
     val skjema = mockSkjemaInntektsmelding()
+    val forespoersel = mockForespoersel()
 
     fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
@@ -179,6 +190,11 @@ private object Mock {
         )
 
     fun steg1(transaksjonId: UUID): Map<Key, JsonElement> =
+        steg0(transaksjonId).plusData(
+            Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
+        )
+
+    fun steg2(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.KONTEKST_ID to transaksjonId.toJson(),

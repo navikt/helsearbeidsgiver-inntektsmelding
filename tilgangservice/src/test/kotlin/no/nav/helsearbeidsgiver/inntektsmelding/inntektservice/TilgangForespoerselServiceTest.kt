@@ -3,15 +3,14 @@ package no.nav.helsearbeidsgiver.inntektsmelding.inntektservice
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.mockk.clearAllMocks
+import io.mockk.mockk
 import io.mockk.verify
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
-import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.TilgangForespoerselService
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -20,9 +19,9 @@ import org.junit.jupiter.api.Test
 
 class TilgangForespoerselServiceTest {
     private val testRapid = TestRapid()
-    private val mockRedis = MockRedis(RedisPrefix.TilgangForespoersel)
+    private val mockRedisStore = mockk<RedisStore>(relaxed = true)
 
-    private val service = TilgangForespoerselService(testRapid, mockRedis.store)
+    private val service = TilgangForespoerselService(testRapid, mockRedisStore)
 
     init {
         ServiceRiverStateless(service).connect(testRapid)
@@ -32,7 +31,6 @@ class TilgangForespoerselServiceTest {
     fun setup() {
         testRapid.reset()
         clearAllMocks()
-        mockRedis.setup()
     }
 
     @Test
@@ -54,7 +52,7 @@ class TilgangForespoerselServiceTest {
             )
 
         verify {
-            mockRedis.store.skrivResultat(fail.kontekstId, expectedResult)
+            mockRedisStore.skrivResultat(fail.kontekstId, expectedResult)
         }
     }
 }

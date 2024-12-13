@@ -46,7 +46,7 @@ class InnsendingIT : EndToEndTest() {
     }
 
     @Test
-    fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
+    fun `skal ta imot forespørsel ny inntektsmelding, deretter ferdigstille sak og oppgave`() {
         mockForespoerselSvarFraHelsebro(
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar = Mock.forespoerselSvar,
@@ -67,7 +67,7 @@ class InnsendingIT : EndToEndTest() {
             Key.KONTEKST_ID to UUID.randomUUID().toJson(),
             Key.DATA to
                 mapOf(
-                    Key.ARBEIDSGIVER_FNR to Mock.forespoersel.fnr.toJson(),
+                    Key.ARBEIDSGIVER_FNR to Fnr.genererGyldig().toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
                 ).toJson(),
         )
@@ -127,51 +127,21 @@ class InnsendingIT : EndToEndTest() {
     }
 
     @Test
-    fun `skal ikke lagre duplikat inntektsmelding`() {
-        imRepository.lagreInntektsmeldingSkjema(Mock.skjema)
-
-        publish(
-            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.KONTEKST_ID to UUID.randomUUID().toJson(),
-            Key.DATA to
-                mapOf(
-                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                    Key.ARBEIDSGIVER_FNR to Mock.forespoersel.fnr.toJson(),
-                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
-                ).toJson(),
-        )
-
-        messages
-            .filter(EventName.INSENDING_STARTED)
-            .filter(Key.ER_DUPLIKAT_IM)
-            .firstAsMap()
-            .also {
-                val data = it[Key.DATA].shouldNotBeNull().toMap()
-                data[Key.ER_DUPLIKAT_IM].shouldNotBeNull().fromJson(Boolean.serializer()).shouldBeTrue()
-            }
-
-        messages.filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET).all() shouldHaveSize 0
-
-        messages.filter(EventName.INNTEKTSMELDING_MOTTATT).all() shouldHaveSize 0
-
-        messages.filter(EventName.INNTEKTSMELDING_JOURNALFOERT).all() shouldHaveSize 0
-
-        messages.filter(EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET).all() shouldHaveSize 0
-
-        messages.filter(EventName.INNTEKTSMELDING_DISTRIBUERT).all() shouldHaveSize 0
-    }
-
-    @Test
     fun `skal ikke lagre duplikat inntektsmeldingskjema`() {
         imRepository.lagreInntektsmeldingSkjema(Mock.skjema)
 
+        mockForespoerselSvarFraHelsebro(
+            forespoerselId = Mock.forespoerselId,
+            forespoerselSvar = Mock.forespoerselSvar,
+        )
+
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.KONTEKST_ID to UUID.randomUUID().toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                    Key.ARBEIDSGIVER_FNR to Mock.forespoersel.fnr.toJson(),
+                    Key.ARBEIDSGIVER_FNR to Fnr.genererGyldig().toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
                 ).toJson(),
         )

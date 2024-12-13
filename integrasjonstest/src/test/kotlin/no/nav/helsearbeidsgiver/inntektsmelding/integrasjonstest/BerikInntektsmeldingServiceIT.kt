@@ -7,6 +7,7 @@ import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -41,7 +42,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BerikInntektsmeldingServiceIT : EndToEndTest() {
@@ -156,7 +156,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
                     data[Key.INNTEKTSMELDING]
                         .shouldNotBeNull()
-                        .fromJson(InntektsmeldingV1.serializer())
+                        .fromJson(Inntektsmelding.serializer())
 
                     data[Key.BESTEMMENDE_FRAVAERSDAG]
                         .shouldNotBeNull()
@@ -292,7 +292,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
                     data[Key.INNTEKTSMELDING]
                         .shouldNotBeNull()
-                        .fromJson(InntektsmeldingV1.serializer())
+                        .fromJson(Inntektsmelding.serializer())
 
                     data[Key.BESTEMMENDE_FRAVAERSDAG]
                         .shouldNotBeNull()

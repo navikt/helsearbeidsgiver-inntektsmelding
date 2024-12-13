@@ -6,6 +6,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsm
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -28,7 +29,8 @@ data class LagreImSkjemaMelding(
     val behovType: BehovType,
     val transaksjonId: UUID,
     val data: Map<Key, JsonElement>,
-    val inntektsmeldingSkjema: SkjemaInntektsmelding,
+    val forespoersel: Forespoersel,
+    val skjema: SkjemaInntektsmelding,
 )
 
 class LagreImSkjemaRiver(
@@ -47,21 +49,22 @@ class LagreImSkjemaRiver(
                 behovType = Key.BEHOV.krev(BehovType.LAGRE_IM_SKJEMA, BehovType.serializer(), json),
                 transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
-                inntektsmeldingSkjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), data),
+                forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), data),
+                skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), data),
             )
         }
 
     override fun LagreImSkjemaMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        val sisteImSkjema = repository.hentNyesteInntektsmeldingSkjema(inntektsmeldingSkjema.forespoerselId)
+        val sisteImSkjema = repository.hentNyesteInntektsmeldingSkjema(skjema.forespoerselId)
 
-        val erDuplikat = sisteImSkjema?.erDuplikatAv(inntektsmeldingSkjema) ?: false
+        val erDuplikat = sisteImSkjema?.erDuplikatAv(skjema, forespoersel) ?: false
 
         val innsendingId =
             if (erDuplikat) {
                 sikkerLogger.warn("Fant duplikat av inntektsmeldingskjema.")
                 INNSENDING_ID_VED_DUPLIKAT
             } else {
-                repository.lagreInntektsmeldingSkjema(inntektsmeldingSkjema).also {
+                repository.lagreInntektsmeldingSkjema(skjema).also {
                     sikkerLogger.info("Lagret inntektsmeldingskjema.")
                 }
             }
@@ -102,6 +105,6 @@ class LagreImSkjemaRiver(
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),
-            Log.forespoerselId(inntektsmeldingSkjema.forespoerselId),
+            Log.forespoerselId(skjema.forespoerselId),
         )
 }

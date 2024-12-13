@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
+import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
@@ -19,11 +20,10 @@ import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.json.plusData
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
@@ -39,16 +39,15 @@ class InnsendingServiceTest :
     FunSpec({
 
         val testRapid = TestRapid()
-        val mockRedis = MockRedis(RedisPrefix.Innsending)
+        val mockRedisStore = mockk<RedisStore>(relaxed = true)
 
         ServiceRiverStateless(
-            InnsendingService(testRapid, mockRedis.store),
+            InnsendingService(testRapid, mockRedisStore),
         ).connect(testRapid)
 
         beforeEach {
             testRapid.reset()
             clearAllMocks()
-            mockRedis.setup()
         }
 
         test("nytt inntektsmeldingskjema lagres og sendes videre til beriking") {
@@ -97,7 +96,7 @@ class InnsendingServiceTest :
             }
 
             verify {
-                mockRedis.store.skrivResultat(
+                mockRedisStore.skrivResultat(
                     transaksjonId,
                     ResultJson(
                         success = nyttSkjema.forespoerselId.toJson(),
@@ -123,7 +122,7 @@ class InnsendingServiceTest :
             testRapid.inspektør.size shouldBeExactly 1
 
             verify {
-                mockRedis.store.skrivResultat(
+                mockRedisStore.skrivResultat(
                     transaksjonId,
                     ResultJson(
                         success = Mock.skjema.forespoerselId.toJson(),
@@ -147,7 +146,7 @@ class InnsendingServiceTest :
             testRapid.inspektør.size shouldBeExactly 1
 
             verify {
-                mockRedis.store.skrivResultat(
+                mockRedisStore.skrivResultat(
                     fail.kontekstId,
                     ResultJson(
                         failure = fail.feilmelding.toJson(),

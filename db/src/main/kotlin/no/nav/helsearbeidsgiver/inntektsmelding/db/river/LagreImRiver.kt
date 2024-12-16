@@ -69,6 +69,8 @@ class LagreImRiver(
                 data
                     .plus(
                         mapOf(
+                            // Duplikatsjekk er flyttet til 'LagreImSkjemaRiver'. Beholder dette svaret for å unngå å endre for mye på meldingsfylten.
+                            // På sikt så bør vi vurdere om vi trenger å lagre inntektsmelding i databasen i det hele tatt.
                             Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
                         ),
                     ).toJson(),

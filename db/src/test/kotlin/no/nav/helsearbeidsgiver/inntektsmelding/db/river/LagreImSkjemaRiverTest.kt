@@ -133,8 +133,6 @@ class LagreImSkjemaRiverTest :
         }
 
         test("håndterer at repo feiler") {
-            every { mockInntektsmeldingRepo.hentNyesteInntektsmelding(any()) } returns null
-
             every {
                 mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any())
             } throws RuntimeException("Tråbbel med den Rolls-Royce? Den jo vere garantert!")

@@ -78,7 +78,11 @@ class InnsendingServiceTest :
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.message(0).lesBehov() shouldBe BehovType.HENT_TRENGER_IM
 
-            testRapid.sendJson(Mock.steg1(transaksjonId))
+            testRapid.sendJson(
+                Mock.steg1(transaksjonId).plusData(
+                    Key.SKJEMA_INNTEKTSMELDING to nyttSkjema.toJson(SkjemaInntektsmelding.serializer()),
+                ),
+            )
 
             testRapid.inspektør.size shouldBeExactly 2
             testRapid.message(1).lesBehov() shouldBe BehovType.LAGRE_IM_SKJEMA
@@ -194,15 +198,10 @@ private object Mock {
         )
 
     fun steg2(transaksjonId: UUID): Map<Key, JsonElement> =
-        mapOf(
-            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
-            Key.DATA to
-                mapOf(
-                    Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
-                    Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
-                    Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
-                    Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
-                ).toJson(),
+        steg1(transaksjonId).plusData(
+            mapOf(
+                Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
+                Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
+            ),
         )
 }

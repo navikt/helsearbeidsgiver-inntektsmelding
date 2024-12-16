@@ -90,7 +90,7 @@ fun mockInntektsmeldingV1(): InntektsmeldingV1 =
                 orgnr = Orgnr.genererGyldig(),
                 orgNavn = "Skumle bakverk A/S",
                 navn = "Nifs Krumkake",
-                tlf = "44553399",
+                tlf = randomDigitString(8),
             ),
         sykmeldingsperioder =
             listOf(

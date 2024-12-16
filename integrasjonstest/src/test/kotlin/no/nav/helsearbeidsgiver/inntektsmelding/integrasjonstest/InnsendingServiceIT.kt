@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsm
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
@@ -83,6 +84,17 @@ class InnsendingServiceIT : EndToEndTest() {
                     Key.SKJEMA_INNTEKTSMELDING to nyInnsending.toJson(SkjemaInntektsmelding.serializer()),
                 ).toJson(),
         )
+
+        // Forespørsel hentet
+        messages
+            .filter(EventName.INSENDING_STARTED)
+            .filter(Key.FORESPOERSEL_SVAR)
+            .firstAsMap()
+            .verifiserTransaksjonId(transaksjonId)
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoerselSvar.toForespoersel()
+            }
 
         // Inntektsmelding lagret
         messages

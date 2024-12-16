@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
+import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
@@ -14,10 +15,9 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
@@ -31,16 +31,15 @@ import java.util.UUID
 class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
     FunSpec({
         val testRapid = TestRapid()
-        val mockRedis = MockRedis(RedisPrefix.HentForespoerslerForVedtaksperiodeIdListe)
+        val mockRedisStore = mockk<RedisStore>(relaxed = true)
 
         ServiceRiverStateless(
-            HentForespoerslerForVedtaksperiodeIdListeService(testRapid, mockRedis.store),
+            HentForespoerslerForVedtaksperiodeIdListeService(testRapid, mockRedisStore),
         ).connect(testRapid)
 
         beforeEach {
             testRapid.reset()
             clearAllMocks()
-            mockRedis.setup()
         }
 
         test("forespørsler hentes og svar sendes ut på redis") {
@@ -56,7 +55,7 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
             testRapid.inspektør.size shouldBeExactly 1
 
             verify {
-                mockRedis.store.skrivResultat(
+                mockRedisStore.skrivResultat(
                     transaksjonId,
                     ResultJson(
                         success = forespoersler.toJson(MapSerializer(UuidSerializer, Forespoersel.serializer())),
@@ -81,7 +80,7 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
             testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE
 
             verify {
-                mockRedis.store.skrivResultat(
+                mockRedisStore.skrivResultat(
                     fail.kontekstId,
                     ResultJson(failure = fail.feilmelding.toJson()),
                 )

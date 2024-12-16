@@ -39,7 +39,6 @@ import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
 
 class BerikInntektsmeldingServiceTest :
     FunSpec({
@@ -113,7 +112,7 @@ class BerikInntektsmeldingServiceTest :
 
                 val data = it.lesData()
                 Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data) shouldBe Mock.skjema.forespoerselId
-                Key.INNTEKTSMELDING.lesOrNull(InntektsmeldingV1.serializer(), data) shouldNotBe null
+                Key.INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), data) shouldNotBe null
                 Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, data) shouldNotBe null
                 Key.INNSENDING_ID.lesOrNull(Long.serializer(), data) shouldBe Mock.INNSENDING_ID
             }
@@ -201,7 +200,7 @@ private object Mock {
         steg3(transaksjonId).plusData(
             mapOf(
                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
-                Key.INNTEKTSMELDING to mockInntektsmeldingV1().toJson(InntektsmeldingV1.serializer()),
+                Key.INNTEKTSMELDING to mockInntektsmeldingV1().toJson(Inntektsmelding.serializer()),
                 Key.BESTEMMENDE_FRAVAERSDAG to 20.oktober.toJson(),
             ),
         )

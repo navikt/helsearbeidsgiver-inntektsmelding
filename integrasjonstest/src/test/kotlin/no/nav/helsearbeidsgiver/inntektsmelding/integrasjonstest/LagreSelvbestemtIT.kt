@@ -19,6 +19,7 @@ import no.nav.helsearbeidsgiver.aareg.Periode
 import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
@@ -432,26 +433,25 @@ class LagreSelvbestemtIT : EndToEndTest() {
             )
 
         val inntektsmelding =
-            mockInntektsmeldingV1().let {
-                it.copy(
-                    type =
-                        Inntektsmelding.Type.Selvbestemt(
-                            id = skjema.selvbestemtId.shouldNotBeNull(),
-                        ),
-                    sykmeldt =
-                        Sykmeldt(
-                            fnr = skjema.sykmeldtFnr,
-                            navn = "Åge Aleksandersen",
-                        ),
-                    avsender =
-                        it.avsender.copy(
-                            orgnr = orgnr,
-                            orgNavn = virksomhet.navn,
-                            navn = "Jan Eggum",
-                        ),
-                    aarsakInnsending = AarsakInnsending.Endring,
-                    vedtaksperiodeId = skjema.vedtaksperiodeId.shouldNotBeNull(),
-                )
-            }
+            mockInntektsmeldingV1().copy(
+                type =
+                    Inntektsmelding.Type.Selvbestemt(
+                        id = skjema.selvbestemtId.shouldNotBeNull(),
+                    ),
+                sykmeldt =
+                    Sykmeldt(
+                        fnr = skjema.sykmeldtFnr,
+                        navn = "Åge Aleksandersen",
+                    ),
+                avsender =
+                    Avsender(
+                        orgnr = orgnr,
+                        orgNavn = virksomhet.navn,
+                        navn = "Jan Eggum",
+                        tlf = skjema.avsender.tlf,
+                    ),
+                aarsakInnsending = AarsakInnsending.Endring,
+                vedtaksperiodeId = skjema.vedtaksperiodeId.shouldNotBeNull(),
+            )
     }
 }

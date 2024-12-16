@@ -6,6 +6,8 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
+import no.nav.helsearbeidsgiver.felles.test.mock.utenPaakrevdAGP
+import no.nav.helsearbeidsgiver.felles.test.mock.utenPaakrevdInntekt
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.juni

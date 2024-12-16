@@ -26,6 +26,7 @@ data class HentForespoerselResponse(
     val bruttoinntekt: Double?,
     val tidligereinntekter: List<InntektPerMaaned>,
     val forespurtData: ForespurtData?,
+    val opprettetUpresisIkkeBruk: LocalDate,
     val erBesvart: Boolean,
     val feilReport: FeilReport? = null,
     val success: JsonElement? = null,

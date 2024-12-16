@@ -28,6 +28,7 @@ fun mockForespoersel(): Forespoersel {
             ),
         forespurtData = mockForespurtData(),
         erBesvart = false,
+        opprettetUpresisIkkeBruk = 17.januar,
     )
 }
 
@@ -134,6 +135,48 @@ fun mockForespurtDataMedFastsattInntekt(): ForespurtData =
                                 ),
                             ),
                         opphoersdato = null,
+                    ),
+            ),
+    )
+
+fun Forespoersel.utenPaakrevdAGP(): Forespoersel =
+    copy(
+        forespurtData =
+            forespurtData.copy(
+                arbeidsgiverperiode =
+                    ForespurtData.Arbeidsgiverperiode(
+                        paakrevd = false,
+                    ),
+            ),
+    )
+
+fun Forespoersel.utenPaakrevdInntekt(): Forespoersel =
+    copy(
+        forespurtData =
+            forespurtData.copy(
+                inntekt =
+                    ForespurtData.Inntekt(
+                        paakrevd = false,
+                        forslag =
+                            ForslagInntekt.Fastsatt(
+                                fastsattInntekt = 8795.0,
+                            ),
+                    ),
+            ),
+    )
+
+fun Forespoersel.utenPaakrevdRefusjon(): Forespoersel =
+    copy(
+        forespurtData =
+            forespurtData.copy(
+                refusjon =
+                    ForespurtData.Refusjon(
+                        paakrevd = false,
+                        forslag =
+                            ForslagRefusjon(
+                                perioder = emptyList(),
+                                opphoersdato = null,
+                            ),
                     ),
             ),
     )

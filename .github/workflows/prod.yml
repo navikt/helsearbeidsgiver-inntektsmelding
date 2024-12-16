@@ -20,8 +20,10 @@ jobs:
       is_deploy_matrix_empty: ${{ steps.set_matrix.outputs.is_deploy_matrix_empty }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
+
+        # We fetch tags here because 'fetch-tags'-option on checkout-action doesn't work on release
+      - name: Fetch tags
+        run: git fetch --depth=1 --tags --quiet
 
       - name: Cache gradle wrapper
         uses: actions/cache@v4
@@ -45,14 +47,16 @@ jobs:
 
       - name: Determine changes files
         run: |
+          PREVIOUS_TAG=$(git tag --sort version:refname | tail -n 2 | head -n 1)
           # Create a comma-separated list of changed files for use in build.gradle.kts
-          CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r -m $GITHUB_SHA | tr '\r\n' ',' | sed -e 's/,$//' | tr -d '"')
+          CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r -m $PREVIOUS_TAG $GITHUB_REF | tr '\r\n' ',' | sed -e 's/,$//' | tr -d '"')
+          echo Files changed from $PREVIOUS_TAG to $GITHUB_REF are [$CHANGED_FILES]
           echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
 
       - name: Determine projects to deploy
         id: set_matrix
         run: |
-          MATRIX=$(./gradlew -q buildAllMatrix --console=plain)
+          MATRIX=$(./gradlew -q buildMatrix --console=plain)
           echo $MATRIX
           echo $(./gradlew -q deployMatrixProd --console=plain)
           DEPLOY_MATRIX=$(./gradlew -q deployMatrixProd --console=plain)

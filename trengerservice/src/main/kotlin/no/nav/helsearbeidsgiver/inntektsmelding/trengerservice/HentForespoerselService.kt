@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -124,6 +125,7 @@ class HentForespoerselService(
         steg0: Steg0,
         steg1: Steg1,
     ) {
+        val svarKafkaKey = KafkaKey(steg0.forespoerselId)
         val inntektsdato = steg1.forespoersel.forslagInntektsdato()
 
         rapid
@@ -134,6 +136,7 @@ class HentForespoerselService(
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
+                        Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
                         Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
                         Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(String.serializer()),
                     ).toJson(),
@@ -147,6 +150,7 @@ class HentForespoerselService(
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
+                        Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
                         Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
                         Key.FNR_LISTE to
                             setOf(
@@ -164,6 +168,7 @@ class HentForespoerselService(
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     mapOf(
+                        Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
                         Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
                         Key.ORGNR_UNDERENHET to steg1.forespoersel.orgnr.toJson(),
                         Key.FNR to steg1.forespoersel.fnr.toJson(),

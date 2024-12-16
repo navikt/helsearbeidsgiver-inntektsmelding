@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
+import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
@@ -14,16 +15,15 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.Mock.forespoersler
+import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.MockHent.forespoersler
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -31,32 +31,31 @@ import java.util.UUID
 class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
     FunSpec({
         val testRapid = TestRapid()
-        val mockRedis = MockRedis(RedisPrefix.HentForespoerslerForVedtaksperiodeIdListe)
+        val mockRedisStore = mockk<RedisStore>(relaxed = true)
 
         ServiceRiverStateless(
-            HentForespoerslerForVedtaksperiodeIdListeService(testRapid, mockRedis.store),
+            HentForespoerslerForVedtaksperiodeIdListeService(testRapid, mockRedisStore),
         ).connect(testRapid)
 
         beforeEach {
             testRapid.reset()
             clearAllMocks()
-            mockRedis.setup()
         }
 
         test("forespørsler hentes og svar sendes ut på redis") {
             val transaksjonId = UUID.randomUUID()
 
-            testRapid.sendJson(Mock.steg0(transaksjonId))
+            testRapid.sendJson(MockHent.steg0(transaksjonId))
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.message(0).lesBehov() shouldBe BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE
 
-            testRapid.sendJson(Mock.steg1(transaksjonId))
+            testRapid.sendJson(MockHent.steg1(transaksjonId))
 
             testRapid.inspektør.size shouldBeExactly 1
 
             verify {
-                mockRedis.store.skrivResultat(
+                mockRedisStore.skrivResultat(
                     transaksjonId,
                     ResultJson(
                         success = forespoersler.toJson(MapSerializer(UuidSerializer, Forespoersel.serializer())),
@@ -73,7 +72,7 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
                     behovType = BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE,
                 )
 
-            testRapid.sendJson(Mock.steg0(fail.kontekstId))
+            testRapid.sendJson(MockHent.steg0(fail.kontekstId))
 
             testRapid.sendJson(fail.tilMelding())
 
@@ -81,7 +80,7 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
             testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE
 
             verify {
-                mockRedis.store.skrivResultat(
+                mockRedisStore.skrivResultat(
                     fail.kontekstId,
                     ResultJson(failure = fail.feilmelding.toJson()),
                 )
@@ -89,7 +88,7 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
         }
     })
 
-private object Mock {
+private object MockHent {
     val vedtaksperiodeId1: UUID = UUID.randomUUID()
     val vedtaksperiodeId2: UUID = UUID.randomUUID()
     val forespoerselId1: UUID = UUID.randomUUID()

@@ -46,7 +46,7 @@ class InnsendingIT : EndToEndTest() {
     }
 
     @Test
-    fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
+    fun `skal ta imot forespørsel ny inntektsmelding, deretter ferdigstille sak og oppgave`() {
         mockForespoerselSvarFraHelsebro(
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar = Mock.forespoerselSvar,
@@ -67,7 +67,7 @@ class InnsendingIT : EndToEndTest() {
             Key.KONTEKST_ID to UUID.randomUUID().toJson(),
             Key.DATA to
                 mapOf(
-                    Key.ARBEIDSGIVER_FNR to Mock.forespoersel.fnr.toJson(),
+                    Key.ARBEIDSGIVER_FNR to Fnr.genererGyldig().toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
                 ).toJson(),
         )
@@ -127,8 +127,13 @@ class InnsendingIT : EndToEndTest() {
     }
 
     @Test
-    fun `skal ikke lagre duplikat inntektsmelding`() {
+    fun `skal ikke lagre duplikat inntektsmeldingskjema`() {
         imRepository.lagreInntektsmeldingSkjema(Mock.skjema)
+
+        mockForespoerselSvarFraHelsebro(
+            forespoerselId = Mock.forespoerselId,
+            forespoerselSvar = Mock.forespoerselSvar,
+        )
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
@@ -136,7 +141,7 @@ class InnsendingIT : EndToEndTest() {
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                    Key.ARBEIDSGIVER_FNR to Mock.forespoersel.fnr.toJson(),
+                    Key.ARBEIDSGIVER_FNR to Fnr.genererGyldig().toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
                 ).toJson(),
         )
@@ -197,6 +202,7 @@ class InnsendingIT : EndToEndTest() {
                 bestemmendeFravaersdager = mapOf(orgnr.verdi to 15.juli),
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
+                opprettetUpresisIkkeBruk = 17.juli,
             )
 
         val forespoerselSvar =
@@ -210,6 +216,7 @@ class InnsendingIT : EndToEndTest() {
                 bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager.mapKeys { Orgnr(it.key) },
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
+                opprettetUpresisIkkeBruk = forespoersel.opprettetUpresisIkkeBruk,
             )
     }
 }

@@ -38,9 +38,11 @@ import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
+import no.nav.helsearbeidsgiver.felles.test.json.lesData
 import no.nav.helsearbeidsgiver.felles.test.json.minusData
 import no.nav.helsearbeidsgiver.felles.test.json.plusData
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
@@ -94,9 +96,18 @@ class LagreSelvbestemtImServiceTest :
             )
 
             testRapid.inspektør.size shouldBeExactly 3
-            testRapid.message(0).lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
-            testRapid.message(1).lesBehov() shouldBe BehovType.HENT_PERSONER
-            testRapid.message(2).lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
+            testRapid.message(0).also {
+                it.lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
+                Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.skjema.sykmeldtFnr)
+            }
+            testRapid.message(1).also {
+                it.lesBehov() shouldBe BehovType.HENT_PERSONER
+                Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.skjema.sykmeldtFnr)
+            }
+            testRapid.message(2).also {
+                it.lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
+                Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.skjema.sykmeldtFnr)
+            }
 
             mockStatic(OffsetDateTime::class) {
                 every { OffsetDateTime.now() } returns nyInntektsmelding.mottatt
@@ -150,9 +161,18 @@ class LagreSelvbestemtImServiceTest :
             )
 
             testRapid.inspektør.size shouldBeExactly 3
-            testRapid.message(0).lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
-            testRapid.message(1).lesBehov() shouldBe BehovType.HENT_PERSONER
-            testRapid.message(2).lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
+            testRapid.message(0).also {
+                it.lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
+                Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.skjema.sykmeldtFnr)
+            }
+            testRapid.message(1).also {
+                it.lesBehov() shouldBe BehovType.HENT_PERSONER
+                Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.skjema.sykmeldtFnr)
+            }
+            testRapid.message(2).also {
+                it.lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
+                Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.skjema.sykmeldtFnr)
+            }
 
             mockStatic(OffsetDateTime::class) {
                 every { OffsetDateTime.now() } returns endretInntektsmelding.mottatt

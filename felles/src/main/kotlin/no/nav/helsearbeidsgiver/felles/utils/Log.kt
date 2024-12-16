@@ -8,13 +8,13 @@ import java.util.UUID
 object Log {
     fun <T : Any> klasse(value: T) = "hag_class" to value::class.simpleName.orEmpty()
 
-    fun event(value: EventName) = "hag_event" to value.name
+    fun event(value: EventName) = "hag_event_name" to value.name
 
     fun priNotis(value: Pri.NotisType) = "hag_pri_notis" to value.name
 
     fun behov(value: BehovType) = "hag_behov" to value.name
 
-    fun transaksjonId(value: UUID) = "hag_transaksjon_id" to value.toString()
+    fun transaksjonId(value: UUID) = "hag_kontekst_id" to value.toString()
 
     fun forespoerselId(value: UUID) = "hag_forespoersel_id" to value.toString()
 

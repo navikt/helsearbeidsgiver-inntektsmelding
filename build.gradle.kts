@@ -155,11 +155,14 @@ tasks {
 }
 
 fun getBuildableProjects(): List<String> {
+    val testfilRegex = Regex("^[\\w-]+/src/test.+")
+
     val changedFiles =
         System
             .getenv("CHANGED_FILES")
             ?.takeIf(String::isNotBlank)
             ?.split(",")
+            ?.filterNot(testfilRegex::matches)
             ?: throw IllegalStateException("Ingen endrede filer funnet.")
 
     val hasCommonChanges =

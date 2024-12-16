@@ -31,8 +31,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggle
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakLevetid
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 class OpprettForespoerselSakOgOppgaveRiverTest :
@@ -74,7 +72,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
 
             coVerifySequence {
                 mockAgNotifikasjonKlient.opprettNySak(
-                    virksomhetsnummer = innkommendeMelding.forespoersel.orgnr,
+                    virksomhetsnummer = innkommendeMelding.forespoersel.orgnr.verdi,
                     grupperingsid = innkommendeMelding.forespoerselId.toString(),
                     merkelapp = NotifikasjonTekst.MERKELAPP,
                     lenke = "en-slags-url/im-dialog/${innkommendeMelding.forespoerselId}",
@@ -85,7 +83,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                     hardDeleteOm = sakLevetid,
                 )
                 mockAgNotifikasjonKlient.opprettNyOppgave(
-                    virksomhetsnummer = innkommendeMelding.forespoersel.orgnr,
+                    virksomhetsnummer = innkommendeMelding.forespoersel.orgnr.verdi,
                     eksternId = innkommendeMelding.forespoerselId.toString(),
                     grupperingsid = innkommendeMelding.forespoerselId.toString(),
                     merkelapp = NotifikasjonTekst.MERKELAPP,
@@ -94,7 +92,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                     varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
                     varslingInnhold =
                         NotifikasjonTekst.oppgaveInnhold(
-                            innkommendeMelding.forespoersel.orgnr.let(::Orgnr),
+                            innkommendeMelding.forespoersel.orgnr,
                             innkommendeMelding.orgNavn,
                             innkommendeMelding.forespoersel.sykmeldingsperioder,
                         ),
@@ -104,7 +102,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                             tittel = NotifikasjonTekst.PAAMINNELSE_TITTEL,
                             innhold =
                                 NotifikasjonTekst.paaminnelseInnhold(
-                                    innkommendeMelding.forespoersel.orgnr.let(::Orgnr),
+                                    innkommendeMelding.forespoersel.orgnr,
                                     innkommendeMelding.orgNavn,
                                     innkommendeMelding.forespoersel.sykmeldingsperioder,
                                 ),
@@ -253,24 +251,18 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
         }
     })
 
-private object OpprettSakOgOppgaveMock {
-    val forespoerselId = UUID.randomUUID()
+fun innkommendeOpprettForespoerselSakOgOppgaveMelding(): OpprettForespoerselSakOgOppgaveMelding {
     val forespoersel = mockForespoersel()
-    val orgnr = Orgnr(forespoersel.orgnr)
-    val orgNavn = "Peer Gynts Løgn og Bedrageri LTD"
-    val person = Person(Fnr(forespoersel.fnr), "Peer Gynt")
-}
-
-fun innkommendeOpprettForespoerselSakOgOppgaveMelding(): OpprettForespoerselSakOgOppgaveMelding =
-    OpprettForespoerselSakOgOppgaveMelding(
+    return OpprettForespoerselSakOgOppgaveMelding(
         eventName = EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED,
         transaksjonId = UUID.randomUUID(),
-        forespoerselId = OpprettSakOgOppgaveMock.forespoerselId,
-        sykmeldt = OpprettSakOgOppgaveMock.person,
-        orgNavn = OpprettSakOgOppgaveMock.orgNavn,
+        forespoerselId = UUID.randomUUID(),
+        sykmeldt = Person(forespoersel.fnr, "Peer Gynt"),
+        orgNavn = "Peer Gynts Løgn og Bedrageri LTD",
         skalHaPaaminnelse = true,
-        forespoersel = OpprettSakOgOppgaveMock.forespoersel,
+        forespoersel = forespoersel,
     )
+}
 
 private fun OpprettForespoerselSakOgOppgaveMelding.toMap() =
     mapOf(

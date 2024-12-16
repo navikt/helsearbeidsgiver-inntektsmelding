@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -12,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
@@ -28,6 +28,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 data class Steg0(
@@ -47,7 +48,7 @@ sealed class Steg1 {
 }
 
 data class Steg2(
-    val virksomheter: Map<String, String>,
+    val virksomheter: Map<Orgnr, String>,
 )
 
 class AktiveOrgnrService(
@@ -89,7 +90,7 @@ class AktiveOrgnrService(
 
     override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 =
         Steg2(
-            virksomheter = Key.VIRKSOMHETER.les(MapSerializer(String.serializer(), String.serializer()), melding),
+            virksomheter = Key.VIRKSOMHETER.les(orgMapSerializer, melding),
         )
 
     override fun utfoerSteg0(
@@ -179,7 +180,7 @@ class AktiveOrgnrService(
             val gyldigeUnderenheter =
                 steg2.virksomheter.map {
                     AktiveArbeidsgivere.Arbeidsgiver(
-                        orgnrUnderenhet = it.key,
+                        orgnrUnderenhet = it.key.verdi,
                         virksomhetsnavn = it.value,
                     )
                 }

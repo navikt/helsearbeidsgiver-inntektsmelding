@@ -8,17 +8,19 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.bestemmendeFravaersdag
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
 import java.util.UUID
 
 @Serializable
 data class Forespoersel(
-    val orgnr: String,
-    val fnr: String,
+    val orgnr: Orgnr,
+    val fnr: Fnr,
     val vedtaksperiodeId: UUID,
     val sykmeldingsperioder: List<Periode>,
     val egenmeldingsperioder: List<Periode>,
-    val bestemmendeFravaersdager: Map<String, LocalDate>,
+    val bestemmendeFravaersdager: Map<Orgnr, LocalDate>,
     val forespurtData: ForespurtData,
     val erBesvart: Boolean,
     val opprettetUpresisIkkeBruk: LocalDate,

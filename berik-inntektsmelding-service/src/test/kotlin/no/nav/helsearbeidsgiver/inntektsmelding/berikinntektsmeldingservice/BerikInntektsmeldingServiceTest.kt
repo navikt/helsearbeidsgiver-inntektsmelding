@@ -157,11 +157,11 @@ private object Mock {
 
     private val sykmeldt =
         Person(
-            fnr = Fnr(forespoersel.fnr),
+            fnr = forespoersel.fnr,
             navn = "Dolly Duck",
         )
 
-    private val orgnrMedNavn = mapOf(Orgnr(forespoersel.orgnr) to "Lasses kasserollesjappe")
+    private val orgnrMedNavn = mapOf(forespoersel.orgnr to "Lasses kasserollesjappe")
 
     private val personer =
         mapOf(

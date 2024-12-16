@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.trengerservice
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -15,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
@@ -32,6 +32,7 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 private const val UNDEFINED_FELT = "{}"
@@ -50,7 +51,7 @@ data class Steg1(
 
 sealed class Steg2 {
     data class Komplett(
-        val orgnrMedNavn: Map<String, String>,
+        val orgnrMedNavn: Map<Orgnr, String>,
         val personer: Map<Fnr, Person>,
         val inntekt: Inntekt?,
     ) : Steg2()
@@ -81,7 +82,7 @@ class HentForespoerselService(
         )
 
     override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 {
-        val orgnrMedNavn = runCatching { Key.VIRKSOMHETER.les(MapSerializer(String.serializer(), String.serializer()), melding) }
+        val orgnrMedNavn = runCatching { Key.VIRKSOMHETER.les(orgMapSerializer, melding) }
         val personer = runCatching { Key.PERSONER.les(personMapSerializer, melding) }
         val inntekt =
             runCatching {
@@ -138,7 +139,7 @@ class HentForespoerselService(
                     mapOf(
                         Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
                         Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                        Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(String.serializer()),
+                        Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(Orgnr.serializer()),
                     ).toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_VIRKSOMHET_NAVN, it) }
 
@@ -154,7 +155,7 @@ class HentForespoerselService(
                         Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
                         Key.FNR_LISTE to
                             setOf(
-                                steg1.forespoersel.fnr.let(::Fnr),
+                                steg1.forespoersel.fnr,
                                 steg0.avsenderFnr,
                             ).toJson(Fnr.serializer()),
                     ).toJson(),
@@ -184,7 +185,7 @@ class HentForespoerselService(
         steg2: Steg2,
     ) {
         if (steg2 is Steg2.Komplett) {
-            val sykmeldtNavn = steg2.personer[steg1.forespoersel.fnr.let(::Fnr)]?.navn ?: UKJENT_NAVN
+            val sykmeldtNavn = steg2.personer[steg1.forespoersel.fnr]?.navn ?: UKJENT_NAVN
             val avsenderNavn = steg2.personer[steg0.avsenderFnr]?.navn ?: UKJENT_NAVN
             val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr] ?: UKJENT_VIRKSOMHET
 

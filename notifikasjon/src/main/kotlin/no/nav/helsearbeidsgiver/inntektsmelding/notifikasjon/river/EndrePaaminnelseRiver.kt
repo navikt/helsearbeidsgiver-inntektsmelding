@@ -57,7 +57,7 @@ class EndrePaaminnelseRiver(
     override fun EndrePaaminnelseMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         endreOppgavePaaminnelser(
             forespoerselId = forespoerselId,
-            orgnr = forespoersel.orgnr.let(::Orgnr),
+            orgnr = forespoersel.orgnr,
             orgNavn = orgNavn,
             sykmeldingsperioder = forespoersel.sykmeldingsperioder,
         )

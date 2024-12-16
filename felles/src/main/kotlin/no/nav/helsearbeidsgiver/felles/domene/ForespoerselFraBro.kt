@@ -28,12 +28,12 @@ data class ForespoerselFraBro(
 ) {
     fun toForespoersel(): Forespoersel =
         Forespoersel(
-            orgnr = orgnr.verdi,
-            fnr = fnr.verdi,
+            orgnr = orgnr,
+            fnr = fnr,
             vedtaksperiodeId = vedtaksperiodeId,
             sykmeldingsperioder = sykmeldingsperioder,
             egenmeldingsperioder = egenmeldingsperioder,
-            bestemmendeFravaersdager = bestemmendeFravaersdager.mapKeys { it.key.verdi },
+            bestemmendeFravaersdager = bestemmendeFravaersdager,
             forespurtData = forespurtData,
             erBesvart = erBesvart,
             opprettetUpresisIkkeBruk = opprettetUpresisIkkeBruk,

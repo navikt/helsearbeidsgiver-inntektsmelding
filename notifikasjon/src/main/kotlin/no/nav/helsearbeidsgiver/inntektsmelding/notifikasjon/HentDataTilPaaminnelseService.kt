@@ -80,7 +80,7 @@ class HentDataTilPaaminnelseService(
             Key.DATA to
                 data
                     .plus(
-                        Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(String.serializer()),
+                        Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(Orgnr.serializer()),
                     ).toJson(),
         )
     }
@@ -96,7 +96,7 @@ class HentDataTilPaaminnelseService(
             sikkerLogger.info(it)
         }
 
-        val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr.let(::Orgnr)] ?: ORG_NAVN_DEFAULT
+        val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr] ?: ORG_NAVN_DEFAULT
 
         rapid.publish(
             key = steg0.forespoerselId,

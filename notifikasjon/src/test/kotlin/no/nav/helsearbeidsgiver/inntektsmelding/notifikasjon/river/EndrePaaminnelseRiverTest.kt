@@ -26,7 +26,6 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 class EndrePaaminnelseRiverTest :
@@ -137,7 +136,7 @@ object EndrePaaminnelseMock {
         Paaminnelse(
             NotifikasjonTekst.PAAMINNELSE_TITTEL,
             NotifikasjonTekst.paaminnelseInnhold(
-                orgnr = Orgnr(forespoersel.orgnr),
+                orgnr = forespoersel.orgnr,
                 orgNavn = orgNavn,
                 sykmeldingsperioder = forespoersel.sykmeldingsperioder,
             ),

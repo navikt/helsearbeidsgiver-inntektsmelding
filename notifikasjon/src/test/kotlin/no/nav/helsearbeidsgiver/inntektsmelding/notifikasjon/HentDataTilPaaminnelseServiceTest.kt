@@ -22,7 +22,6 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 class HentDataTilPaaminnelseServiceTest :
@@ -91,7 +90,7 @@ private object HentDataTilPaaminnelseServiceMock {
     val forespoersel = mockForespoersel()
     val transaksjonId: UUID = forespoersel.vedtaksperiodeId
     val forespoerselId: UUID = UUID.randomUUID()
-    val orgnrMedNavn = mapOf(forespoersel.orgnr.let(::Orgnr) to "Kåre Conradis Kål og Kålrabi")
+    val orgnrMedNavn = mapOf(forespoersel.orgnr to "Kåre Conradis Kål og Kålrabi")
 
     fun steg0(): Map<Key, JsonElement> =
         mapOf(

@@ -16,15 +16,15 @@ import java.util.UUID
 fun mockForespoersel(): Forespoersel {
     val orgnr = Orgnr.genererGyldig()
     return Forespoersel(
-        orgnr = orgnr.verdi,
-        fnr = Fnr.genererGyldig().verdi,
+        orgnr = orgnr,
+        fnr = Fnr.genererGyldig(),
         vedtaksperiodeId = UUID.randomUUID(),
         sykmeldingsperioder = listOf(2.januar til 31.januar),
         egenmeldingsperioder = listOf(1.januar til 1.januar),
         bestemmendeFravaersdager =
             mapOf(
-                orgnr.verdi to 1.januar,
-                Orgnr.genererGyldig().verdi to 5.januar,
+                orgnr to 1.januar,
+                Orgnr.genererGyldig() to 5.januar,
             ),
         forespurtData = mockForespurtData(),
         erBesvart = false,

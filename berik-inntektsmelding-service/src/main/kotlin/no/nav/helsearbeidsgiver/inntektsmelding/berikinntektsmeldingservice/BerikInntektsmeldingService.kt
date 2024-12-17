@@ -127,7 +127,7 @@ class BerikInntektsmeldingService(
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     data
-                        .plus(Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(String.serializer()))
+                        .plus(Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(Orgnr.serializer()))
                         .toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_VIRKSOMHET_NAVN, it) }
     }
@@ -149,7 +149,7 @@ class BerikInntektsmeldingService(
                         .plus(
                             Key.FNR_LISTE to
                                 listOf(
-                                    steg1.forespoersel.fnr.let(::Fnr),
+                                    steg1.forespoersel.fnr,
                                     steg0.avsenderFnr,
                                 ).toJson(Fnr.serializer()),
                         ).toJson(),
@@ -163,8 +163,8 @@ class BerikInntektsmeldingService(
         steg2: Steg2,
         steg3: Steg3,
     ) {
-        val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr.let(::Orgnr)] ?: UKJENT_VIRKSOMHET
-        val sykmeldtNavn = steg3.personer[steg1.forespoersel.fnr.let(::Fnr)]?.navn ?: UKJENT_NAVN
+        val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr] ?: UKJENT_VIRKSOMHET
+        val sykmeldtNavn = steg3.personer[steg1.forespoersel.fnr]?.navn ?: UKJENT_NAVN
         val avsenderNavn = steg3.personer[steg0.avsenderFnr]?.navn ?: UKJENT_NAVN
         val aarsakInnsending = if (steg1.forespoersel.erBesvart) AarsakInnsending.Endring else AarsakInnsending.Ny
 

@@ -21,8 +21,6 @@ import no.nav.helsearbeidsgiver.felles.test.mock.utenPaakrevdRefusjon
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.juli
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.ZonedDateTime
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
@@ -57,13 +55,13 @@ class MapInntektsmeldingKtTest :
 
                     sykmeldt shouldBe
                         Sykmeldt(
-                            fnr = forespoersel.fnr.let(::Fnr),
+                            fnr = forespoersel.fnr,
                             navn = sykmeldtNavn,
                         )
 
                     avsender shouldBe
                         Avsender(
-                            orgnr = forespoersel.orgnr.let(::Orgnr),
+                            orgnr = forespoersel.orgnr,
                             orgNavn = virksomhetNavn,
                             navn = avsenderNavn,
                             tlf = skjema.avsenderTlf,

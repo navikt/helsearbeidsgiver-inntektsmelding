@@ -36,6 +36,9 @@ import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -148,12 +151,14 @@ class HentForespoerselRouteKtTest : ApiTest() {
 }
 
 private object Mock {
+    private val orgnr = Orgnr.genererGyldig()
+
     val request = HentForespoerselRequest(UUID.randomUUID())
 
     private val forespoersel =
         Forespoersel(
-            orgnr = "123",
-            fnr = "abc",
+            orgnr = orgnr,
+            fnr = Fnr.genererGyldig(),
             sykmeldingsperioder =
                 listOf(
                     1.april til 20.april,
@@ -164,7 +169,7 @@ private object Mock {
                     29.mars til 29.mars,
                     31.mars til 31.mars,
                 ),
-            bestemmendeFravaersdager = mapOf("123" to 25.april),
+            bestemmendeFravaersdager = mapOf(orgnr to 25.april),
             forespurtData = mockForespurtData(),
             erBesvart = false,
             vedtaksperiodeId = UUID.randomUUID(),

@@ -18,6 +18,7 @@ import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
@@ -121,7 +122,7 @@ private object Mock {
                 ),
             forespoersel =
                 mockForespoersel().copy(
-                    fnr = sykmeldt.fnr.verdi,
+                    fnr = sykmeldt.fnr,
                 ),
             feil = emptyMap(),
         )
@@ -153,7 +154,7 @@ private object Mock {
             Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.VIRKSOMHETER to mapOf(resultat.forespoersel.orgnr to resultat.orgNavn).toJson(),
+                    Key.VIRKSOMHETER to mapOf(resultat.forespoersel.orgnr to resultat.orgNavn).toJson(orgMapSerializer),
                     Key.PERSONER to
                         mapOf(
                             sykmeldt.fnr to sykmeldt,

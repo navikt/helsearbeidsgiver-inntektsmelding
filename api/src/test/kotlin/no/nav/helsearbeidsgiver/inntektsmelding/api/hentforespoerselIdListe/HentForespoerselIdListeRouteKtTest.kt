@@ -294,16 +294,16 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
 
 private object Mock {
     val orgnr = Orgnr.genererGyldig()
-    val vedtaksPeriodeId1 = UUID.randomUUID()
-    val forespoerselId1 = UUID.randomUUID()
+    val vedtaksPeriodeId1: UUID = UUID.randomUUID()
+    val forespoerselId1: UUID = UUID.randomUUID()
 
-    val vedtaksPeriodeId2 = UUID.randomUUID()
-    val forespoerselId2 = UUID.randomUUID()
+    val vedtaksPeriodeId2: UUID = UUID.randomUUID()
+    val forespoerselId2: UUID = UUID.randomUUID()
 
     fun mockResultat(): Map<UUID, Forespoersel> =
         mapOf(
-            forespoerselId1 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId1, orgnr = orgnr.toString()),
-            forespoerselId2 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId2, orgnr = orgnr.toString()),
+            forespoerselId1 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId1, orgnr = orgnr),
+            forespoerselId2 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId2, orgnr = orgnr),
         )
 
     fun mockResultatMedUlikeOrgnr(): Map<UUID, Forespoersel> =

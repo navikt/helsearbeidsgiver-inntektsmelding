@@ -113,7 +113,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.hentForespoersler(
                 }
 
                 else -> {
-                    orgnrSet.firstOrNull()?.also { orgnr -> tilgangskontroll.validerTilgangTilOrg(call.request, orgnr) }
+                    orgnrSet.firstOrNull()?.also { orgnr -> tilgangskontroll.validerTilgangTilOrg(call.request, orgnr.verdi) }
 
                     val respons =
                         resultat.map { (id, forespoersel) ->

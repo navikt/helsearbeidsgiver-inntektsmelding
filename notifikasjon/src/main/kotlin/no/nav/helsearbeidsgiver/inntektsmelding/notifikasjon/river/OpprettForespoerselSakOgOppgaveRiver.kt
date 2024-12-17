@@ -22,7 +22,6 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 data class OpprettForespoerselSakOgOppgaveMelding(
@@ -67,7 +66,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
             agNotifikasjonKlient.opprettSak(
                 lenke = lenke,
                 inntektsmeldingTypeId = forespoerselId,
-                orgnr = forespoersel.orgnr.let(::Orgnr),
+                orgnr = forespoersel.orgnr,
                 sykmeldt = sykmeldt,
                 sykmeldingsperioder = forespoersel.sykmeldingsperioder,
             )
@@ -76,7 +75,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
             agNotifikasjonKlient.opprettOppgave(
                 lenke = lenke,
                 forespoerselId = forespoerselId,
-                orgnr = forespoersel.orgnr.let(::Orgnr),
+                orgnr = forespoersel.orgnr,
                 orgNavn = orgNavn,
                 skalHaPaaminnelse = skalHaPaaminnelse,
                 paaminnelseAktivert = paaminnelseToggle.oppgavePaaminnelseAktivert,

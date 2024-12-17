@@ -82,7 +82,7 @@ class HentDataTilSakOgOppgaveService(
             Key.DATA to
                 data
                     .plus(
-                        Key.ORGNR_UNDERENHETER to setOf(steg0.forespoersel.orgnr).toJson(String.serializer()),
+                        Key.ORGNR_UNDERENHETER to setOf(steg0.forespoersel.orgnr).toJson(Orgnr.serializer()),
                     ).toJson(),
         )
     }
@@ -100,7 +100,7 @@ class HentDataTilSakOgOppgaveService(
             Key.DATA to
                 data
                     .plus(
-                        Key.FNR_LISTE to setOf(steg0.forespoersel.fnr).toJson(String.serializer()),
+                        Key.FNR_LISTE to setOf(steg0.forespoersel.fnr).toJson(Fnr.serializer()),
                     ).toJson(),
         )
     }
@@ -116,8 +116,8 @@ class HentDataTilSakOgOppgaveService(
             sikkerLogger.info(it)
         }
 
-        val orgNavn = steg1.orgnrMedNavn[steg0.forespoersel.orgnr.let(::Orgnr)] ?: ORG_NAVN_DEFAULT
-        val sykmeldt = steg2.personer[steg0.forespoersel.fnr.let(::Fnr)] ?: personDefault(steg0.forespoersel.fnr.let(::Fnr))
+        val orgNavn = steg1.orgnrMedNavn[steg0.forespoersel.orgnr] ?: ORG_NAVN_DEFAULT
+        val sykmeldt = steg2.personer[steg0.forespoersel.fnr] ?: personDefault(steg0.forespoersel.fnr)
 
         rapid.publish(
             key = steg0.forespoerselId,

@@ -186,8 +186,8 @@ class InnsendingIT : EndToEndTest() {
 
         val forespoersel =
             Forespoersel(
-                orgnr = orgnr.verdi,
-                fnr = bjarneBetjent.ident!!,
+                orgnr = orgnr,
+                fnr = bjarneBetjent.ident!!.let(::Fnr),
                 vedtaksperiodeId = UUID.randomUUID(),
                 sykmeldingsperioder =
                     listOf(
@@ -199,7 +199,7 @@ class InnsendingIT : EndToEndTest() {
                         26.juni til 27.juni,
                         29.juni til 29.juni,
                     ),
-                bestemmendeFravaersdager = mapOf(orgnr.verdi to 15.juli),
+                bestemmendeFravaersdager = mapOf(orgnr to 15.juli),
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
                 opprettetUpresisIkkeBruk = 17.juli,
@@ -207,13 +207,13 @@ class InnsendingIT : EndToEndTest() {
 
         val forespoerselSvar =
             ForespoerselFraBro(
-                orgnr = Orgnr(forespoersel.orgnr),
-                fnr = Fnr(forespoersel.fnr),
+                orgnr = forespoersel.orgnr,
+                fnr = forespoersel.fnr,
                 forespoerselId = forespoerselId,
                 vedtaksperiodeId = forespoersel.vedtaksperiodeId,
                 egenmeldingsperioder = forespoersel.egenmeldingsperioder,
                 sykmeldingsperioder = forespoersel.sykmeldingsperioder,
-                bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager.mapKeys { Orgnr(it.key) },
+                bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager,
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
                 opprettetUpresisIkkeBruk = forespoersel.opprettetUpresisIkkeBruk,

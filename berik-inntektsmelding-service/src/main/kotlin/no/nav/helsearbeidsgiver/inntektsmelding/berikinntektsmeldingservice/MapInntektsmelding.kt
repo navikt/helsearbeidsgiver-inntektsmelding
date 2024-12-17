@@ -8,8 +8,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ForslagInntekt
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -61,12 +59,12 @@ fun mapInntektsmelding(
             ),
         sykmeldt =
             Sykmeldt(
-                fnr = forespoersel.fnr.let(::Fnr),
+                fnr = forespoersel.fnr,
                 navn = sykmeldtNavn,
             ),
         avsender =
             Avsender(
-                orgnr = forespoersel.orgnr.let(::Orgnr),
+                orgnr = forespoersel.orgnr,
                 orgNavn = virksomhetNavn,
                 navn = avsenderNavn,
                 tlf = skjema.avsenderTlf,

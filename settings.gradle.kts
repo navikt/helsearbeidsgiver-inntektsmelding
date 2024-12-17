@@ -1,9 +1,10 @@
 rootProject.name = "helsearbeidsgiver-inntektsmelding"
 
-val apps = File(rootDir, "apps")
-    .listFiles()
-    ?.map { it.name }
-    .orEmpty()
+val apps =
+    File(rootDir, "apps")
+        .listFiles()
+        ?.map { it.name }
+        .orEmpty()
 
 include(apps)
 

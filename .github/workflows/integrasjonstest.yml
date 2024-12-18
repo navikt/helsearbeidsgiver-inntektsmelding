@@ -60,7 +60,7 @@ jobs:
       - name: Generate matrix
         id: set-matrix
         run: |
-          TESTS=$(find ./integrasjonstest/ -name "*IT.kt" -exec basename {} .kt \; | jq -R -s -c 'split("\n")[:-1]' | jq -c '{"test": .}')
+          TESTS=$(find ./apps/integrasjonstest/ -name "*IT.kt" -exec basename {} .kt \; | jq -R -s -c 'split("\n")[:-1]' | jq -c '{"test": .}')
           echo "matrix=${TESTS}" >> $GITHUB_OUTPUT
 
   integrasjonstest:

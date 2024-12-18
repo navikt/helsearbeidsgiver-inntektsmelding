@@ -155,7 +155,7 @@ tasks {
 }
 
 fun getBuildableProjects(): List<String> {
-    val testfilRegex = Regex("^[\\w-]+/src/test.+")
+    val testfilRegex = Regex("^apps/[\\w-]+/src/test.+")
 
     val changedFiles =
         System
@@ -167,11 +167,12 @@ fun getBuildableProjects(): List<String> {
 
     val hasCommonChanges =
         changedFiles.any {
-            it.startsWith("felles/src/main/") ||
+            it.startsWith("apps/felles/src/main/") ||
                 it in
                 listOf(
                     "Dockerfile",
                     "build.gradle.kts",
+                    "settings.gradle.kts",
                     "gradle.properties",
                 )
         }
@@ -185,7 +186,7 @@ fun getBuildableProjects(): List<String> {
             } else {
                 projects.filter { project ->
                     changedFiles.any {
-                        it.startsWith("$project/") ||
+                        it.startsWith("apps/$project/") ||
                             it.startsWith("config/$project/")
                     }
                 }

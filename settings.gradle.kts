@@ -1,12 +1,16 @@
 rootProject.name = "helsearbeidsgiver-inntektsmelding"
 
-include(
-    rootDir
+val apps =
+    File(rootDir, "apps")
         .listFiles()
-        ?.filter { it.isDirectory && File(it, "build.gradle.kts").exists() }
         ?.map { it.name }
-        .orEmpty(),
-)
+        .orEmpty()
+
+include(apps)
+
+apps.forEach {
+    project(":$it").projectDir = file("apps/$it")
+}
 
 pluginManagement {
     plugins {

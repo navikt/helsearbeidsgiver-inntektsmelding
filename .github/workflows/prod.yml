@@ -121,7 +121,7 @@ jobs:
         id: app_jar
         uses: andstor/file-existence-action@v3
         with:
-          files: "${{ matrix.project }}/build/libs/app.jar"
+          files: "apps/${{ matrix.project }}/build/libs/app.jar"
 
       - name: Create docker tag
         if: steps.app_jar.outputs.files_exists == 'true'
@@ -130,7 +130,7 @@ jobs:
 
       - name: Build docker image
         if: steps.app_jar.outputs.files_exists == 'true'
-        run: docker build ${{ matrix.project }} --pull -t $IMAGE -f Dockerfile
+        run: docker build apps/${{ matrix.project }} --pull -t $IMAGE -f Dockerfile
 
       - name: Push docker image
         if: steps.app_jar.outputs.files_exists == 'true'

@@ -32,7 +32,9 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.juli
+import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
@@ -180,6 +182,7 @@ private object Mock {
         )
 
     val skjema = mockSkjemaInntektsmelding()
+    val mottatt = 15.august.kl(12, 0, 0, 0)
 
     fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
@@ -189,6 +192,7 @@ private object Mock {
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
+                    Key.MOTTATT to mottatt.toJson(),
                 ).toJson(),
         )
 

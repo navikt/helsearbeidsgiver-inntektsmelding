@@ -4,6 +4,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
+import io.mockk.every
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -12,8 +13,11 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.oktober
+import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import java.time.LocalDateTime
 import java.util.UUID
 
 class LagreSelvbestemtImProducerTest :
@@ -26,8 +30,13 @@ class LagreSelvbestemtImProducerTest :
             val transaksjonId = UUID.randomUUID()
             val avsenderFnr = Fnr.genererGyldig()
             val skjema = mockSkjemaInntektsmeldingSelvbestemt()
+            val mottatt = 14.oktober.atStartOfDay()
 
-            producer.publish(transaksjonId, skjema, avsenderFnr)
+            mockStatic(LocalDateTime::class) {
+                every { LocalDateTime.now() } returns mottatt
+
+                producer.publish(transaksjonId, skjema, avsenderFnr)
+            }
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.firstMessage().toMap() shouldContainExactly
@@ -36,8 +45,9 @@ class LagreSelvbestemtImProducerTest :
                     Key.KONTEKST_ID to transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
-                            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
                             Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
+                            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+                            Key.MOTTATT to mottatt.toJson(),
                         ).toJson(),
                 )
         }

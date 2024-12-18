@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -16,10 +17,12 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.erDuplikatAv
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.time.LocalDateTime
 import java.util.UUID
 
 private const val INNSENDING_ID_VED_DUPLIKAT = -1L
@@ -31,6 +34,7 @@ data class LagreImSkjemaMelding(
     val data: Map<Key, JsonElement>,
     val forespoersel: Forespoersel,
     val skjema: SkjemaInntektsmelding,
+    val mottatt: LocalDateTime?,
 )
 
 class LagreImSkjemaRiver(
@@ -51,6 +55,7 @@ class LagreImSkjemaRiver(
                 data = data,
                 forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), data),
                 skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), data),
+                mottatt = Key.MOTTATT.lesOrNull(LocalDateTimeSerializer, data),
             )
         }
 
@@ -64,7 +69,7 @@ class LagreImSkjemaRiver(
                 sikkerLogger.warn("Fant duplikat av inntektsmeldingskjema.")
                 INNSENDING_ID_VED_DUPLIKAT
             } else {
-                repository.lagreInntektsmeldingSkjema(skjema).also {
+                repository.lagreInntektsmeldingSkjema(skjema, mottatt).also {
                     sikkerLogger.info("Lagret inntektsmeldingskjema.")
                 }
             }

@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.distribusjon
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -26,7 +25,6 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import java.time.LocalDate
 import java.util.UUID
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding as InntektsmeldingGammel
 
 const val TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN = "helsearbeidsgiver.inntektsmelding"
 
@@ -85,7 +83,7 @@ class DistribusjonRiver(
     ): Map<Key, JsonElement> {
         val fail =
             Fail(
-                feilmelding = "Klarte ikke distribuere IM med journalpost-ID: '$journalpostId'.",
+                feilmelding = "Klarte ikke distribuere IM med journalpost-ID '$journalpostId'.",
                 kontekstId = transaksjonId,
                 utloesendeMelding = json,
             )
@@ -112,26 +110,11 @@ class DistribusjonRiver(
         bestemmendeFravaersdag: LocalDate?,
         journalpostId: String,
     ) {
-        val inntektsmeldingGammeltFormat =
-            inntektsmelding
-                .convert()
-                .let {
-                    if (bestemmendeFravaersdag != null) {
-                        it.copy(bestemmendeFraværsdag = bestemmendeFravaersdag)
-                    } else {
-                        it
-                    }
-                }
-
-        val erSelvbestemt = inntektsmelding.type is Inntektsmelding.Type.Selvbestemt
-
         val journalfoertInntektsmelding =
             JournalfoertInntektsmelding(
                 journalpostId = journalpostId,
                 inntektsmeldingV1 = inntektsmelding,
                 bestemmendeFravaersdag = bestemmendeFravaersdag,
-                inntektsmelding = inntektsmeldingGammeltFormat,
-                selvbestemt = erSelvbestemt,
             )
 
         val record =
@@ -144,13 +127,11 @@ class DistribusjonRiver(
     }
 }
 
-// Midlertidig klasse som inneholder både gammelt og nytt format
+// Midlertidig klasse som inneholder bestemmende fraværsdag
 @Serializable
 data class JournalfoertInntektsmelding(
     val journalpostId: String,
     val inntektsmeldingV1: Inntektsmelding,
     @Serializable(LocalDateSerializer::class)
     val bestemmendeFravaersdag: LocalDate?,
-    val inntektsmelding: InntektsmeldingGammel,
-    val selvbestemt: Boolean, // for å skille på selvbestemt og vanlig i spinosaurus, før V1 tas i bruk overalt
 )

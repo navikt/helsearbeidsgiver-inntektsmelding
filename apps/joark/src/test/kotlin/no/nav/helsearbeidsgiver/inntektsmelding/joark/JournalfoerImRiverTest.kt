@@ -124,6 +124,7 @@ class JournalfoerImRiverTest :
                         Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                         Key.JOURNALPOST_ID to journalpostId.toJson(),
                         Key.INNTEKTSMELDING to Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                        Key.BESTEMMENDE_FRAVAERSDAG to Mock.bestemmendeFravaersdag.toJson(),
                     )
 
                 coVerifySequence {

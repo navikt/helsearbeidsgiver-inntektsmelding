@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import java.time.LocalDateTime
 import java.util.UUID
 
 class LagreSelvbestemtImProducer(
@@ -38,8 +39,9 @@ class LagreSelvbestemtImProducer(
                     Key.KONTEKST_ID to transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
-                            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
                             Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
+                            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+                            Key.MOTTATT to LocalDateTime.now().toJson(),
                         ).toJson(),
                 ).also {
                     logger.info("Publiserte til kafka.")

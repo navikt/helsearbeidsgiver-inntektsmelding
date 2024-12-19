@@ -94,20 +94,21 @@ fun Route.lagreSelvbestemtImRoute(
 private suspend fun PipelineContext<Unit, ApplicationCall>.lesRequestOrNull(): SkjemaInntektsmeldingSelvbestemt? =
     call
         .receiveText()
-        .parseJson()
-        .also { json ->
-            "Mottok selvbestemt inntektsmelding.".let {
-                logger.info(it)
-                sikkerLogger.info("$it:\n${json.toPretty()}")
-            }
-        }.runCatching {
-            fromJson(SkjemaInntektsmeldingSelvbestemt.serializer())
-        }.onFailure { e ->
-            "Kunne ikke parse json.".let {
+        .runCatching {
+            parseJson()
+                .also { json ->
+                    "Mottok selvbestemt inntektsmelding.".let {
+                        logger.info(it)
+                        sikkerLogger.info("$it\n${json.toPretty()}")
+                    }
+                }.fromJson(SkjemaInntektsmeldingSelvbestemt.serializer())
+        }.getOrElse { error ->
+            "Kunne ikke parse json for selvbestemt inntektsmeldingsskjema.".let {
                 logger.error(it)
-                sikkerLogger.error(it, e)
+                sikkerLogger.error(it, error)
             }
-        }.getOrNull()
+            null
+        }
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(result: Result<ResultJson>) {
     result

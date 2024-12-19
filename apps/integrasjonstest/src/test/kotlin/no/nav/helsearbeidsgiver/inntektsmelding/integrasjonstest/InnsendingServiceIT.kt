@@ -26,6 +26,7 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
+import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
@@ -43,7 +44,7 @@ class InnsendingServiceIT : EndToEndTest() {
         val transaksjonId: UUID = UUID.randomUUID()
         val tidligereInntektsmelding = mockInntektsmelding()
 
-        val innsendingId = imRepository.lagreInntektsmeldingSkjema(Mock.skjema)
+        val innsendingId = imRepository.lagreInntektsmeldingSkjema(Mock.skjema, 9.desember.atStartOfDay())
         imRepository.oppdaterMedBeriketDokument(Mock.skjema.forespoerselId, innsendingId, tidligereInntektsmelding)
 
         mockForespoerselSvarFraHelsebro(

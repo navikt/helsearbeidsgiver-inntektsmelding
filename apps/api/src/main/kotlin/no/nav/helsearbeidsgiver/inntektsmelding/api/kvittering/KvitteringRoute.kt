@@ -34,6 +34,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerE
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondNotFound
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.time.ZoneId
 import java.util.UUID
@@ -69,10 +70,9 @@ fun Route.kvittering(
                     kvitteringProducer.publish(transaksjonId, forespoerselId)
                     val resultatJson = redisPoller.hent(transaksjonId)
 
-                    sikkerLogger.info("Resultat for henting av kvittering for $forespoerselId: $resultatJson")
-
                     val resultat = resultatJson.success?.fromJson(InnsendtInntektsmelding.serializer())
                     if (resultat != null) {
+                        sikkerLogger.info("Hentet kvittering for '$forespoerselId'.\n${resultatJson.success?.toPretty()}")
                         if (resultat.dokument == null && resultat.eksternInntektsmelding == null) {
                             respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
                         } else {

@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingGammeltForma
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.desember
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -31,7 +32,7 @@ class KvitteringIT : EndToEndTest() {
         val transaksjonId = UUID.randomUUID()
         val skjema = mockSkjemaInntektsmelding()
 
-        val innsendingId = imRepository.lagreInntektsmeldingSkjema(skjema)
+        val innsendingId = imRepository.lagreInntektsmeldingSkjema(skjema, 3.desember.atStartOfDay())
         imRepository.oppdaterMedBeriketDokument(skjema.forespoerselId, innsendingId, mockInntektsmeldingGammeltFormat())
 
         publish(

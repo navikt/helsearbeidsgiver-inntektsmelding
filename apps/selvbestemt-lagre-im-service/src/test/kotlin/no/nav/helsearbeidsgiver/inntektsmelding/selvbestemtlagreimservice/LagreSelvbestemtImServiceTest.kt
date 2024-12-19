@@ -52,6 +52,8 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
+import no.nav.helsearbeidsgiver.utils.test.date.august
+import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -517,6 +519,7 @@ private object Mock {
             orgNavn = ORG_NAVN,
             sykmeldtNavn = sykmeldt.navn,
             avsenderNavn = avsender.navn,
+            mottatt = 16.august.kl(18, 19, 0, 0),
         )
 
     fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
@@ -525,8 +528,9 @@ private object Mock {
             Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
                     Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
+                    Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+                    Key.MOTTATT to inntektsmelding.mottatt.toLocalDateTime().toJson(),
                 ).toJson(),
         )
 

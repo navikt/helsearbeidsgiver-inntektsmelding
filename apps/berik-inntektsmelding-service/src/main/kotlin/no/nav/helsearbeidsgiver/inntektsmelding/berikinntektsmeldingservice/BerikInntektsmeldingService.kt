@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -20,6 +21,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed4Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -29,6 +31,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 private const val UKJENT_NAVN = "Ukjent navn"
@@ -39,6 +42,7 @@ data class Steg0(
     val avsenderFnr: Fnr,
     val skjema: SkjemaInntektsmelding,
     val innsendingId: Long,
+    val mottatt: LocalDateTime?,
 )
 
 data class Steg1(
@@ -73,6 +77,7 @@ class BerikInntektsmeldingService(
             avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
             skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding),
             innsendingId = Key.INNSENDING_ID.les(Long.serializer(), melding),
+            mottatt = Key.MOTTATT.lesOrNull(LocalDateTimeSerializer, melding),
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
@@ -176,6 +181,7 @@ class BerikInntektsmeldingService(
                 virksomhetNavn = orgNavn,
                 sykmeldtNavn = sykmeldtNavn,
                 avsenderNavn = avsenderNavn,
+                mottatt = steg0.mottatt,
             )
 
         val bestemmendeFravaersdag = utledBestemmendeFravaersdag(steg1.forespoersel, inntektsmelding)

@@ -26,7 +26,9 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed3Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.felles.utils.zoneIdOslo
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -34,16 +36,19 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
-import java.time.OffsetDateTime
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.UUID
 
 data class Steg0(
     val transaksjonId: UUID,
     val skjema: SkjemaInntektsmeldingSelvbestemt,
     val avsenderFnr: Fnr,
+    val mottatt: LocalDateTime?,
 )
 
 sealed class Steg1 {
@@ -81,6 +86,7 @@ class LagreSelvbestemtImService(
             transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmeldingSelvbestemt.serializer(), melding),
             avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
+            mottatt = Key.MOTTATT.lesOrNull(LocalDateTimeSerializer, melding),
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 {
@@ -194,6 +200,7 @@ class LagreSelvbestemtImService(
                     orgNavn = orgNavn,
                     sykmeldtNavn = sykmeldtNavn,
                     avsenderNavn = avsenderNavn,
+                    mottatt = steg0.mottatt,
                 )
 
             val sykeperioder =
@@ -364,6 +371,7 @@ fun tilInntektsmelding(
     orgNavn: String,
     sykmeldtNavn: String,
     avsenderNavn: String,
+    mottatt: LocalDateTime?,
 ): Inntektsmelding {
     val aarsakInnsending =
         if (skjema.selvbestemtId == null) {
@@ -395,7 +403,7 @@ fun tilInntektsmelding(
         inntekt = skjema.inntekt,
         refusjon = skjema.refusjon,
         aarsakInnsending = aarsakInnsending,
-        mottatt = OffsetDateTime.now(),
+        mottatt = mottatt?.atZone(zoneIdOslo).orDefault(ZonedDateTime.now()).toOffsetDateTime(),
         vedtaksperiodeId = skjema.vedtaksperiodeId,
     )
 }

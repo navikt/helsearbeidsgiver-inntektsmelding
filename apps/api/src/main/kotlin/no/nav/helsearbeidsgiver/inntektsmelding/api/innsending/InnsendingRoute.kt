@@ -2,10 +2,12 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.request.receiveText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Tekst
@@ -27,6 +29,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 import java.util.UUID
 
 fun Route.innsending(
@@ -41,25 +44,7 @@ fun Route.innsending(
         Metrics.innsendingEndpoint.recordTime(Route::innsending) {
             val transaksjonId = UUID.randomUUID()
 
-            val skjema =
-                call
-                    .receiveText()
-                    .runCatching {
-                        parseJson()
-                            .also { json ->
-                                "Mottok inntektsmeldingsskjema.".let {
-                                    logger.info(it)
-                                    sikkerLogger.info("$it og request:\n$json")
-                                }
-                            }.fromJson(SkjemaInntektsmelding.serializer())
-                    }.getOrElse { error ->
-                        "Klarte ikke parse json for inntektsmeldingsskjema.".also {
-                            logger.error(it)
-                            sikkerLogger.error(it, error)
-                        }
-                        null
-                    }
-
+            val skjema = lesRequestOrNull()
             when {
                 skjema == null -> {
                     respondBadRequest(JsonErrorResponse(), JsonErrorResponse.serializer())
@@ -106,3 +91,22 @@ fun Route.innsending(
         }
     }
 }
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.lesRequestOrNull(): SkjemaInntektsmelding? =
+    call
+        .receiveText()
+        .runCatching {
+            parseJson()
+                .also { json ->
+                    "Mottok inntektsmeldingsskjema.".let {
+                        logger.info(it)
+                        sikkerLogger.info("$it\n${json.toPretty()}")
+                    }
+                }.fromJson(SkjemaInntektsmelding.serializer())
+        }.getOrElse { error ->
+            "Klarte ikke parse json for inntektsmeldingsskjema.".also {
+                logger.error(it)
+                sikkerLogger.error(it, error)
+            }
+            null
+        }

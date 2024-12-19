@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldNotBeEmpty
-import io.kotest.matchers.date.shouldBeWithin
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -18,12 +17,11 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.utenPaakrevdAGP
 import no.nav.helsearbeidsgiver.felles.test.mock.utenPaakrevdInntekt
 import no.nav.helsearbeidsgiver.felles.test.mock.utenPaakrevdRefusjon
+import no.nav.helsearbeidsgiver.felles.utils.zoneIdOslo
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.juli
-import java.time.ZonedDateTime
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
+import no.nav.helsearbeidsgiver.utils.test.date.kl
 
 class MapInntektsmeldingKtTest :
     FunSpec({
@@ -36,6 +34,7 @@ class MapInntektsmeldingKtTest :
                 val virksomhetNavn = "Skrekkinngytende smaker LLC"
                 val sykmeldtNavn = "Runar fra Regnskap"
                 val avsenderNavn = "Hege fra HR"
+                val imMottatt = 11.juli.kl(10, 10, 0, 0)
 
                 val inntektsmelding =
                     mapInntektsmelding(
@@ -45,6 +44,7 @@ class MapInntektsmeldingKtTest :
                         virksomhetNavn = virksomhetNavn,
                         sykmeldtNavn = sykmeldtNavn,
                         avsenderNavn = avsenderNavn,
+                        mottatt = imMottatt,
                     )
 
                 inntektsmelding.apply {
@@ -83,7 +83,7 @@ class MapInntektsmeldingKtTest :
 
                     vedtaksperiodeId shouldBe forespoersel.vedtaksperiodeId
 
-                    mottatt.shouldBeWithin(5.seconds.toJavaDuration(), ZonedDateTime.now().toOffsetDateTime())
+                    mottatt shouldBe imMottatt.atZone(zoneIdOslo).toOffsetDateTime()
                 }
             }
 
@@ -104,6 +104,7 @@ class MapInntektsmeldingKtTest :
                         virksomhetNavn = "Skrekkinngytende smaker LLC",
                         sykmeldtNavn = "Runar fra Regnskap",
                         avsenderNavn = "Hege fra HR",
+                        mottatt = 6.desember.atStartOfDay(),
                     )
 
                 inntektsmelding.agp.shouldBeNull()
@@ -123,6 +124,7 @@ class MapInntektsmeldingKtTest :
                         virksomhetNavn = "Skrekkinngytende smaker LLC",
                         sykmeldtNavn = "Runar fra Regnskap",
                         avsenderNavn = "Hege fra HR",
+                        mottatt = 6.desember.atStartOfDay(),
                     )
 
                 skjema.agp.shouldNotBeNull()
@@ -141,6 +143,7 @@ class MapInntektsmeldingKtTest :
                         virksomhetNavn = "Skrekkinngytende smaker LLC",
                         sykmeldtNavn = "Runar fra Regnskap",
                         avsenderNavn = "Hege fra HR",
+                        mottatt = 6.desember.atStartOfDay(),
                     )
 
                 val fastsattInntekt = 8795.0
@@ -175,6 +178,7 @@ class MapInntektsmeldingKtTest :
                         virksomhetNavn = "Skrekkinngytende smaker LLC",
                         sykmeldtNavn = "Runar fra Regnskap",
                         avsenderNavn = "Hege fra HR",
+                        mottatt = 6.desember.atStartOfDay(),
                     )
 
                 inntektsmelding.inntekt.also {
@@ -204,6 +208,7 @@ class MapInntektsmeldingKtTest :
                         virksomhetNavn = "Skrekkinngytende smaker LLC",
                         sykmeldtNavn = "Runar fra Regnskap",
                         avsenderNavn = "Hege fra HR",
+                        mottatt = 6.desember.atStartOfDay(),
                     )
 
                 inntektsmelding.inntekt.also {
@@ -240,6 +245,7 @@ class MapInntektsmeldingKtTest :
                         virksomhetNavn = "Skrekkinngytende smaker LLC",
                         sykmeldtNavn = "Runar fra Regnskap",
                         avsenderNavn = "Hege fra HR",
+                        mottatt = 6.desember.atStartOfDay(),
                     )
 
                 inntektsmelding.inntekt.also {
@@ -262,6 +268,7 @@ class MapInntektsmeldingKtTest :
                         virksomhetNavn = "Skrekkinngytende smaker LLC",
                         sykmeldtNavn = "Runar fra Regnskap",
                         avsenderNavn = "Hege fra HR",
+                        mottatt = 6.desember.atStartOfDay(),
                     )
 
                 skjema.refusjon.shouldNotBeNull()

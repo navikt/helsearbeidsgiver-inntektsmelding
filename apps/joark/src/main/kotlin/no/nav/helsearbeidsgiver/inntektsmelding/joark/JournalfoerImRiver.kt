@@ -5,6 +5,7 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender
 import no.nav.helsearbeidsgiver.dokarkiv.domene.GjelderPerson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.bestemmendeFravaersdag
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -55,13 +56,19 @@ class JournalfoerImRiver(
                         bestemmendeFravaersdag = Key.BESTEMMENDE_FRAVAERSDAG.lesOrNull(LocalDateSerializer, data),
                     )
 
-                EventName.SELVBESTEMT_IM_LAGRET ->
+                EventName.SELVBESTEMT_IM_LAGRET -> {
+                    val im = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), data)
                     JournalfoerImMelding(
                         eventName = eventName,
                         transaksjonId = transaksjonId,
-                        inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
-                        bestemmendeFravaersdag = null,
+                        inntektsmelding = im,
+                        bestemmendeFravaersdag =
+                            bestemmendeFravaersdag(
+                                arbeidsgiverperioder = im.agp?.perioder.orEmpty(),
+                                sykefravaersperioder = im.sykmeldingsperioder,
+                            ),
                     )
+                }
 
                 else ->
                     null

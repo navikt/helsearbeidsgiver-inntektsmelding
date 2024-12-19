@@ -1,14 +1,9 @@
 kafkaPool: nav-prod
 azure:
   enabled: true
-database:
-  - name: notifikasjon
-logical_decoding: true
-envFrom:
-  - type: secret
-    name: google-sql-im-notifikasjon
-secureLogs:
-  enabled: true
+apps:
+  - name: notifikasjon-produsent-api
+    namespace: fager
 env:
   - name: ARBEIDSGIVER_NOTIFIKASJON_API_URL
     value: "http://notifikasjon-produsent-api.fager/api/graphql"
@@ -16,9 +11,7 @@ env:
     value: "api://prod-gcp.fager.notifikasjon-produsent-api/.default"
   - name: LINK_URL
     value: "https://arbeidsgiver.nav.no"
-  - name: REDIS_URL
-    value: redis://helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local:6379/0
-apps:
-  - name: helsearbeidsgiver-redis
-  - name: notifikasjon-produsent-api
-    namespace: fager
+  - name: OPPGAVEPAAMINNELSER_AKTIVERT
+    value: "true"
+  - name: TID_MELLOM_OPPGAVEOPPRETTELSE_OG_PAAMINNELSE
+    value: "P28D"

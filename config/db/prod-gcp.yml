@@ -2,9 +2,10 @@ kafkaPool: nav-prod
 azure:
   enabled: true
 database:
-  - name: inntektsmelding
-    users: [ simba_datastream_bruker ]
-logical_decoding: true
+  name: inntektsmelding
+  tier: db-custom-1-3840
+  logicalDecoding: true
+  user: simba_datastream_bruker
 envFrom:
   - type: secret
     name: google-sql-im-db

@@ -15,34 +15,41 @@ metadata:
     team: helsearbeidsgiver
 spec:
   image: {{ image }}
-  port: 8080
-  idporten:
-    enabled: {{#if idportenEnabled}}true{{else}}false{{/if}}
-    sidecar:
-      enabled: {{#if sidecarEnabled}}true{{else}}false{{/if}}
+  resources:
+    requests:
+      cpu: 50m
+      memory: 512Mi
+    limits:
+      memory: 1024Mi
+  replicas:
+    min: {{#if replicasMin }}{{ replicasMin }}{{else}}1{{/if}}
+    max: {{#if replicasMax }}{{ replicasMax }}{{else}}1{{/if}}
+    scalingStrategy:
+      cpu:
+        thresholdPercentage: 75
+  startup:
+    path: /isalive
+    initialDelay: 10
+    periodSeconds: 5
+    failureThreshold: 22
+  liveness:
+    path: /isalive
+  readiness:
+    path: /isready
+  secureLogs:
+    enabled: true
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+  prometheus:
+    enabled: true
   {{#if ingress}}
   tokenx:
     enabled: {{#if tokenxEnabled}}true{{else}}false{{/if}}
   ingresses:
     - {{ ingress }}
   {{/if}}
-  liveness:
-    path: isalive
-    initialDelay: 5
-  readiness:
-    path: isready
-    initialDelay: 5
-  resources:
-    limits:
-      cpu: 2000m
-      memory: 512Mi
-    requests:
-      cpu: 50m
-      memory: 128Mi
-  replicas:
-    min: {{#if replicasMin }}{{ replicasMin }}{{else}}1{{/if}}
-    max: {{#if replicasMax }}{{ replicasMax }}{{else}}1{{/if}}
-    cpuThresholdPercentage: 75
   {{#if kafkaPool}}
   kafka:
     pool: {{ kafkaPool }}
@@ -51,67 +58,57 @@ spec:
   azure:
     application:
       enabled: {{ azure.enabled }}
-      {{#if azure.tenant}}
-      tenant: {{ azure.tenant }}
-      {{/if}}
   {{/if}}
   {{#if database}}
   gcp:
     sqlInstances:
       - type: POSTGRES_14
+        {{#if database.cascadingDelete}}
+        cascadingDelete: {{ database.cascadingDelete }}
+        {{/if}}
+        tier: {{ database.tier }}
         databases:
-          {{#each database as |db| }}
-          - name: {{ db.name }}
-            {{#if db.users}}
+          - name: {{ database.name }}
+            {{#if database.user}}
             users:
-              {{#each db.users as |user| }}
-              - name: {{ user }}
-              {{/each}}
+              - name: {{ database.user }}
             {{/if}}
-          {{/each}}
-        {{#if logical_decoding}}
+        {{#if database.logicalDecoding}}
         flags:
           - name: cloudsql.logical_decoding
             value: "on"
         {{/if}}
   {{/if}}
-  prometheus:
-    enabled: true
-    path: /metrics
-  webproxy: true
-  secureLogs:
-    enabled: true
-  vault:
-    enabled: true
-    {{#if mountPaths}}
-    paths:
-    {{# each mountPaths as |item| }}
-      - mountPath: {{ item.mountPath }}
-        kvPath: {{ item.kvPath }}
-    {{/each}}
-    {{/if}}
   {{#if envFrom}}
   envFrom:
-  {{# each envFrom as |item| }}
+    {{# each envFrom as |item| }}
     - {{ item.type }}: {{ item.name }}
-  {{/each}}{{/if}}
+    {{/each}}
+  {{/if}}
   env:
     - name: KAFKA_CONSUMER_GROUP_ID
-      value: {{#if kafkaConsumerGroup }}{{ kafkaConsumerGroup }}{{else}}helsearbeidsgiver-im-{{app}}-v1{{/if}}
+      value: helsearbeidsgiver-im-{{app}}-v1
     - name: KAFKA_RAPID_TOPIC
       value: helsearbeidsgiver.rapid
     {{#if env}}{{# each env as |item| }}
     - name: {{ item.name }}
       value: "{{ item.value }}"
     {{/each}}{{/if}}
-{{#if maskinporten}}
+  {{#if idportenEnabled}}
+  idporten:
+    enabled: true
+    sidecar:
+      enabled: true
+  {{/if}}
+  {{#if maskinporten}}
   maskinporten:
     enabled: true
     scopes:
-      consumes: {{#each maskinporten.consumes as |consume| }}
+      consumes:
+        {{#each maskinporten.consumes as |consume| }}
         - name: "{{ consume }}"
-  {{/each}}
-{{/if}}
+        {{/each}}
+  {{/if}}
   accessPolicy:
     outbound:
       external:

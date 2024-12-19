@@ -11,7 +11,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -72,8 +71,6 @@ class DistribusjonRiverTest :
                         journalpostId = innkommendeMelding.journalpostId,
                         inntektsmeldingV1 = innkommendeMelding.inntektsmelding,
                         bestemmendeFravaersdag = innkommendeMelding.bestemmendeFravaersdag,
-                        inntektsmelding = innkommendeMelding.inntektsmelding.convert().copy(bestemmendeFraværsdag = Mock.bestemmendeFravaersdag),
-                        selvbestemt = false,
                     ).toJsonStr(JournalfoertInntektsmelding.serializer()),
                 )
 
@@ -119,8 +116,6 @@ class DistribusjonRiverTest :
                         journalpostId = innkommendeMelding.journalpostId,
                         inntektsmeldingV1 = selvbestemtInntektsmelding,
                         bestemmendeFravaersdag = null,
-                        inntektsmelding = selvbestemtInntektsmelding.convert(),
-                        selvbestemt = true,
                     ).toJsonStr(JournalfoertInntektsmelding.serializer()),
                 )
 
@@ -138,7 +133,7 @@ class DistribusjonRiverTest :
 
             val forventetFail =
                 Fail(
-                    feilmelding = "Klarte ikke distribuere IM med journalpost-ID: '${innkommendeMelding.journalpostId}'.",
+                    feilmelding = "Klarte ikke distribuere IM med journalpost-ID '${innkommendeMelding.journalpostId}'.",
                     kontekstId = innkommendeMelding.transaksjonId,
                     utloesendeMelding = innkommendeJsonMap,
                 )
@@ -180,8 +175,6 @@ class DistribusjonRiverTest :
     })
 
 private object Mock {
-    val bestemmendeFravaersdag = 20.oktober
-
     val fail = mockFail("I'm afraid I can't let you do that.", EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET)
 
     fun innkommendeMelding(): Melding =
@@ -189,7 +182,7 @@ private object Mock {
             eventName = EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET,
             transaksjonId = UUID.randomUUID(),
             inntektsmelding = mockInntektsmeldingV1(),
-            bestemmendeFravaersdag = bestemmendeFravaersdag,
+            bestemmendeFravaersdag = 20.oktober,
             journalpostId = randomDigitString(13),
         )
 

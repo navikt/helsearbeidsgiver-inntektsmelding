@@ -31,7 +31,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.Mock.INNSENDING_ID
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import java.util.UUID
 
 class LagreJournalpostIdRiverTest :
@@ -64,7 +63,6 @@ class LagreJournalpostIdRiverTest :
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET.toJson(),
                         Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                         Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                        Key.BESTEMMENDE_FRAVAERSDAG to Mock.bestemmendeFravaersdag.toJson(),
                         Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
                     )
 
@@ -93,7 +91,6 @@ class LagreJournalpostIdRiverTest :
                 testRapid.sendJson(
                     innkommendeMelding
                         .toMap()
-                        .minus(Key.BESTEMMENDE_FRAVAERSDAG)
                         .minus(Key.INNSENDING_ID),
                 )
 
@@ -225,8 +222,6 @@ class LagreJournalpostIdRiverTest :
 private object Mock {
     const val INNSENDING_ID = 1L
 
-    val bestemmendeFravaersdag = 20.oktober
-
     fun innkommendeMelding(inntektsmelding: Inntektsmelding = mockInntektsmeldingV1()): LagreJournalpostIdMelding =
         LagreJournalpostIdMelding(
             eventName = EventName.INNTEKTSMELDING_JOURNALFOERT,
@@ -242,7 +237,6 @@ private object Mock {
             Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-            Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag.toJson(),
             Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
         )
 

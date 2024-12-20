@@ -15,12 +15,10 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
-import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import java.time.LocalDate
 import java.util.UUID
 
 data class LagreImMelding(
@@ -29,7 +27,6 @@ data class LagreImMelding(
     val transaksjonId: UUID,
     val data: Map<Key, JsonElement>,
     val inntektsmelding: Inntektsmelding,
-    val bestemmendeFravaersdag: LocalDate,
     val innsendingId: Long,
 )
 
@@ -51,13 +48,12 @@ class LagreImRiver(
                 transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
-                bestemmendeFravaersdag = Key.BESTEMMENDE_FRAVAERSDAG.les(LocalDateSerializer, data),
                 innsendingId = Key.INNSENDING_ID.les(Long.serializer(), data),
             )
         }
 
     override fun LagreImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        val inntektsmeldingGammeltFormat = inntektsmelding.convert().copy(bestemmendeFraværsdag = bestemmendeFravaersdag)
+        val inntektsmeldingGammeltFormat = inntektsmelding.convert()
 
         imRepo.oppdaterMedBeriketDokument(inntektsmelding.type.id, innsendingId, inntektsmeldingGammeltFormat)
         sikkerLogger.info("Lagret inntektsmelding.")

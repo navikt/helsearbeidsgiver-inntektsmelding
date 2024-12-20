@@ -28,7 +28,6 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import java.util.UUID
 
 class LagreImRiverTest :
@@ -63,7 +62,6 @@ class LagreImRiverTest :
                     Key.DATA to
                         mapOf(
                             Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                            Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag.toJson(),
                             Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
                             Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
                         ).toJson(),
@@ -122,8 +120,6 @@ class LagreImRiverTest :
         }
     })
 
-private val bestemmendeFravaersdag = 20.oktober
-
 private fun innkommendeMelding(
     innsendingId: Long,
     inntektsmelding: Inntektsmelding = mockInntektsmeldingV1(),
@@ -135,11 +131,9 @@ private fun innkommendeMelding(
         data =
             mapOf(
                 Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag.toJson(),
                 Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
             ),
         inntektsmelding = inntektsmelding,
-        bestemmendeFravaersdag = bestemmendeFravaersdag,
         innsendingId = innsendingId,
     )
 

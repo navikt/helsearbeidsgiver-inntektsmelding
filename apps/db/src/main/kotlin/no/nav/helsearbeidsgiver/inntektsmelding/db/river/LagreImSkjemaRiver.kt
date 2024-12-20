@@ -9,7 +9,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -34,7 +33,7 @@ data class LagreImSkjemaMelding(
     val data: Map<Key, JsonElement>,
     val forespoersel: Forespoersel,
     val skjema: SkjemaInntektsmelding,
-    val mottatt: LocalDateTime?,
+    val mottatt: LocalDateTime,
 )
 
 class LagreImSkjemaRiver(
@@ -55,7 +54,7 @@ class LagreImSkjemaRiver(
                 data = data,
                 forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), data),
                 skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), data),
-                mottatt = Key.MOTTATT.lesOrNull(LocalDateTimeSerializer, data),
+                mottatt = Key.MOTTATT.les(LocalDateTimeSerializer, data),
             )
         }
 

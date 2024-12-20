@@ -34,6 +34,8 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.kl
+import no.nav.helsearbeidsgiver.utils.test.date.november
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -178,6 +180,7 @@ private object Mock {
                     Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
                     Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
+                    Key.MOTTATT to 13.november.kl(15, 10, 0, 0).toJson(),
                 ).toJson(),
         )
 

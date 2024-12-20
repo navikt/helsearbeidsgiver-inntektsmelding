@@ -36,19 +36,17 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZonedDateTime
 import java.util.UUID
 
 data class Steg0(
     val transaksjonId: UUID,
     val skjema: SkjemaInntektsmeldingSelvbestemt,
     val avsenderFnr: Fnr,
-    val mottatt: LocalDateTime?,
+    val mottatt: LocalDateTime,
 )
 
 sealed class Steg1 {
@@ -86,7 +84,7 @@ class LagreSelvbestemtImService(
             transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmeldingSelvbestemt.serializer(), melding),
             avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
-            mottatt = Key.MOTTATT.lesOrNull(LocalDateTimeSerializer, melding),
+            mottatt = Key.MOTTATT.les(LocalDateTimeSerializer, melding),
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 {
@@ -371,7 +369,7 @@ fun tilInntektsmelding(
     orgNavn: String,
     sykmeldtNavn: String,
     avsenderNavn: String,
-    mottatt: LocalDateTime?,
+    mottatt: LocalDateTime,
 ): Inntektsmelding {
     val aarsakInnsending =
         if (skjema.selvbestemtId == null) {
@@ -403,7 +401,7 @@ fun tilInntektsmelding(
         inntekt = skjema.inntekt,
         refusjon = skjema.refusjon,
         aarsakInnsending = aarsakInnsending,
-        mottatt = mottatt?.atZone(zoneIdOslo).orDefault(ZonedDateTime.now()).toOffsetDateTime(),
+        mottatt = mottatt.atZone(zoneIdOslo).toOffsetDateTime(),
         vedtaksperiodeId = skjema.vedtaksperiodeId,
     )
 }

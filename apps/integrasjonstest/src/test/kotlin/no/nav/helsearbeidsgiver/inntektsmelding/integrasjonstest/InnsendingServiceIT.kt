@@ -28,8 +28,10 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.februar
+import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
+import no.nav.helsearbeidsgiver.utils.test.date.september
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -83,6 +85,7 @@ class InnsendingServiceIT : EndToEndTest() {
                     Key.FORESPOERSEL_ID to Mock.skjema.forespoerselId.toJson(),
                     Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to nyInnsending.toJson(SkjemaInntektsmelding.serializer()),
+                    Key.MOTTATT to Mock.mottatt.toJson(),
                 ).toJson(),
         )
 
@@ -169,6 +172,7 @@ class InnsendingServiceIT : EndToEndTest() {
         val orgnr = Orgnr.genererGyldig()
         val fnrAg = Fnr.genererGyldig()
         val vedtaksperiodeId: UUID = UUID.randomUUID()
+        val mottatt = 6.september.kl(22, 18, 0, 0)
 
         val forespoerselSvar =
             ForespoerselFraBro(

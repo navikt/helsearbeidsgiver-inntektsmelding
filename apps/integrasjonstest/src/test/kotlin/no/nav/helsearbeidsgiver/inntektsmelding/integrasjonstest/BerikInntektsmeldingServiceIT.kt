@@ -36,6 +36,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.juni
+import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -81,6 +82,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                     Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
                     Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
+                    Key.MOTTATT to Mock.mottatt.toJson(),
                 ).toJson(),
         )
 
@@ -205,6 +207,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                     Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
                     Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
+                    Key.MOTTATT to Mock.mottatt.toJson(),
                 ).toJson(),
         )
 
@@ -325,6 +328,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         val fnrAg = Fnr.genererGyldig()
         val orgnr = Orgnr.genererGyldig()
         val transaksjonId: UUID = UUID.randomUUID()
+        val mottatt = 19.august.kl(19, 5, 0, 0)
 
         val skjema = mockSkjemaInntektsmelding()
 

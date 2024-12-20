@@ -33,6 +33,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
+import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -54,7 +55,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
     fun `skal berike og lagre inntektsmeldinger`() {
         val tidligereInntektsmelding = mockInntektsmelding()
 
-        val innsendingId = imRepository.lagreInntektsmeldingSkjema(Mock.skjema)
+        val innsendingId = imRepository.lagreInntektsmeldingSkjema(Mock.skjema, 10.desember.atStartOfDay())
         imRepository.oppdaterMedBeriketDokument(Mock.forespoerselId, innsendingId, tidligereInntektsmelding)
 
         coEvery {
@@ -172,7 +173,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
     fun `skal opprette en bakgrunnsjobb som gjenopptar berikelsen av inntektsmeldingen senere dersom oppslaget mot pdl feiler`() {
         val tidligereInntektsmelding = mockInntektsmelding()
 
-        val innsendingId = imRepository.lagreInntektsmeldingSkjema(Mock.skjema)
+        val innsendingId = imRepository.lagreInntektsmeldingSkjema(Mock.skjema, 10.desember.atStartOfDay())
         imRepository.oppdaterMedBeriketDokument(Mock.forespoerselId, innsendingId, tidligereInntektsmelding)
 
         coEvery {

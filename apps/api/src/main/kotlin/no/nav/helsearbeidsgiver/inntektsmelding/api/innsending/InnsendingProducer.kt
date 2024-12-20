@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import java.time.LocalDateTime
 import java.util.UUID
 
 class InnsendingProducer(
@@ -34,6 +35,7 @@ class InnsendingProducer(
                     mapOf(
                         Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
                         Key.SKJEMA_INNTEKTSMELDING to skjemaInntektsmelding.toJson(SkjemaInntektsmelding.serializer()),
+                        Key.MOTTATT to LocalDateTime.now().toJson(),
                     ).toJson(),
             ).also {
                 logger.info("Publiserte til kafka forespørselId: ${skjemaInntektsmelding.forespoerselId} og transaksjonId=$transaksjonId")

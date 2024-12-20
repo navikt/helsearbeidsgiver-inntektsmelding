@@ -128,7 +128,7 @@ class InnsendingIT : EndToEndTest() {
 
     @Test
     fun `skal ikke lagre duplikat inntektsmeldingskjema`() {
-        imRepository.lagreInntektsmeldingSkjema(Mock.skjema)
+        imRepository.lagreInntektsmeldingSkjema(Mock.skjema, 13.august.atStartOfDay())
 
         mockForespoerselSvarFraHelsebro(
             forespoerselId = Mock.forespoerselId,

@@ -10,12 +10,15 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -23,12 +26,14 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import java.time.LocalDateTime
 import java.util.UUID
 
 data class Steg0(
     val kontekstId: UUID,
     val avsenderFnr: Fnr,
     val skjema: SkjemaInntektsmelding,
+    val mottatt: LocalDateTime?,
 )
 
 data class Steg1(
@@ -54,6 +59,7 @@ class InnsendingService(
             kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
             skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding),
+            mottatt = Key.MOTTATT.lesOrNull(LocalDateTimeSerializer, melding),
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
@@ -124,7 +130,9 @@ class InnsendingService(
                             Key.SKJEMA_INNTEKTSMELDING to steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
                             Key.FORESPOERSEL_SVAR to steg1.forespoersel.toJson(Forespoersel.serializer()),
                             Key.INNSENDING_ID to steg2.innsendingId.toJson(Long.serializer()),
-                        ).toJson(),
+                            Key.MOTTATT to steg0.mottatt?.toJson(),
+                        ).mapValuesNotNull { it }
+                            .toJson(),
                 )
 
             MdcUtils.withLogFields(

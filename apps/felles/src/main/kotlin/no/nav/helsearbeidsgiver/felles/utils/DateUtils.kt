@@ -2,9 +2,12 @@ package no.nav.helsearbeidsgiver.felles.utils
 
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 private val norskDatoFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+
+val zoneIdOslo: ZoneId = ZoneId.of("Europe/Oslo")
 
 fun LocalDate.tilNorskFormat(): String = format(norskDatoFormat)
 

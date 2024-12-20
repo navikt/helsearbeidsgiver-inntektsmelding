@@ -6,7 +6,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Feilregistrert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferie
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferietrekk
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.InntektEndringAarsak
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
@@ -21,6 +20,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RefusjonEndring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykefravaer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.bestemmendeFravaersdag
 import no.seres.xsd.nav.inntektsmelding_m._20181211.Arbeidsforhold
 import no.seres.xsd.nav.inntektsmelding_m._20181211.Arbeidsgiver
 import no.seres.xsd.nav.inntektsmelding_m._20181211.Avsendersystem
@@ -30,26 +30,19 @@ import no.seres.xsd.nav.inntektsmelding_m._20181211.Kontaktinformasjon
 import no.seres.xsd.nav.inntektsmelding_m._20181211.NaturalytelseDetaljer
 import no.seres.xsd.nav.inntektsmelding_m._20181211.Skjemainnhold
 import no.seres.xsd.nav.inntektsmelding_m._20181211.SykepengerIArbeidsgiverperioden
-import java.time.LocalDate
 import no.seres.xsd.nav.inntektsmelding_m._20181211.Inntekt as InntektXml
 import no.seres.xsd.nav.inntektsmelding_m._20181211.Periode as PeriodeXml
 import no.seres.xsd.nav.inntektsmelding_m._20181211.Refusjon as RefusjonXml
 
-fun tilXmlInntektsmelding(
-    im: Inntektsmelding,
-    bestemmendeFravaersdag: LocalDate?,
-): InntektsmeldingM =
+fun tilXmlInntektsmelding(im: Inntektsmelding): InntektsmeldingM =
     InntektsmeldingM().also {
-        it.skjemainnhold = tilSkjemainnhold(im, bestemmendeFravaersdag)
+        it.skjemainnhold = tilSkjemainnhold(im)
     }
 
-private fun tilSkjemainnhold(
-    im: Inntektsmelding,
-    bestemmendeFravaersdag: LocalDate?,
-): Skjemainnhold =
+private fun tilSkjemainnhold(im: Inntektsmelding): Skjemainnhold =
     Skjemainnhold().also { skjema ->
         skjema.aarsakTilInnsending = im.aarsakInnsending.name
-        skjema.arbeidsforhold = im.inntekt.map(bestemmendeFravaersdag)
+        skjema.arbeidsforhold = im.tilArbeidsforhold()
         skjema.arbeidsgiver = im.avsender.map()
         skjema.arbeidstakerFnr = im.sykmeldt.fnr.verdi
         skjema.avsendersystem =
@@ -74,14 +67,18 @@ private fun Avsender.map(): Arbeidsgiver =
         ag.virksomhetsnummer = orgnr.verdi
     }
 
-private fun Inntekt?.map(bestemmendeFravaersdag: LocalDate?): Arbeidsforhold =
+private fun Inntektsmelding.tilArbeidsforhold(): Arbeidsforhold =
     Arbeidsforhold().also { af ->
         af.beregnetInntekt =
             InntektXml().also {
-                it.aarsakVedEndring = this?.endringAarsak?.tilTekst()
-                it.beloep = this?.beloep?.toBigDecimal()
+                it.aarsakVedEndring = inntekt?.endringAarsak?.tilTekst()
+                it.beloep = inntekt?.beloep?.toBigDecimal()
             }
-        af.foersteFravaersdag = bestemmendeFravaersdag
+        af.foersteFravaersdag =
+            bestemmendeFravaersdag(
+                arbeidsgiverperioder = agp?.perioder.orEmpty(),
+                sykefravaersperioder = sykmeldingsperioder,
+            )
     }
 
 private fun Refusjon?.map(): RefusjonXml =

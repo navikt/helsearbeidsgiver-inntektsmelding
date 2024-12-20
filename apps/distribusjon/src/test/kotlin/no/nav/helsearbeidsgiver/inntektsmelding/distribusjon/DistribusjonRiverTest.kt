@@ -12,6 +12,7 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.JournalfoertInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -24,10 +25,8 @@ import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.Mock.toMap
-import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
-import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import java.util.UUID
@@ -61,16 +60,14 @@ class DistribusjonRiverTest :
                     Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                     Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
                     Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                    Key.BESTEMMENDE_FRAVAERSDAG to innkommendeMelding.bestemmendeFravaersdag?.toJson(),
-                ).mapValuesNotNull { it }
+                )
 
             val forventetRecord =
                 ProducerRecord<String, String>(
                     TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
                     JournalfoertInntektsmelding(
                         journalpostId = innkommendeMelding.journalpostId,
-                        inntektsmeldingV1 = innkommendeMelding.inntektsmelding,
-                        bestemmendeFravaersdag = innkommendeMelding.bestemmendeFravaersdag,
+                        inntektsmelding = innkommendeMelding.inntektsmelding,
                     ).toJsonStr(JournalfoertInntektsmelding.serializer()),
                 )
 
@@ -95,7 +92,6 @@ class DistribusjonRiverTest :
             testRapid.sendJson(
                 innkommendeMelding
                     .toMap()
-                    .minus(Key.BESTEMMENDE_FRAVAERSDAG)
                     .plus(Key.INNTEKTSMELDING to selvbestemtInntektsmelding.toJson(Inntektsmelding.serializer())),
             )
 
@@ -114,8 +110,7 @@ class DistribusjonRiverTest :
                     TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
                     JournalfoertInntektsmelding(
                         journalpostId = innkommendeMelding.journalpostId,
-                        inntektsmeldingV1 = selvbestemtInntektsmelding,
-                        bestemmendeFravaersdag = null,
+                        inntektsmelding = selvbestemtInntektsmelding,
                     ).toJsonStr(JournalfoertInntektsmelding.serializer()),
                 )
 
@@ -182,7 +177,6 @@ private object Mock {
             eventName = EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET,
             transaksjonId = UUID.randomUUID(),
             inntektsmelding = mockInntektsmeldingV1(),
-            bestemmendeFravaersdag = 20.oktober,
             journalpostId = randomDigitString(13),
         )
 
@@ -191,7 +185,6 @@ private object Mock {
             Key.EVENT_NAME to eventName.toJson(),
             Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-            Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag?.toJson(),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
-        ).mapValuesNotNull { it }
+        )
 }

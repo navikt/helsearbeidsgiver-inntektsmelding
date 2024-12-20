@@ -15,7 +15,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
-import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -84,13 +83,11 @@ class LagreJournalpostIdRiver(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET.toJson(),
             Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-            Key.BESTEMMENDE_FRAVAERSDAG to json[Key.BESTEMMENDE_FRAVAERSDAG],
             Key.JOURNALPOST_ID to journalpostId.toJson(),
-        ).mapValuesNotNull { it }
-            .also {
-                logger.info("Publiserer event '${EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET}' med journalpost-ID '$journalpostId'.")
-                sikkerLogger.info("Publiserer event:\n${it.toPretty()}")
-            }
+        ).also {
+            logger.info("Publiserer event '${EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET}' med journalpost-ID '$journalpostId'.")
+            sikkerLogger.info("Publiserer event:\n${it.toPretty()}")
+        }
     }
 
     override fun LagreJournalpostIdMelding.haandterFeil(

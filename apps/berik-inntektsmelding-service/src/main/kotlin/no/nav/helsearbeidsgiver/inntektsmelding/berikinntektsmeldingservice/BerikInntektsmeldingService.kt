@@ -204,7 +204,7 @@ class BerikInntektsmeldingService(
                         .plus(
                             mapOf(
                                 Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                                // TODO vurder å flytte denne inn i Inntektsmelding (ikke sikker om det er en god idé, så avventer til v1 er brukt overalt)
+                                // TODO fjern etter overgangsfase
                                 Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag.toJson(),
                                 Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
                             ),

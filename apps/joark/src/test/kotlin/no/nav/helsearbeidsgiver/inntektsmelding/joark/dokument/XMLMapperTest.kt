@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.tilXmlInntektsmelding
-import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import org.junit.jupiter.api.Test
 import java.io.StringReader
 import javax.xml.XMLConstants
@@ -22,10 +21,10 @@ class XMLMapperTest {
     }
 
     private fun mapToXML(mockInntektsmelding: Inntektsmelding) {
-        val inntektM = tilXmlInntektsmelding(mockInntektsmelding, 20.oktober)
+        val inntektM = tilXmlInntektsmelding(mockInntektsmelding)
         val sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
         val xsdSchema = sf.newSchema(inntektM.javaClass.classLoader.getResource("xsd/Inntektsmelding20181211_V7.xsd"))
-        val xml = transformToXML(mockInntektsmelding, 20.oktober)
+        val xml = transformToXML(mockInntektsmelding)
         val stringReader = StringReader(xml)
         val unmarshaller = CONTEXT.createUnmarshaller()
         unmarshaller.schema = xsdSchema
@@ -37,7 +36,6 @@ class XMLMapperTest {
 private fun mockInntektsmeldingDokumentMedTommeLister(): Inntektsmelding =
     mockInntektsmeldingV1().let {
         it.copy(
-            sykmeldingsperioder = emptyList(),
             agp =
                 it.agp?.copy(
                     perioder = emptyList(),

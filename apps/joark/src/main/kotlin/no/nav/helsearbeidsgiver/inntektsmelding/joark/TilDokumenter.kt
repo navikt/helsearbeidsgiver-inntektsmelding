@@ -5,7 +5,6 @@ import no.nav.helsearbeidsgiver.dokarkiv.domene.DokumentVariant
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.PdfDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.transformToXML
-import java.time.LocalDate
 import java.util.Base64
 import java.util.UUID
 
@@ -14,7 +13,6 @@ private val base64 = Base64.getEncoder()
 fun tilDokumenter(
     uuid: UUID,
     inntektsmelding: Inntektsmelding,
-    bestemmendeFravaersdag: LocalDate?,
 ): List<Dokument> =
     listOf(
         Dokument(
@@ -25,7 +23,7 @@ fun tilDokumenter(
                 listOf(
                     DokumentVariant(
                         filtype = "XML",
-                        fysiskDokument = transformToXML(inntektsmelding, bestemmendeFravaersdag).toByteArray().encode(),
+                        fysiskDokument = transformToXML(inntektsmelding).toByteArray().encode(),
                         variantFormat = "ORIGINAL",
                         filnavn = "ari-$uuid.xml",
                     ),

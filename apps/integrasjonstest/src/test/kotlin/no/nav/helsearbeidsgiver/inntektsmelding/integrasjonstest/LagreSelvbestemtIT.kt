@@ -43,6 +43,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.august
+import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -90,8 +91,9 @@ class LagreSelvbestemtIT : EndToEndTest() {
             Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.copy(selvbestemtId = null).toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
                     Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
+                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.copy(selvbestemtId = null).toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+                    Key.MOTTATT to Mock.mottatt.toJson(),
                 ).toJson(),
         )
 
@@ -209,8 +211,9 @@ class LagreSelvbestemtIT : EndToEndTest() {
             Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
                     Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
+                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+                    Key.MOTTATT to Mock.mottatt.toJson(),
                 ).toJson(),
         )
 
@@ -278,8 +281,9 @@ class LagreSelvbestemtIT : EndToEndTest() {
             Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
                     Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
+                    Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+                    Key.MOTTATT to Mock.mottatt.toJson(),
                 ).toJson(),
         )
 
@@ -366,6 +370,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
         val avsenderFnr = Fnr.genererGyldig()
         val sakId = UUID.randomUUID().toString()
         val journalpostId = randomDigitString(18)
+        val mottatt = 17.desember.kl(3, 4, 0, 0)
         val skjema =
             mockSkjemaInntektsmeldingSelvbestemt().let {
                 it.copy(

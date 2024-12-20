@@ -25,8 +25,9 @@ class LagreSelvbestemtImProducer(
 
     fun publish(
         transaksjonId: UUID,
-        skjema: SkjemaInntektsmeldingSelvbestemt,
         avsenderFnr: Fnr,
+        skjema: SkjemaInntektsmeldingSelvbestemt,
+        mottatt: LocalDateTime,
     ) {
         MdcUtils.withLogFields(
             Log.event(EventName.SELVBESTEMT_IM_MOTTATT),
@@ -41,7 +42,7 @@ class LagreSelvbestemtImProducer(
                         mapOf(
                             Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
                             Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
-                            Key.MOTTATT to LocalDateTime.now().toJson(),
+                            Key.MOTTATT to mottatt.toJson(),
                         ).toJson(),
                 ).also {
                     logger.info("Publiserte til kafka.")

@@ -36,6 +36,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
+import java.time.LocalDateTime
 import java.util.UUID
 
 fun Route.lagreSelvbestemtImRoute(
@@ -48,6 +49,7 @@ fun Route.lagreSelvbestemtImRoute(
 
     post(Routes.SELVBESTEMT_INNTEKTSMELDING) {
         val transaksjonId = UUID.randomUUID()
+        val mottatt = LocalDateTime.now()
 
         MdcUtils.withLogFields(
             Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING),
@@ -77,7 +79,7 @@ fun Route.lagreSelvbestemtImRoute(
 
                     val avsenderFnr = call.request.lesFnrFraAuthToken()
 
-                    producer.publish(transaksjonId, skjema, avsenderFnr)
+                    producer.publish(transaksjonId, avsenderFnr, skjema, mottatt)
 
                     val resultat =
                         runCatching {

@@ -9,9 +9,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsm
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ForslagInntekt
 import no.nav.helsearbeidsgiver.felles.utils.zoneIdOslo
-import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.time.LocalDateTime
-import java.time.ZonedDateTime
 import java.util.UUID
 
 fun mapInntektsmelding(
@@ -21,7 +19,7 @@ fun mapInntektsmelding(
     virksomhetNavn: String,
     sykmeldtNavn: String,
     avsenderNavn: String,
-    mottatt: LocalDateTime?,
+    mottatt: LocalDateTime,
 ): Inntektsmelding {
     val agp =
         if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
@@ -78,7 +76,7 @@ fun mapInntektsmelding(
         inntekt = inntekt,
         refusjon = refusjon,
         aarsakInnsending = aarsakInnsending,
-        mottatt = mottatt?.atZone(zoneIdOslo).orDefault(ZonedDateTime.now()).toOffsetDateTime(),
+        mottatt = mottatt.atZone(zoneIdOslo).toOffsetDateTime(),
         vedtaksperiodeId = forespoersel.vedtaksperiodeId,
     )
 }

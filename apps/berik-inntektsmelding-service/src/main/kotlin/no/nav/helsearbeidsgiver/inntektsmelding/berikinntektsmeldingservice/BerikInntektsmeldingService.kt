@@ -12,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -42,7 +41,7 @@ data class Steg0(
     val avsenderFnr: Fnr,
     val skjema: SkjemaInntektsmelding,
     val innsendingId: Long,
-    val mottatt: LocalDateTime?,
+    val mottatt: LocalDateTime,
 )
 
 data class Steg1(
@@ -77,7 +76,7 @@ class BerikInntektsmeldingService(
             avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
             skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding),
             innsendingId = Key.INNSENDING_ID.les(Long.serializer(), melding),
-            mottatt = Key.MOTTATT.lesOrNull(LocalDateTimeSerializer, melding),
+            mottatt = Key.MOTTATT.les(LocalDateTimeSerializer, melding),
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =

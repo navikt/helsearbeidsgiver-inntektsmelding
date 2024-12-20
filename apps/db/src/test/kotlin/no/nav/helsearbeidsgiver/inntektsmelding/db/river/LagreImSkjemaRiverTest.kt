@@ -28,7 +28,6 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
-import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.kl
@@ -89,11 +88,10 @@ class LagreImSkjemaRiverTest :
                             mapOf(
                                 Key.FORESPOERSEL_SVAR to innkommendeMelding.forespoersel.toJson(Forespoersel.serializer()),
                                 Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.skjema.toJson(SkjemaInntektsmelding.serializer()),
-                                Key.MOTTATT to innkommendeMelding.mottatt?.toJson(),
+                                Key.MOTTATT to innkommendeMelding.mottatt.toJson(),
                                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
                                 Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
-                            ).mapValuesNotNull { it }
-                                .toJson(),
+                            ).toJson(),
                     )
 
                 verifySequence {
@@ -124,11 +122,10 @@ class LagreImSkjemaRiverTest :
                         mapOf(
                             Key.FORESPOERSEL_SVAR to innkommendeMelding.forespoersel.toJson(Forespoersel.serializer()),
                             Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.skjema.toJson(SkjemaInntektsmelding.serializer()),
-                            Key.MOTTATT to innkommendeMelding.mottatt?.toJson(),
+                            Key.MOTTATT to innkommendeMelding.mottatt.toJson(),
                             Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
                             Key.INNSENDING_ID to innsendingIdVedDuplikat.toJson(Long.serializer()),
-                        ).mapValuesNotNull { it }
-                            .toJson(),
+                        ).toJson(),
                 )
 
             verifySequence {

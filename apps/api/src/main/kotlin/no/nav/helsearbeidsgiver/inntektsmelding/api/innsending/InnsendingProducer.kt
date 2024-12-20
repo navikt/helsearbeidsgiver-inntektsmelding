@@ -23,8 +23,9 @@ class InnsendingProducer(
 
     fun publish(
         transaksjonId: UUID,
-        skjemaInntektsmelding: SkjemaInntektsmelding,
         arbeidsgiverFnr: Fnr,
+        skjemaInntektsmelding: SkjemaInntektsmelding,
+        mottatt: LocalDateTime,
     ) {
         rapid
             .publish(
@@ -35,7 +36,7 @@ class InnsendingProducer(
                     mapOf(
                         Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
                         Key.SKJEMA_INNTEKTSMELDING to skjemaInntektsmelding.toJson(SkjemaInntektsmelding.serializer()),
-                        Key.MOTTATT to LocalDateTime.now().toJson(),
+                        Key.MOTTATT to mottatt.toJson(),
                     ).toJson(),
             ).also {
                 logger.info("Publiserte til kafka forespørselId: ${skjemaInntektsmelding.forespoerselId} og transaksjonId=$transaksjonId")

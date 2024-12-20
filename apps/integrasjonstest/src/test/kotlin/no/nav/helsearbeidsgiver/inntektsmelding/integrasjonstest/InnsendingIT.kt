@@ -30,6 +30,8 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.juni
+import no.nav.helsearbeidsgiver.utils.test.date.kl
+import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -69,6 +71,7 @@ class InnsendingIT : EndToEndTest() {
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to Fnr.genererGyldig().toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                    Key.MOTTATT to Mock.mottatt.toJson(),
                 ).toJson(),
         )
 
@@ -143,6 +146,7 @@ class InnsendingIT : EndToEndTest() {
                     Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                     Key.ARBEIDSGIVER_FNR to Fnr.genererGyldig().toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                    Key.MOTTATT to Mock.mottatt.toJson(),
                 ).toJson(),
         )
 
@@ -179,6 +183,7 @@ class InnsendingIT : EndToEndTest() {
         const val JOURNALPOST_ID = "journalpost-id-skoleboller"
 
         val skjema = mockSkjemaInntektsmelding()
+        val mottatt = 29.oktober.kl(5, 44, 0, 0)
 
         val forespoerselId: UUID = skjema.forespoerselId
 

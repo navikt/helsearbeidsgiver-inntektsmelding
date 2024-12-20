@@ -30,6 +30,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerE
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
+import java.time.LocalDateTime
 import java.util.UUID
 
 fun Route.innsending(
@@ -43,6 +44,7 @@ fun Route.innsending(
     post(Routes.INNSENDING) {
         Metrics.innsendingEndpoint.recordTime(Route::innsending) {
             val transaksjonId = UUID.randomUUID()
+            val mottatt = LocalDateTime.now()
 
             val skjema = lesRequestOrNull()
             when {
@@ -68,7 +70,7 @@ fun Route.innsending(
 
                     val avsenderFnr = call.request.lesFnrFraAuthToken()
 
-                    producer.publish(transaksjonId, skjema, avsenderFnr)
+                    producer.publish(transaksjonId, avsenderFnr, skjema, mottatt)
 
                     val resultat = runCatching { redisPoller.hent(transaksjonId) }
 

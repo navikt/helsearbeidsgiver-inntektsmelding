@@ -1,6 +1,9 @@
 kafkaPool: nav-dev
 azure:
   enabled: true
+apps:
+  - name: arbeidsgiver-altinn-tilganger
+    namespace: fager
 replicasMin: 2
 replicasMax: 2
 ingress: https://helsearbeidsgiver-im-altinn.intern.dev.nav.no

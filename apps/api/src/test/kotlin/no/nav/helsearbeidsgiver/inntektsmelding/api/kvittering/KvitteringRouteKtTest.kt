@@ -2,14 +2,17 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering
 
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
+import no.nav.helsearbeidsgiver.felles.domene.KvitteringResultat
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
+import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
-import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -38,7 +41,7 @@ class KvitteringRouteKtTest : ApiTest() {
                 listOf(
                     harTilgangResultat,
                     ResultJson(
-                        success = resultatMedInntektsmelding.parseJson(),
+                        success = resultat.toJson(KvitteringResultat.serializer()),
                     ).toJson()
                         .toString(),
                 )
@@ -49,46 +52,13 @@ class KvitteringRouteKtTest : ApiTest() {
         }
 }
 
-private val resultatMedInntektsmelding =
-    """
-    {
-        "dokument": {
-            "orgnrUnderenhet": "123456789",
-            "identitetsnummer": "12345678901",
-            "fulltNavn": "Ukjent",
-            "virksomhetNavn": "Ukjent",
-            "behandlingsdager": [],
-            "egenmeldingsperioder": [],
-            "bestemmendeFraværsdag": "2023-01-01",
-            "fraværsperioder": [
-            {
-              "fom": "2023-01-01",
-              "tom": "2023-01-31"
-            }
-            ],
-            "arbeidsgiverperioder": [
-            {
-              "fom": "2023-01-01",
-              "tom": "2023-01-16"
-            }
-            ],
-            "beregnetInntekt": 3000,
-            "fullLønnIArbeidsgiverPerioden": {
-            "utbetalerFullLønn": true,
-            "begrunnelse": null,
-            "utbetalt": null
-            },
-            "refusjon": {
-            "utbetalerHeleEllerDeler": false,
-            "refusjonPrMnd": null,
-            "refusjonOpphører": null,
-            "refusjonEndringer": null
-            },
-            "naturalytelser": null,
-            "tidspunkt": "2023-04-13T16:28:16.095083285+02:00",
-            "årsakInnsending": "NY",
-            "identitetsnummerInnsender": ""
-        },
-        "eksternInntektsmelding": null
-    }
-    """.removeJsonWhitespace()
+private val resultat =
+    KvitteringResultat(
+        forespoersel = mockForespoersel(),
+        sykmeldtNavn = "Syk Meldt",
+        avsenderNavn = "Avs Ender",
+        orgNavn = "Orga Nisasjon",
+        skjema = mockSkjemaInntektsmelding(),
+        inntektsmelding = mockInntektsmelding(),
+        eksternInntektsmelding = mockEksternInntektsmelding(),
+    )

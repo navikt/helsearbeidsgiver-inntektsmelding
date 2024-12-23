@@ -25,21 +25,25 @@ class InntektsmeldingRepository(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    fun hentNyesteEksternEllerInternInntektsmelding(forespoerselId: UUID): Pair<Inntektsmelding?, EksternInntektsmelding?> =
+    fun hentNyesteEksternEllerInternInntektsmelding(forespoerselId: UUID): Triple<SkjemaInntektsmelding?, Inntektsmelding?, EksternInntektsmelding?> =
         Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::hentNyesteEksternEllerInternInntektsmelding) {
             transaction(db) {
                 InntektsmeldingEntitet
-                    .select(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.eksternInntektsmelding)
-                    .where { InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString() }
+                    .select(
+                        InntektsmeldingEntitet.skjema,
+                        InntektsmeldingEntitet.dokument,
+                        InntektsmeldingEntitet.eksternInntektsmelding,
+                    ).where { InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString() }
                     .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
                     .limit(1)
                     .map {
-                        Pair(
+                        Triple(
+                            it[InntektsmeldingEntitet.skjema],
                             it[InntektsmeldingEntitet.dokument],
                             it[InntektsmeldingEntitet.eksternInntektsmelding],
                         )
                     }.firstOrNull()
-            }.orDefault(Pair(null, null))
+            }.orDefault(Triple(null, null, null))
         }
 
     fun oppdaterJournalpostId(

@@ -155,7 +155,6 @@ class LagreSelvbestemtImService(
             Key.DATA to
                 mapOf(
                     Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
-                    Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
                     Key.FNR_LISTE to
                         setOf(
                             steg0.skjema.sykmeldtFnr,

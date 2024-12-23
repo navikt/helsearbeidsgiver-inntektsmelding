@@ -4,16 +4,20 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Kvittering
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.KvitteringEkstern
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.KvitteringSimba
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
-import no.nav.helsearbeidsgiver.felles.domene.InnsendtInntektsmelding
+import no.nav.helsearbeidsgiver.felles.domene.KvitteringResultat
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
@@ -70,13 +74,13 @@ fun Route.kvittering(
                     kvitteringProducer.publish(transaksjonId, forespoerselId)
                     val resultatJson = redisPoller.hent(transaksjonId)
 
-                    val resultat = resultatJson.success?.fromJson(InnsendtInntektsmelding.serializer())
+                    val resultat = resultatJson.success?.fromJson(KvitteringResultat.serializer())
                     if (resultat != null) {
                         sikkerLogger.info("Hentet kvittering for '$forespoerselId'.\n${resultatJson.success?.toPretty()}")
-                        if (resultat.dokument == null && resultat.eksternInntektsmelding == null) {
+                        if (resultat.skjema == null && resultat.inntektsmelding == null && resultat.eksternInntektsmelding == null) {
                             respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
                         } else {
-                            respondOk(resultat.tilKvittering(), Kvittering.serializer())
+                            respondOk(resultat.tilResponse(), KvitteringResponse.serializer())
                         }
                     } else {
                         val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
@@ -99,11 +103,51 @@ fun Route.kvittering(
     }
 }
 
-private fun InnsendtInntektsmelding.tilKvittering(): Kvittering =
-    Kvittering(
-        kvitteringDokument = dokument?.tilKvitteringSimba(),
+@Serializable
+private data class KvitteringResponse(
+    val kvitteringNavNo: KvitteringNavNo?,
+    val kvitteringDokument: KvitteringSimba?,
+    val kvitteringEkstern: KvitteringEkstern?,
+)
+
+@Serializable
+private data class KvitteringNavNo(
+    val sykmeldt: Sykmeldt,
+    val avsender: Avsender,
+    val sykmeldingsperioder: List<Periode>,
+    val skjema: SkjemaInntektsmelding,
+)
+
+private fun KvitteringResultat.tilResponse(): KvitteringResponse =
+    KvitteringResponse(
+        kvitteringNavNo = tilKvitteringNavNo(),
+        kvitteringDokument = inntektsmelding?.tilKvitteringSimba(),
         kvitteringEkstern = eksternInntektsmelding?.tilKvitteringEkstern(),
     )
+
+private fun KvitteringResultat.tilKvitteringNavNo(): KvitteringNavNo? {
+    val skjemaKvittering = skjema
+    return if (skjemaKvittering != null) {
+        KvitteringNavNo(
+            sykmeldt =
+                Sykmeldt(
+                    fnr = forespoersel.fnr,
+                    navn = sykmeldtNavn,
+                ),
+            avsender =
+                Avsender(
+                    orgnr = forespoersel.orgnr,
+                    orgNavn = orgNavn,
+                    navn = avsenderNavn,
+                    tlf = skjemaKvittering.avsenderTlf,
+                ),
+            sykmeldingsperioder = forespoersel.sykmeldingsperioder,
+            skjema = skjemaKvittering,
+        )
+    } else {
+        null
+    }
+}
 
 private fun Inntektsmelding.tilKvitteringSimba(): KvitteringSimba =
     KvitteringSimba(

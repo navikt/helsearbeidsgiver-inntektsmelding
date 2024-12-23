@@ -1,7 +1,11 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convertAgp
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convertInntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -9,14 +13,17 @@ import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
@@ -26,6 +33,7 @@ data class HentLagretImMelding(
     val behovType: BehovType,
     val transaksjonId: UUID,
     val data: Map<Key, JsonElement>,
+    val svarKafkaKey: KafkaKey?,
     val forespoerselId: UUID,
 )
 
@@ -46,15 +54,33 @@ class HentLagretImRiver(
                 behovType = Key.BEHOV.krev(BehovType.HENT_LAGRET_IM, BehovType.serializer(), json),
                 transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
+                svarKafkaKey = Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), data),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
             )
         }
 
     override fun HentLagretImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        val (inntektsmelding, eksternInntektsmelding) =
+        val (
+            skjema,
+            inntektsmelding,
+            eksternInntektsmelding,
+        ) =
             imRepo
                 .hentNyesteEksternEllerInternInntektsmelding(forespoerselId)
-                .tilPayloadPair()
+                .let { (skjema, inntektsmelding, eksternInntektsmelding) ->
+                    val bakoverkompatibeltSkjema =
+                        skjema ?: inntektsmelding?.let {
+                            SkjemaInntektsmelding(
+                                forespoerselId = forespoerselId,
+                                avsenderTlf = it.telefonnummer.orEmpty(),
+                                agp = it.convertAgp(),
+                                inntekt = it.convertInntekt(),
+                                refusjon = it.refusjon.convert(),
+                            )
+                        }
+
+                    Triple(bakoverkompatibeltSkjema, inntektsmelding, eksternInntektsmelding)
+                }.tilPayloadTriple()
 
         loggHentet(inntektsmelding, eksternInntektsmelding)
 
@@ -65,6 +91,7 @@ class HentLagretImRiver(
                 data
                     .plus(
                         mapOf(
+                            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(),
                             Key.LAGRET_INNTEKTSMELDING to inntektsmelding.toJson(),
                             Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(),
                         ),
@@ -109,7 +136,7 @@ class HentLagretImRiver(
             }
         } else {
             logger.info("Fant lagret inntektsmelding.")
-            sikkerLogger.info("Fant lagret inntektsmelding:\n${inntektsmelding.success}")
+            sikkerLogger.info("Fant lagret inntektsmelding.\n${inntektsmelding.success?.toPretty()}")
         }
 
         if (eksternInntektsmelding.success == null) {
@@ -119,15 +146,16 @@ class HentLagretImRiver(
             }
         } else {
             logger.info("Fant lagret ekstern inntektsmelding.")
-            sikkerLogger.info("Fant lagret ekstern inntektsmelding:\n${eksternInntektsmelding.success}")
+            sikkerLogger.info("Fant lagret ekstern inntektsmelding.\n${eksternInntektsmelding.success?.toPretty()}")
         }
     }
 }
 
-private fun Pair<Inntektsmelding?, EksternInntektsmelding?>.tilPayloadPair(): Pair<ResultJson, ResultJson> =
-    Pair(
-        first?.toJson(Inntektsmelding.serializer()).toSuccess(),
-        second?.toJson(EksternInntektsmelding.serializer()).toSuccess(),
+private fun Triple<SkjemaInntektsmelding?, Inntektsmelding?, EksternInntektsmelding?>.tilPayloadTriple(): Triple<ResultJson, ResultJson, ResultJson> =
+    Triple(
+        first?.toJson(SkjemaInntektsmelding.serializer()).toSuccess(),
+        second?.toJson(Inntektsmelding.serializer()).toSuccess(),
+        third?.toJson(EksternInntektsmelding.serializer()).toSuccess(),
     )
 
 private fun JsonElement?.toSuccess(): ResultJson = ResultJson(success = this)

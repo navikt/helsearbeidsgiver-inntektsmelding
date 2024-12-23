@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingGammeltFormat
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.desember
@@ -32,6 +33,14 @@ class KvitteringIT : EndToEndTest() {
         val transaksjonId = UUID.randomUUID()
         val skjema = mockSkjemaInntektsmelding()
 
+        mockForespoerselSvarFraHelsebro(
+            forespoerselId = skjema.forespoerselId,
+            forespoerselSvar =
+                mockForespoerselSvarSuksess().copy(
+                    forespoerselId = skjema.forespoerselId,
+                ),
+        )
+
         val innsendingId = imRepository.lagreInntektsmeldingSkjema(skjema, 3.desember.atStartOfDay())
         imRepository.oppdaterMedBeriketDokument(skjema.forespoerselId, innsendingId, mockInntektsmeldingGammeltFormat())
 
@@ -46,17 +55,15 @@ class KvitteringIT : EndToEndTest() {
 
         messages
             .filter(EventName.KVITTERING_REQUESTED)
+            .filter(Key.SKJEMA_INNTEKTSMELDING)
             .filter(Key.LAGRET_INNTEKTSMELDING)
             .filter(Key.EKSTERN_INNTEKTSMELDING)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
 
-                // Skal finne inntektsmeldingdokumentet
-                val imDokument = data[Key.LAGRET_INNTEKTSMELDING]
-
-                imDokument.shouldNotBeNull()
-                imDokument shouldNotBe Mock.tomResultJson
+                data[Key.SKJEMA_INNTEKTSMELDING] shouldNotBe Mock.tomResultJson
+                data[Key.LAGRET_INNTEKTSMELDING] shouldNotBe Mock.tomResultJson
 
                 data[Key.EKSTERN_INNTEKTSMELDING] shouldBe Mock.tomResultJson
             }
@@ -68,6 +75,14 @@ class KvitteringIT : EndToEndTest() {
     fun `skal hente data til kvittering hvis fra eksternt system`() {
         val transaksjonId = UUID.randomUUID()
         val forespoerselId = UUID.randomUUID()
+
+        mockForespoerselSvarFraHelsebro(
+            forespoerselId = forespoerselId,
+            forespoerselSvar =
+                mockForespoerselSvarSuksess().copy(
+                    forespoerselId = forespoerselId,
+                ),
+        )
 
         imRepository.lagreEksternInntektsmelding(forespoerselId, mockEksternInntektsmelding())
 
@@ -82,13 +97,16 @@ class KvitteringIT : EndToEndTest() {
 
         messages
             .filter(EventName.KVITTERING_REQUESTED)
+            .filter(Key.SKJEMA_INNTEKTSMELDING)
             .filter(Key.LAGRET_INNTEKTSMELDING)
             .filter(Key.EKSTERN_INNTEKTSMELDING)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
 
+                data[Key.SKJEMA_INNTEKTSMELDING] shouldBe Mock.tomResultJson
                 data[Key.LAGRET_INNTEKTSMELDING] shouldBe Mock.tomResultJson
+
                 val eIm = data[Key.EKSTERN_INNTEKTSMELDING]
                 eIm.shouldNotBeNull()
                 eIm shouldNotBe Mock.tomResultJson
@@ -99,19 +117,29 @@ class KvitteringIT : EndToEndTest() {
 
     @Test
     fun `skal gi feilmelding når forespørsel ikke finnes`() {
+        val forespoerselId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
+
+        mockForespoerselSvarFraHelsebro(
+            forespoerselId = forespoerselId,
+            forespoerselSvar =
+                mockForespoerselSvarSuksess().copy(
+                    forespoerselId = forespoerselId,
+                ),
+        )
 
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 ).toJson(),
         )
 
         messages
             .filter(EventName.KVITTERING_REQUESTED)
+            .filter(Key.SKJEMA_INNTEKTSMELDING)
             .filter(Key.LAGRET_INNTEKTSMELDING)
             .filter(Key.EKSTERN_INNTEKTSMELDING)
             .firstAsMap()
@@ -119,6 +147,7 @@ class KvitteringIT : EndToEndTest() {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
 
                 // Skal ikke finne inntektsmeldingdokument
+                data[Key.SKJEMA_INNTEKTSMELDING] shouldBe Mock.tomResultJson
                 data[Key.LAGRET_INNTEKTSMELDING] shouldBe Mock.tomResultJson
                 data[Key.EKSTERN_INNTEKTSMELDING] shouldBe Mock.tomResultJson
             }

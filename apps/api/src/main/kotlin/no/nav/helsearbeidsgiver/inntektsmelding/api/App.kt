@@ -57,11 +57,7 @@ object Routes {
 }
 
 fun main() {
-    startServer()
-}
-
-fun startServer(env: Map<String, String> = System.getenv()) {
-    val rapid = RapidApplication.create(env)
+    val rapid = RapidApplication.create(System.getenv())
     val redisConnection = RedisConnection(Env.Redis.url)
 
     embeddedServer(

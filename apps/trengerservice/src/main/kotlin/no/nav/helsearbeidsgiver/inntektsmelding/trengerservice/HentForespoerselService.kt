@@ -138,7 +138,6 @@ class HentForespoerselService(
                 Key.DATA to
                     mapOf(
                         Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
                         Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(Orgnr.serializer()),
                     ).toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_VIRKSOMHET_NAVN, it) }
@@ -152,7 +151,6 @@ class HentForespoerselService(
                 Key.DATA to
                     mapOf(
                         Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
                         Key.FNR_LISTE to
                             setOf(
                                 steg1.forespoersel.fnr,
@@ -170,7 +168,6 @@ class HentForespoerselService(
                 Key.DATA to
                     mapOf(
                         Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
                         Key.ORGNR_UNDERENHET to steg1.forespoersel.orgnr.toJson(),
                         Key.FNR to steg1.forespoersel.fnr.toJson(),
                         Key.INNTEKTSDATO to inntektsdato.toJson(),

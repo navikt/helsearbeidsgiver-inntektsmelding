@@ -39,7 +39,7 @@ fun RapidsConnection.createFeilLytter(database: Database): RapidsConnection =
 
 fun RapidsConnection.createFeilLytter(repository: PostgresBakgrunnsjobbRepository): RapidsConnection =
     also {
-        FeilLytter(it, repository)
+        FeilLytter(repository).connect(it)
         val bgService = BakgrunnsjobbService(repository)
         bgService.registrer(FeilProsessor(it))
         bgService.startAsync(true)

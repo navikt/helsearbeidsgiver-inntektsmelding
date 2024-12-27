@@ -11,13 +11,6 @@ tasks {
 }
 
 dependencies {
-    constraints {
-        // En transitiv avhengighet i ktor 2.3.11. Kan trolig fjernes ved nyere versjoner.
-        implementation("io.netty:netty-codec-http2:4.1.108.Final") {
-            because("https://github.com/navikt/helsearbeidsgiver-inntektsmelding/security/dependabot/18")
-        }
-    }
-
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-server-core:$ktorVersion")

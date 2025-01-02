@@ -31,9 +31,7 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.Mock.toMap
-import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import java.time.LocalDate
 import java.util.UUID
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender as KlientAvsender
@@ -56,7 +54,7 @@ class JournalfoerImRiverTest :
                 val journalpostId = UUID.randomUUID().toString()
                 val innsendingId = 1L
 
-                val innkommendeMelding = Mock.innkommendeMelding(EventName.INNTEKTSMELDING_MOTTATT, Mock.inntektsmelding, Mock.bestemmendeFravaersdag)
+                val innkommendeMelding = Mock.innkommendeMelding(EventName.INNTEKTSMELDING_MOTTATT, Mock.inntektsmelding)
 
                 coEvery {
                     mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
@@ -78,7 +76,6 @@ class JournalfoerImRiverTest :
                         Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                         Key.JOURNALPOST_ID to journalpostId.toJson(),
                         Key.INNTEKTSMELDING to Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                        Key.BESTEMMENDE_FRAVAERSDAG to Mock.bestemmendeFravaersdag.toJson(),
                         Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
                     )
 
@@ -124,7 +121,6 @@ class JournalfoerImRiverTest :
                         Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
                         Key.JOURNALPOST_ID to journalpostId.toJson(),
                         Key.INNTEKTSMELDING to Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                        Key.BESTEMMENDE_FRAVAERSDAG to Mock.bestemmendeFravaersdag.toJson(),
                     )
 
                 coVerifySequence {
@@ -203,20 +199,17 @@ class JournalfoerImRiverTest :
 
 private object Mock {
     val inntektsmelding = mockInntektsmeldingV1()
-    val bestemmendeFravaersdag = 20.oktober
 
     val fail = mockFail("I don't think we're in Kansas anymore.", EventName.INNTEKTSMELDING_MOTTATT)
 
     fun innkommendeMelding(
         eventName: EventName,
         inntektsmelding: Inntektsmelding,
-        bestemmendeFravaersdag: LocalDate? = null,
     ): JournalfoerImMelding =
         JournalfoerImMelding(
             eventName = eventName,
             transaksjonId = UUID.randomUUID(),
             inntektsmelding = inntektsmelding,
-            bestemmendeFravaersdag = bestemmendeFravaersdag,
         )
 
     fun JournalfoerImMelding.toMap(imKey: Key = Key.INNTEKTSMELDING): Map<Key, JsonElement> =
@@ -226,9 +219,7 @@ private object Mock {
             Key.DATA to
                 mapOf(
                     imKey to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                    Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag?.toJson(),
-                ).mapValuesNotNull { it }
-                    .toJson(),
+                ).toJson(),
         )
 
     fun opprettOgFerdigstillResponse(journalpostId: String): OpprettOgFerdigstillResponse =

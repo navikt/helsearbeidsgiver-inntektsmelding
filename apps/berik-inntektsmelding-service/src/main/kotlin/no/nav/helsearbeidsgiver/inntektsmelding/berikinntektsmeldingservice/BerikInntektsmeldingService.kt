@@ -19,7 +19,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed4Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -29,7 +28,6 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -58,7 +56,6 @@ data class Steg3(
 
 data class Steg4(
     val inntektsmelding: Inntektsmelding,
-    val bestemmendeFravaersdag: LocalDate,
     val erDuplikat: Boolean,
 )
 
@@ -97,7 +94,6 @@ class BerikInntektsmeldingService(
     override fun lesSteg4(melding: Map<Key, JsonElement>): Steg4 =
         Steg4(
             inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), melding),
-            bestemmendeFravaersdag = Key.BESTEMMENDE_FRAVAERSDAG.les(LocalDateSerializer, melding),
             erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
         )
 
@@ -183,16 +179,6 @@ class BerikInntektsmeldingService(
                 mottatt = steg0.mottatt,
             )
 
-        val bestemmendeFravaersdag = utledBestemmendeFravaersdag(steg1.forespoersel, inntektsmelding)
-
-        val inntektsdato = inntektsmelding.inntekt?.inntektsdato
-        if (inntektsdato != null && bestemmendeFravaersdag.isBefore(inntektsdato)) {
-            "Bestemmende fraværsdag er før inntektsdato. Dette er ikke mulig. Spleis vil trolig spør om ny inntektsmelding.".also {
-                logger.error(it)
-                sikkerLogger.error(it)
-            }
-        }
-
         rapid
             .publish(
                 key = steg0.skjema.forespoerselId,
@@ -204,8 +190,6 @@ class BerikInntektsmeldingService(
                         .plus(
                             mapOf(
                                 Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                                // TODO fjern etter overgangsfase
-                                Key.BESTEMMENDE_FRAVAERSDAG to bestemmendeFravaersdag.toJson(),
                                 Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
                             ),
                         ).toJson(),
@@ -230,7 +214,6 @@ class BerikInntektsmeldingService(
                         mapOf(
                             Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
                             Key.INNTEKTSMELDING to steg4.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                            Key.BESTEMMENDE_FRAVAERSDAG to steg4.bestemmendeFravaersdag.toJson(),
                             Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
                         ).toJson(),
                 )

@@ -14,7 +14,7 @@ import java.util.Properties
 abstract class ContainerTest {
     private val topic = "helsearbeidsgiver.inntektsmelding"
 
-    private val kafkaContainer = KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.5.1"))
+    private val kafkaContainer = KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.7.2"))
     val redisContainer = RedisContainer(DockerImageName.parse("redis:7"))
     val postgresContainerOne = postgresContainer()
     val postgresContainerTwo = postgresContainer()

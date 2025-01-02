@@ -141,7 +141,6 @@ class LagreSelvbestemtImService(
             Key.DATA to
                 mapOf(
                     Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
-                    Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
                     Key.ORGNR_UNDERENHETER to setOf(steg0.skjema.avsender.orgnr).toJson(Orgnr.serializer()),
                 ).mapValuesNotNull { it }
                     .toJson(),
@@ -172,7 +171,6 @@ class LagreSelvbestemtImService(
             Key.DATA to
                 mapOf(
                     Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
-                    Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
                     Key.FNR to
                         steg0.skjema.sykmeldtFnr.verdi
                             .toJson(),

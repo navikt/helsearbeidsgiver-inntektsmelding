@@ -53,13 +53,12 @@ class TilXmlInntektsmeldingTest {
 
     @Test
     fun `skal godta null-verdi i InntektEndringÅrsak`() {
-        val bestemmendeFravaersdag = 20.oktober
         val inntektmeldingUtenAarsak =
             mockInntektsmeldingV1().copy(
                 inntekt =
                     Inntekt(
                         beloep = 1.0,
-                        inntektsdato = bestemmendeFravaersdag,
+                        inntektsdato = 20.oktober,
                         naturalytelser = emptyList(),
                         endringAarsak = null,
                     ),

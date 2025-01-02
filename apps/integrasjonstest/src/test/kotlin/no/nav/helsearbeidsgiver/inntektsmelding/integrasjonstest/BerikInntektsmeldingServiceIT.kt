@@ -29,7 +29,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBet
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.maxMekker
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
@@ -160,10 +159,6 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                     data[Key.INNTEKTSMELDING]
                         .shouldNotBeNull()
                         .fromJson(Inntektsmelding.serializer())
-
-                    data[Key.BESTEMMENDE_FRAVAERSDAG]
-                        .shouldNotBeNull()
-                        .fromJson(LocalDateSerializer)
                 }
             }
 
@@ -297,10 +292,6 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                     data[Key.INNTEKTSMELDING]
                         .shouldNotBeNull()
                         .fromJson(Inntektsmelding.serializer())
-
-                    data[Key.BESTEMMENDE_FRAVAERSDAG]
-                        .shouldNotBeNull()
-                        .fromJson(LocalDateSerializer)
                 }
             }
     }

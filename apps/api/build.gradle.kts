@@ -7,6 +7,8 @@ tasks {
         environment("IDPORTEN_WELL_KNOWN_URL", "http://localhost:6666/idporten-issuer/.well-known/openid-configuration")
         environment("IDPORTEN_AUDIENCE", "aud-localhost")
         environment("REDIS_URL", "redis://test_url:6379/0")
+        environment("TOKEN_X_WELL_KNOWN_URL", "http://localhost:6666/idporten-issuer/.well-known/openid-configuration")
+        environment("TOKEN_X_CLIENT_ID", "1234")
     }
 }
 

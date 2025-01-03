@@ -30,7 +30,7 @@ class FeilLytterTest :
         val rapid = TestRapid()
         val repository = MockBakgrunnsjobbRepository()
 
-        FeilLytter(rapid, repository)
+        FeilLytter(repository).connect(rapid)
 
         afterTest {
             repository.deleteAll()

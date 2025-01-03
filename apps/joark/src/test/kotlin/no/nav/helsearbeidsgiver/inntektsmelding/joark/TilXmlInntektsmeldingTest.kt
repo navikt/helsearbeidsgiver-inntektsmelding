@@ -23,8 +23,7 @@ class TilXmlInntektsmeldingTest {
     @Test
     fun `skal mappe inntektsmelding til xml-skjema`() {
         val im = mockInntektsmeldingV1()
-        val bestemmendeFravaersdag = 20.oktober
-        val imXml = tilXmlInntektsmelding(im, bestemmendeFravaersdag)
+        val imXml = tilXmlInntektsmelding(im)
         val skjema = imXml.skjemainnhold
         Assertions.assertNotNull(skjema.aarsakTilInnsending)
         Assertions.assertNotNull(skjema.arbeidsgiver)
@@ -32,7 +31,7 @@ class TilXmlInntektsmeldingTest {
         Assertions.assertEquals(im.avsender.tlf, skjema.arbeidsgiver.kontaktinformasjon.telefonnummer)
         Assertions.assertEquals(im.avsender.navn, skjema.arbeidsgiver.kontaktinformasjon.kontaktinformasjonNavn)
         Assertions.assertEquals(im.sykmeldt.fnr.verdi, skjema.arbeidstakerFnr)
-        Assertions.assertEquals(bestemmendeFravaersdag, skjema.arbeidsforhold.foersteFravaersdag)
+        Assertions.assertEquals(20.oktober, skjema.arbeidsforhold.foersteFravaersdag)
         Assertions.assertNotNull(skjema.arbeidsforhold.beregnetInntekt)
         Assertions.assertEquals(2, skjema.sykepengerIArbeidsgiverperioden.arbeidsgiverperiodeListe.size)
         Assertions.assertNotNull(skjema.sykepengerIArbeidsgiverperioden.bruttoUtbetalt)
@@ -54,18 +53,17 @@ class TilXmlInntektsmeldingTest {
 
     @Test
     fun `skal godta null-verdi i InntektEndringÅrsak`() {
-        val bestemmendeFravaersdag = 20.oktober
         val inntektmeldingUtenAarsak =
             mockInntektsmeldingV1().copy(
                 inntekt =
                     Inntekt(
                         beloep = 1.0,
-                        inntektsdato = bestemmendeFravaersdag,
+                        inntektsdato = 20.oktober,
                         naturalytelser = emptyList(),
                         endringAarsak = null,
                     ),
             )
-        val im = tilXmlInntektsmelding(inntektmeldingUtenAarsak, bestemmendeFravaersdag)
+        val im = tilXmlInntektsmelding(inntektmeldingUtenAarsak)
         Assertions.assertNull(im.skjemainnhold.arbeidsforhold.beregnetInntekt.aarsakVedEndring)
     }
 

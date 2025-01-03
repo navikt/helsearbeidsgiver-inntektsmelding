@@ -57,10 +57,7 @@ dependencies {
         testImplementation(project(":$it"))
     }
 
-    testImplementation(project(":felles"))
     testImplementation(project(":felles-db-exposed"))
-
-    testImplementation(testFixtures(project(":felles")))
     testImplementation(testFixtures(project(":felles-db-exposed")))
 
     // Klienter
@@ -74,7 +71,6 @@ dependencies {
 
     testImplementation("com.redis.testcontainers:testcontainers-redis-junit:$testcontainersRedisJunitVersion")
     testImplementation("no.nav.helsearbeidsgiver:hag-bakgrunnsjobb:$bakgrunnsjobbVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
 }

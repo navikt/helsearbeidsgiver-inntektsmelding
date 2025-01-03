@@ -14,7 +14,6 @@ enum class Key : IKey {
     // Egendefinerte
     ARBEIDSFORHOLD,
     ARBEIDSGIVER_FNR,
-    BESTEMMENDE_FRAVAERSDAG,
     DATA,
     EKSTERN_INNTEKTSMELDING,
     ER_DUPLIKAT_IM,

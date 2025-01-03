@@ -27,7 +27,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed3Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.zoneIdOslo
-import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
@@ -141,10 +140,8 @@ class LagreSelvbestemtImService(
             Key.DATA to
                 mapOf(
                     Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
-                    Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
                     Key.ORGNR_UNDERENHETER to setOf(steg0.skjema.avsender.orgnr).toJson(Orgnr.serializer()),
-                ).mapValuesNotNull { it }
-                    .toJson(),
+                ).toJson(),
         )
 
         rapid.publish(
@@ -155,14 +152,12 @@ class LagreSelvbestemtImService(
             Key.DATA to
                 mapOf(
                     Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
-                    Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
                     Key.FNR_LISTE to
                         setOf(
                             steg0.skjema.sykmeldtFnr,
                             steg0.avsenderFnr,
                         ).toJson(Fnr.serializer()),
-                ).mapValuesNotNull { it }
-                    .toJson(),
+                ).toJson(),
         )
 
         rapid.publish(
@@ -173,12 +168,10 @@ class LagreSelvbestemtImService(
             Key.DATA to
                 mapOf(
                     Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
-                    Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
                     Key.FNR to
                         steg0.skjema.sykmeldtFnr.verdi
                             .toJson(),
-                ).mapValuesNotNull { it }
-                    .toJson(),
+                ).toJson(),
         )
     }
 

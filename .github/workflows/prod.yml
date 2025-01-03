@@ -25,19 +25,7 @@ jobs:
       - name: Fetch tags
         run: git fetch --depth=1 --tags --quiet
 
-      - name: Cache gradle wrapper
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
-
-      - name: Cache gradle caches
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/build.gradle.kts') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-caches-
+      - uses: gradle/actions/setup-gradle@v4
 
       - name: Determine short SHA
         id: set_short_sha
@@ -98,21 +86,8 @@ jobs:
         with:
           java-version: 21
           distribution: temurin
-          cache: gradle
 
-      - name: Cache gradle wrapper
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
-
-      - name: Cache gradle caches
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/build.gradle.kts') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-caches-
+      - uses: gradle/actions/setup-gradle@v4
 
       - name: Test and build
         run: ./gradlew ${{ matrix.project }}:test ${{ matrix.project }}:build

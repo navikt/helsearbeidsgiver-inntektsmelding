@@ -1,8 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -60,8 +60,8 @@ class KvitteringService(
         data class Komplett(
             val orgnrMedNavn: Map<Orgnr, String>,
             val personer: Map<Fnr, Person>,
+            val avsenderNavn: String?,
             val skjema: SkjemaInntektsmelding?,
-            val inntektsmelding: Inntektsmelding?,
             val eksternInntektsmelding: EksternInntektsmelding?,
         ) : Steg2()
 
@@ -82,19 +82,19 @@ class KvitteringService(
     override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 {
         val orgnrMedNavn = runCatching { Key.VIRKSOMHETER.les(orgMapSerializer, melding) }
         val personer = runCatching { Key.PERSONER.les(personMapSerializer, melding) }
+        val avsenderNavn =
+            runCatching {
+                Key.AVSENDER_NAVN
+                    .les(ResultJson.serializer(), melding)
+                    .success
+                    ?.fromJson(String.serializer())
+            }
         val skjema =
             runCatching {
                 Key.SKJEMA_INNTEKTSMELDING
                     .les(ResultJson.serializer(), melding)
                     .success
                     ?.fromJson(SkjemaInntektsmelding.serializer())
-            }
-        val inntektsmelding =
-            runCatching {
-                Key.LAGRET_INNTEKTSMELDING
-                    .les(ResultJson.serializer(), melding)
-                    .success
-                    ?.fromJson(Inntektsmelding.serializer())
             }
         val eksternInntektsmelding =
             runCatching {
@@ -104,14 +104,14 @@ class KvitteringService(
                     ?.fromJson(EksternInntektsmelding.serializer())
             }
 
-        val results = listOf(orgnrMedNavn, personer, skjema, inntektsmelding, eksternInntektsmelding)
+        val results = listOf(orgnrMedNavn, personer, avsenderNavn, skjema, eksternInntektsmelding)
 
         return if (results.all { it.isSuccess }) {
             Steg2.Komplett(
                 orgnrMedNavn = orgnrMedNavn.getOrThrow(),
                 personer = personer.getOrThrow(),
+                avsenderNavn = avsenderNavn.getOrThrow(),
                 skjema = skjema.getOrThrow(),
-                inntektsmelding = inntektsmelding.getOrThrow(),
                 eksternInntektsmelding = eksternInntektsmelding.getOrThrow(),
             )
         } else if (results.any { it.isSuccess }) {
@@ -199,10 +199,9 @@ class KvitteringService(
                         KvitteringResultat(
                             forespoersel = steg1.forespoersel,
                             sykmeldtNavn = sykmeldtNavn,
-                            avsenderNavn = steg2.inntektsmelding?.innsenderNavn ?: UKJENT_NAVN,
+                            avsenderNavn = steg2.avsenderNavn ?: UKJENT_NAVN,
                             orgNavn = orgNavn,
                             skjema = steg2.skjema,
-                            inntektsmelding = steg2.inntektsmelding,
                             eksternInntektsmelding = steg2.eksternInntektsmelding,
                         ).toJson(KvitteringResultat.serializer()),
                 )

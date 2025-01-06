@@ -1,10 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convertAgp
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convertInntekt
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -61,28 +58,15 @@ class HentLagretImRiver(
 
     override fun HentLagretImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val (
+            avsenderNavn,
             skjema,
-            inntektsmelding,
             eksternInntektsmelding,
         ) =
             imRepo
                 .hentNyesteEksternEllerInternInntektsmelding(forespoerselId)
-                .let { (skjema, inntektsmelding, eksternInntektsmelding) ->
-                    val bakoverkompatibeltSkjema =
-                        skjema ?: inntektsmelding?.let {
-                            SkjemaInntektsmelding(
-                                forespoerselId = forespoerselId,
-                                avsenderTlf = it.telefonnummer.orEmpty(),
-                                agp = it.convertAgp(),
-                                inntekt = it.convertInntekt(),
-                                refusjon = it.refusjon.convert(),
-                            )
-                        }
+                .tilPayloadTriple()
 
-                    Triple(bakoverkompatibeltSkjema, inntektsmelding, eksternInntektsmelding)
-                }.tilPayloadTriple()
-
-        loggHentet(inntektsmelding, eksternInntektsmelding)
+        loggHentet(skjema, eksternInntektsmelding)
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
@@ -91,8 +75,8 @@ class HentLagretImRiver(
                 data
                     .plus(
                         mapOf(
+                            Key.AVSENDER_NAVN to avsenderNavn.toJson(),
                             Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(),
-                            Key.LAGRET_INNTEKTSMELDING to inntektsmelding.toJson(),
                             Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(),
                         ),
                     ).toJson(),
@@ -126,17 +110,17 @@ class HentLagretImRiver(
         )
 
     private fun loggHentet(
-        inntektsmelding: ResultJson,
+        skjema: ResultJson,
         eksternInntektsmelding: ResultJson,
     ) {
-        if (inntektsmelding.success == null) {
-            "Fant _ikke_ lagret inntektsmelding.".also {
+        if (skjema.success == null) {
+            "Fant _ikke_ lagret inntektsmeldingsskjema.".also {
                 logger.info(it)
                 sikkerLogger.info(it)
             }
         } else {
             logger.info("Fant lagret inntektsmelding.")
-            sikkerLogger.info("Fant lagret inntektsmelding.\n${inntektsmelding.success?.toPretty()}")
+            sikkerLogger.info("Fant lagret inntektsmeldingsskjema.\n${skjema.success?.toPretty()}")
         }
 
         if (eksternInntektsmelding.success == null) {
@@ -151,10 +135,10 @@ class HentLagretImRiver(
     }
 }
 
-private fun Triple<SkjemaInntektsmelding?, Inntektsmelding?, EksternInntektsmelding?>.tilPayloadTriple(): Triple<ResultJson, ResultJson, ResultJson> =
+private fun Triple<String?, SkjemaInntektsmelding?, EksternInntektsmelding?>.tilPayloadTriple(): Triple<ResultJson, ResultJson, ResultJson> =
     Triple(
-        first?.toJson(SkjemaInntektsmelding.serializer()).toSuccess(),
-        second?.toJson(Inntektsmelding.serializer()).toSuccess(),
+        first?.toJson().toSuccess(),
+        second?.toJson(SkjemaInntektsmelding.serializer()).toSuccess(),
         third?.toJson(EksternInntektsmelding.serializer()).toSuccess(),
     )
 

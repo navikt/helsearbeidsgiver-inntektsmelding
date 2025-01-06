@@ -1,5 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convertAgp
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convertInntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
@@ -25,25 +28,39 @@ class InntektsmeldingRepository(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    fun hentNyesteEksternEllerInternInntektsmelding(forespoerselId: UUID): Triple<SkjemaInntektsmelding?, Inntektsmelding?, EksternInntektsmelding?> =
+    fun hentNyesteEksternEllerInternInntektsmelding(forespoerselId: UUID): Triple<String?, SkjemaInntektsmelding?, EksternInntektsmelding?> =
         Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::hentNyesteEksternEllerInternInntektsmelding) {
             transaction(db) {
                 InntektsmeldingEntitet
                     .select(
-                        InntektsmeldingEntitet.skjema,
                         InntektsmeldingEntitet.dokument,
+                        InntektsmeldingEntitet.skjema,
                         InntektsmeldingEntitet.eksternInntektsmelding,
                     ).where { InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString() }
                     .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
                     .limit(1)
                     .map {
                         Triple(
-                            it[InntektsmeldingEntitet.skjema],
                             it[InntektsmeldingEntitet.dokument],
+                            it[InntektsmeldingEntitet.skjema],
                             it[InntektsmeldingEntitet.eksternInntektsmelding],
                         )
-                    }.firstOrNull()
-            }.orDefault(Triple(null, null, null))
+                    }
+            }.firstOrNull()
+                ?.let { (inntektsmelding, skjema, eksternInntektsmelding) ->
+                    val bakoverkompatibeltSkjema =
+                        skjema ?: inntektsmelding?.let {
+                            SkjemaInntektsmelding(
+                                forespoerselId = forespoerselId,
+                                avsenderTlf = it.telefonnummer.orEmpty(),
+                                agp = it.convertAgp(),
+                                inntekt = it.convertInntekt(),
+                                refusjon = it.refusjon.convert(),
+                            )
+                        }
+
+                    Triple(inntektsmelding?.innsenderNavn, bakoverkompatibeltSkjema, eksternInntektsmelding)
+                }.orDefault(Triple(null, null, null))
         }
 
     fun oppdaterJournalpostId(

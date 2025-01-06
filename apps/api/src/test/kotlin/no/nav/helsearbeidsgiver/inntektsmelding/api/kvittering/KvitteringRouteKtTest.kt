@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
@@ -59,6 +58,5 @@ private val resultat =
         avsenderNavn = "Avs Ender",
         orgNavn = "Orga Nisasjon",
         skjema = mockSkjemaInntektsmelding(),
-        inntektsmelding = mockInntektsmelding(),
         eksternInntektsmelding = mockEksternInntektsmelding(),
     )

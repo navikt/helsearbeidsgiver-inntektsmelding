@@ -55,15 +55,15 @@ class KvitteringIT : EndToEndTest() {
 
         messages
             .filter(EventName.KVITTERING_REQUESTED)
+            .filter(Key.AVSENDER_NAVN)
             .filter(Key.SKJEMA_INNTEKTSMELDING)
-            .filter(Key.LAGRET_INNTEKTSMELDING)
             .filter(Key.EKSTERN_INNTEKTSMELDING)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
 
+                data[Key.AVSENDER_NAVN] shouldNotBe Mock.tomResultJson
                 data[Key.SKJEMA_INNTEKTSMELDING] shouldNotBe Mock.tomResultJson
-                data[Key.LAGRET_INNTEKTSMELDING] shouldNotBe Mock.tomResultJson
 
                 data[Key.EKSTERN_INNTEKTSMELDING] shouldBe Mock.tomResultJson
             }
@@ -97,15 +97,15 @@ class KvitteringIT : EndToEndTest() {
 
         messages
             .filter(EventName.KVITTERING_REQUESTED)
+            .filter(Key.AVSENDER_NAVN)
             .filter(Key.SKJEMA_INNTEKTSMELDING)
-            .filter(Key.LAGRET_INNTEKTSMELDING)
             .filter(Key.EKSTERN_INNTEKTSMELDING)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
 
+                data[Key.AVSENDER_NAVN] shouldBe Mock.tomResultJson
                 data[Key.SKJEMA_INNTEKTSMELDING] shouldBe Mock.tomResultJson
-                data[Key.LAGRET_INNTEKTSMELDING] shouldBe Mock.tomResultJson
 
                 val eIm = data[Key.EKSTERN_INNTEKTSMELDING]
                 eIm.shouldNotBeNull()
@@ -139,16 +139,16 @@ class KvitteringIT : EndToEndTest() {
 
         messages
             .filter(EventName.KVITTERING_REQUESTED)
+            .filter(Key.AVSENDER_NAVN)
             .filter(Key.SKJEMA_INNTEKTSMELDING)
-            .filter(Key.LAGRET_INNTEKTSMELDING)
             .filter(Key.EKSTERN_INNTEKTSMELDING)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
 
                 // Skal ikke finne inntektsmeldingdokument
+                data[Key.AVSENDER_NAVN] shouldBe Mock.tomResultJson
                 data[Key.SKJEMA_INNTEKTSMELDING] shouldBe Mock.tomResultJson
-                data[Key.LAGRET_INNTEKTSMELDING] shouldBe Mock.tomResultJson
                 data[Key.EKSTERN_INNTEKTSMELDING] shouldBe Mock.tomResultJson
             }
     }

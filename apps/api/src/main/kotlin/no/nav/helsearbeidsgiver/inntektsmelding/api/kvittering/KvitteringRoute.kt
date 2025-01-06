@@ -1,3 +1,5 @@
+@file:UseSerializers(OffsetDateTimeSerializer::class)
+
 package no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
@@ -6,11 +8,8 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.builtins.serializer
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntekt
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.KvitteringEkstern
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.KvitteringSimba
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
@@ -22,6 +21,7 @@ import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.utils.zoneIdOslo
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -38,9 +38,9 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerE
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondNotFound
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.OffsetDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.toPretty
-import no.nav.helsearbeidsgiver.utils.pipe.orDefault
-import java.time.ZoneId
+import java.time.OffsetDateTime
 import java.util.UUID
 
 fun Route.kvittering(
@@ -77,7 +77,7 @@ fun Route.kvittering(
                     val resultat = resultatJson.success?.fromJson(KvitteringResultat.serializer())
                     if (resultat != null) {
                         sikkerLogger.info("Hentet kvittering for '$forespoerselId'.\n${resultatJson.success?.toPretty()}")
-                        if (resultat.skjema == null && resultat.inntektsmelding == null && resultat.eksternInntektsmelding == null) {
+                        if (resultat.skjema == null && resultat.eksternInntektsmelding == null) {
                             respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
                         } else {
                             respondOk(resultat.tilResponse(), KvitteringResponse.serializer())
@@ -106,7 +106,6 @@ fun Route.kvittering(
 @Serializable
 private data class KvitteringResponse(
     val kvitteringNavNo: KvitteringNavNo?,
-    val kvitteringDokument: KvitteringSimba?,
     val kvitteringEkstern: KvitteringEkstern?,
 )
 
@@ -118,10 +117,16 @@ private data class KvitteringNavNo(
     val skjema: SkjemaInntektsmelding,
 )
 
+@Serializable
+data class KvitteringEkstern(
+    val avsenderSystem: String,
+    val referanse: String,
+    val mottatt: OffsetDateTime,
+)
+
 private fun KvitteringResultat.tilResponse(): KvitteringResponse =
     KvitteringResponse(
         kvitteringNavNo = tilKvitteringNavNo(),
-        kvitteringDokument = inntektsmelding?.tilKvitteringSimba(),
         kvitteringEkstern = eksternInntektsmelding?.tilKvitteringEkstern(),
     )
 
@@ -149,41 +154,9 @@ private fun KvitteringResultat.tilKvitteringNavNo(): KvitteringNavNo? {
     }
 }
 
-private fun Inntektsmelding.tilKvitteringSimba(): KvitteringSimba =
-    KvitteringSimba(
-        orgnrUnderenhet = orgnrUnderenhet,
-        identitetsnummer = identitetsnummer,
-        fulltNavn = fulltNavn,
-        virksomhetNavn = virksomhetNavn,
-        behandlingsdager = behandlingsdager,
-        egenmeldingsperioder = egenmeldingsperioder,
-        arbeidsgiverperioder = arbeidsgiverperioder,
-        // Frontend tolker feltet bestemmendeFraværsdag som om det var inntektsdato.
-        // Vi vil slippe denne hacken ved overgang til v1.Inntektsmelding, som kun inneholder inntektsdato (ikke bestemmende fraværsdag).
-        bestemmendeFraværsdag = inntektsdato ?: bestemmendeFraværsdag,
-        fraværsperioder = fraværsperioder,
-        inntekt =
-            Inntekt(
-                bekreftet = true,
-                // Kan slette nullable inntekt og fallback når IM med gammelt format slettes fra database
-                beregnetInntekt = inntekt?.beregnetInntekt ?: beregnetInntekt,
-                endringÅrsak = inntekt?.endringÅrsak,
-                manueltKorrigert = inntekt?.manueltKorrigert.orDefault(false),
-            ),
-        fullLønnIArbeidsgiverPerioden = fullLønnIArbeidsgiverPerioden,
-        refusjon = refusjon,
-        naturalytelser = naturalytelser,
-        årsakInnsending = årsakInnsending,
-        bekreftOpplysninger = true,
-        tidspunkt = tidspunkt,
-        forespurtData = forespurtData,
-        telefonnummer = telefonnummer,
-        innsenderNavn = innsenderNavn,
-    )
-
 private fun EksternInntektsmelding.tilKvitteringEkstern(): KvitteringEkstern =
     KvitteringEkstern(
-        avsenderSystemNavn,
-        arkivreferanse,
-        tidspunkt.atZone(ZoneId.systemDefault()).toOffsetDateTime(),
+        avsenderSystem = avsenderSystemNavn,
+        referanse = arkivreferanse,
+        mottatt = tidspunkt.atZone(zoneIdOslo).toOffsetDateTime(),
     )

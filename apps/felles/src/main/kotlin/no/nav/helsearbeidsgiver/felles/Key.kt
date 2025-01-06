@@ -14,6 +14,7 @@ enum class Key : IKey {
     // Egendefinerte
     ARBEIDSFORHOLD,
     ARBEIDSGIVER_FNR,
+    AVSENDER_NAVN,
     DATA,
     EKSTERN_INNTEKTSMELDING,
     ER_DUPLIKAT_IM,
@@ -30,7 +31,6 @@ enum class Key : IKey {
     INNTEKTSMELDING,
     JOURNALPOST_ID,
     KONTEKST_ID,
-    LAGRET_INNTEKTSMELDING,
     MOTTATT,
     OPPGAVE_ID,
     ORGNR_UNDERENHET,

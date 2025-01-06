@@ -7,9 +7,13 @@ import io.kotest.matchers.equals.shouldNotBeEqual
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.db.exposed.test.FunSpecWithDb
+import no.nav.helsearbeidsgiver.felles.test.mock.mockArbeidsgiverperiode
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntekt
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingGammeltFormat
+import no.nav.helsearbeidsgiver.felles.test.mock.mockRefusjon
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
@@ -18,6 +22,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.mars
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.OffsetDateTime
@@ -269,6 +274,89 @@ class InntektsmeldingRepositoryTest :
 
                 resultat[1][eksternInntektsmelding].shouldNotBeNull()
                 resultat[1][this.journalpostId].shouldBeNull()
+            }
+        }
+
+        context(InntektsmeldingRepository::hentNyesteEksternEllerInternInntektsmelding.name) {
+            test("henter skjema (uten inntektsmelding)") {
+                val skjema = mockSkjemaInntektsmelding()
+
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema, 9.desember.atStartOfDay())
+
+                val (avsenderNavn, hentetSkjema, eksternInntektsmelding) =
+                    inntektsmeldingRepo.hentNyesteEksternEllerInternInntektsmelding(skjema.forespoerselId)
+
+                avsenderNavn.shouldBeNull()
+                hentetSkjema shouldBe skjema
+                eksternInntektsmelding.shouldBeNull()
+            }
+
+            test("henter skjema (med inntektsmelding)") {
+                val skjema = mockSkjemaInntektsmelding()
+                // Bruk inntektsmelding som er ulikt skjema for å sjekke at hentet skjema ikke stammer fra inntektsmelding
+                val inntektsmelding = mockInntektsmeldingGammeltFormat().copy(inntekt = null)
+
+                val innsendingId = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema, 9.desember.atStartOfDay())
+                inntektsmeldingRepo.oppdaterMedBeriketDokument(skjema.forespoerselId, innsendingId, inntektsmelding)
+
+                val (avsenderNavn, hentetSkjema, eksternInntektsmelding) =
+                    inntektsmeldingRepo.hentNyesteEksternEllerInternInntektsmelding(skjema.forespoerselId)
+
+                avsenderNavn shouldBe "Nifs Krumkake"
+                hentetSkjema shouldBe skjema
+                eksternInntektsmelding.shouldBeNull()
+            }
+
+            test("henter inntektsmelding som skjema") {
+                val forespoerselId = UUID.randomUUID()
+                val inntektsmelding = mockInntektsmeldingGammeltFormat()
+
+                transaction(db) {
+                    InntektsmeldingEntitet.insert {
+                        it[this.forespoerselId] = forespoerselId.toString()
+                        it[dokument] = inntektsmelding
+                        it[innsendt] = 9.desember.atStartOfDay()
+                    }
+                }
+
+                val (avsenderNavn, hentetSkjema, eksternInntektsmelding) =
+                    inntektsmeldingRepo.hentNyesteEksternEllerInternInntektsmelding(forespoerselId)
+
+                val forventetSkjema =
+                    SkjemaInntektsmelding(
+                        forespoerselId = forespoerselId,
+                        avsenderTlf = inntektsmelding.telefonnummer.orEmpty(),
+                        agp = mockArbeidsgiverperiode(),
+                        inntekt = mockInntekt(),
+                        refusjon = mockRefusjon(),
+                    )
+
+                avsenderNavn shouldBe "Nifs Krumkake"
+                hentetSkjema shouldBe forventetSkjema
+                eksternInntektsmelding.shouldBeNull()
+            }
+
+            test("henter ekstern inntektsmelding") {
+                val forespoerselId = UUID.randomUUID()
+                val eksternInntektsmelding = mockEksternInntektsmelding()
+
+                inntektsmeldingRepo.lagreEksternInntektsmelding(forespoerselId, eksternInntektsmelding)
+
+                val (avsenderNavn, skjema, hentetEksternInntektsmelding) =
+                    inntektsmeldingRepo.hentNyesteEksternEllerInternInntektsmelding(forespoerselId)
+
+                avsenderNavn.shouldBeNull()
+                skjema.shouldBeNull()
+                hentetEksternInntektsmelding shouldBe eksternInntektsmelding
+            }
+
+            test("tåler at det er ingenting å hente") {
+                val (avsenderNavn, skjema, eksternInntektsmelding) =
+                    inntektsmeldingRepo.hentNyesteEksternEllerInternInntektsmelding(UUID.randomUUID())
+
+                avsenderNavn.shouldBeNull()
+                skjema.shouldBeNull()
+                eksternInntektsmelding.shouldBeNull()
             }
         }
     })

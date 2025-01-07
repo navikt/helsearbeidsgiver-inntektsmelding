@@ -115,6 +115,7 @@ private data class KvitteringNavNo(
     val avsender: Avsender,
     val sykmeldingsperioder: List<Periode>,
     val skjema: SkjemaInntektsmelding,
+    val mottatt: OffsetDateTime,
 )
 
 @Serializable
@@ -148,6 +149,8 @@ private fun KvitteringResultat.tilKvitteringNavNo(): KvitteringNavNo? {
                 ),
             sykmeldingsperioder = forespoersel.sykmeldingsperioder,
             skjema = skjemaKvittering,
+            // TODO hent fra database
+            mottatt = OffsetDateTime.now(),
         )
     } else {
         null

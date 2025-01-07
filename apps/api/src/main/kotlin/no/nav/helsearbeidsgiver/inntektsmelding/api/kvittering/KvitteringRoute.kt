@@ -1,3 +1,5 @@
+@file:UseSerializers(OffsetDateTimeSerializer::class)
+
 package no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
@@ -6,6 +8,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
@@ -38,8 +41,10 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerE
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondNotFound
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.OffsetDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
+import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.util.UUID
 
@@ -116,6 +121,7 @@ private data class KvitteringNavNo(
     val avsender: Avsender,
     val sykmeldingsperioder: List<Periode>,
     val skjema: SkjemaInntektsmelding,
+    val mottatt: OffsetDateTime,
 )
 
 private fun KvitteringResultat.tilResponse(): KvitteringResponse =
@@ -143,6 +149,8 @@ private fun KvitteringResultat.tilKvitteringNavNo(): KvitteringNavNo? {
                 ),
             sykmeldingsperioder = forespoersel.sykmeldingsperioder,
             skjema = skjemaKvittering,
+            // midlertidig, erstattes med non-null alternativ
+            mottatt = inntektsmelding?.tidspunkt ?: OffsetDateTime.now(),
         )
     } else {
         null

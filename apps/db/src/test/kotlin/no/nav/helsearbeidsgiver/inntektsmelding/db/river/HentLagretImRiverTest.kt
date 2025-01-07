@@ -10,12 +10,10 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
-import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.domene.LagretInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
@@ -28,7 +26,7 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.MockHentIm.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.pipe.orDefault
+import no.nav.helsearbeidsgiver.utils.test.date.april
 import java.util.UUID
 
 class HentLagretImRiverTest :
@@ -46,16 +44,13 @@ class HentLagretImRiverTest :
         context("henter inntektsmelding") {
             withData(
                 mapOf(
-                    "kun skjema (med navn)" to Triple("Nifs Krumkake", mockSkjemaInntektsmelding(), null),
-                    "kun skjema (uten navn)" to Triple(null, mockSkjemaInntektsmelding(), null),
-                    "kun ekstern inntektsmelding" to Triple(null, null, mockEksternInntektsmelding()),
-                    "ingen funnet" to Triple(null, null, null),
-                    "begge typer funnet (skal ikke skje)" to Triple("Nifs Krumkake", mockSkjemaInntektsmelding(), mockEksternInntektsmelding()),
+                    "kun skjema (med navn)" to LagretInntektsmelding.Skjema("Nifs Krumkake", mockSkjemaInntektsmelding(), 12.april.atStartOfDay()),
+                    "kun skjema (uten navn)" to LagretInntektsmelding.Skjema(null, mockSkjemaInntektsmelding(), 12.april.atStartOfDay()),
+                    "kun ekstern inntektsmelding" to LagretInntektsmelding.Ekstern(mockEksternInntektsmelding()),
+                    "ingen funnet" to null,
                 ),
             ) { lagret ->
-                every {
-                    mockImRepo.hentNyesteEksternEllerInternInntektsmelding(any())
-                } returns lagret
+                every { mockImRepo.hentNyesteEksternEllerInternInntektsmelding(any()) } returns lagret
 
                 val innkommendeMelding = MockHentIm.innkommendeMelding()
 
@@ -72,23 +67,10 @@ class HentLagretImRiverTest :
                         Key.DATA to
                             innkommendeMelding.data
                                 .plus(
-                                    mapOf(
-                                        Key.AVSENDER_NAVN to
-                                            lagret.first
-                                                ?.toJson()
-                                                ?.toSuccessJson()
-                                                .orDefault(MockHentIm.tomResultJson()),
-                                        Key.SKJEMA_INNTEKTSMELDING to
-                                            lagret.second
-                                                ?.toJson(SkjemaInntektsmelding.serializer())
-                                                ?.toSuccessJson()
-                                                .orDefault(MockHentIm.tomResultJson()),
-                                        Key.EKSTERN_INNTEKTSMELDING to
-                                            lagret.third
-                                                ?.toJson(EksternInntektsmelding.serializer())
-                                                ?.toSuccessJson()
-                                                .orDefault(MockHentIm.tomResultJson()),
-                                    ),
+                                    Key.LAGRET_INNTEKTSMELDING to
+                                        ResultJson(
+                                            success = lagret?.toJson(LagretInntektsmelding.serializer()),
+                                        ).toJson(),
                                 ).toJson(),
                     )
 
@@ -172,9 +154,5 @@ private object MockHentIm {
             Key.DATA to data.toJson(),
         )
 
-    fun tomResultJson(): JsonElement = ResultJson().toJson()
-
     val fail = mockFail("Filthy, little hobbitses...", EventName.INNTEKTSMELDING_MOTTATT)
 }
-
-private fun JsonElement.toSuccessJson(): JsonElement = ResultJson(success = this).toJson()

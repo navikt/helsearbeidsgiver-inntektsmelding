@@ -1,15 +1,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.KvitteringResultat
+import no.nav.helsearbeidsgiver.felles.domene.LagretInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -60,9 +58,7 @@ class KvitteringService(
         data class Komplett(
             val orgnrMedNavn: Map<Orgnr, String>,
             val personer: Map<Fnr, Person>,
-            val avsenderNavn: String?,
-            val skjema: SkjemaInntektsmelding?,
-            val eksternInntektsmelding: EksternInntektsmelding?,
+            val lagret: LagretInntektsmelding?,
         ) : Steg2()
 
         data object Delvis : Steg2()
@@ -82,37 +78,21 @@ class KvitteringService(
     override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 {
         val orgnrMedNavn = runCatching { Key.VIRKSOMHETER.les(orgMapSerializer, melding) }
         val personer = runCatching { Key.PERSONER.les(personMapSerializer, melding) }
-        val avsenderNavn =
+        val lagret =
             runCatching {
-                Key.AVSENDER_NAVN
+                Key.LAGRET_INNTEKTSMELDING
                     .les(ResultJson.serializer(), melding)
                     .success
-                    ?.fromJson(String.serializer())
-            }
-        val skjema =
-            runCatching {
-                Key.SKJEMA_INNTEKTSMELDING
-                    .les(ResultJson.serializer(), melding)
-                    .success
-                    ?.fromJson(SkjemaInntektsmelding.serializer())
-            }
-        val eksternInntektsmelding =
-            runCatching {
-                Key.EKSTERN_INNTEKTSMELDING
-                    .les(ResultJson.serializer(), melding)
-                    .success
-                    ?.fromJson(EksternInntektsmelding.serializer())
+                    ?.fromJson(LagretInntektsmelding.serializer())
             }
 
-        val results = listOf(orgnrMedNavn, personer, avsenderNavn, skjema, eksternInntektsmelding)
+        val results = listOf(orgnrMedNavn, personer, lagret)
 
         return if (results.all { it.isSuccess }) {
             Steg2.Komplett(
                 orgnrMedNavn = orgnrMedNavn.getOrThrow(),
                 personer = personer.getOrThrow(),
-                avsenderNavn = avsenderNavn.getOrThrow(),
-                skjema = skjema.getOrThrow(),
-                eksternInntektsmelding = eksternInntektsmelding.getOrThrow(),
+                lagret = lagret.getOrThrow(),
             )
         } else if (results.any { it.isSuccess }) {
             Steg2.Delvis
@@ -199,10 +179,8 @@ class KvitteringService(
                         KvitteringResultat(
                             forespoersel = steg1.forespoersel,
                             sykmeldtNavn = sykmeldtNavn,
-                            avsenderNavn = steg2.avsenderNavn ?: UKJENT_NAVN,
                             orgNavn = orgNavn,
-                            skjema = steg2.skjema,
-                            eksternInntektsmelding = steg2.eksternInntektsmelding,
+                            lagret = steg2.lagret,
                         ).toJson(KvitteringResultat.serializer()),
                 )
 

@@ -2,9 +2,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.LagretInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingGammeltForma
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import org.junit.jupiter.api.BeforeEach
@@ -32,6 +33,7 @@ class KvitteringIT : EndToEndTest() {
     fun `skal hente data til kvittering`() {
         val transaksjonId = UUID.randomUUID()
         val skjema = mockSkjemaInntektsmelding()
+        val mottatt = 3.desember.atStartOfDay()
 
         mockForespoerselSvarFraHelsebro(
             forespoerselId = skjema.forespoerselId,
@@ -41,7 +43,7 @@ class KvitteringIT : EndToEndTest() {
                 ),
         )
 
-        val innsendingId = imRepository.lagreInntektsmeldingSkjema(skjema, 3.desember.atStartOfDay())
+        val innsendingId = imRepository.lagreInntektsmeldingSkjema(skjema, mottatt)
         imRepository.oppdaterMedBeriketDokument(skjema.forespoerselId, innsendingId, mockInntektsmeldingGammeltFormat())
 
         publish(
@@ -55,17 +57,19 @@ class KvitteringIT : EndToEndTest() {
 
         messages
             .filter(EventName.KVITTERING_REQUESTED)
-            .filter(Key.AVSENDER_NAVN)
-            .filter(Key.SKJEMA_INNTEKTSMELDING)
-            .filter(Key.EKSTERN_INNTEKTSMELDING)
+            .filter(Key.LAGRET_INNTEKTSMELDING)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
 
-                data[Key.AVSENDER_NAVN] shouldNotBe Mock.tomResultJson
-                data[Key.SKJEMA_INNTEKTSMELDING] shouldNotBe Mock.tomResultJson
-
-                data[Key.EKSTERN_INNTEKTSMELDING] shouldBe Mock.tomResultJson
+                val success = data[Key.LAGRET_INNTEKTSMELDING].shouldNotBeNull().fromJson(ResultJson.serializer()).success
+                success.shouldNotBeNull()
+                success.fromJson(LagretInntektsmelding.serializer()) shouldBe
+                    LagretInntektsmelding.Skjema(
+                        avsenderNavn = "Nifs Krumkake",
+                        skjema = skjema,
+                        mottatt = mottatt,
+                    )
             }
 
         redisConnection.get(RedisPrefix.Kvittering, transaksjonId).shouldNotBeNull()
@@ -75,6 +79,7 @@ class KvitteringIT : EndToEndTest() {
     fun `skal hente data til kvittering hvis fra eksternt system`() {
         val transaksjonId = UUID.randomUUID()
         val forespoerselId = UUID.randomUUID()
+        val eksternIm = mockEksternInntektsmelding()
 
         mockForespoerselSvarFraHelsebro(
             forespoerselId = forespoerselId,
@@ -84,7 +89,7 @@ class KvitteringIT : EndToEndTest() {
                 ),
         )
 
-        imRepository.lagreEksternInntektsmelding(forespoerselId, mockEksternInntektsmelding())
+        imRepository.lagreEksternInntektsmelding(forespoerselId, eksternIm)
 
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
@@ -97,19 +102,14 @@ class KvitteringIT : EndToEndTest() {
 
         messages
             .filter(EventName.KVITTERING_REQUESTED)
-            .filter(Key.AVSENDER_NAVN)
-            .filter(Key.SKJEMA_INNTEKTSMELDING)
-            .filter(Key.EKSTERN_INNTEKTSMELDING)
+            .filter(Key.LAGRET_INNTEKTSMELDING)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
 
-                data[Key.AVSENDER_NAVN] shouldBe Mock.tomResultJson
-                data[Key.SKJEMA_INNTEKTSMELDING] shouldBe Mock.tomResultJson
-
-                val eIm = data[Key.EKSTERN_INNTEKTSMELDING]
-                eIm.shouldNotBeNull()
-                eIm shouldNotBe Mock.tomResultJson
+                val success = data[Key.LAGRET_INNTEKTSMELDING].shouldNotBeNull().fromJson(ResultJson.serializer()).success
+                success.shouldNotBeNull()
+                success.fromJson(LagretInntektsmelding.serializer()) shouldBe LagretInntektsmelding.Ekstern(eksternIm)
             }
 
         redisConnection.get(RedisPrefix.Kvittering, transaksjonId).shouldNotBeNull()
@@ -139,21 +139,12 @@ class KvitteringIT : EndToEndTest() {
 
         messages
             .filter(EventName.KVITTERING_REQUESTED)
-            .filter(Key.AVSENDER_NAVN)
-            .filter(Key.SKJEMA_INNTEKTSMELDING)
-            .filter(Key.EKSTERN_INNTEKTSMELDING)
+            .filter(Key.LAGRET_INNTEKTSMELDING)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
 
-                // Skal ikke finne inntektsmeldingdokument
-                data[Key.AVSENDER_NAVN] shouldBe Mock.tomResultJson
-                data[Key.SKJEMA_INNTEKTSMELDING] shouldBe Mock.tomResultJson
-                data[Key.EKSTERN_INNTEKTSMELDING] shouldBe Mock.tomResultJson
+                data[Key.LAGRET_INNTEKTSMELDING] shouldBe ResultJson(success = null).toJson()
             }
-    }
-
-    private object Mock {
-        val tomResultJson = ResultJson(success = null).toJson()
     }
 }

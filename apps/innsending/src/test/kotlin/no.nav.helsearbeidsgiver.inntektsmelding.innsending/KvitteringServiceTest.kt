@@ -2,20 +2,18 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.data.row
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.KvitteringResultat
+import no.nav.helsearbeidsgiver.felles.domene.LagretInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
@@ -33,6 +31,7 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.november
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
@@ -55,22 +54,18 @@ class KvitteringServiceTest :
         context("kvittering hentes") {
             withData(
                 mapOf(
-                    "inntektsmelding hentes" to row("Barbie Roberts", mockSkjemaInntektsmelding(), null),
-                    "ekstern inntektsmelding hentes" to row(null, null, mockEksternInntektsmelding()),
-                    "ingen inntektsmelding funnet" to row(null, null, null),
-                    "begge typer inntektsmelding funnet (skal ikke skje)" to
-                        row("Barbie Roberts", mockSkjemaInntektsmelding(), mockEksternInntektsmelding()),
+                    "inntektsmelding hentes" to LagretInntektsmelding.Skjema("Barbie Roberts", mockSkjemaInntektsmelding(), 6.november.atStartOfDay()),
+                    "ekstern inntektsmelding hentes" to LagretInntektsmelding.Ekstern(mockEksternInntektsmelding()),
+                    "ingen inntektsmelding funnet" to null,
                 ),
-            ) { (expectedAvsenderNavn, expectedSkjema, expectedEksternInntektsmelding) ->
+            ) { lagret ->
                 val transaksjonId: UUID = UUID.randomUUID()
                 val expectedResult =
                     KvitteringResultat(
                         forespoersel = mockForespoersel(),
                         sykmeldtNavn = "Kenneth Sean Carson",
-                        avsenderNavn = expectedAvsenderNavn ?: "Ukjent navn",
                         orgNavn = "Mattel",
-                        skjema = expectedSkjema,
-                        eksternInntektsmelding = expectedEksternInntektsmelding,
+                        lagret = lagret,
                     )
                 val sykmeldtFnr = expectedResult.forespoersel.fnr
 
@@ -95,9 +90,7 @@ class KvitteringServiceTest :
                         transaksjonId,
                         mapOf(expectedResult.forespoersel.orgnr to expectedResult.orgNavn),
                         mapOf(sykmeldtFnr to Person(sykmeldtFnr, expectedResult.sykmeldtNavn)),
-                        expectedResult.avsenderNavn,
-                        expectedResult.skjema,
-                        expectedResult.eksternInntektsmelding,
+                        expectedResult.lagret,
                     ),
                 )
 
@@ -164,9 +157,7 @@ private object MockKvittering {
         transaksjonId: UUID,
         orgnrMedNavn: Map<Orgnr, String>,
         personer: Map<Fnr, Person>,
-        avsenderNavn: String?,
-        skjema: SkjemaInntektsmelding?,
-        eksternInntektsmelding: EksternInntektsmelding?,
+        lagret: LagretInntektsmelding?,
     ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
@@ -175,17 +166,9 @@ private object MockKvittering {
                 mapOf(
                     Key.VIRKSOMHETER to orgnrMedNavn.toJson(orgMapSerializer),
                     Key.PERSONER to personer.toJson(personMapSerializer),
-                    Key.AVSENDER_NAVN to
+                    Key.LAGRET_INNTEKTSMELDING to
                         ResultJson(
-                            success = avsenderNavn?.toJson(),
-                        ).toJson(),
-                    Key.SKJEMA_INNTEKTSMELDING to
-                        ResultJson(
-                            success = skjema?.toJson(SkjemaInntektsmelding.serializer()),
-                        ).toJson(),
-                    Key.EKSTERN_INNTEKTSMELDING to
-                        ResultJson(
-                            success = eksternInntektsmelding?.toJson(EksternInntektsmelding.serializer()),
+                            success = lagret?.toJson(LagretInntektsmelding.serializer()),
                         ).toJson(),
                 ).toJson(),
         )

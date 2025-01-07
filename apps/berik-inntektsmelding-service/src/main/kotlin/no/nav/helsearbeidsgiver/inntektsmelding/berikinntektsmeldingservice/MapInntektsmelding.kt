@@ -8,7 +8,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ForslagInntekt
-import no.nav.helsearbeidsgiver.felles.utils.zoneIdOslo
+import no.nav.helsearbeidsgiver.felles.utils.toOffsettDateTimeOslo
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -76,7 +76,7 @@ fun mapInntektsmelding(
         inntekt = inntekt,
         refusjon = refusjon,
         aarsakInnsending = aarsakInnsending,
-        mottatt = mottatt.atZone(zoneIdOslo).toOffsetDateTime(),
+        mottatt = mottatt.toOffsettDateTimeOslo(),
         vedtaksperiodeId = forespoersel.vedtaksperiodeId,
     )
 }

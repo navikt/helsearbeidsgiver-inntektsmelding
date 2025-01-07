@@ -15,13 +15,14 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Tekst
-import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.KvitteringResultat
+import no.nav.helsearbeidsgiver.felles.domene.LagretInntektsmelding
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.utils.zoneIdOslo
+import no.nav.helsearbeidsgiver.felles.utils.toOffsettDateTimeOslo
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -77,10 +78,18 @@ fun Route.kvittering(
                     val resultat = resultatJson.success?.fromJson(KvitteringResultat.serializer())
                     if (resultat != null) {
                         sikkerLogger.info("Hentet kvittering for '$forespoerselId'.\n${resultatJson.success?.toPretty()}")
-                        if (resultat.skjema == null && resultat.eksternInntektsmelding == null) {
-                            respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
-                        } else {
-                            respondOk(resultat.tilResponse(), KvitteringResponse.serializer())
+
+                        when (val lagret = resultat.lagret) {
+                            is LagretInntektsmelding.Skjema -> {
+                                val skjemaResponse = lagResponse(resultat.forespoersel, resultat.sykmeldtNavn, resultat.orgNavn, lagret)
+                                respondOk(skjemaResponse, KvitteringResponse.serializer())
+                            }
+                            is LagretInntektsmelding.Ekstern -> {
+                                val eksternResponse = lagResponse(lagret)
+                                respondOk(eksternResponse, KvitteringResponse.serializer())
+                            }
+                            null ->
+                                respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
                         }
                     } else {
                         val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
@@ -105,61 +114,61 @@ fun Route.kvittering(
 
 @Serializable
 private data class KvitteringResponse(
-    val kvitteringNavNo: KvitteringNavNo?,
-    val kvitteringEkstern: KvitteringEkstern?,
-)
-
-@Serializable
-private data class KvitteringNavNo(
-    val sykmeldt: Sykmeldt,
-    val avsender: Avsender,
-    val sykmeldingsperioder: List<Periode>,
-    val skjema: SkjemaInntektsmelding,
-    val mottatt: OffsetDateTime,
-)
-
-@Serializable
-data class KvitteringEkstern(
-    val avsenderSystem: String,
-    val referanse: String,
-    val mottatt: OffsetDateTime,
-)
-
-private fun KvitteringResultat.tilResponse(): KvitteringResponse =
-    KvitteringResponse(
-        kvitteringNavNo = tilKvitteringNavNo(),
-        kvitteringEkstern = eksternInntektsmelding?.tilKvitteringEkstern(),
+    val kvitteringNavNo: NavNo?,
+    val kvitteringEkstern: Ekstern?,
+) {
+    @Serializable
+    data class NavNo(
+        val sykmeldt: Sykmeldt,
+        val avsender: Avsender,
+        val sykmeldingsperioder: List<Periode>,
+        val skjema: SkjemaInntektsmelding,
+        val mottatt: OffsetDateTime,
     )
 
-private fun KvitteringResultat.tilKvitteringNavNo(): KvitteringNavNo? {
-    val skjemaKvittering = skjema
-    return if (skjemaKvittering != null) {
-        KvitteringNavNo(
-            sykmeldt =
-                Sykmeldt(
-                    fnr = forespoersel.fnr,
-                    navn = sykmeldtNavn,
-                ),
-            avsender =
-                Avsender(
-                    orgnr = forespoersel.orgnr,
-                    orgNavn = orgNavn,
-                    navn = avsenderNavn,
-                    tlf = skjemaKvittering.avsenderTlf,
-                ),
-            sykmeldingsperioder = forespoersel.sykmeldingsperioder,
-            skjema = skjemaKvittering,
-            // TODO hent fra database
-            mottatt = OffsetDateTime.now(),
-        )
-    } else {
-        null
-    }
+    @Serializable
+    data class Ekstern(
+        val avsenderSystem: String,
+        val referanse: String,
+        val mottatt: OffsetDateTime,
+    )
 }
 
-private fun EksternInntektsmelding.tilKvitteringEkstern(): KvitteringEkstern =
-    KvitteringEkstern(
-        avsenderSystem = avsenderSystemNavn,
-        referanse = arkivreferanse,
-        mottatt = tidspunkt.atZone(zoneIdOslo).toOffsetDateTime(),
+private fun lagResponse(
+    forespoersel: Forespoersel,
+    sykmeldtNavn: String,
+    orgNavn: String,
+    lagret: LagretInntektsmelding.Skjema,
+): KvitteringResponse =
+    KvitteringResponse(
+        kvitteringNavNo =
+            KvitteringResponse.NavNo(
+                sykmeldt =
+                    Sykmeldt(
+                        fnr = forespoersel.fnr,
+                        navn = sykmeldtNavn,
+                    ),
+                avsender =
+                    Avsender(
+                        orgnr = forespoersel.orgnr,
+                        orgNavn = orgNavn,
+                        navn = lagret.avsenderNavn ?: "Ukjent navn",
+                        tlf = lagret.skjema.avsenderTlf,
+                    ),
+                sykmeldingsperioder = forespoersel.sykmeldingsperioder,
+                skjema = lagret.skjema,
+                mottatt = lagret.mottatt.toOffsettDateTimeOslo(),
+            ),
+        kvitteringEkstern = null,
+    )
+
+private fun lagResponse(lagret: LagretInntektsmelding.Ekstern): KvitteringResponse =
+    KvitteringResponse(
+        kvitteringNavNo = null,
+        kvitteringEkstern =
+            KvitteringResponse.Ekstern(
+                avsenderSystem = lagret.ekstern.avsenderSystemNavn,
+                referanse = lagret.ekstern.arkivreferanse,
+                mottatt = lagret.ekstern.tidspunkt.toOffsettDateTimeOslo(),
+            ),
     )

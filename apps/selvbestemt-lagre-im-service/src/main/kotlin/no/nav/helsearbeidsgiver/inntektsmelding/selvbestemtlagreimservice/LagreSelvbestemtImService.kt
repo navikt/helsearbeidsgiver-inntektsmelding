@@ -26,7 +26,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed3Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.felles.utils.zoneIdOslo
+import no.nav.helsearbeidsgiver.felles.utils.toOffsettDateTimeOslo
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
@@ -394,7 +394,7 @@ fun tilInntektsmelding(
         inntekt = skjema.inntekt,
         refusjon = skjema.refusjon,
         aarsakInnsending = aarsakInnsending,
-        mottatt = mottatt.atZone(zoneIdOslo).toOffsetDateTime(),
+        mottatt = mottatt.toOffsettDateTimeOslo(),
         vedtaksperiodeId = skjema.vedtaksperiodeId,
     )
 }

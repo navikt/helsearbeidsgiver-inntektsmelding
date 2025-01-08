@@ -22,7 +22,7 @@ import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.utils.toOffsettDateTimeOslo
+import no.nav.helsearbeidsgiver.felles.utils.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -157,7 +157,7 @@ private fun lagResponse(
                     ),
                 sykmeldingsperioder = forespoersel.sykmeldingsperioder,
                 skjema = lagret.skjema,
-                mottatt = lagret.mottatt.toOffsettDateTimeOslo(),
+                mottatt = lagret.mottatt.toOffsetDateTimeOslo(),
             ),
         kvitteringEkstern = null,
     )
@@ -169,6 +169,6 @@ private fun lagResponse(lagret: LagretInntektsmelding.Ekstern): KvitteringRespon
             KvitteringResponse.Ekstern(
                 avsenderSystem = lagret.ekstern.avsenderSystemNavn,
                 referanse = lagret.ekstern.arkivreferanse,
-                mottatt = lagret.ekstern.tidspunkt.toOffsettDateTimeOslo(),
+                mottatt = lagret.ekstern.tidspunkt.toOffsetDateTimeOslo(),
             ),
     )

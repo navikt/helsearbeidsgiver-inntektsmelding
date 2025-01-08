@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingGammeltForma
 import no.nav.helsearbeidsgiver.felles.test.mock.mockRefusjon
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
-import no.nav.helsearbeidsgiver.felles.utils.toOffsettDateTimeOslo
+import no.nav.helsearbeidsgiver.felles.utils.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.mars
@@ -253,7 +253,7 @@ class InntektsmeldingRepositoryTest :
 
             val innsendingId1 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema, mottatt)
 
-            val beriketDokument = mockInntektsmeldingGammeltFormat().copy(tidspunkt = mottatt.toOffsettDateTimeOslo())
+            val beriketDokument = mockInntektsmeldingGammeltFormat().copy(tidspunkt = mottatt.toOffsetDateTimeOslo())
             inntektsmeldingRepo.oppdaterMedBeriketDokument(skjema.forespoerselId, innsendingId1, beriketDokument)
             inntektsmeldingRepo.lagreEksternInntektsmelding(skjema.forespoerselId, mockEksternInntektsmelding().copy(tidspunkt = mottatt.plusHours(1)))
 

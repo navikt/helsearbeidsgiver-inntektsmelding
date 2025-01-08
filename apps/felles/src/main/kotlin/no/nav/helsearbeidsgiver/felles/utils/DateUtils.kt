@@ -14,6 +14,6 @@ fun LocalDate.tilNorskFormat(): String = format(norskDatoFormat)
 
 fun LocalDate.toYearMonth(): YearMonth = YearMonth.of(year, month)
 
-fun LocalDateTime.toOffsettDateTimeOslo(): OffsetDateTime = atZone(zoneIdOslo).toOffsetDateTime()
+fun LocalDateTime.toOffsetDateTimeOslo(): OffsetDateTime = atZone(zoneIdOslo).toOffsetDateTime()
 
 fun YearMonth.toLocalDate(day: Int): LocalDate = LocalDate.of(year, monthValue, day)

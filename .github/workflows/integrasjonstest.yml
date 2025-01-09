@@ -14,25 +14,8 @@ jobs:
         with:
           java-version: 21
           distribution: temurin
-          cache: gradle
 
-      - name: Cache Gradle wrapper
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-wrapper-
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches/build-cache-1/
-          key: ${{ runner.os }}-gradle-cache-${{ hashFiles('build.gradle') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-cache-
-
-      - uses: gradle/actions/setup-gradle@v3
+      - uses: gradle/actions/setup-gradle@v4
 
       - name: Build
         run: ./gradlew assemble --build-cache --parallel
@@ -75,7 +58,6 @@ jobs:
         with:
           java-version: 21
           distribution: temurin
-          cache: gradle
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -83,7 +65,7 @@ jobs:
           name: build-artifacts
           path: build/libs/
 
-      - uses: gradle/actions/setup-gradle@v3
+      - uses: gradle/actions/setup-gradle@v4
 
       - name: Integrasjonstest
         run: ./gradlew integrasjonstest:test --build-cache --tests no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.${{ matrix.test }}

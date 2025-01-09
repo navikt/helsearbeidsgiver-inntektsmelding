@@ -50,7 +50,7 @@ class HentLagretImRiverTest :
                     "ingen funnet" to null,
                 ),
             ) { lagret ->
-                every { mockImRepo.hentNyesteEksternEllerInternInntektsmelding(any()) } returns lagret
+                every { mockImRepo.hentNyesteInntektsmelding(any()) } returns lagret
 
                 val innkommendeMelding = MockHentIm.innkommendeMelding()
 
@@ -75,14 +75,14 @@ class HentLagretImRiverTest :
                     )
 
                 verifySequence {
-                    mockImRepo.hentNyesteEksternEllerInternInntektsmelding(innkommendeMelding.forespoerselId)
+                    mockImRepo.hentNyesteInntektsmelding(innkommendeMelding.forespoerselId)
                 }
             }
         }
 
         test("håndterer feil") {
             every {
-                mockImRepo.hentNyesteEksternEllerInternInntektsmelding(any())
+                mockImRepo.hentNyesteInntektsmelding(any())
             } throws NullPointerException()
 
             val innkommendeMelding = MockHentIm.innkommendeMelding()
@@ -101,7 +101,7 @@ class HentLagretImRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             verifySequence {
-                mockImRepo.hentNyesteEksternEllerInternInntektsmelding(innkommendeMelding.forespoerselId)
+                mockImRepo.hentNyesteInntektsmelding(innkommendeMelding.forespoerselId)
             }
         }
 
@@ -123,7 +123,7 @@ class HentLagretImRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 verify(exactly = 0) {
-                    mockImRepo.hentNyesteEksternEllerInternInntektsmelding(any())
+                    mockImRepo.hentNyesteInntektsmelding(any())
                 }
             }
         }

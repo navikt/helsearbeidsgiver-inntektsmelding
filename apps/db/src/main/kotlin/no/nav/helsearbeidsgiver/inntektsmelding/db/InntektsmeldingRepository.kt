@@ -28,8 +28,8 @@ class InntektsmeldingRepository(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    fun hentNyesteEksternEllerInternInntektsmelding(forespoerselId: UUID): LagretInntektsmelding? =
-        Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::hentNyesteEksternEllerInternInntektsmelding) {
+    fun hentNyesteInntektsmelding(forespoerselId: UUID): LagretInntektsmelding? =
+        Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::hentNyesteInntektsmelding) {
             transaction(db) {
                 InntektsmeldingEntitet
                     .select(

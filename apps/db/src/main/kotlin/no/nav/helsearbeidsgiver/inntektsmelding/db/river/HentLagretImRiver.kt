@@ -57,7 +57,7 @@ class HentLagretImRiver(
         }
 
     override fun HentLagretImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        val lagret = imRepo.hentNyesteEksternEllerInternInntektsmelding(forespoerselId)
+        val lagret = imRepo.hentNyesteInntektsmelding(forespoerselId)
 
         loggHentet(lagret)
 

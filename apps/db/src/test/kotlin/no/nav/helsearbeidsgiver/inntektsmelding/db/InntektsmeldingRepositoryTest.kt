@@ -280,7 +280,7 @@ class InntektsmeldingRepositoryTest :
             }
         }
 
-        context(InntektsmeldingRepository::hentNyesteEksternEllerInternInntektsmelding.name) {
+        context(InntektsmeldingRepository::hentNyesteInntektsmelding.name) {
 
             test("henter nyeste") {
                 val forespoerselId = UUID.randomUUID()
@@ -293,7 +293,7 @@ class InntektsmeldingRepositoryTest :
                 inntektsmeldingRepo.lagreEksternInntektsmelding(forespoerselId, b)
                 inntektsmeldingRepo.lagreInntektsmeldingSkjema(c, mottatt.plusHours(2))
 
-                val lagret = inntektsmeldingRepo.hentNyesteEksternEllerInternInntektsmelding(forespoerselId)
+                val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(forespoerselId)
 
                 lagret shouldBe
                     LagretInntektsmelding.Skjema(
@@ -309,7 +309,7 @@ class InntektsmeldingRepositoryTest :
 
                 inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema, mottatt)
 
-                val lagret = inntektsmeldingRepo.hentNyesteEksternEllerInternInntektsmelding(skjema.forespoerselId)
+                val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(skjema.forespoerselId)
 
                 lagret shouldBe
                     LagretInntektsmelding.Skjema(
@@ -328,7 +328,7 @@ class InntektsmeldingRepositoryTest :
                 val innsendingId = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema, mottatt)
                 inntektsmeldingRepo.oppdaterMedBeriketDokument(skjema.forespoerselId, innsendingId, inntektsmelding)
 
-                val lagret = inntektsmeldingRepo.hentNyesteEksternEllerInternInntektsmelding(skjema.forespoerselId)
+                val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(skjema.forespoerselId)
 
                 lagret shouldBe
                     LagretInntektsmelding.Skjema(
@@ -351,7 +351,7 @@ class InntektsmeldingRepositoryTest :
                     }
                 }
 
-                val lagret = inntektsmeldingRepo.hentNyesteEksternEllerInternInntektsmelding(forespoerselId)
+                val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(forespoerselId)
 
                 val forventetSkjema =
                     SkjemaInntektsmelding(
@@ -376,7 +376,7 @@ class InntektsmeldingRepositoryTest :
 
                 inntektsmeldingRepo.lagreEksternInntektsmelding(forespoerselId, eksternInntektsmelding)
 
-                val lagret = inntektsmeldingRepo.hentNyesteEksternEllerInternInntektsmelding(forespoerselId)
+                val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(forespoerselId)
 
                 lagret shouldBe LagretInntektsmelding.Ekstern(eksternInntektsmelding)
             }
@@ -384,7 +384,7 @@ class InntektsmeldingRepositoryTest :
             test("tåler at det er ingenting å hente") {
                 inntektsmeldingRepo.lagreInntektsmeldingSkjema(mockSkjemaInntektsmelding(), 9.desember.atStartOfDay())
 
-                val lagret = inntektsmeldingRepo.hentNyesteEksternEllerInternInntektsmelding(UUID.randomUUID())
+                val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(UUID.randomUUID())
 
                 lagret.shouldBeNull()
             }

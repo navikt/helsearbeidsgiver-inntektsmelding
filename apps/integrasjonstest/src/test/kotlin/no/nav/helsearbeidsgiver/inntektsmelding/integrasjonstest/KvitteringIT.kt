@@ -33,6 +33,7 @@ class KvitteringIT : EndToEndTest() {
     fun `skal hente data til kvittering`() {
         val transaksjonId = UUID.randomUUID()
         val skjema = mockSkjemaInntektsmelding()
+        val inntektsmelding = mockInntektsmeldingGammeltFormat()
         val mottatt = 3.desember.atStartOfDay()
 
         mockForespoerselSvarFraHelsebro(
@@ -44,7 +45,7 @@ class KvitteringIT : EndToEndTest() {
         )
 
         val innsendingId = imRepository.lagreInntektsmeldingSkjema(skjema, mottatt)
-        imRepository.oppdaterMedBeriketDokument(skjema.forespoerselId, innsendingId, mockInntektsmeldingGammeltFormat())
+        imRepository.oppdaterMedBeriketDokument(skjema.forespoerselId, innsendingId, inntektsmelding)
 
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
@@ -66,7 +67,7 @@ class KvitteringIT : EndToEndTest() {
                 success.shouldNotBeNull()
                 success.fromJson(LagretInntektsmelding.serializer()) shouldBe
                     LagretInntektsmelding.Skjema(
-                        avsenderNavn = "Nifs Krumkake",
+                        avsenderNavn = inntektsmelding.innsenderNavn,
                         skjema = skjema,
                         mottatt = mottatt,
                     )

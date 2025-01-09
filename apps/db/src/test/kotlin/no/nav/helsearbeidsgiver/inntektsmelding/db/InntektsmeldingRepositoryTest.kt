@@ -332,7 +332,7 @@ class InntektsmeldingRepositoryTest :
 
                 lagret shouldBe
                     LagretInntektsmelding.Skjema(
-                        avsenderNavn = "Nifs Krumkake",
+                        avsenderNavn = inntektsmelding.innsenderNavn,
                         skjema = skjema,
                         mottatt = mottatt,
                     )

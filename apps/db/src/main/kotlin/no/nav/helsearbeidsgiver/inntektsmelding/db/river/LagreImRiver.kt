@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -51,6 +52,8 @@ class LagreImRiver(
                 innsendingId = Key.INNSENDING_ID.les(Long.serializer(), data),
             )
         }
+
+    override fun LagreImMelding.skrivNoekkel(): KafkaKey = KafkaKey(inntektsmelding.type.id)
 
     override fun LagreImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val inntektsmeldingGammeltFormat = inntektsmelding.convert()

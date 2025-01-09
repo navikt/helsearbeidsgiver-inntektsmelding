@@ -6,6 +6,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 
@@ -17,7 +18,7 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
  */
 internal class OpenRiver(
     rapid: RapidsConnection,
-    private val haandterMelding: JsonElement.() -> Map<Key, JsonElement>?,
+    private val haandterMelding: JsonElement.() -> Pair<KafkaKey?, Map<Key, JsonElement>>?,
 ) : River.PacketListener {
     init {
         River(rapid).register(this)
@@ -31,6 +32,9 @@ internal class OpenRiver(
             .toJson()
             .parseJson()
             .haandterMelding()
-            ?.also { context.publish(null, it) }
+            ?.also { (kafkaKey, melding) ->
+                // TODO gjør key non-nullable
+                context.publish(kafkaKey?.key, melding)
+            }
     }
 }

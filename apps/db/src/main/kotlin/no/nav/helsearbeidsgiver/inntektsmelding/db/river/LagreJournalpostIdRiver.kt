@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toPretty
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -48,6 +49,8 @@ class LagreJournalpostIdRiver(
                 innsendingId = Key.INNSENDING_ID.lesOrNull(Long.serializer(), json),
             )
         }
+
+    override fun LagreJournalpostIdMelding.skrivNoekkel(): KafkaKey = KafkaKey(inntektsmelding.type.id)
 
     override fun LagreJournalpostIdMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         logger.info("Mottok melding.")

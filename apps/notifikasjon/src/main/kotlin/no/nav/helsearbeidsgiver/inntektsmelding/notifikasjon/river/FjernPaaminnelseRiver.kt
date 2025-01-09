@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -42,6 +43,8 @@ class FjernPaaminnelseRiver(
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json),
             )
         }
+
+    override fun FjernPaaminnelseMelding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun FjernPaaminnelseMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         if (paaminnelseToggle.oppgavePaaminnelseAktivert) {

@@ -4,6 +4,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
@@ -26,6 +27,8 @@ abstract class PriObjectRiver<Melding : Any> {
 
     protected abstract fun les(json: Map<Pri.Key, JsonElement>): Melding?
 
+    protected abstract fun Melding.skrivNoekkel(): KafkaKey?
+
     protected abstract fun Melding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement>?
 
     protected abstract fun Melding.haandterFeil(
@@ -35,7 +38,7 @@ abstract class PriObjectRiver<Melding : Any> {
 
     protected abstract fun Melding.loggfelt(): Map<String, String>
 
-    private fun lesOgHaandter(json: JsonElement): Map<Key, JsonElement>? {
+    private fun lesOgHaandter(json: JsonElement): Pair<KafkaKey?, Map<Key, JsonElement>>? {
         val jsonMap = json.fromJsonMapFiltered(Pri.Key.serializer()).filterValues { it !is JsonNull }
 
         val innkommende = runCatching { les(jsonMap) }.getOrNull()
@@ -54,16 +57,33 @@ abstract class PriObjectRiver<Melding : Any> {
                 .orEmpty()
 
         return MdcUtils.withLogFields(*loggfelt) {
-            val utgaaende =
-                innkommende?.let {
+            if (innkommende == null) {
+                null
+            } else {
+                val key =
                     runCatching {
-                        it.haandter(jsonMap)
+                        innkommende.skrivNoekkel()
                     }.getOrElse { e ->
-                        it.haandterFeil(jsonMap, e)
+                        "Klarte ikke lage Kafka-nøkkel.".also {
+                            logger.error(it)
+                            sikkerLogger.error(it, e)
+                        }
+                        null
                     }
-                }
 
-            utgaaende?.takeIf { it.isNotEmpty() }
+                val msg =
+                    runCatching {
+                        innkommende.haandter(jsonMap)
+                    }.getOrElse { e ->
+                        innkommende.haandterFeil(jsonMap, e)
+                    }
+
+                if (msg.isNullOrEmpty()) {
+                    null
+                } else {
+                    key to msg
+                }
+            }
         }
     }
 }

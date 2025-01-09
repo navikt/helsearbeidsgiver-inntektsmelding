@@ -5,6 +5,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -38,6 +39,8 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
  *             name = Key.NAME.les(String.serializer(), json),
  *             height = Key.HEIGHT.lesOrNull(Int.serializer(), json)
  *         )
+ *
+ *     override fun LotrCharacter.skrivNoekkel(): KafkaKey = KafkaKey(name)
  *
  *     override fun LotrCharacter.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
  *         val favouriteFood = when (name) {
@@ -94,6 +97,15 @@ abstract class ObjectRiver<Melding : Any> {
     protected abstract fun les(json: Map<Key, JsonElement>): Melding?
 
     /**
+     * @receiver [Melding] - output fra [les].
+
+     * @return
+     * Nøkkel som utgående melding sendes sammen med.
+     * Meldinger sendt med samme nøkkel vil opprettholde rekkefølgen mellom dem (og konsumeres av samme pod).
+     */
+    protected abstract fun Melding.skrivNoekkel(): KafkaKey?
+
+    /**
      * Riverens hovedfunksjon. Agerer på innkommende melding.
      * Kastede exceptions håndteres i [haandterFeil].
      *
@@ -126,7 +138,7 @@ abstract class ObjectRiver<Melding : Any> {
     protected abstract fun Melding.loggfelt(): Map<String, String>
 
     /** Brukes av [OpenRiver]. */
-    private fun lesOgHaandter(json: JsonElement): Map<Key, JsonElement>? {
+    private fun lesOgHaandter(json: JsonElement): Pair<KafkaKey?, Map<Key, JsonElement>>? {
         val jsonMap = json.toMap().filterValues { it !is JsonNull }
 
         val innkommende = runCatching { les(jsonMap) }.getOrNull()
@@ -145,16 +157,33 @@ abstract class ObjectRiver<Melding : Any> {
                 .orEmpty()
 
         return MdcUtils.withLogFields(*loggfelt) {
-            val utgaaende =
-                innkommende?.let {
+            if (innkommende == null) {
+                null
+            } else {
+                val key =
                     runCatching {
-                        it.haandter(jsonMap)
+                        innkommende.skrivNoekkel()
                     }.getOrElse { e ->
-                        it.haandterFeil(jsonMap, e)
+                        "Klarte ikke lage Kafka-nøkkel.".also {
+                            logger.error(it)
+                            sikkerLogger.error(it, e)
+                        }
+                        null
                     }
-                }
 
-            utgaaende?.takeIf { it.isNotEmpty() }
+                val msg =
+                    runCatching {
+                        innkommende.haandter(jsonMap)
+                    }.getOrElse { e ->
+                        innkommende.haandterFeil(jsonMap, e)
+                    }
+
+                if (msg.isNullOrEmpty()) {
+                    null
+                } else {
+                    key to msg
+                }
+            }
         }
     }
 }

@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.toPretty
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.PriObjectRiver
@@ -38,6 +39,8 @@ class ForespoerselBesvartRiver : PriObjectRiver<BesvartMelding>() {
             forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, json),
             spinnInntektsmeldingId = Pri.Key.SPINN_INNTEKTSMELDING_ID.lesOrNull(UuidSerializer, json),
         )
+
+    override fun BesvartMelding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun BesvartMelding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok melding på pri-topic om ${Pri.NotisType.FORESPOERSEL_BESVART}.")

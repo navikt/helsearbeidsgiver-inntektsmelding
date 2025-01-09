@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -58,6 +59,8 @@ class OpprettForespoerselSakOgOppgaveRiver(
                 skalHaPaaminnelse = Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), data),
             )
         }
+
+    override fun OpprettForespoerselSakOgOppgaveMelding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun OpprettForespoerselSakOgOppgaveMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val lenke = NotifikasjonTekst.lenkeAktivForespoersel(lenkeBaseUrl, forespoerselId)

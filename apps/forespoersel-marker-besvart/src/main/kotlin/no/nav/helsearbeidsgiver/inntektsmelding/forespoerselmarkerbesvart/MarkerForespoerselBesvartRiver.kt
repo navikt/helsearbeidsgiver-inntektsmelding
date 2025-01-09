@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.json.toPretty
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
@@ -42,6 +43,8 @@ class MarkerForespoerselBesvartRiver(
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
             )
         }
+
+    override fun Melding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         logger.info("Mottok melding om ${EventName.INNTEKTSMELDING_MOTTATT}.")

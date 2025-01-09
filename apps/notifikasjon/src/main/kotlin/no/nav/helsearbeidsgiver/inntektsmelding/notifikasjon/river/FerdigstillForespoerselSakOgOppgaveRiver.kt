@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -51,6 +52,8 @@ class FerdigstillForespoerselSakOgOppgaveRiver(
                 )
             }
         }
+
+    override fun FerdigstillForespoerselSakMelding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun FerdigstillForespoerselSakMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val lenke = NotifikasjonTekst.lenkeFerdigstiltForespoersel(linkUrl, forespoerselId)

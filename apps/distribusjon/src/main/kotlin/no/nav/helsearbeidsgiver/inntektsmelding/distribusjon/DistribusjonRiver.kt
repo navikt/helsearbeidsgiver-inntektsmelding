@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toPretty
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -48,6 +49,8 @@ class DistribusjonRiver(
                 journalpostId = Key.JOURNALPOST_ID.les(String.serializer(), json),
             )
         }
+
+    override fun Melding.skrivNoekkel(): KafkaKey = KafkaKey(inntektsmelding.type.id)
 
     override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         "Forsøker å distribuere IM med journalpost-ID '$journalpostId'.".also {

@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -53,6 +54,8 @@ class EndrePaaminnelseRiver(
                 orgNavn = Key.VIRKSOMHET.les(String.serializer(), data),
             )
         }
+
+    override fun EndrePaaminnelseMelding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun EndrePaaminnelseMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         endreOppgavePaaminnelser(

@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.json.toPretty
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -16,6 +17,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
 
 class ServiceRiverStateless(
     override val service: Service,
@@ -124,6 +126,9 @@ sealed class ServiceRiver : ObjectRiver<ServiceMelding>() {
                 }
             }
         }
+
+    // Servicer publiserer ikke via ObjectRiver, så denne nøkkelen blir ikke brukt
+    final override fun ServiceMelding.skrivNoekkel(): KafkaKey = KafkaKey(UUID.randomUUID())
 
     final override fun ServiceMelding.haandterFeil(
         json: Map<Key, JsonElement>,

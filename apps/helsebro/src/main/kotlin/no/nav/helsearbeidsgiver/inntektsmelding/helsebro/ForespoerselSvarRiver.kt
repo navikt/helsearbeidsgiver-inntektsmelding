@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.PriObjectRiver
@@ -44,6 +45,8 @@ class ForespoerselSvarRiver : PriObjectRiver<ForespoerselSvarMelding>() {
             forespoerselSvar = forespoerselSvar,
         )
     }
+
+    override fun ForespoerselSvarMelding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselSvar.forespoerselId)
 
     override fun ForespoerselSvarMelding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok løsning på pri-topic om $behovType.")

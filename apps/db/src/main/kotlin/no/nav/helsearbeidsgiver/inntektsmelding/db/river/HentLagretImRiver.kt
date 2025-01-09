@@ -59,6 +59,8 @@ class HentLagretImRiver(
             )
         }
 
+    override fun HentLagretImMelding.skrivNoekkel(): KafkaKey? = svarKafkaKey
+
     override fun HentLagretImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val (
             skjema,

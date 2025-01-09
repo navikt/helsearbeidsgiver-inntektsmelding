@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
@@ -49,6 +50,9 @@ class HentForespoerslerForVedtaksperiodeIdListeRiver(
                 vedtaksperiodeIdListe = Key.VEDTAKSPERIODE_ID_LISTE.les(UuidSerializer.list(), data),
             )
         }
+
+    // Vi har ingen gode alternativer til Kafka-nøkkel, men det er heller ikke nøye her, så det holder med en tilfeldig verdi
+    override fun HentForespoerslerForVedtaksperiodeIdListeMelding.skrivNoekkel(): KafkaKey = KafkaKey(UUID.randomUUID())
 
     override fun HentForespoerslerForVedtaksperiodeIdListeMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         priProducer

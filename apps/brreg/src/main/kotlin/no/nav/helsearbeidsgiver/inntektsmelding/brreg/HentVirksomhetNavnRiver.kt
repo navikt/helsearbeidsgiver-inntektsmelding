@@ -56,6 +56,8 @@ class HentVirksomhetNavnRiver(
             )
         }
 
+    override fun HentVirksomhetMelding.skrivNoekkel(): KafkaKey? = svarKafkaKey
+
     override fun HentVirksomhetMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val orgnrMedNavn =
             if (isPreProd) {

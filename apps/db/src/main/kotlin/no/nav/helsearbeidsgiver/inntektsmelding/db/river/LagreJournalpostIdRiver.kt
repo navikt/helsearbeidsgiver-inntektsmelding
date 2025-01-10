@@ -50,7 +50,7 @@ class LagreJournalpostIdRiver(
             )
         }
 
-    override fun LagreJournalpostIdMelding.skrivNoekkel(): KafkaKey = KafkaKey(inntektsmelding.type.id)
+    override fun LagreJournalpostIdMelding.bestemNoekkel(): KafkaKey = KafkaKey(inntektsmelding.type.id)
 
     override fun LagreJournalpostIdMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         logger.info("Mottok melding.")

@@ -51,7 +51,7 @@ class LagreSelvbestemtImRiver(
             )
         }
 
-    override fun LagreSelvbestemtImMelding.skrivNoekkel(): KafkaKey = KafkaKey(selvbestemtInntektsmelding.type.id)
+    override fun LagreSelvbestemtImMelding.bestemNoekkel(): KafkaKey = KafkaKey(selvbestemtInntektsmelding.type.id)
 
     override fun LagreSelvbestemtImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         "Skal lagre selvbestemt inntektsmelding.".also {

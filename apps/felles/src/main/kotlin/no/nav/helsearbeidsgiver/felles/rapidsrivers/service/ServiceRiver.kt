@@ -128,7 +128,7 @@ sealed class ServiceRiver : ObjectRiver<ServiceMelding>() {
         }
 
     // Servicer publiserer ikke via ObjectRiver, så denne nøkkelen blir ikke brukt
-    final override fun ServiceMelding.skrivNoekkel(): KafkaKey = KafkaKey(UUID.randomUUID())
+    final override fun ServiceMelding.bestemNoekkel(): KafkaKey = KafkaKey(UUID.randomUUID())
 
     final override fun ServiceMelding.haandterFeil(
         json: Map<Key, JsonElement>,

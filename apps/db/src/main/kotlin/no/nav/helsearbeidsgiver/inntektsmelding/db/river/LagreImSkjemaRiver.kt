@@ -59,7 +59,7 @@ class LagreImSkjemaRiver(
             )
         }
 
-    override fun LagreImSkjemaMelding.skrivNoekkel(): KafkaKey = KafkaKey(skjema.forespoerselId)
+    override fun LagreImSkjemaMelding.bestemNoekkel(): KafkaKey = KafkaKey(skjema.forespoerselId)
 
     override fun LagreImSkjemaMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val sisteImSkjema = repository.hentNyesteInntektsmeldingSkjema(skjema.forespoerselId)

@@ -60,7 +60,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
             )
         }
 
-    override fun OpprettForespoerselSakOgOppgaveMelding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselId)
+    override fun OpprettForespoerselSakOgOppgaveMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun OpprettForespoerselSakOgOppgaveMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val lenke = NotifikasjonTekst.lenkeAktivForespoersel(lenkeBaseUrl, forespoerselId)

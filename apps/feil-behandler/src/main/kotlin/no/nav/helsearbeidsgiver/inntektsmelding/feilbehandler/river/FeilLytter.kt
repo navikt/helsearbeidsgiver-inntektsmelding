@@ -56,7 +56,7 @@ class FeilLytter(
         )
 
     // Riveren publiserer ikke via ObjectRiver, så denne nøkkelen blir ikke brukt
-    override fun Melding.skrivNoekkel(): KafkaKey = KafkaKey(UUID.randomUUID())
+    override fun Melding.bestemNoekkel(): KafkaKey = KafkaKey(UUID.randomUUID())
 
     override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         logger.info("Mottok feil.")

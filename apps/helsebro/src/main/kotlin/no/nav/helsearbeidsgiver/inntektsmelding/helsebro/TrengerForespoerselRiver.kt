@@ -50,7 +50,7 @@ class TrengerForespoerselRiver(
             )
         }
 
-    override fun TrengerForespoerselMelding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselId)
+    override fun TrengerForespoerselMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun TrengerForespoerselMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         priProducer

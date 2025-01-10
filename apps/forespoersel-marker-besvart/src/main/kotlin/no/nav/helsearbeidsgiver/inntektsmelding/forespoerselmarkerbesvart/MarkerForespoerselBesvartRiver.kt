@@ -44,7 +44,7 @@ class MarkerForespoerselBesvartRiver(
             )
         }
 
-    override fun Melding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselId)
+    override fun Melding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         logger.info("Mottok melding om ${EventName.INNTEKTSMELDING_MOTTATT}.")

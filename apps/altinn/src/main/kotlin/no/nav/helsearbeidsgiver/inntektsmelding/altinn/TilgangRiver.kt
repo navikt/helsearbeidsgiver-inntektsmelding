@@ -54,7 +54,7 @@ class TilgangRiver(
             )
         }
 
-    override fun TilgangMelding.skrivNoekkel(): KafkaKey = KafkaKey(fnr)
+    override fun TilgangMelding.bestemNoekkel(): KafkaKey = KafkaKey(fnr)
 
     override fun TilgangMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val harTilgang =

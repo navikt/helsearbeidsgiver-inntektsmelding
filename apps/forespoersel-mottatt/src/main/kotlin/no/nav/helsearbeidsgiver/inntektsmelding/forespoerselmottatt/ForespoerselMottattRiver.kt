@@ -43,7 +43,7 @@ class ForespoerselMottattRiver : PriObjectRiver<Melding>() {
             skalHaPaaminnelse = Pri.Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), json),
         )
 
-    override fun Melding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselId)
+    override fun Melding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun Melding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok melding på pri-topic om ${Pri.NotisType.FORESPØRSEL_MOTTATT}.")

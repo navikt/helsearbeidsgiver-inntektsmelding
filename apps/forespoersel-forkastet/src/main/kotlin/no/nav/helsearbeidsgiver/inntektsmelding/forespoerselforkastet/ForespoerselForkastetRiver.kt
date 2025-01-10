@@ -35,7 +35,7 @@ class ForespoerselForkastetRiver : PriObjectRiver<ForkastetMelding>() {
             forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, json),
         )
 
-    override fun ForkastetMelding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselId)
+    override fun ForkastetMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun ForkastetMelding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok melding på pri-topic om ${Pri.NotisType.FORESPOERSEL_FORKASTET}.")

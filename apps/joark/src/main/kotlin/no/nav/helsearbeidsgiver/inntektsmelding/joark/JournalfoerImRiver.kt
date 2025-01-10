@@ -62,7 +62,7 @@ class JournalfoerImRiver(
             }
         }
 
-    override fun JournalfoerImMelding.skrivNoekkel(): KafkaKey = KafkaKey(inntektsmelding.type.id)
+    override fun JournalfoerImMelding.bestemNoekkel(): KafkaKey = KafkaKey(inntektsmelding.type.id)
 
     override fun JournalfoerImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         "Mottok melding med event '$eventName'.".also {

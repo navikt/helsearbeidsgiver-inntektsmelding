@@ -50,7 +50,7 @@ class DistribusjonRiver(
             )
         }
 
-    override fun Melding.skrivNoekkel(): KafkaKey = KafkaKey(inntektsmelding.type.id)
+    override fun Melding.bestemNoekkel(): KafkaKey = KafkaKey(inntektsmelding.type.id)
 
     override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         "Forsøker å distribuere IM med journalpost-ID '$journalpostId'.".also {

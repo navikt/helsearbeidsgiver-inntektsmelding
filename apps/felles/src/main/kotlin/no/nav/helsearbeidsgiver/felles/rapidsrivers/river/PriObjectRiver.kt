@@ -27,7 +27,7 @@ abstract class PriObjectRiver<Melding : Any> {
 
     protected abstract fun les(json: Map<Pri.Key, JsonElement>): Melding?
 
-    protected abstract fun Melding.skrivNoekkel(): KafkaKey?
+    protected abstract fun Melding.bestemNoekkel(): KafkaKey?
 
     protected abstract fun Melding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement>?
 
@@ -62,7 +62,7 @@ abstract class PriObjectRiver<Melding : Any> {
             } else {
                 val key =
                     runCatching {
-                        innkommende.skrivNoekkel()
+                        innkommende.bestemNoekkel()
                     }.getOrElse { e ->
                         "Klarte ikke lage Kafka-nøkkel.".also {
                             logger.error(it)

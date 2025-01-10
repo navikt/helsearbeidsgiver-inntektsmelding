@@ -49,7 +49,7 @@ class HentSelvbestemtImRiver(
             )
         }
 
-    override fun HentSelvbestemtImMelding.skrivNoekkel(): KafkaKey = KafkaKey(selvbestemtId)
+    override fun HentSelvbestemtImMelding.bestemNoekkel(): KafkaKey = KafkaKey(selvbestemtId)
 
     override fun HentSelvbestemtImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         "Skal hente selvbestemt inntektsmelding.".also {

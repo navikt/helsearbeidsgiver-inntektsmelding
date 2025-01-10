@@ -46,7 +46,7 @@ class LagreEksternImRiver(
             )
         }
 
-    override fun LagreEksternImMelding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselId)
+    override fun LagreEksternImMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun LagreEksternImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         imRepo.lagreEksternInntektsmelding(forespoerselId, eksternInntektsmelding)

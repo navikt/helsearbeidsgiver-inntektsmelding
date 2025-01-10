@@ -48,7 +48,7 @@ class VedtaksperiodeIdForespoerselSvarRiver : PriObjectRiver<VedtaksperiodeIdFor
     }
 
     // Vi har ingen gode alternativer til Kafka-nøkkel, men det er heller ikke nøye her, så det holder med en tilfeldig verdi
-    override fun VedtaksperiodeIdForespoerselSvarMelding.skrivNoekkel(): KafkaKey = KafkaKey(UUID.randomUUID())
+    override fun VedtaksperiodeIdForespoerselSvarMelding.bestemNoekkel(): KafkaKey = KafkaKey(UUID.randomUUID())
 
     override fun VedtaksperiodeIdForespoerselSvarMelding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok løsning på pri-topic om $behovType.")

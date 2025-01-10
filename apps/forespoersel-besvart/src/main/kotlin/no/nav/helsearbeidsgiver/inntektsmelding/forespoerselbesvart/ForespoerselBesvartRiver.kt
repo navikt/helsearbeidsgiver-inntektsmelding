@@ -40,7 +40,7 @@ class ForespoerselBesvartRiver : PriObjectRiver<BesvartMelding>() {
             spinnInntektsmeldingId = Pri.Key.SPINN_INNTEKTSMELDING_ID.lesOrNull(UuidSerializer, json),
         )
 
-    override fun BesvartMelding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselId)
+    override fun BesvartMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun BesvartMelding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok melding på pri-topic om ${Pri.NotisType.FORESPOERSEL_BESVART}.")

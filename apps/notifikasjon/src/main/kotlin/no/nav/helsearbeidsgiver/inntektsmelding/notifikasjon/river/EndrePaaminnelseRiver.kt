@@ -55,7 +55,7 @@ class EndrePaaminnelseRiver(
             )
         }
 
-    override fun EndrePaaminnelseMelding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselId)
+    override fun EndrePaaminnelseMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun EndrePaaminnelseMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         endreOppgavePaaminnelser(

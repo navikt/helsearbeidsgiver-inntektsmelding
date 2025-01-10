@@ -52,7 +52,7 @@ class HentForespoerslerForVedtaksperiodeIdListeRiver(
         }
 
     // Vi har ingen gode alternativer til Kafka-nøkkel, men det er heller ikke nøye her, så det holder med en tilfeldig verdi
-    override fun HentForespoerslerForVedtaksperiodeIdListeMelding.skrivNoekkel(): KafkaKey = KafkaKey(UUID.randomUUID())
+    override fun HentForespoerslerForVedtaksperiodeIdListeMelding.bestemNoekkel(): KafkaKey = KafkaKey(UUID.randomUUID())
 
     override fun HentForespoerslerForVedtaksperiodeIdListeMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         priProducer

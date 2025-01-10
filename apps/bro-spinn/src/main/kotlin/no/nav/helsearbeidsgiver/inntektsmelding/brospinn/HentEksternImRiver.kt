@@ -48,7 +48,7 @@ class HentEksternImRiver(
             )
         }
 
-    override fun HentEksternImMelding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselId)
+    override fun HentEksternImMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun HentEksternImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         logger.info("Henter ekstern inntektsmelding med ID '$spinnImId' fra Spinn.")

@@ -53,7 +53,7 @@ class FerdigstillForespoerselSakOgOppgaveRiver(
             }
         }
 
-    override fun FerdigstillForespoerselSakMelding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselId)
+    override fun FerdigstillForespoerselSakMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun FerdigstillForespoerselSakMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val lenke = NotifikasjonTekst.lenkeFerdigstiltForespoersel(linkUrl, forespoerselId)

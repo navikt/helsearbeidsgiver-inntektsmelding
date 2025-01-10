@@ -53,7 +53,7 @@ class LagreImRiver(
             )
         }
 
-    override fun LagreImMelding.skrivNoekkel(): KafkaKey = KafkaKey(inntektsmelding.type.id)
+    override fun LagreImMelding.bestemNoekkel(): KafkaKey = KafkaKey(inntektsmelding.type.id)
 
     override fun LagreImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val inntektsmeldingGammeltFormat = inntektsmelding.convert()

@@ -74,7 +74,7 @@ class UtgaattForespoerselRiver(
             }
         }
 
-    override fun UtgaattForespoerselMelding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselId)
+    override fun UtgaattForespoerselMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun UtgaattForespoerselMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok melding med event '$eventName'.")

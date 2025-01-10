@@ -46,7 +46,7 @@ class ForespoerselSvarRiver : PriObjectRiver<ForespoerselSvarMelding>() {
         )
     }
 
-    override fun ForespoerselSvarMelding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselSvar.forespoerselId)
+    override fun ForespoerselSvarMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselSvar.forespoerselId)
 
     override fun ForespoerselSvarMelding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok løsning på pri-topic om $behovType.")

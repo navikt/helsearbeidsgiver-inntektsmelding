@@ -40,7 +40,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
  *             height = Key.HEIGHT.lesOrNull(Int.serializer(), json)
  *         )
  *
- *     override fun LotrCharacter.skrivNoekkel(): KafkaKey = KafkaKey(name)
+ *     override fun LotrCharacter.bestemNoekkel(): KafkaKey = KafkaKey(name)
  *
  *     override fun LotrCharacter.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
  *         val favouriteFood = when (name) {
@@ -103,7 +103,7 @@ abstract class ObjectRiver<Melding : Any> {
      * Nøkkel som utgående melding sendes sammen med.
      * Meldinger sendt med samme nøkkel vil opprettholde rekkefølgen mellom dem (og konsumeres av samme pod).
      */
-    protected abstract fun Melding.skrivNoekkel(): KafkaKey?
+    protected abstract fun Melding.bestemNoekkel(): KafkaKey?
 
     /**
      * Riverens hovedfunksjon. Agerer på innkommende melding.
@@ -162,7 +162,7 @@ abstract class ObjectRiver<Melding : Any> {
             } else {
                 val key =
                     runCatching {
-                        innkommende.skrivNoekkel()
+                        innkommende.bestemNoekkel()
                     }.getOrElse { e ->
                         "Klarte ikke lage Kafka-nøkkel.".also {
                             logger.error(it)

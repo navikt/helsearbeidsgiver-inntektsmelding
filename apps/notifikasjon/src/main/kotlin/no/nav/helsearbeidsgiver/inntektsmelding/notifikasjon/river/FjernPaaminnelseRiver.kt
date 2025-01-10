@@ -44,7 +44,7 @@ class FjernPaaminnelseRiver(
             )
         }
 
-    override fun FjernPaaminnelseMelding.skrivNoekkel(): KafkaKey = KafkaKey(forespoerselId)
+    override fun FjernPaaminnelseMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun FjernPaaminnelseMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         if (paaminnelseToggle.oppgavePaaminnelseAktivert) {

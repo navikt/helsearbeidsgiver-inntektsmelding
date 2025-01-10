@@ -54,7 +54,7 @@ class OpprettSelvbestemtSakRiver(
             )
         }
 
-    override fun OpprettSelvbestemtSakMelding.skrivNoekkel(): KafkaKey = KafkaKey(inntektsmelding.type.id)
+    override fun OpprettSelvbestemtSakMelding.bestemNoekkel(): KafkaKey = KafkaKey(inntektsmelding.type.id)
 
     override fun OpprettSelvbestemtSakMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val sakId =

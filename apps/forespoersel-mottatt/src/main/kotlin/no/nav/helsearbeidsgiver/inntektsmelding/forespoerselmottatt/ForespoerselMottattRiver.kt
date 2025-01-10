@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.PriObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -41,6 +42,8 @@ class ForespoerselMottattRiver : PriObjectRiver<Melding>() {
             forespoerselFraBro = Pri.Key.FORESPOERSEL.les(ForespoerselFraBro.serializer(), json),
             skalHaPaaminnelse = Pri.Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), json),
         )
+
+    override fun Melding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun Melding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok melding på pri-topic om ${Pri.NotisType.FORESPØRSEL_MOTTATT}.")

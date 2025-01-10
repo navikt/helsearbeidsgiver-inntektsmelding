@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.json.toPretty
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -72,6 +73,8 @@ class UtgaattForespoerselRiver(
                 }
             }
         }
+
+    override fun UtgaattForespoerselMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun UtgaattForespoerselMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok melding med event '$eventName'.")

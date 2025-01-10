@@ -55,6 +55,8 @@ class AltinnRiver(
             )
         }
 
+    override fun Melding.bestemNoekkel(): KafkaKey? = svarKafkaKey
+
     override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val rettigheterForenklet =
             Metrics.altinnRequest.recordTime(altinnClient::hentRettighetOrganisasjoner) {

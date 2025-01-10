@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.PriObjectRiver
@@ -45,6 +46,9 @@ class VedtaksperiodeIdForespoerselSvarRiver : PriObjectRiver<VedtaksperiodeIdFor
             forespoerselSvar = forespoerselSvar,
         )
     }
+
+    // Vi har ingen gode alternativer til Kafka-nøkkel, men det er heller ikke nøye her, så det holder med en tilfeldig verdi
+    override fun VedtaksperiodeIdForespoerselSvarMelding.bestemNoekkel(): KafkaKey = KafkaKey(UUID.randomUUID())
 
     override fun VedtaksperiodeIdForespoerselSvarMelding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok løsning på pri-topic om $behovType.")

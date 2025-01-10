@@ -64,6 +64,8 @@ class HentInntektRiver(
             )
         }
 
+    override fun Melding.bestemNoekkel(): KafkaKey? = svarKafkaKey
+
     override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val fom = inntektsdato.minusMaaneder(3)
         val middle = inntektsdato.minusMaaneder(2)

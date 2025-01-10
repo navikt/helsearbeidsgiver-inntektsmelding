@@ -54,6 +54,8 @@ class HentArbeidsforholdRiver(
             )
         }
 
+    override fun HentArbeidsforholdMelding.bestemNoekkel(): KafkaKey? = svarKafkaKey
+
     override fun HentArbeidsforholdMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val arbeidsforhold =
             Metrics.aaregRequest

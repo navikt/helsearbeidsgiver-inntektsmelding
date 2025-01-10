@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -52,6 +53,8 @@ class TilgangRiver(
                 fnr = Key.FNR.les(Fnr.serializer(), data),
             )
         }
+
+    override fun TilgangMelding.bestemNoekkel(): KafkaKey = KafkaKey(fnr)
 
     override fun TilgangMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val harTilgang =

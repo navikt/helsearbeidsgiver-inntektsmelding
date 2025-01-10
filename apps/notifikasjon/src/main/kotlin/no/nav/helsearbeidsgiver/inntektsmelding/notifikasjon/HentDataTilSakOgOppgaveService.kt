@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
@@ -82,7 +83,10 @@ class HentDataTilSakOgOppgaveService(
             Key.DATA to
                 data
                     .plus(
-                        Key.ORGNR_UNDERENHETER to setOf(steg0.forespoersel.orgnr).toJson(Orgnr.serializer()),
+                        mapOf(
+                            Key.SVAR_KAFKA_KEY to KafkaKey(steg0.forespoerselId).toJson(),
+                            Key.ORGNR_UNDERENHETER to setOf(steg0.forespoersel.orgnr).toJson(Orgnr.serializer()),
+                        ),
                     ).toJson(),
         )
     }
@@ -100,7 +104,10 @@ class HentDataTilSakOgOppgaveService(
             Key.DATA to
                 data
                     .plus(
-                        Key.FNR_LISTE to setOf(steg0.forespoersel.fnr).toJson(Fnr.serializer()),
+                        mapOf(
+                            Key.SVAR_KAFKA_KEY to KafkaKey(steg0.forespoerselId).toJson(),
+                            Key.FNR_LISTE to setOf(steg0.forespoersel.fnr).toJson(Fnr.serializer()),
+                        ),
                     ).toJson(),
         )
     }

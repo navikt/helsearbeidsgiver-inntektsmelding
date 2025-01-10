@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Inntekt
 import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
@@ -49,6 +50,7 @@ class InntektSelvbestemtIT : EndToEndTest() {
                     Key.KONTEKST_ID to Mock.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
+                            Key.SVAR_KAFKA_KEY to KafkaKey(Mock.fnr).toJson(),
                             Key.ORGNR_UNDERENHET to Mock.orgnr.toJson(),
                             Key.FNR to Mock.fnr.toJson(),
                             Key.INNTEKTSDATO to Mock.inntektsdato.toJson(),
@@ -65,6 +67,7 @@ class InntektSelvbestemtIT : EndToEndTest() {
                     Key.KONTEKST_ID to Mock.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
+                            Key.SVAR_KAFKA_KEY to KafkaKey(Mock.fnr).toJson(),
                             Key.ORGNR_UNDERENHET to Mock.orgnr.toJson(),
                             Key.FNR to Mock.fnr.toJson(),
                             Key.INNTEKTSDATO to Mock.inntektsdato.toJson(),

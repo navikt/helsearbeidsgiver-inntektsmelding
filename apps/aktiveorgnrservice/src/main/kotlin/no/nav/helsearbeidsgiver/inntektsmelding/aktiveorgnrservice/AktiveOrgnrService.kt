@@ -160,6 +160,7 @@ class AktiveOrgnrService(
                     Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                     Key.DATA to
                         mapOf(
+                            Key.SVAR_KAFKA_KEY to KafkaKey(steg0.sykmeldtFnr).toJson(),
                             Key.ORGNR_UNDERENHETER to arbeidsgivere.toJson(String.serializer()),
                         ).toJson(),
                 )

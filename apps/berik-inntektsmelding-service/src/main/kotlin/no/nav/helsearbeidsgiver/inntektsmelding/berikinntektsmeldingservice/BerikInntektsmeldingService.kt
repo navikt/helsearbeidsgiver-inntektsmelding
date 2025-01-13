@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed4Steg
@@ -127,8 +128,12 @@ class BerikInntektsmeldingService(
                 Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
                 Key.DATA to
                     data
-                        .plus(Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(Orgnr.serializer()))
-                        .toJson(),
+                        .plus(
+                            mapOf(
+                                Key.SVAR_KAFKA_KEY to KafkaKey(steg0.skjema.forespoerselId).toJson(),
+                                Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(Orgnr.serializer()),
+                            ),
+                        ).toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_VIRKSOMHET_NAVN, it) }
     }
 
@@ -147,11 +152,14 @@ class BerikInntektsmeldingService(
                 Key.DATA to
                     data
                         .plus(
-                            Key.FNR_LISTE to
-                                listOf(
-                                    steg1.forespoersel.fnr,
-                                    steg0.avsenderFnr,
-                                ).toJson(Fnr.serializer()),
+                            mapOf(
+                                Key.SVAR_KAFKA_KEY to KafkaKey(steg0.skjema.forespoerselId).toJson(),
+                                Key.FNR_LISTE to
+                                    listOf(
+                                        steg1.forespoersel.fnr,
+                                        steg0.avsenderFnr,
+                                    ).toJson(Fnr.serializer()),
+                            ),
                         ).toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_PERSONER, it) }
     }

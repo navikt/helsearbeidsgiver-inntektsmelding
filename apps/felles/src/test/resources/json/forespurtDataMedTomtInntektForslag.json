@@ -4,7 +4,9 @@
   },
   "inntekt": {
     "paakrevd": true,
-    "forslag": null
+    "forslag": {
+      "forrigeInntekt": null
+    }
   },
   "refusjon": {
     "paakrevd": true,

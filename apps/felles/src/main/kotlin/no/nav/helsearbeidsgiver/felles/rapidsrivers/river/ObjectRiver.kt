@@ -103,7 +103,7 @@ abstract class ObjectRiver<Melding : Any> {
      * Nøkkel som utgående melding sendes sammen med.
      * Meldinger sendt med samme nøkkel vil opprettholde rekkefølgen mellom dem (og konsumeres av samme pod).
      */
-    protected abstract fun Melding.bestemNoekkel(): KafkaKey?
+    protected abstract fun Melding.bestemNoekkel(): KafkaKey
 
     /**
      * Riverens hovedfunksjon. Agerer på innkommende melding.
@@ -138,7 +138,7 @@ abstract class ObjectRiver<Melding : Any> {
     protected abstract fun Melding.loggfelt(): Map<String, String>
 
     /** Brukes av [OpenRiver]. */
-    private fun lesOgHaandter(json: JsonElement): Pair<KafkaKey?, Map<Key, JsonElement>>? {
+    private fun lesOgHaandter(json: JsonElement): Pair<KafkaKey, Map<Key, JsonElement>>? {
         val jsonMap = json.toMap().filterValues { it !is JsonNull }
 
         val innkommende = runCatching { les(jsonMap) }.getOrNull()
@@ -164,24 +164,28 @@ abstract class ObjectRiver<Melding : Any> {
                     runCatching {
                         innkommende.bestemNoekkel()
                     }.getOrElse { e ->
-                        "Klarte ikke lage Kafka-nøkkel.".also {
+                        "Klarte ikke bestemme Kafka-nøkkel. Melding prosesseres ikke.".also {
                             logger.error(it)
                             sikkerLogger.error(it, e)
                         }
                         null
                     }
 
-                val msg =
-                    runCatching {
-                        innkommende.haandter(jsonMap)
-                    }.getOrElse { e ->
-                        innkommende.haandterFeil(jsonMap, e)
-                    }
-
-                if (msg.isNullOrEmpty()) {
+                if (key == null) {
                     null
                 } else {
-                    key to msg
+                    val msg =
+                        runCatching {
+                            innkommende.haandter(jsonMap)
+                        }.getOrElse { e ->
+                            innkommende.haandterFeil(jsonMap, e)
+                        }
+
+                    if (msg.isNullOrEmpty()) {
+                        null
+                    } else {
+                        key to msg
+                    }
                 }
             }
         }

@@ -27,7 +27,7 @@ abstract class PriObjectRiver<Melding : Any> {
 
     protected abstract fun les(json: Map<Pri.Key, JsonElement>): Melding?
 
-    protected abstract fun Melding.bestemNoekkel(): KafkaKey?
+    protected abstract fun Melding.bestemNoekkel(): KafkaKey
 
     protected abstract fun Melding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement>?
 
@@ -38,7 +38,7 @@ abstract class PriObjectRiver<Melding : Any> {
 
     protected abstract fun Melding.loggfelt(): Map<String, String>
 
-    private fun lesOgHaandter(json: JsonElement): Pair<KafkaKey?, Map<Key, JsonElement>>? {
+    private fun lesOgHaandter(json: JsonElement): Pair<KafkaKey, Map<Key, JsonElement>>? {
         val jsonMap = json.fromJsonMapFiltered(Pri.Key.serializer()).filterValues { it !is JsonNull }
 
         val innkommende = runCatching { les(jsonMap) }.getOrNull()
@@ -64,24 +64,28 @@ abstract class PriObjectRiver<Melding : Any> {
                     runCatching {
                         innkommende.bestemNoekkel()
                     }.getOrElse { e ->
-                        "Klarte ikke lage Kafka-nøkkel.".also {
+                        "Klarte ikke bestemme Kafka-nøkkel. Melding prosesseres ikke.".also {
                             logger.error(it)
                             sikkerLogger.error(it, e)
                         }
                         null
                     }
 
-                val msg =
-                    runCatching {
-                        innkommende.haandter(jsonMap)
-                    }.getOrElse { e ->
-                        innkommende.haandterFeil(jsonMap, e)
-                    }
-
-                if (msg.isNullOrEmpty()) {
+                if (key == null) {
                     null
                 } else {
-                    key to msg
+                    val msg =
+                        runCatching {
+                            innkommende.haandter(jsonMap)
+                        }.getOrElse { e ->
+                            innkommende.haandterFeil(jsonMap, e)
+                        }
+
+                    if (msg.isNullOrEmpty()) {
+                        null
+                    } else {
+                        key to msg
+                    }
                 }
             }
         }

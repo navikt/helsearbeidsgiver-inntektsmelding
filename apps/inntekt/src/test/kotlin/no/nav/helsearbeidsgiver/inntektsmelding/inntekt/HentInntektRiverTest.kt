@@ -18,6 +18,7 @@ import no.nav.helsearbeidsgiver.felles.domene.Inntekt
 import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
@@ -166,6 +167,7 @@ private object Mock {
     fun innkommendeMelding(inntektsdato: LocalDate): Melding {
         val orgnr = Orgnr.genererGyldig()
         val fnr = Fnr.genererGyldig()
+        val svarKafkaKey = KafkaKey(fnr)
 
         return Melding(
             eventName = EventName.TRENGER_REQUESTED,
@@ -173,11 +175,12 @@ private object Mock {
             transaksjonId = UUID.randomUUID(),
             data =
                 mapOf(
+                    Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
                     Key.ORGNR_UNDERENHET to orgnr.toJson(),
                     Key.FNR to fnr.toJson(),
                     Key.INNTEKTSDATO to inntektsdato.toJson(),
                 ),
-            svarKafkaKey = null,
+            svarKafkaKey = svarKafkaKey,
             orgnr = orgnr,
             fnr = fnr,
             inntektsdato = inntektsdato,

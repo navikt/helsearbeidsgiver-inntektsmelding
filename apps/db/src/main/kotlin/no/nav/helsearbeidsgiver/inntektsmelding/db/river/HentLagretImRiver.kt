@@ -13,7 +13,6 @@ import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
@@ -33,7 +32,7 @@ data class HentLagretImMelding(
     val behovType: BehovType,
     val transaksjonId: UUID,
     val data: Map<Key, JsonElement>,
-    val svarKafkaKey: KafkaKey?,
+    val svarKafkaKey: KafkaKey,
     val forespoerselId: UUID,
 )
 
@@ -54,12 +53,12 @@ class HentLagretImRiver(
                 behovType = Key.BEHOV.krev(BehovType.HENT_LAGRET_IM, BehovType.serializer(), json),
                 transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
-                svarKafkaKey = Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), data),
+                svarKafkaKey = Key.SVAR_KAFKA_KEY.les(KafkaKey.serializer(), data),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
             )
         }
 
-    override fun HentLagretImMelding.bestemNoekkel(): KafkaKey? = svarKafkaKey
+    override fun HentLagretImMelding.bestemNoekkel(): KafkaKey = svarKafkaKey
 
     override fun HentLagretImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val (

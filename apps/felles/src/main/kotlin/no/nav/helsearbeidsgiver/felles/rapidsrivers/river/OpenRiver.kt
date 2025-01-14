@@ -18,7 +18,7 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
  */
 internal class OpenRiver(
     rapid: RapidsConnection,
-    private val haandterMelding: JsonElement.() -> Pair<KafkaKey?, Map<Key, JsonElement>>?,
+    private val haandterMelding: JsonElement.() -> Pair<KafkaKey, Map<Key, JsonElement>>?,
 ) : River.PacketListener {
     init {
         River(rapid).register(this)
@@ -33,8 +33,7 @@ internal class OpenRiver(
             .parseJson()
             .haandterMelding()
             ?.also { (kafkaKey, melding) ->
-                // TODO gjør key non-nullable
-                context.publish(kafkaKey?.key, melding)
+                context.publish(kafkaKey.key, melding)
             }
     }
 }

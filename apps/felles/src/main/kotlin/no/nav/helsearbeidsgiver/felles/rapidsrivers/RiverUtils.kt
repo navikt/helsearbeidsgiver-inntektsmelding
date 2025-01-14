@@ -24,7 +24,7 @@ fun MessageContext.publish(
 ): JsonElement = publish(key.toString(), messageFields.toMap())
 
 internal fun MessageContext.publish(
-    key: String?,
+    key: String,
     messageFields: Map<Key, JsonElement>,
 ): JsonElement =
     messageFields
@@ -41,9 +41,5 @@ internal fun MessageContext.publish(
             )
         }.toJson()
         .also {
-            if (key == null) {
-                publish(it)
-            } else {
-                publish(key, it)
-            }
+            publish(key, it)
         }.parseJson()

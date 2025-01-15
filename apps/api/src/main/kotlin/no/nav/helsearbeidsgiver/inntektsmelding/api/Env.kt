@@ -9,6 +9,7 @@ object Env {
     }
 
     object Redis {
+        val aivenUri: String = "REDIS_URI_INNTEKTSMELDING".fromEnv()
         val url: String = "REDIS_URL".fromEnv()
     }
 }

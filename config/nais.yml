@@ -57,6 +57,11 @@ spec:
     application:
       enabled: {{ azure.enabled }}
   {{/if}}
+  {{#if redisAccess}}
+  redis:
+    - instance: inntektsmelding
+      access: {{ redisAccess }}
+  {{/if}}
   {{#if database}}
   gcp:
     sqlInstances:

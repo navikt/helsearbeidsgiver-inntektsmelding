@@ -1,0 +1,27 @@
+name: Deploy Redis
+
+on:
+  push:
+    branches:
+      - main
+      # midlertidig for testing
+      - dev/**
+    paths:
+      - redis/**
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    strategy:
+      matrix:
+#        env: [dev, prod]
+        env: [dev]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: ${{ matrix.env }}-gcp
+          RESOURCE: redis/config.yml
+          VARS: redis/${{ matrix.env }}.yml

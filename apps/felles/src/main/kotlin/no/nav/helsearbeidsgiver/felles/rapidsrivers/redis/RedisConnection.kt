@@ -6,9 +6,9 @@ import io.lettuce.core.api.sync.RedisCommands
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 
 class RedisConnection(
-    redisUrl: String,
+    redisUri: String,
 ) {
-    private val client: RedisClient = RedisClient.create(redisUrl)
+    private val client: RedisClient = RedisClient.create(redisUri)
     private val connection: StatefulRedisConnection<String, String> = client.connect()
     private val syncCommands: RedisCommands<String, String> = connection.sync()
 

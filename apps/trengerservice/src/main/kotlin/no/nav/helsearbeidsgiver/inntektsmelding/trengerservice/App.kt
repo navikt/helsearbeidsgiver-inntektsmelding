@@ -13,7 +13,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 private val logger = "helsearbeidsgiver-im-hent-forespoersel-service".logger()
 
 fun main() {
-    val redisConnection = RedisConnection(Env.redisUrl)
+    val redisConnection = RedisConnection(Env.redisUri)
 
     RapidApplication
         .create(System.getenv())

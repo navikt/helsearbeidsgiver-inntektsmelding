@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.tilString
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -29,6 +30,17 @@ data class JournalfoerImMelding(
     val transaksjonId: UUID,
     val inntektsmelding: Inntektsmelding,
 )
+
+fun Inntektsmelding.genererBeskrivendeTittel(): String {
+    val orgnr = this.avsender.orgnr.verdi
+    val agpPerioder =
+//        "null"
+        this.agp
+            ?.perioder
+            ?.tilString() ?: "X"
+
+    return "Inntektsmelding-$orgnr-$agpPerioder"
+}
 
 class JournalfoerImRiver(
     private val dokArkivClient: DokArkivClient,
@@ -125,7 +137,7 @@ class JournalfoerImRiver(
         val response =
             Metrics.dokArkivRequest.recordTime(dokArkivClient::opprettOgFerdigstillJournalpost) {
                 dokArkivClient.opprettOgFerdigstillJournalpost(
-                    tittel = "Inntektsmelding",
+                    tittel = inntektsmelding.genererBeskrivendeTittel(),
                     gjelderPerson = GjelderPerson(inntektsmelding.sykmeldt.fnr.verdi),
                     avsender =
                         Avsender.Organisasjon(

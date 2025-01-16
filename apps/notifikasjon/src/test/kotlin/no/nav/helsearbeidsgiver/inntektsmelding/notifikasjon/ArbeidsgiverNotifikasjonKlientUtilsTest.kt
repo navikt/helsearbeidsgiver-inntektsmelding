@@ -6,6 +6,7 @@ import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.domene.Person
+import no.nav.helsearbeidsgiver.felles.utils.tilString
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr

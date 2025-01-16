@@ -5,7 +5,6 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender
 import no.nav.helsearbeidsgiver.dokarkiv.domene.GjelderPerson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -17,13 +16,12 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.felles.utils.tilNorskFormat
+import no.nav.helsearbeidsgiver.felles.utils.tilString
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.time.LocalDate
 import java.util.UUID
 
@@ -32,24 +30,6 @@ data class JournalfoerImMelding(
     val transaksjonId: UUID,
     val inntektsmelding: Inntektsmelding,
 )
-
-fun List<Periode>.tilString(): String =
-    if (size < 2) {
-        "${first().fom.tilNorskFormat()} - ${first().tom.tilNorskFormat()}"
-    } else {
-        "${first().fom.tilNorskFormat()} - [...] - ${last().tom.tilNorskFormat()}"
-    }
-
-fun Inntektsmelding.genererBeskrivendeTittel(): String {
-    val orgnr = this.avsender.orgnr.verdi
-    val agpString =
-        this.agp
-            ?.perioder
-            ?.tilString()
-            .orDefault("X")
-
-    return "Inntektsmelding-$orgnr-$agpString"
-}
 
 class JournalfoerImRiver(
     private val dokArkivClient: DokArkivClient,
@@ -146,7 +126,7 @@ class JournalfoerImRiver(
         val response =
             Metrics.dokArkivRequest.recordTime(dokArkivClient::opprettOgFerdigstillJournalpost) {
                 dokArkivClient.opprettOgFerdigstillJournalpost(
-                    tittel = inntektsmelding.genererBeskrivendeTittel(),
+                    tittel = inntektsmelding.tilJournalTittel(),
                     gjelderPerson = GjelderPerson(inntektsmelding.sykmeldt.fnr.verdi),
                     avsender =
                         Avsender.Organisasjon(
@@ -174,4 +154,15 @@ class JournalfoerImRiver(
 
         return response.journalpostId
     }
+}
+
+fun Inntektsmelding.tilJournalTittel(): String {
+    val orgnr = this.avsender.orgnr.verdi
+    val agp =
+        this.agp
+            ?.perioder
+            ?.tilString()
+    val agpString = agp?.let { "-$it" } ?: ""
+
+    return "Inntektsmelding-$orgnr$agpString"
 }

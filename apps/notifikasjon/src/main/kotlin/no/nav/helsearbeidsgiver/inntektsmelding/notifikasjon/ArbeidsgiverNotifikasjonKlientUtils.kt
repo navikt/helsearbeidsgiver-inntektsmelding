@@ -8,7 +8,7 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIk
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.domene.Person
-import no.nav.helsearbeidsgiver.felles.utils.tilNorskFormat
+import no.nav.helsearbeidsgiver.felles.utils.tilString
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -258,13 +258,6 @@ fun ArbeidsgiverNotifikasjonKlient.settOppgaveUtgaatt(
         }
     }
 }
-
-fun List<Periode>.tilString(): String =
-    if (size < 2) {
-        "${first().fom.tilNorskFormat()} - ${first().tom.tilNorskFormat()}"
-    } else {
-        "${first().fom.tilNorskFormat()} - [...] - ${last().tom.tilNorskFormat()}"
-    }
 
 // Støtter d-nummer
 private fun Fnr.lesFoedselsdato(): String {

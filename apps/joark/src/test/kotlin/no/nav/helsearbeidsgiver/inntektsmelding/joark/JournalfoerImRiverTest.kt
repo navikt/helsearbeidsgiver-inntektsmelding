@@ -82,7 +82,7 @@ class JournalfoerImRiverTest :
 
                 coVerifySequence {
                     mockDokArkivKlient.opprettOgFerdigstillJournalpost(
-                        tittel = Mock.gylidTittel,
+                        tittel = Mock.gyldigTittel,
                         gjelderPerson = GjelderPerson(Mock.inntektsmelding.sykmeldt.fnr.verdi),
                         avsender =
                             KlientAvsender.Organisasjon(
@@ -126,7 +126,7 @@ class JournalfoerImRiverTest :
 
                 coVerifySequence {
                     mockDokArkivKlient.opprettOgFerdigstillJournalpost(
-                        tittel = Mock.gylidTittel,
+                        tittel = Mock.gyldigTittel,
                         gjelderPerson = GjelderPerson(Mock.inntektsmelding.sykmeldt.fnr.verdi),
                         avsender =
                             KlientAvsender.Organisasjon(
@@ -173,11 +173,11 @@ class JournalfoerImRiverTest :
             }
         }
 
-        test("melding formateres riktig") {
+        test("tittel formateres riktig") {
 
             val orgnr = Mock.inntektsmelding.avsender.orgnr.verdi
 
-            Mock.inntektsmelding.genererBeskrivendeTittel() shouldBeEqual "Inntektsmelding-$orgnr-05.10.2018 - [...] - 22.10.2018"
+            Mock.inntektsmelding.tilJournalTittel() shouldBeEqual "Inntektsmelding-$orgnr-05.10.2018 - [...] - 22.10.2018"
         }
 
         context("ignorerer melding") {
@@ -210,8 +210,8 @@ private object Mock {
 
     val fail = mockFail("I don't think we're in Kansas anymore.", EventName.INNTEKTSMELDING_MOTTATT)
 
-    val orgnr = inntektsmelding.avsender.orgnr.verdi
-    val gylidTittel = "Inntektsmelding-$orgnr-05.10.2018 - [...] - 22.10.2018"
+    private val orgnr = inntektsmelding.avsender.orgnr.verdi
+    val gyldigTittel = "Inntektsmelding-$orgnr-05.10.2018 - [...] - 22.10.2018"
 
     fun innkommendeMelding(
         eventName: EventName,

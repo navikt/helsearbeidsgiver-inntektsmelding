@@ -174,10 +174,10 @@ class JournalfoerImRiverTest :
         }
 
         test("tittel formateres riktig") {
-
+            val dokument = tilDokumenter(UUID.randomUUID(), Mock.inntektsmelding)
             val orgnr = Mock.inntektsmelding.avsender.orgnr.verdi
 
-            Mock.inntektsmelding.tilJournalTittel() shouldBeEqual "Inntektsmelding-$orgnr-05.10.2018 - [...] - 22.10.2018"
+            dokument[0].tittel shouldBeEqual "Inntektsmelding-$orgnr-05.10.2018 - [...] - 22.10.2018"
         }
 
         context("ignorerer melding") {
@@ -210,8 +210,7 @@ private object Mock {
 
     val fail = mockFail("I don't think we're in Kansas anymore.", EventName.INNTEKTSMELDING_MOTTATT)
 
-    private val orgnr = inntektsmelding.avsender.orgnr.verdi
-    val gyldigTittel = "Inntektsmelding-$orgnr-05.10.2018 - [...] - 22.10.2018"
+    val gyldigTittel = "Inntektsmelding"
 
     fun innkommendeMelding(
         eventName: EventName,

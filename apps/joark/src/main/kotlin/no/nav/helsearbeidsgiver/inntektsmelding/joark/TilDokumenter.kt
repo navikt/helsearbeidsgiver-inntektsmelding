@@ -16,7 +16,7 @@ fun tilDokumenter(
 ): List<Dokument> =
     listOf(
         Dokument(
-            tittel = "Inntektsmelding",
+            tittel = "Inntektsmelding 1234",
             // TODO Denne må vi undersøke om vi vil bruke videre. Dette er koden til Altinn-service, som trolig brukes til å filtrere journalposter et sted.
             brevkode = "4936",
             dokumentVarianter =

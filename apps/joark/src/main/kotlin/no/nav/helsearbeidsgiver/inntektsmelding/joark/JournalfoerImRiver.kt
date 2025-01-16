@@ -162,7 +162,7 @@ fun Inntektsmelding.tilJournalTittel(): String {
         this.agp
             ?.perioder
             ?.tilString()
-    val agpString = agp?.let { "-$it" } ?: ""
+    val agpString = agp ?: " (ingen agp)"
 
-    return "Inntektsmelding-$orgnr$agpString"
+    return "Inntektsmelding-$orgnr-$agpString"
 }

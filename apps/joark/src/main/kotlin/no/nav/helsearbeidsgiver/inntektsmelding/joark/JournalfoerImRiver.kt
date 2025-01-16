@@ -156,13 +156,4 @@ class JournalfoerImRiver(
     }
 }
 
-fun Inntektsmelding.tilJournalTittel(): String {
-    val orgnr = this.avsender.orgnr.verdi
-    val agp =
-        this.agp
-            ?.perioder
-            ?.tilString()
-    val agpString = agp ?: " (ingen agp)"
-
-    return "Inntektsmelding-$orgnr-$agpString"
-}
+fun Inntektsmelding.tilJournalTittel() = "Inntektsmelding-${this.avsender.orgnr.verdi}-${this.agp?.perioder?.tilString() ?: " (ingen agp)"}"

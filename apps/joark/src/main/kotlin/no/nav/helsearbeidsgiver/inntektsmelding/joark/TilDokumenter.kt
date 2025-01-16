@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Dokument
 import no.nav.helsearbeidsgiver.dokarkiv.domene.DokumentVariant
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
-import no.nav.helsearbeidsgiver.felles.utils.tilString
+import no.nav.helsearbeidsgiver.felles.utils.tilKortFormat
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.PdfDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.transformToXML
 import java.util.Base64
@@ -46,6 +46,6 @@ fun tilDokumenter(
         ),
     )
 
-private fun Inntektsmelding.tilJournalTittel(): String = "Inntektsmelding-${this.avsender.orgnr.verdi}-${this.agp?.perioder?.tilString() ?: " (ingen agp)"}"
+private fun Inntektsmelding.tilJournalTittel(): String = "Inntektsmelding-${this.avsender.orgnr.verdi}-${this.agp?.perioder?.tilKortFormat() ?: " (ingen agp)"}"
 
 private fun ByteArray.encode(): String = base64.encodeToString(this)

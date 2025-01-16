@@ -82,7 +82,7 @@ class JournalfoerImRiverTest :
 
                 coVerifySequence {
                     mockDokArkivKlient.opprettOgFerdigstillJournalpost(
-                        tittel = Mock.gyldigTittel,
+                        tittel = "Inntektsmelding",
                         gjelderPerson = GjelderPerson(Mock.inntektsmelding.sykmeldt.fnr.verdi),
                         avsender =
                             KlientAvsender.Organisasjon(
@@ -126,7 +126,7 @@ class JournalfoerImRiverTest :
 
                 coVerifySequence {
                     mockDokArkivKlient.opprettOgFerdigstillJournalpost(
-                        tittel = Mock.gyldigTittel,
+                        tittel = "Inntektsmelding",
                         gjelderPerson = GjelderPerson(Mock.inntektsmelding.sykmeldt.fnr.verdi),
                         avsender =
                             KlientAvsender.Organisasjon(
@@ -209,8 +209,6 @@ private object Mock {
     val inntektsmelding = mockInntektsmeldingV1()
 
     val fail = mockFail("I don't think we're in Kansas anymore.", EventName.INNTEKTSMELDING_MOTTATT)
-
-    val gyldigTittel = "Inntektsmelding"
 
     fun innkommendeMelding(
         eventName: EventName,

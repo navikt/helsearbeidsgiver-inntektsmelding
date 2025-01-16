@@ -19,9 +19,7 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.DokumentVariant
 import no.nav.helsearbeidsgiver.dokarkiv.domene.GjelderPerson
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -35,7 +33,6 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import java.time.LocalDate
 import java.util.UUID
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender as KlientAvsender
@@ -85,7 +82,7 @@ class JournalfoerImRiverTest :
 
                 coVerifySequence {
                     mockDokArkivKlient.opprettOgFerdigstillJournalpost(
-                        tittel = Mock.inntektsmelding.genererBeskrivendeTittel(),
+                        tittel = Mock.gylidTittel,
                         gjelderPerson = GjelderPerson(Mock.inntektsmelding.sykmeldt.fnr.verdi),
                         avsender =
                             KlientAvsender.Organisasjon(
@@ -129,7 +126,7 @@ class JournalfoerImRiverTest :
 
                 coVerifySequence {
                     mockDokArkivKlient.opprettOgFerdigstillJournalpost(
-                        tittel = Mock.inntektsmelding.genererBeskrivendeTittel(),
+                        tittel = Mock.gylidTittel,
                         gjelderPerson = GjelderPerson(Mock.inntektsmelding.sykmeldt.fnr.verdi),
                         avsender =
                             KlientAvsender.Organisasjon(
@@ -178,22 +175,9 @@ class JournalfoerImRiverTest :
 
         test("melding formateres riktig") {
 
-            val agp =
-                Arbeidsgiverperiode(
-                    perioder =
-                        listOf(
-                            5.oktober(2020) til 15.oktober(2020),
-                            20.oktober(2020) til 22.oktober(2020),
-                        ),
-                    egenmeldinger = listOf(),
-                    redusertLoennIAgp = null,
-                )
+            val orgnr = Mock.inntektsmelding.avsender.orgnr.verdi
 
-            val orgnr = "987654321"
-            coEvery { Mock.inntektsmelding.agp } returns agp
-            coEvery { Mock.inntektsmelding.avsender.orgnr.verdi } returns orgnr
-
-            Mock.inntektsmelding.genererBeskrivendeTittel() shouldBeEqual "Inntektsmelding-$orgnr-05.10.2020 - [...] - 22.10.2020"
+            Mock.inntektsmelding.genererBeskrivendeTittel() shouldBeEqual "Inntektsmelding-$orgnr-05.10.2018 - [...] - 22.10.2018"
         }
 
         context("ignorerer melding") {
@@ -225,6 +209,9 @@ private object Mock {
     val inntektsmelding = mockInntektsmeldingV1()
 
     val fail = mockFail("I don't think we're in Kansas anymore.", EventName.INNTEKTSMELDING_MOTTATT)
+
+    val orgnr = inntektsmelding.avsender.orgnr.verdi
+    val gylidTittel = "Inntektsmelding-$orgnr-05.10.2018 - [...] - 22.10.2018"
 
     fun innkommendeMelding(
         eventName: EventName,

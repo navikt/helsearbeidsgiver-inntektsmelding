@@ -23,11 +23,8 @@ class TilDokumenterKtTest {
         assertEquals("Inntektsmelding-${mockInntektsmelding.avsender.orgnr.verdi}-05.10.2018 - [...] - 22.10.2018", dokumenter[0].tittel)
     }
 
-    fun mockInntekstmeldingMedPerioder(perioder: List<Periode>): Inntektsmelding =
-        mockInntektsmeldingV1().copy(agp = mockInntektsmeldingV1().agp?.copy(perioder = perioder))
-
     @Test
-    fun journalTittelToPerioder() {
+    fun dokumentbeskrivelseToPerioder() {
         val im =
             mockInntekstmeldingMedPerioder(
                 listOf(
@@ -39,7 +36,7 @@ class TilDokumenterKtTest {
     }
 
     @Test
-    fun journalTittelEnPeriode() {
+    fun dokumentbeskrivelseEnPeriode() {
         val im =
             mockInntekstmeldingMedPerioder(
                 listOf(
@@ -50,8 +47,11 @@ class TilDokumenterKtTest {
     }
 
     @Test
-    fun journalTittelIngenPeriode() {
+    fun dokumentbeskrivelseIngenPeriode() {
         val im = mockInntekstmeldingMedPerioder(emptyList())
         assertEquals("Inntektsmelding-${im.avsender.orgnr.verdi}-(ingen agp)", im.tilDokumentbeskrivelse())
     }
+
+    private fun mockInntekstmeldingMedPerioder(perioder: List<Periode>): Inntektsmelding =
+        mockInntektsmeldingV1().copy(agp = mockInntektsmeldingV1().agp?.copy(perioder = perioder))
 }

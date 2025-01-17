@@ -6,6 +6,7 @@ import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.domene.Person
+import no.nav.helsearbeidsgiver.felles.utils.tilKortFormat
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -34,7 +35,7 @@ class ArbeidsgiverNotifikasjonKlientUtilsTest :
                     "to perioder" to row(listOf(1.januar til 31.januar, 1.februar til 28.februar), "01.01.2018 - [...] - 28.02.2018"),
                 ),
             ) { (perioder, forventet) ->
-                perioder.tilString() shouldBe forventet
+                perioder.tilKortFormat() shouldBe forventet
             }
         }
     })

@@ -6,6 +6,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.utils.tilKortFormat
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.PdfDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.transformToXML
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.Base64
 import java.util.UUID
 
@@ -46,6 +47,15 @@ fun tilDokumenter(
         ),
     )
 
-private fun Inntektsmelding.tilJournalTittel(): String = "Inntektsmelding-${this.avsender.orgnr.verdi}-${this.agp?.perioder?.tilKortFormat() ?: " (ingen agp)"}"
-
 private fun ByteArray.encode(): String = base64.encodeToString(this)
+
+fun Inntektsmelding.tilJournalTittel(): String {
+    val orgnr = this.avsender.orgnr.verdi
+    val agp =
+        this.agp
+            ?.perioder
+            ?.ifEmpty { null }
+            ?.tilKortFormat()
+            .orDefault(" (ingen agp)")
+    return "Inntektsmelding-$orgnr-$agp"
+}

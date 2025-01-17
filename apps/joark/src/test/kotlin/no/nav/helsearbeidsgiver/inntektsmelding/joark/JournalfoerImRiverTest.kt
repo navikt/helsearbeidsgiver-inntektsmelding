@@ -5,7 +5,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
 import io.mockk.clearAllMocks
@@ -171,13 +170,6 @@ class JournalfoerImRiverTest :
             coVerifySequence {
                 mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
             }
-        }
-
-        test("tittel formateres riktig") {
-            val dokument = tilDokumenter(UUID.randomUUID(), Mock.inntektsmelding)
-            val orgnr = Mock.inntektsmelding.avsender.orgnr.verdi
-
-            dokument[0].tittel shouldBeEqual "Inntektsmelding-$orgnr-05.10.2018 - [...] - 22.10.2018"
         }
 
         context("ignorerer melding") {

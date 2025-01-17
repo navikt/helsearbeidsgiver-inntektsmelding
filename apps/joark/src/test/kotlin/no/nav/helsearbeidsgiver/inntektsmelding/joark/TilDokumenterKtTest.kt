@@ -52,6 +52,6 @@ class TilDokumenterKtTest {
     @Test
     fun journalTittelIngenPeriode() {
         val im = mockInntekstmeldingMedPerioder(emptyList())
-        assertEquals("Inntektsmelding-${im.avsender.orgnr.verdi}- (ingen agp)", im.tilDokumentbeskrivelse())
+        assertEquals("Inntektsmelding-${im.avsender.orgnr.verdi}-(ingen agp)", im.tilDokumentbeskrivelse())
     }
 }

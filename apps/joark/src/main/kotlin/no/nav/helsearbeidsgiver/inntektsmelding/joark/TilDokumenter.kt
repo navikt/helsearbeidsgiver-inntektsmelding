@@ -56,6 +56,6 @@ fun Inntektsmelding.tilDokumentbeskrivelse(): String {
             ?.perioder
             ?.ifEmpty { null }
             ?.tilKortFormat()
-            .orDefault(" (ingen agp)")
+            .orDefault("(ingen agp)")
     return "Inntektsmelding-$orgnr-$agp"
 }

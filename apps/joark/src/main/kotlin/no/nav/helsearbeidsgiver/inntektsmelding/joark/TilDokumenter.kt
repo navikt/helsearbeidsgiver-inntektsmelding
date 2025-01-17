@@ -18,7 +18,7 @@ fun tilDokumenter(
 ): List<Dokument> =
     listOf(
         Dokument(
-            tittel = inntektsmelding.tilJournalTittel(),
+            tittel = inntektsmelding.tilDokumentbeskrivelse(),
             // TODO Denne må vi undersøke om vi vil bruke videre. Dette er koden til Altinn-service, som trolig brukes til å filtrere journalposter et sted.
             brevkode = "4936",
             dokumentVarianter =
@@ -49,7 +49,7 @@ fun tilDokumenter(
 
 private fun ByteArray.encode(): String = base64.encodeToString(this)
 
-fun Inntektsmelding.tilJournalTittel(): String {
+fun Inntektsmelding.tilDokumentbeskrivelse(): String {
     val orgnr = this.avsender.orgnr.verdi
     val agp =
         this.agp

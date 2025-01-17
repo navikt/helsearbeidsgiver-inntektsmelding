@@ -20,17 +20,7 @@ class TilDokumenterKtTest {
         assertEquals(2, dokumenter[0].dokumentVarianter.size)
         assertEquals("XML", dokumenter[0].dokumentVarianter[0].filtype)
         assertEquals("PDFA", dokumenter[0].dokumentVarianter[1].filtype)
-    }
-
-    @Test
-    fun tittelFormateresRiktig() {
-        val mockInntektsmelding = mockInntektsmeldingV1()
-
-        val dokumenter = tilDokumenter(UUID.randomUUID(), mockInntektsmelding)
-
-        val orgnr = mockInntektsmelding.avsender.orgnr.verdi
-
-        assertEquals("Inntektsmelding-$orgnr-05.10.2018 - [...] - 22.10.2018", dokumenter[0].tittel)
+        assertEquals("Inntektsmelding-${mockInntektsmelding.avsender.orgnr.verdi}-05.10.2018 - [...] - 22.10.2018", dokumenter[0].tittel)
     }
 
     fun mockInntekstmeldingMedPerioder(perioder: List<Periode>): Inntektsmelding =
@@ -41,27 +31,27 @@ class TilDokumenterKtTest {
         val im =
             mockInntekstmeldingMedPerioder(
                 listOf(
-                    5.oktober til 15.oktober,
+                    4.oktober til 14.oktober,
                     20.oktober til 22.oktober,
                 ),
             )
-        assertEquals("Inntektsmelding-${im.avsender.orgnr.verdi}-05.10.2018 - [...] - 22.10.2018", im.tilJournalTittel())
+        assertEquals("Inntektsmelding-${im.avsender.orgnr.verdi}-04.10.2018 - [...] - 22.10.2018", im.tilDokumentbeskrivelse())
     }
 
     @Test
-    fun journalTittelEnPerioder() {
+    fun journalTittelEnPeriode() {
         val im =
             mockInntekstmeldingMedPerioder(
                 listOf(
                     1.oktober til 16.oktober,
                 ),
             )
-        assertEquals("Inntektsmelding-${im.avsender.orgnr.verdi}-01.10.2018 - 16.10.2018", im.tilJournalTittel())
+        assertEquals("Inntektsmelding-${im.avsender.orgnr.verdi}-01.10.2018 - 16.10.2018", im.tilDokumentbeskrivelse())
     }
 
     @Test
-    fun journalTittelIngenPerioder() {
+    fun journalTittelIngenPeriode() {
         val im = mockInntekstmeldingMedPerioder(emptyList())
-        assertEquals("Inntektsmelding-${im.avsender.orgnr.verdi}- (ingen agp)", im.tilJournalTittel())
+        assertEquals("Inntektsmelding-${im.avsender.orgnr.verdi}- (ingen agp)", im.tilDokumentbeskrivelse())
     }
 }

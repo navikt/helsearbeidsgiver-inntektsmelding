@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helsearbeidsgiver.altinn.AltinnClient
+import no.nav.helsearbeidsgiver.altinn.Altinn3M2MClient
 import no.nav.helsearbeidsgiver.altinn.CacheConfig
 import no.nav.helsearbeidsgiver.maskinporten.MaskinportenClient
 import no.nav.helsearbeidsgiver.maskinporten.MaskinportenClientConfig
@@ -19,7 +19,7 @@ fun main() {
         .start()
 }
 
-fun RapidsConnection.createAltinn(altinnClient: AltinnClient): RapidsConnection =
+fun RapidsConnection.createAltinn(altinnClient: Altinn3M2MClient): RapidsConnection =
     also {
         logger.info("Starter ${TilgangRiver::class.simpleName}...")
         TilgangRiver(altinnClient).connect(this)
@@ -28,13 +28,12 @@ fun RapidsConnection.createAltinn(altinnClient: AltinnClient): RapidsConnection 
         AltinnRiver(altinnClient).connect(this)
     }
 
-private fun createAltinnClient(): AltinnClient {
+private fun createAltinnClient(): Altinn3M2MClient {
     val maskinportenClient = createMaskinportenClient()
-    return AltinnClient(
-        url = Env.url,
+    return Altinn3M2MClient(
+        baseUrl = Env.url,
         serviceCode = Env.serviceCode,
         getToken = maskinportenClient::getToken,
-        altinnApiKey = Env.altinnApiKey,
         cacheConfig = CacheConfig(60.minutes, 100),
     )
 }

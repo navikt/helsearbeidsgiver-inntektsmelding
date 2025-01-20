@@ -10,8 +10,8 @@ import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.fromEnv
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.Mock.altinnOrganisasjoner
@@ -51,7 +51,7 @@ class AltinnAppTest :
                     .setBody(tokenResponse)
                     .addHeader("Content-Type", "application/json"),
             )
-            val altinnResponse = altinnOrganisasjoner.toJson(AltinnOrganisasjon.serializer().set()).toString()
+            val altinnResponse = altinnOrganisasjoner.toJson(String.serializer().set()).toString()
             val mockResponse =
                 MockResponse()
                     .setBody(altinnResponse)

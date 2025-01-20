@@ -2,7 +2,6 @@ apiVersion: aiven.io/v1alpha1
 kind: Redis
 metadata:
   labels:
-    app: redis-inntektsmelding
     team: helsearbeidsgiver
   name: redis-helsearbeidsgiver-inntektsmelding
   namespace: helsearbeidsgiver

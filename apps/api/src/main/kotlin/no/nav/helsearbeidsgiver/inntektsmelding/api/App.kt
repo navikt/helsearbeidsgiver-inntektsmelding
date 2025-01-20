@@ -58,31 +58,28 @@ object Routes {
 
 fun main() {
     val rapid = RapidApplication.create(System.getenv())
-    val aivenRedisConnection =
+    val redisConnection =
         RedisConnection(
             host = Env.Redis.host,
             port = Env.Redis.port,
             username = Env.Redis.username,
             password = Env.Redis.password,
         )
-    val redisConnection = RedisConnection(Env.Redis.url)
 
     embeddedServer(
         factory = Netty,
         port = 8080,
-        module = { apiModule(rapid, aivenRedisConnection, redisConnection) },
+        module = { apiModule(rapid, redisConnection) },
     ).start(wait = true)
 
     rapid
         .registerShutdownLifecycle {
-            aivenRedisConnection.close()
             redisConnection.close()
         }.start()
 }
 
 fun Application.apiModule(
     rapid: RapidsConnection,
-    aivenRedisConnection: RedisConnection,
     redisConnection: RedisConnection,
 ) {
     val tilgangskontroll =
@@ -121,8 +118,8 @@ fun Application.apiModule(
 
         authenticate {
             route(Routes.PREFIX) {
-                hentForespoersel(rapid, tilgangskontroll, aivenRedisConnection)
-                hentForespoerselIdListe(rapid, tilgangskontroll, aivenRedisConnection)
+                hentForespoersel(rapid, tilgangskontroll, redisConnection)
+                hentForespoerselIdListe(rapid, tilgangskontroll, redisConnection)
                 inntektRoute(rapid, tilgangskontroll, redisConnection)
                 inntektSelvbestemtRoute(rapid, tilgangskontroll, redisConnection)
                 innsending(rapid, tilgangskontroll, redisConnection)

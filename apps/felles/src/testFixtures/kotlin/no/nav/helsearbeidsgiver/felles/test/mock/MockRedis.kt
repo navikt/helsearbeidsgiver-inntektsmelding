@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.felles.test.mock
 
 import io.lettuce.core.RedisClient
+import io.lettuce.core.RedisURI
 import io.lettuce.core.api.sync.RedisCommands
 import io.mockk.every
 import io.mockk.mockk
@@ -16,8 +17,8 @@ class MockRedis(
     private val mockCommands = mockk<RedisCommands<String, String>>()
     private val redis =
         mockStatic(RedisClient::class) {
-            every { RedisClient.create(any<String>()) } returns mockRedisClient(mockCommands)
-            RedisConnection("")
+            every { RedisClient.create(any<RedisURI>()) } returns mockRedisClient(mockCommands)
+            RedisConnection("host", 0, "username", "password")
         }
 
     val store: RedisStore

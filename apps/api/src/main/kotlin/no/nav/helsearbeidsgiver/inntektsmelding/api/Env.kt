@@ -13,7 +13,5 @@ object Env {
         val port = "REDIS_PORT_INNTEKTSMELDING".fromEnv().toInt()
         val username = "REDIS_USERNAME_INNTEKTSMELDING".fromEnv()
         val password = "REDIS_PASSWORD_INNTEKTSMELDING".fromEnv()
-
-        val url = "REDIS_URL".fromEnv()
     }
 }

@@ -48,7 +48,7 @@ class AuthorizationTest : ApiTest() {
             val path = "/test/auth"
 
             application {
-                apiModule(mockk(relaxed = true), mockk(), mockk())
+                apiModule(mockk(relaxed = true), mockk())
 
                 routing {
                     authenticate {

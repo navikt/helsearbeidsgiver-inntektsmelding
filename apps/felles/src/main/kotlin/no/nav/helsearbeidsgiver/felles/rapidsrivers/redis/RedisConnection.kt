@@ -7,14 +7,12 @@ import io.lettuce.core.api.sync.RedisCommands
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 
 class RedisConnection(
-    redisUri: String,
+    host: String,
+    port: Int,
+    username: String,
+    password: String,
 ) {
-    constructor(
-        host: String,
-        port: Int,
-        username: String,
-        password: String,
-    ) : this(
+    private val client: RedisClient =
         RedisURI
             .builder()
             .withSsl(true)
@@ -23,11 +21,7 @@ class RedisConnection(
             .withAuthentication(username, password)
             .withDatabase(0)
             .build()
-            .toURI()
-            .toString(),
-    )
-
-    private val client: RedisClient = RedisClient.create(redisUri)
+            .let(RedisClient::create)
     private val connection: StatefulRedisConnection<String, String> = client.connect()
     private val syncCommands: RedisCommands<String, String> = connection.sync()
 

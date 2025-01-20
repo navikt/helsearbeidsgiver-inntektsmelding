@@ -39,7 +39,7 @@ abstract class ApiTest : MockAuthToken() {
     fun testApi(block: suspend TestClient.() -> Unit): Unit =
         testApplication {
             application {
-                apiModule(mockk(relaxed = true), mockRedisConnection, mockRedisConnection)
+                apiModule(mockk(relaxed = true), mockRedisConnection)
             }
 
             val testClient = TestClient(this, ::mockAuthToken)

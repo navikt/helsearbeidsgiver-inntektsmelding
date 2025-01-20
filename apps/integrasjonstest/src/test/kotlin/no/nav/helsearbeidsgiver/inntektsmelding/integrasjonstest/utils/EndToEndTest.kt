@@ -3,6 +3,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.lettuce.core.RedisClient
+import io.lettuce.core.RedisURI
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
@@ -70,6 +72,7 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.mai
+import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.intellij.lang.annotations.Language
@@ -156,7 +159,11 @@ abstract class EndToEndTest : ContainerTest() {
         return@lazy withRetries(
             feilmelding = "Klarte ikke koble til Redis.",
         ) {
-            RedisConnection(redisContainer.redisURI)
+            // Hijacker RedisClient her pga. vanskeligheter med å sette opp RedisContainer med SSL og autentisering
+            mockStatic(RedisClient::class) {
+                every { RedisClient.create(any<RedisURI>()) } returns RedisClient.create(redisContainer.redisURI)
+                RedisConnection("host", 0, "username", "password")
+            }
         }
     }
 

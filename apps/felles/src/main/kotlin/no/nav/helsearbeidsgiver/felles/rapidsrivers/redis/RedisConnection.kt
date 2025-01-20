@@ -1,14 +1,27 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.redis
 
 import io.lettuce.core.RedisClient
+import io.lettuce.core.RedisURI
 import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.sync.RedisCommands
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 
 class RedisConnection(
-    redisUrl: String,
+    host: String,
+    port: Int,
+    username: String,
+    password: String,
 ) {
-    private val client: RedisClient = RedisClient.create(redisUrl)
+    private val client: RedisClient =
+        RedisURI
+            .builder()
+            .withSsl(true)
+            .withHost(host)
+            .withPort(port)
+            .withAuthentication(username, password)
+            .withDatabase(0)
+            .build()
+            .let(RedisClient::create)
     private val connection: StatefulRedisConnection<String, String> = client.connect()
     private val syncCommands: RedisCommands<String, String> = connection.sync()
 

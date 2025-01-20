@@ -1,9 +1,2 @@
 kafkaPool: nav-dev
-azure:
-  enabled: true
-ingress: https://helsearbeidsgiver-im-innsending.intern.dev.nav.no
-env:
-- name: REDIS_URL
-  value: redis://helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local:6379/0
-apps:
-  - name: helsearbeidsgiver-redis
+redisAccess: readwrite

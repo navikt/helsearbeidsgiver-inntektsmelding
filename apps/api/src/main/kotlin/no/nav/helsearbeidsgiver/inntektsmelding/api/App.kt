@@ -110,7 +110,7 @@ fun Application.apiModule(
             call.respondText("helsearbeidsgiver inntektsmelding")
         }
 
-        authenticate {
+        authenticate(Auth.IDPORTEN_VALIDATION, Auth.TOKENX_VALIDATION) {
             route(Routes.PREFIX) {
                 hentForespoersel(rapid, tilgangskontroll, redisConnection)
                 hentForespoerselIdListe(rapid, tilgangskontroll, redisConnection)

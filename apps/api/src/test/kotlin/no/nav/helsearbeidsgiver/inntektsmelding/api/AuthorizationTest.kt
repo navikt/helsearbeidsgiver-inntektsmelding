@@ -51,7 +51,7 @@ class AuthorizationTest : ApiTest() {
                 apiModule(mockk(relaxed = true), mockk())
 
                 routing {
-                    authenticate {
+                    authenticate("idporten-validation", "tokenx-validation") {
                         get(path) {
                             val fnr =
                                 try {

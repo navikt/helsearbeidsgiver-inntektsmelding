@@ -3,16 +3,16 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import no.nav.helsearbeidsgiver.felles.domene.KvitteringResultat
+import no.nav.helsearbeidsgiver.felles.domene.LagretInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.mars
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -56,9 +56,11 @@ private val resultat =
     KvitteringResultat(
         forespoersel = mockForespoersel(),
         sykmeldtNavn = "Syk Meldt",
-        avsenderNavn = "Avs Ender",
         orgNavn = "Orga Nisasjon",
-        skjema = mockSkjemaInntektsmelding(),
-        inntektsmelding = mockInntektsmelding(),
-        eksternInntektsmelding = mockEksternInntektsmelding(),
+        lagret =
+            LagretInntektsmelding.Skjema(
+                avsenderNavn = "Avs Ender",
+                skjema = mockSkjemaInntektsmelding(),
+                mottatt = 4.mars.atStartOfDay(),
+            ),
     )

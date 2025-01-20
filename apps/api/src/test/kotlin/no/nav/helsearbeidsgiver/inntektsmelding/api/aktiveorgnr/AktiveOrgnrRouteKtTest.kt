@@ -1,5 +1,3 @@
-@file:Suppress("NonAsciiCharacters")
-
 package no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr
 
 import io.kotest.matchers.shouldBe

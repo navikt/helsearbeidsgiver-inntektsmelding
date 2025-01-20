@@ -18,7 +18,7 @@ abstract class FunSpecWithDb(
             Database(dbConfig())
                 .configureFlyway()
 
-        beforeEach {
+        beforeTest {
             transaction {
                 table.forEach { it.deleteAll() }
             }

@@ -1,15 +1,12 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convertAgp
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convertInntekt
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.domene.LagretInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -61,29 +58,9 @@ class HentLagretImRiver(
     override fun HentLagretImMelding.bestemNoekkel(): KafkaKey = svarKafkaKey
 
     override fun HentLagretImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        val (
-            skjema,
-            inntektsmelding,
-            eksternInntektsmelding,
-        ) =
-            imRepo
-                .hentNyesteEksternEllerInternInntektsmelding(forespoerselId)
-                .let { (skjema, inntektsmelding, eksternInntektsmelding) ->
-                    val bakoverkompatibeltSkjema =
-                        skjema ?: inntektsmelding?.let {
-                            SkjemaInntektsmelding(
-                                forespoerselId = forespoerselId,
-                                avsenderTlf = it.telefonnummer.orEmpty(),
-                                agp = it.convertAgp(),
-                                inntekt = it.convertInntekt(),
-                                refusjon = it.refusjon.convert(),
-                            )
-                        }
+        val lagret = imRepo.hentNyesteInntektsmelding(forespoerselId)
 
-                    Triple(bakoverkompatibeltSkjema, inntektsmelding, eksternInntektsmelding)
-                }.tilPayloadTriple()
-
-        loggHentet(inntektsmelding, eksternInntektsmelding)
+        loggHentet(lagret)
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
@@ -91,11 +68,10 @@ class HentLagretImRiver(
             Key.DATA to
                 data
                     .plus(
-                        mapOf(
-                            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(),
-                            Key.LAGRET_INNTEKTSMELDING to inntektsmelding.toJson(),
-                            Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(),
-                        ),
+                        Key.LAGRET_INNTEKTSMELDING to
+                            ResultJson(
+                                success = lagret?.toJson(LagretInntektsmelding.serializer()),
+                            ).toJson(),
                     ).toJson(),
         )
     }
@@ -126,37 +102,22 @@ class HentLagretImRiver(
             Log.forespoerselId(forespoerselId),
         )
 
-    private fun loggHentet(
-        inntektsmelding: ResultJson,
-        eksternInntektsmelding: ResultJson,
-    ) {
-        if (inntektsmelding.success == null) {
-            "Fant _ikke_ lagret inntektsmelding.".also {
-                logger.info(it)
-                sikkerLogger.info(it)
+    private fun loggHentet(lagret: LagretInntektsmelding?) {
+        when (lagret) {
+            is LagretInntektsmelding.Skjema -> {
+                logger.info("Fant lagret inntektsmeldingsskjema.")
+                sikkerLogger.info("Fant lagret inntektsmeldingsskjema.\n${lagret.skjema.toJson(SkjemaInntektsmelding.serializer()).toPretty()}")
             }
-        } else {
-            logger.info("Fant lagret inntektsmelding.")
-            sikkerLogger.info("Fant lagret inntektsmelding.\n${inntektsmelding.success?.toPretty()}")
-        }
-
-        if (eksternInntektsmelding.success == null) {
-            "Fant _ikke_ lagret ekstern inntektsmelding.".also {
-                logger.info(it)
-                sikkerLogger.info(it)
+            is LagretInntektsmelding.Ekstern -> {
+                logger.info("Fant lagret ekstern inntektsmelding.")
+                sikkerLogger.info("Fant lagret ekstern inntektsmelding.\n${lagret.ekstern.toJson(EksternInntektsmelding.serializer()).toPretty()}")
             }
-        } else {
-            logger.info("Fant lagret ekstern inntektsmelding.")
-            sikkerLogger.info("Fant lagret ekstern inntektsmelding.\n${eksternInntektsmelding.success?.toPretty()}")
+            null -> {
+                "Fant _ikke_ lagret inntektsmeldingsskjema eller ekstern inntektsmelding.".also {
+                    logger.info(it)
+                    sikkerLogger.info(it)
+                }
+            }
         }
     }
 }
-
-private fun Triple<SkjemaInntektsmelding?, Inntektsmelding?, EksternInntektsmelding?>.tilPayloadTriple(): Triple<ResultJson, ResultJson, ResultJson> =
-    Triple(
-        first?.toJson(SkjemaInntektsmelding.serializer()).toSuccess(),
-        second?.toJson(Inntektsmelding.serializer()).toSuccess(),
-        third?.toJson(EksternInntektsmelding.serializer()).toSuccess(),
-    )
-
-private fun JsonElement?.toSuccess(): ResultJson = ResultJson(success = this)

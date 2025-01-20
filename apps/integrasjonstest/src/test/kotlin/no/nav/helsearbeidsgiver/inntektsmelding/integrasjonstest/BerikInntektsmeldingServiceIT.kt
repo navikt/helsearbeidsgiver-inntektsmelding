@@ -22,7 +22,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingGammeltFormat
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
@@ -53,7 +53,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
     @Test
     fun `skal berike og lagre inntektsmeldinger`() {
-        val tidligereInntektsmelding = mockInntektsmelding()
+        val tidligereInntektsmelding = mockInntektsmeldingGammeltFormat()
 
         val innsendingId = imRepository.lagreInntektsmeldingSkjema(Mock.skjema, 10.desember.atStartOfDay())
         imRepository.oppdaterMedBeriketDokument(Mock.forespoerselId, innsendingId, tidligereInntektsmelding)
@@ -168,7 +168,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
     @Test
     fun `skal opprette en bakgrunnsjobb som gjenopptar berikelsen av inntektsmeldingen senere dersom oppslaget mot pdl feiler`() {
-        val tidligereInntektsmelding = mockInntektsmelding()
+        val tidligereInntektsmelding = mockInntektsmeldingGammeltFormat()
 
         val innsendingId = imRepository.lagreInntektsmeldingSkjema(Mock.skjema, 10.desember.atStartOfDay())
         imRepository.oppdaterMedBeriketDokument(Mock.forespoerselId, innsendingId, tidligereInntektsmelding)

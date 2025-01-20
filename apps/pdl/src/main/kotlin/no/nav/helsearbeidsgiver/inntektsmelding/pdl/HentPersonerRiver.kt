@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
@@ -30,7 +29,7 @@ data class Melding(
     val behovType: BehovType,
     val transaksjonId: UUID,
     val data: Map<Key, JsonElement>,
-    val svarKafkaKey: KafkaKey?,
+    val svarKafkaKey: KafkaKey,
     val fnrListe: Set<Fnr>,
 )
 
@@ -51,12 +50,12 @@ class HentPersonerRiver(
                 behovType = Key.BEHOV.krev(BehovType.HENT_PERSONER, BehovType.serializer(), json),
                 transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
-                svarKafkaKey = Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), data),
+                svarKafkaKey = Key.SVAR_KAFKA_KEY.les(KafkaKey.serializer(), data),
                 fnrListe = Key.FNR_LISTE.les(Fnr.serializer().set(), data),
             )
         }
 
-    override fun Melding.bestemNoekkel(): KafkaKey? = svarKafkaKey
+    override fun Melding.bestemNoekkel(): KafkaKey = svarKafkaKey
 
     override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         "Henter navn for ${fnrListe.size} personer.".also {

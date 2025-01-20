@@ -18,6 +18,7 @@ import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
@@ -26,7 +27,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.pdl.Mock.toMap
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
-import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -61,16 +61,7 @@ class HentPersonerRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly
-                mapOf(
-                    Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
-                    Key.DATA to
-                        mapOf(
-                            Key.FNR_LISTE to listOf(olaFnr).toJson(Fnr.serializer()),
-                            Key.PERSONER to personer.toJson(personMapSerializer),
-                        ).toJson(),
-                )
+            testRapid.firstMessage().toMap() shouldContainExactly Mock.forventetUtgaaendeMelding(innkommendeMelding, personer)
 
             coVerifySequence {
                 mockPdlClient.personBolk(listOf(olaFnr.verdi))
@@ -100,16 +91,7 @@ class HentPersonerRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly
-                mapOf(
-                    Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
-                    Key.DATA to
-                        mapOf(
-                            Key.FNR_LISTE to setOf(olaFnr, kariFnr).toJson(Fnr.serializer()),
-                            Key.PERSONER to personer.toJson(personMapSerializer),
-                        ).toJson(),
-                )
+            testRapid.firstMessage().toMap() shouldContainExactly Mock.forventetUtgaaendeMelding(innkommendeMelding, personer)
 
             coVerifySequence {
                 mockPdlClient.personBolk(listOf(olaFnr.verdi, kariFnr.verdi))
@@ -132,54 +114,14 @@ class HentPersonerRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly
-                mapOf(
-                    Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
-                    Key.DATA to
-                        mapOf(
-                            Key.FNR_LISTE to setOf(olaFnr, kariFnr).toJson(Fnr.serializer()),
-                            Key.PERSONER to personer.toJson(personMapSerializer),
-                        ).toJson(),
-                )
+            testRapid.firstMessage().toMap() shouldContainExactly Mock.forventetUtgaaendeMelding(innkommendeMelding, personer)
 
             coVerifySequence {
                 mockPdlClient.personBolk(listOf(olaFnr.verdi, kariFnr.verdi))
             }
         }
 
-        test("sender med forespoerselId dersom det finnes i utløsende melding") {
-            val forespoerselId = UUID.randomUUID()
-            val olaFnr = Fnr.genererGyldig()
-            val personer =
-                mapOf(
-                    olaFnr to Person(olaFnr, "Ola Normann"),
-                )
-
-            val innkommendeMelding = Mock.innkommendeMelding(setOf(olaFnr), forespoerselId)
-
-            coEvery { mockPdlClient.personBolk(any()) } returns listOf(Mock.fullPerson("Ola", olaFnr))
-
-            testRapid.sendJson(innkommendeMelding.toMap())
-
-            testRapid.inspektør.size shouldBeExactly 1
-
-            testRapid.firstMessage().toMap() shouldContainExactly
-                mapOf(
-                    Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
-                    Key.DATA to
-                        mapOf(
-                            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                            Key.FNR_LISTE to setOf(olaFnr).toJson(Fnr.serializer()),
-                            Key.PERSONER to personer.toJson(personMapSerializer),
-                        ).toJson(),
-                )
-        }
-
         test("håndterer ukjente feil") {
-            val forespoerselId = UUID.randomUUID()
-            val selvbestemtId = UUID.randomUUID()
             val randomFnr = Fnr.genererGyldig()
 
             val innkommendeMelding = Mock.innkommendeMelding(setOf(randomFnr))
@@ -233,22 +175,22 @@ class HentPersonerRiverTest :
     })
 
 private object Mock {
-    fun innkommendeMelding(
-        fnrListe: Set<Fnr>,
-        forespoerselId: UUID? = null,
-    ): Melding =
-        Melding(
+    fun innkommendeMelding(fnrListe: Set<Fnr>): Melding {
+        val svarKafkaKey = KafkaKey(UUID.randomUUID())
+
+        return Melding(
             eventName = EventName.TRENGER_REQUESTED,
             behovType = BehovType.HENT_PERSONER,
             transaksjonId = UUID.randomUUID(),
             data =
                 mapOf(
-                    Key.FORESPOERSEL_ID to forespoerselId?.toJson(),
+                    Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
                     Key.FNR_LISTE to fnrListe.toJson(Fnr.serializer()),
-                ).mapValuesNotNull { it },
-            svarKafkaKey = null,
+                ),
+            svarKafkaKey = svarKafkaKey,
             fnrListe = fnrListe,
         )
+    }
 
     fun Melding.toMap(): Map<Key, JsonElement> =
         mapOf(
@@ -256,6 +198,20 @@ private object Mock {
             Key.BEHOV to behovType.toJson(),
             Key.KONTEKST_ID to transaksjonId.toJson(),
             Key.DATA to data.toJson(),
+        )
+
+    fun forventetUtgaaendeMelding(
+        innkommendeMelding: Melding,
+        personer: Map<Fnr, Person>,
+    ): Map<Key, JsonElement> =
+        mapOf(
+            Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
+            Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+            Key.DATA to
+                innkommendeMelding.data
+                    .plus(
+                        Key.PERSONER to personer.toJson(personMapSerializer),
+                    ).toJson(),
         )
 
     val fail = mockFail("They have a cave troll.", EventName.TRENGER_REQUESTED)

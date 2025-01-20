@@ -2,7 +2,6 @@
 
 package no.nav.helsearbeidsgiver.felles.domene
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
@@ -23,7 +22,7 @@ data class ForespurtData(
     @Serializable
     data class Inntekt(
         val paakrevd: Boolean,
-        val forslag: ForslagInntekt,
+        val forslag: ForslagInntekt?,
     )
 
     @Serializable
@@ -34,19 +33,10 @@ data class ForespurtData(
 }
 
 @Serializable
-sealed class ForslagInntekt {
-    @Serializable
-    @SerialName("ForslagInntektGrunnlag")
-    data class Grunnlag(
-        val forrigeInntekt: ForrigeInntekt?,
-    ) : ForslagInntekt()
-
-    @Serializable
-    @SerialName("ForslagInntektFastsatt")
-    data class Fastsatt(
-        val fastsattInntekt: Double,
-    ) : ForslagInntekt()
-}
+data class ForslagInntekt(
+    // TODO fjern default etter overgangsfase
+    val forrigeInntekt: ForrigeInntekt? = null,
+)
 
 @Serializable
 data class ForslagRefusjon(

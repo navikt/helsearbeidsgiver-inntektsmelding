@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
-import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselListeSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -49,16 +48,6 @@ fun mockForespoerselListeSvarMedSuksess(): ForespoerselListeSvar {
     )
 }
 
-fun mockForespoerselSvarMedSuksessMedFastsattInntekt(): ForespoerselSvar {
-    val forespoerselId = UUID.randomUUID()
-    return ForespoerselSvar(
-        forespoerselId = forespoerselId,
-        resultat = mockForespoerselSvarSuksessMedFastsattInntekt(forespoerselId),
-        feil = null,
-        boomerang = mockBoomerang(),
-    )
-}
-
 fun mockForespoerselSvarMedFeil(): ForespoerselSvar =
     ForespoerselSvar(
         forespoerselId = UUID.randomUUID(),
@@ -85,26 +74,6 @@ fun mockForespoerselSvarSuksess(forespoerselId: UUID): ForespoerselFraBro {
         egenmeldingsperioder = listOf(1.januar til 1.januar),
         bestemmendeFravaersdager = mapOf(orgnr to 1.januar),
         forespurtData = mockForespurtData(),
-        erBesvart = false,
-        opprettetUpresisIkkeBruk = 17.januar,
-    )
-}
-
-fun mockForespoerselSvarSuksessMedFastsattInntekt(forespoerselId: UUID): ForespoerselFraBro {
-    val orgnr = Orgnr.genererGyldig()
-    return ForespoerselFraBro(
-        orgnr = orgnr,
-        fnr = Fnr.genererGyldig(),
-        forespoerselId = forespoerselId,
-        vedtaksperiodeId = UUID.randomUUID(),
-        sykmeldingsperioder =
-            listOf(
-                2.januar til 10.januar,
-                15.januar til 31.januar,
-            ),
-        egenmeldingsperioder = listOf(1.januar til 1.januar),
-        bestemmendeFravaersdager = mapOf(orgnr to 1.januar),
-        forespurtData = mockForespurtDataMedFastsattInntekt(),
         erBesvart = false,
         opprettetUpresisIkkeBruk = 17.januar,
     )

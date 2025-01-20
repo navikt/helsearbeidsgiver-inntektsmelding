@@ -314,7 +314,7 @@ private fun ForespurtData.hardcodedJson(): String =
         },
         "inntekt": {
             "paakrevd": ${inntekt.paakrevd},
-            "forslag": ${inntekt.forslag.hardcodedJson()}
+            "forslag": ${inntekt.forslag?.hardcodedJson()}
         },
         "refusjon": {
             "paakrevd": ${refusjon.paakrevd},
@@ -324,23 +324,11 @@ private fun ForespurtData.hardcodedJson(): String =
     """
 
 private fun ForslagInntekt.hardcodedJson(): String =
-    when (this) {
-        is ForslagInntekt.Grunnlag ->
-            """
-            {
-                "type": "ForslagInntektGrunnlag",
-                "forrigeInntekt": ${forrigeInntekt?.hardcodedJson()}
-            }
-            """
-
-        is ForslagInntekt.Fastsatt ->
-            """
-            {
-                "type": "ForslagInntektFastsatt",
-                "fastsattInntekt": $fastsattInntekt
-            }
-            """
+    """
+    {
+        "forrigeInntekt": ${forrigeInntekt?.hardcodedJson()}
     }
+    """
 
 private fun ForrigeInntekt.hardcodedJson(): String =
     """

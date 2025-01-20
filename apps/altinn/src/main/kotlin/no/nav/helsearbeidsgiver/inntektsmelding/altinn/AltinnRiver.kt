@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
@@ -29,7 +28,7 @@ data class Melding(
     val behovType: BehovType,
     val transaksjonId: UUID,
     val data: Map<Key, JsonElement>,
-    val svarKafkaKey: KafkaKey?,
+    val svarKafkaKey: KafkaKey,
     val fnr: Fnr,
 )
 
@@ -50,12 +49,12 @@ class AltinnRiver(
                 behovType = Key.BEHOV.krev(BehovType.ARBEIDSGIVERE, BehovType.serializer(), json),
                 transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
-                svarKafkaKey = Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), data),
+                svarKafkaKey = Key.SVAR_KAFKA_KEY.les(KafkaKey.serializer(), data),
                 fnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), data),
             )
         }
 
-    override fun Melding.bestemNoekkel(): KafkaKey? = svarKafkaKey
+    override fun Melding.bestemNoekkel(): KafkaKey = svarKafkaKey
 
     override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val rettigheterForenklet =

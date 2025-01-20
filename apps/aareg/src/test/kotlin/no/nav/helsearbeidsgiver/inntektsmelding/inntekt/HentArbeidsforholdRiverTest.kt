@@ -18,6 +18,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
@@ -122,6 +123,7 @@ class HentArbeidsforholdRiverTest :
 private object Mock {
     fun innkommendeMelding(): HentArbeidsforholdMelding {
         val fnr = Fnr.genererGyldig()
+        val svarKafkaKey = KafkaKey(fnr)
 
         return HentArbeidsforholdMelding(
             eventName = EventName.AKTIVE_ORGNR_REQUESTED,
@@ -129,9 +131,10 @@ private object Mock {
             transaksjonId = UUID.randomUUID(),
             data =
                 mapOf(
+                    Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
                     Key.FNR to fnr.toJson(Fnr.serializer()),
                 ),
-            svarKafkaKey = null,
+            svarKafkaKey = svarKafkaKey,
             fnr = fnr,
         )
     }

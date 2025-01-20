@@ -72,25 +72,6 @@ class RiverUtilsKtTest :
                 }
             }
 
-            test("map (uten key)") {
-                val melding =
-                    mapOf(
-                        Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
-                        Key.INNTEKTSMELDING to mockInntektsmeldingV1().toJson(Inntektsmelding.serializer()),
-                        Key.ORGNR_UNDERENHETER to setOf("666", "444", "222").toJson(String.serializer()),
-                    )
-
-                testRapid.publish(null, melding)
-
-                verifySequence {
-                    testRapid.publish(
-                        withArg<String> {
-                            it.parseJson().toMap() shouldContainExactly melding
-                        },
-                    )
-                }
-            }
-
             test("map") {
                 val key = UUID.randomUUID()
                 val melding =

@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.altinn.AltinnClient
+import no.nav.helsearbeidsgiver.altinn.Altinn3M2MClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -33,7 +33,7 @@ data class TilgangMelding(
 )
 
 class TilgangRiver(
-    private val altinnClient: AltinnClient,
+    private val altinnClient: Altinn3M2MClient,
 ) : ObjectRiver<TilgangMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -58,8 +58,8 @@ class TilgangRiver(
 
     override fun TilgangMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val harTilgang =
-            Metrics.altinnRequest.recordTime(altinnClient::harRettighetForOrganisasjon) {
-                altinnClient.harRettighetForOrganisasjon(fnr.verdi, orgnr.verdi)
+            Metrics.altinnRequest.recordTime(altinnClient::harTilgangTilOrganisasjon) {
+                altinnClient.harTilgangTilOrganisasjon(fnr = fnr.verdi, orgnr = orgnr.verdi)
             }
 
         val tilgang = if (harTilgang) Tilgang.HAR_TILGANG else Tilgang.IKKE_TILGANG

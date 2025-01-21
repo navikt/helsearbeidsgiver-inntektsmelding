@@ -60,7 +60,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         val transaksjonId = UUID.randomUUID()
 
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforholdListe
-        coEvery { altinnClient.hentRettighetOrganisasjoner(any()) } returns Mock.altinnOrganisasjonSet
+        coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet3
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
 
@@ -141,7 +141,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         val transaksjonId = UUID.randomUUID()
 
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns emptyList()
-        coEvery { altinnClient.hentRettighetOrganisasjoner(any()) } returns Mock.altinnOrganisasjonSet
+        coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet3
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
 
@@ -205,7 +205,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         val transaksjonId = UUID.randomUUID()
 
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforholdListe
-        coEvery { altinnClient.hentRettighetOrganisasjoner(any()) } returns Mock.altinnOrganisasjonSet
+        coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet3
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
 
         coEvery { pdlKlient.personBolk(any()) } throws IllegalArgumentException("Ingen folk å finne her!")
@@ -338,6 +338,8 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                     orgnrHovedenhet = "810007702",
                 ),
             )
+
+        val altinnOrganisasjonSet3 = setOf("810007842", "810008032", "810007982")
 
         val underenheter = setOf("810007842")
 

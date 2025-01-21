@@ -2,7 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.altinn.AltinnClient
+import no.nav.helsearbeidsgiver.altinn.Altinn3M2MClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -33,7 +33,7 @@ data class Melding(
 )
 
 class AltinnRiver(
-    private val altinnClient: AltinnClient,
+    private val altinnClient: Altinn3M2MClient,
 ) : ObjectRiver<Melding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -58,11 +58,8 @@ class AltinnRiver(
 
     override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val rettigheterForenklet =
-            Metrics.altinnRequest.recordTime(altinnClient::hentRettighetOrganisasjoner) {
-                altinnClient
-                    .hentRettighetOrganisasjoner(fnr.verdi)
-                    .mapNotNull { it.orgnr }
-                    .toSet()
+            Metrics.altinnRequest.recordTime(altinnClient::hentTilganger) {
+                altinnClient.hentTilganger(fnr.verdi)
             }
 
         return mapOf(

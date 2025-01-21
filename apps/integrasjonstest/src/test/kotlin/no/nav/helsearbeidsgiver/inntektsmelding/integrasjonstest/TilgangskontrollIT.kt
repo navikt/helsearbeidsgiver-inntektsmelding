@@ -29,11 +29,11 @@ class TilgangskontrollIT : EndToEndTest() {
         clearAllMocks()
 
         coEvery {
-            altinnClient.harRettighetForOrganisasjon(Mock.innloggetFnr.verdi, Mock.orgnrMedTilgang.verdi)
+            altinnClient.harTilgangTilOrganisasjon(fnr = Mock.innloggetFnr.verdi, orgnr = Mock.orgnrMedTilgang.verdi)
         } returns true
 
         coEvery {
-            altinnClient.harRettighetForOrganisasjon(Mock.innloggetFnr.verdi, Mock.orgnrUtenTilgang.verdi)
+            altinnClient.harTilgangTilOrganisasjon(fnr = Mock.innloggetFnr.verdi, orgnr = Mock.orgnrUtenTilgang.verdi)
         } returns false
     }
 

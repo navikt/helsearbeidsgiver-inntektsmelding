@@ -33,7 +33,7 @@ data class TilgangMelding(
 )
 
 class TilgangRiver(
-    private val altinn3M2MClient: Altinn3M2MClient,
+    private val altinnClient: Altinn3M2MClient,
 ) : ObjectRiver<TilgangMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -58,8 +58,8 @@ class TilgangRiver(
 
     override fun TilgangMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val harTilgang =
-            Metrics.altinnRequest.recordTime(altinn3M2MClient::harTilgangTilOrganisasjon) {
-                altinn3M2MClient.harTilgangTilOrganisasjon(fnr = fnr.verdi, orgnr = orgnr.verdi)
+            Metrics.altinnRequest.recordTime(altinnClient::harTilgangTilOrganisasjon) {
+                altinnClient.harTilgangTilOrganisasjon(fnr = fnr.verdi, orgnr = orgnr.verdi)
             }
 
         val tilgang = if (harTilgang) Tilgang.HAR_TILGANG else Tilgang.IKKE_TILGANG

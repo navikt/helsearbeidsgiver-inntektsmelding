@@ -33,7 +33,7 @@ data class Melding(
 )
 
 class AltinnRiver(
-    private val altinn3M2MClient: Altinn3M2MClient,
+    private val altinnClient: Altinn3M2MClient,
 ) : ObjectRiver<Melding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -58,8 +58,8 @@ class AltinnRiver(
 
     override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val rettigheterForenklet =
-            Metrics.altinnRequest.recordTime(altinn3M2MClient::hentHierarkiMedTilganger) {
-                altinn3M2MClient.hentTilganger(fnr.verdi)
+            Metrics.altinnRequest.recordTime(altinnClient::hentTilganger) {
+                altinnClient.hentTilganger(fnr.verdi)
             }
 
         return mapOf(

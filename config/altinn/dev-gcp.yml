@@ -6,22 +6,12 @@ replicasMax: 2
 apps:
   - name: arbeidsgiver-altinn-tilganger
     namespace: fager
-envFrom:
-  - type: secret
-    name: altinn-api-gw-keys
 env:
-  - name: ALTINN_URL
-    value: https://tt02.altinn.no/api/serviceowner
   - name: ALTINN_SERVICE_CODE
     value: 4936
-  - name: ALTINN_SCOPE
-    value: altinn:serviceowner/reportees
   - name: ALTINN_TILGANGER_SCOPE
     value: api://dev-gcp.fager.arbeidsgiver-altinn-tilganger/.default
   - name: ALTINN_TILGANGER_BASE_URL
     value: http://arbeidsgiver-altinn-tilganger.fager
 externalHosts:
   - tt02.altinn.no
-maskinporten:
-  consumes:
-    - "altinn:serviceowner/reportees"

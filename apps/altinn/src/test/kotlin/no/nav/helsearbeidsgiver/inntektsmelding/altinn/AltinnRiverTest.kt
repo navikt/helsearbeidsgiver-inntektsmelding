@@ -27,9 +27,9 @@ class AltinnRiverTest :
     FunSpec({
         val testRapid = TestRapid()
 
-        val mockAltinn3M2MClient = mockk<Altinn3M2MClient>(relaxed = true)
+        val mockAltinnClient = mockk<Altinn3M2MClient>(relaxed = true)
 
-        AltinnRiver(mockAltinn3M2MClient).connect(testRapid)
+        AltinnRiver(mockAltinnClient).connect(testRapid)
 
         beforeTest {
             testRapid.reset()
@@ -39,7 +39,7 @@ class AltinnRiverTest :
         test("henter organisasjonsrettigheter med id fra behov") {
             val innkommendeMelding = Mock.innkommendeMelding()
 
-            coEvery { mockAltinn3M2MClient.hentTilganger(any()) } returns Mock.altinnOrganisasjoner
+            coEvery { mockAltinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjoner
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -59,7 +59,7 @@ class AltinnRiverTest :
                 )
 
             coVerifySequence {
-                mockAltinn3M2MClient.hentTilganger(innkommendeMelding.fnr.verdi)
+                mockAltinnClient.hentTilganger(innkommendeMelding.fnr.verdi)
             }
         }
 
@@ -75,7 +75,7 @@ class AltinnRiverTest :
                     utloesendeMelding = innkommendeJsonMap,
                 )
 
-            coEvery { mockAltinn3M2MClient.hentTilganger(any()) } throws NullPointerException()
+            coEvery { mockAltinnClient.hentTilganger(any()) } throws NullPointerException()
 
             testRapid.sendJson(innkommendeJsonMap)
 
@@ -84,7 +84,7 @@ class AltinnRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             coVerifySequence {
-                mockAltinn3M2MClient.hentTilganger(innkommendeMelding.fnr.verdi)
+                mockAltinnClient.hentTilganger(innkommendeMelding.fnr.verdi)
             }
         }
 
@@ -106,7 +106,7 @@ class AltinnRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 coVerify(exactly = 0) {
-                    mockAltinn3M2MClient.hentTilganger(any())
+                    mockAltinnClient.hentTilganger(any())
                 }
             }
         }

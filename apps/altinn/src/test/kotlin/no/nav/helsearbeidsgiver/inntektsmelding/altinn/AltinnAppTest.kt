@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
-import com.nimbusds.jose.jwk.gen.RSAKeyGenerator
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
@@ -17,7 +16,6 @@ import no.nav.helsearbeidsgiver.felles.utils.fromEnv
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.Mock.altinnOrganisasjoner
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.Mock.innkommendeMelding
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.Mock.toMap
-import no.nav.helsearbeidsgiver.maskinporten.TokenResponse
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import okhttp3.mockwebserver.MockResponse
@@ -44,11 +42,8 @@ class AltinnAppTest :
             mockkObject(RapidApplication)
             every { RapidApplication.create(any()) } returns testRapid
 
-            val maskinportenToken = TokenResponse("test_token", "Bearer", 3600, "test:test1")
-            val tokenResponse = maskinportenToken.toJson(TokenResponse.serializer()).toString()
             server.enqueue(
                 MockResponse()
-                    .setBody(tokenResponse)
                     .addHeader("Content-Type", "application/json"),
             )
             val altinnResponse = altinnOrganisasjoner.toJson(String.serializer().set()).toString()
@@ -79,14 +74,7 @@ class AltinnAppTest :
 private fun mockEnv(server: MockWebServer) {
     mockkStatic("no.nav.helsearbeidsgiver.felles.utils.EnvUtilsKt")
 
-    every { "ALTINN_URL".fromEnv() } returns server.url("/altinn").toString()
+    every { "ALTINN_TILGANGER_BASE_URL".fromEnv() } returns server.url("/altinn").toString()
     every { "ALTINN_SERVICE_CODE".fromEnv() } returns "4936"
-    every { "MASKINPORTEN_TOKEN_ENDPOINT".fromEnv() } returns server.url("/token").toString()
-    every { "MASKINPORTEN_ISSUER".fromEnv() } returns "https://test.test.no/"
-    every { "MASKINPORTEN_CLIENT_JWK".fromEnv() } returns generateJWK()
-    every { "MASKINPORTEN_CLIENT_ID".fromEnv() } returns "TEST_CLIENT_ID"
-    every { "ALTINN_SCOPE".fromEnv() } returns "test:test/test"
-    every { "ALTINN_API_KEY".fromEnv() } returns "mocked_value"
+    every { "ALTINN_TILGANGER_SCOPE".fromEnv() } returns "test:test/test"
 }
-
-private fun generateJWK() = RSAKeyGenerator(2048).keyID("test-key-id").generate().toString()

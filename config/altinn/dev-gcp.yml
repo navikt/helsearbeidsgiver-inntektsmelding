@@ -13,5 +13,3 @@ env:
     value: api://dev-gcp.fager.arbeidsgiver-altinn-tilganger/.default
   - name: ALTINN_TILGANGER_BASE_URL
     value: http://arbeidsgiver-altinn-tilganger.fager
-externalHosts:
-  - tt02.altinn.no

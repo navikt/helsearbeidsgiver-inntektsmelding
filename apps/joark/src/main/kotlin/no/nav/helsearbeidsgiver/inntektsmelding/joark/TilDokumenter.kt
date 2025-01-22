@@ -3,8 +3,10 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Dokument
 import no.nav.helsearbeidsgiver.dokarkiv.domene.DokumentVariant
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.felles.utils.tilKortFormat
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.PdfDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.transformToXML
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.Base64
 import java.util.UUID
 
@@ -16,7 +18,7 @@ fun tilDokumenter(
 ): List<Dokument> =
     listOf(
         Dokument(
-            tittel = "Inntektsmelding",
+            tittel = inntektsmelding.tilDokumentbeskrivelse(),
             // TODO Denne må vi undersøke om vi vil bruke videre. Dette er koden til Altinn-service, som trolig brukes til å filtrere journalposter et sted.
             brevkode = "4936",
             dokumentVarianter =
@@ -46,3 +48,14 @@ fun tilDokumenter(
     )
 
 private fun ByteArray.encode(): String = base64.encodeToString(this)
+
+fun Inntektsmelding.tilDokumentbeskrivelse(): String {
+    val orgnr = this.avsender.orgnr.verdi
+    val agp =
+        this.agp
+            ?.perioder
+            ?.ifEmpty { null }
+            ?.tilKortFormat()
+            .orDefault("(ingen agp)")
+    return "Inntektsmelding-$orgnr-$agp"
+}

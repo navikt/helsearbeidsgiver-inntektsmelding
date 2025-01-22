@@ -8,7 +8,7 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIk
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.domene.Person
-import no.nav.helsearbeidsgiver.felles.utils.tilNorskFormat
+import no.nav.helsearbeidsgiver.felles.utils.tilKortFormat
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -52,7 +52,7 @@ object NotifikasjonTekst {
 
     fun sakTittel(sykmeldt: Person): String = "Inntektsmelding for ${sykmeldt.navn}: f. ${sykmeldt.fnr.lesFoedselsdato()}"
 
-    fun sakTilleggsinfo(sykmeldingsperioder: List<Periode>): String = "Sykmeldingsperiode ${sykmeldingsperioder.tilString()}"
+    fun sakTilleggsinfo(sykmeldingsperioder: List<Periode>): String = "Sykmeldingsperiode ${sykmeldingsperioder.tilKortFormat()}"
 
     fun oppgaveInnhold(
         orgnr: Orgnr,
@@ -60,7 +60,7 @@ object NotifikasjonTekst {
         sykmeldingsperioder: List<Periode>,
     ): String =
         listOf(
-            "$orgNavn - orgnr $orgnr: En av dine ansatte har søkt om sykepenger for perioden ${sykmeldingsperioder.tilString()}",
+            "$orgNavn - orgnr $orgnr: En av dine ansatte har søkt om sykepenger for perioden ${sykmeldingsperioder.tilKortFormat()}",
             "og vi trenger inntektsmelding for å behandle søknaden.",
             "Logg inn på Min side – arbeidsgiver hos Nav.",
             "Hvis dere sender inntektsmelding via lønnssystem kan dere fortsatt gjøre dette,",
@@ -73,7 +73,7 @@ object NotifikasjonTekst {
         sykmeldingsperioder: List<Periode>,
     ): String =
         listOf(
-            "Nav har ennå ikke mottatt inntektsmeldingen for en av deres ansatte for perioden ${sykmeldingsperioder.tilString()}.",
+            "Nav har ennå ikke mottatt inntektsmeldingen for en av deres ansatte for perioden ${sykmeldingsperioder.tilKortFormat()}.",
             "For at vi skal kunne behandle søknaden om sykepenger, må inntektsmeldingen sendes inn så snart som mulig.",
             "Vennligst logg inn på Min side – arbeidsgiver hos Nav for å se hvilken inntektsmelding det gjelder.",
             "Arbeidsgiver: $orgNavn (orgnr $orgnr).",
@@ -258,13 +258,6 @@ fun ArbeidsgiverNotifikasjonKlient.settOppgaveUtgaatt(
         }
     }
 }
-
-fun List<Periode>.tilString(): String =
-    if (size < 2) {
-        "${first().fom.tilNorskFormat()} - ${first().tom.tilNorskFormat()}"
-    } else {
-        "${first().fom.tilNorskFormat()} - [...] - ${last().tom.tilNorskFormat()}"
-    }
 
 // Støtter d-nummer
 private fun Fnr.lesFoedselsdato(): String {

@@ -5,7 +5,6 @@
   "inntekt": {
     "paakrevd": true,
     "forslag": {
-      "type": "ForslagInntektGrunnlag",
       "forrigeInntekt": {
         "skjæringstidspunkt": "2017-01-01",
         "kilde": "INNTEKTSMELDING",

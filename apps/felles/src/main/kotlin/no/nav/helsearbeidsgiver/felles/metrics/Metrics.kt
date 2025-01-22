@@ -34,8 +34,6 @@ object Metrics {
 
     val pdlRequest = requestMetric("PDL")
 
-    val forespoerslerBesvartFraSimba = counterMetric("forespoersler besvart fra Simba")
-
     val forespoerslerBesvartFraSpleis = counterMetric("forespoersler besvart fra Spleis")
 
     object Expose {

@@ -22,8 +22,8 @@ spec:
     limits:
       memory: 1024Mi
   replicas:
-    min: {{#if replicasMin }}{{ replicasMin }}{{else}}1{{/if}}
-    max: {{#if replicasMax }}{{ replicasMax }}{{else}}1{{/if}}
+    min: {{#if replicasMin }}{{ replicasMin }}{{else}}2{{/if}}
+    max: {{#if replicasMax }}{{ replicasMax }}{{else}}2{{/if}}
     scalingStrategy:
       cpu:
         thresholdPercentage: 75

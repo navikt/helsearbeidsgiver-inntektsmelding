@@ -86,6 +86,8 @@ class HentLagretImRiver(
 
         loggHentet(inntektsmelding, eksternInntektsmelding)
 
+        Thread.sleep(1000)
+
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.KONTEKST_ID to transaksjonId.toJson(),

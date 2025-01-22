@@ -26,7 +26,7 @@ import java.util.UUID
 data class Melding(
     val eventName: EventName,
     val behovType: BehovType,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val data: Map<Key, JsonElement>,
     val svarKafkaKey: KafkaKey,
     val fnr: Fnr,
@@ -47,7 +47,7 @@ class AltinnRiver(
             Melding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.ARBEIDSGIVERE, BehovType.serializer(), json),
-                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 svarKafkaKey = Key.SVAR_KAFKA_KEY.les(KafkaKey.serializer(), data),
                 fnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), data),
@@ -67,7 +67,7 @@ class AltinnRiver(
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 data
                     .plus(
@@ -83,7 +83,7 @@ class AltinnRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke hente organisasjonsrettigheter fra Altinn.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
 
@@ -98,6 +98,6 @@ class AltinnRiver(
             Log.klasse(this@AltinnRiver),
             Log.event(eventName),
             Log.behov(behovType),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
         )
 }

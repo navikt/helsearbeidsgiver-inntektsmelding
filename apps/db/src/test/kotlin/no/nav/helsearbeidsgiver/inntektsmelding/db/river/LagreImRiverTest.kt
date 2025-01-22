@@ -58,7 +58,7 @@ class LagreImRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
@@ -82,7 +82,7 @@ class LagreImRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke lagre inntektsmelding i database.",
-                    kontekstId = innkommendeMelding.transaksjonId,
+                    kontekstId = innkommendeMelding.kontekstId,
                     utloesendeMelding = innkommendeMelding.toMap(),
                 )
 
@@ -127,7 +127,7 @@ private fun innkommendeMelding(
     LagreImMelding(
         eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
         behovType = BehovType.LAGRE_IM,
-        transaksjonId = UUID.randomUUID(),
+        kontekstId = UUID.randomUUID(),
         data =
             mapOf(
                 Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
@@ -141,7 +141,7 @@ private fun LagreImMelding.toMap(): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
         Key.BEHOV to behovType.toJson(),
-        Key.KONTEKST_ID to transaksjonId.toJson(),
+        Key.KONTEKST_ID to kontekstId.toJson(),
         Key.DATA to data.toJson(),
     )
 

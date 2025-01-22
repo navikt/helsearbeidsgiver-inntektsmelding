@@ -55,7 +55,7 @@ class InnsendingServiceTest :
         }
 
         test("nytt inntektsmeldingskjema lagres og sendes videre til beriking") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
 
             val nyttSkjema =
                 Mock.skjema.let { skjema ->
@@ -72,7 +72,7 @@ class InnsendingServiceTest :
                 }
 
             testRapid.sendJson(
-                Mock.steg0(transaksjonId).plusData(
+                Mock.steg0(kontekstId).plusData(
                     Key.SKJEMA_INNTEKTSMELDING to nyttSkjema.toJson(SkjemaInntektsmelding.serializer()),
                 ),
             )
@@ -81,7 +81,7 @@ class InnsendingServiceTest :
             testRapid.message(0).lesBehov() shouldBe BehovType.HENT_TRENGER_IM
 
             testRapid.sendJson(
-                Mock.steg1(transaksjonId).plusData(
+                Mock.steg1(kontekstId).plusData(
                     Key.SKJEMA_INNTEKTSMELDING to nyttSkjema.toJson(SkjemaInntektsmelding.serializer()),
                 ),
             )
@@ -90,7 +90,7 @@ class InnsendingServiceTest :
             testRapid.message(1).lesBehov() shouldBe BehovType.LAGRE_IM_SKJEMA
 
             testRapid.sendJson(
-                Mock.steg2(transaksjonId).plusData(
+                Mock.steg2(kontekstId).plusData(
                     Key.SKJEMA_INNTEKTSMELDING to nyttSkjema.toJson(SkjemaInntektsmelding.serializer()),
                 ),
             )
@@ -98,7 +98,7 @@ class InnsendingServiceTest :
             testRapid.inspektør.size shouldBeExactly 3
             testRapid.message(2).toMap().also {
                 Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.INNTEKTSMELDING_SKJEMA_LAGRET
-                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
 
                 val data = it[Key.DATA]?.toMap().orEmpty()
                 Key.ARBEIDSGIVER_FNR.lesOrNull(Fnr.serializer(), data) shouldBe Mock.avsender.fnr
@@ -108,7 +108,7 @@ class InnsendingServiceTest :
 
             verify {
                 mockRedisStore.skrivResultat(
-                    transaksjonId,
+                    kontekstId,
                     ResultJson(
                         success = nyttSkjema.forespoerselId.toJson(),
                     ),
@@ -117,20 +117,20 @@ class InnsendingServiceTest :
         }
 
         test("duplikat skjema sendes _ikke_ videre til beriking") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
 
-            testRapid.sendJson(Mock.steg0(transaksjonId))
+            testRapid.sendJson(Mock.steg0(kontekstId))
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.message(0).lesBehov() shouldBe BehovType.HENT_TRENGER_IM
 
-            testRapid.sendJson(Mock.steg1(transaksjonId))
+            testRapid.sendJson(Mock.steg1(kontekstId))
 
             testRapid.inspektør.size shouldBeExactly 2
             testRapid.message(1).lesBehov() shouldBe BehovType.LAGRE_IM_SKJEMA
 
             testRapid.sendJson(
-                Mock.steg2(transaksjonId).plusData(
+                Mock.steg2(kontekstId).plusData(
                     Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
                 ),
             )
@@ -139,7 +139,7 @@ class InnsendingServiceTest :
 
             verify {
                 mockRedisStore.skrivResultat(
-                    transaksjonId,
+                    kontekstId,
                     ResultJson(
                         success = Mock.skjema.forespoerselId.toJson(),
                     ),
@@ -184,10 +184,10 @@ private object Mock {
     val skjema = mockSkjemaInntektsmelding()
     val mottatt = 15.august.kl(12, 0, 0, 0)
 
-    fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
+    fun steg0(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
@@ -196,13 +196,13 @@ private object Mock {
                 ).toJson(),
         )
 
-    fun steg1(transaksjonId: UUID): Map<Key, JsonElement> =
-        steg0(transaksjonId).plusData(
+    fun steg1(kontekstId: UUID): Map<Key, JsonElement> =
+        steg0(kontekstId).plusData(
             Key.FORESPOERSEL_SVAR to mockForespoersel().toJson(Forespoersel.serializer()),
         )
 
-    fun steg2(transaksjonId: UUID): Map<Key, JsonElement> =
-        steg1(transaksjonId).plusData(
+    fun steg2(kontekstId: UUID): Map<Key, JsonElement> =
+        steg1(kontekstId).plusData(
             mapOf(
                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
                 Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),

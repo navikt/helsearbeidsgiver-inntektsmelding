@@ -55,14 +55,14 @@ class HentForespoerselServiceTest :
         }
 
         test("henter forespørsel og annen data til preutfylling av skjema") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
 
-            testRapid.sendJson(Mock.steg0(transaksjonId))
+            testRapid.sendJson(Mock.steg0(kontekstId))
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.message(0).lesBehov() shouldBe BehovType.HENT_TRENGER_IM
 
-            testRapid.sendJson(Mock.steg1(transaksjonId))
+            testRapid.sendJson(Mock.steg1(kontekstId))
 
             testRapid.inspektør.size shouldBeExactly 4
             testRapid.message(1).also {
@@ -78,14 +78,14 @@ class HentForespoerselServiceTest :
                 Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.forespoerselId)
             }
 
-            testRapid.sendJson(Mock.steg2(transaksjonId))
+            testRapid.sendJson(Mock.steg2(kontekstId))
 
             testRapid.inspektør.size shouldBeExactly 4
 
             verify {
-                mockRedis.store.lesAlleFeil(transaksjonId)
+                mockRedis.store.lesAlleFeil(kontekstId)
                 mockRedis.store.skrivResultat(
-                    transaksjonId,
+                    kontekstId,
                     ResultJson(
                         success = Mock.resultat.toJson(HentForespoerselResultat.serializer()),
                     ),
@@ -127,10 +127,10 @@ private object Mock {
             feil = emptyMap(),
         )
 
-    fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
+    fun steg0(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
@@ -138,20 +138,20 @@ private object Mock {
                 ).toJson(),
         )
 
-    fun steg1(transaksjonId: UUID): Map<Key, JsonElement> =
+    fun steg1(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_SVAR to resultat.forespoersel.toJson(Forespoersel.serializer()),
                 ).toJson(),
         )
 
-    fun steg2(transaksjonId: UUID): Map<Key, JsonElement> =
+    fun steg2(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.VIRKSOMHETER to mapOf(resultat.forespoersel.orgnr to resultat.orgNavn).toJson(orgMapSerializer),

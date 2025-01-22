@@ -19,16 +19,16 @@ class HentSelvbestemtImProducerTest :
         val producer = HentSelvbestemtImProducer(testRapid)
 
         test("publiserer melding på forventet format") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
             val selvbestemtId = UUID.randomUUID()
 
-            producer.publish(transaksjonId, selvbestemtId)
+            producer.publish(kontekstId, selvbestemtId)
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
-                    Key.KONTEKST_ID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.SELVBESTEMT_ID to selvbestemtId.toJson(),

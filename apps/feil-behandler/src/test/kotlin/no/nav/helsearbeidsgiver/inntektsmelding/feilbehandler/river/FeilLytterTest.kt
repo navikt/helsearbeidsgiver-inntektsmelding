@@ -36,7 +36,7 @@ class FeilLytterTest :
             repository.deleteAll()
         }
 
-        test("ved flere feil på samme transaksjon-ID og event, så oppdateres eksisterende jobb") {
+        test("ved flere feil på samme kontekst-ID og event, så oppdateres eksisterende jobb") {
             val omEttMinutt = LocalDateTime.now().plusMinutes(1)
             val forespoerselMottattFail = mockFail("skux life", EventName.FORESPOERSEL_MOTTATT)
 
@@ -56,12 +56,12 @@ class FeilLytterTest :
             jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail.utloesendeMelding
         }
 
-        test("ved flere feil på samme transaksjon-ID og event, men ulikt innhold, så lagres to jobber med ulik transaksjon-ID") {
+        test("ved flere feil på samme kontekst-ID og event, men ulikt innhold, så lagres to jobber med ulik kontekst-ID") {
             val omEttMinutt = LocalDateTime.now().plusMinutes(1)
-            val transaksjonId = UUID.randomUUID()
-            val forespoerselMottattFail = mockFail("tux life", EventName.FORESPOERSEL_MOTTATT, transaksjonId)
+            val kontekstId = UUID.randomUUID()
+            val forespoerselMottattFail = mockFail("tux life", EventName.FORESPOERSEL_MOTTATT, kontekstId)
             val forespoerselMottattFailMedUliktInnhold =
-                mockFail("hux life", EventName.FORESPOERSEL_MOTTATT, transaksjonId).let {
+                mockFail("hux life", EventName.FORESPOERSEL_MOTTATT, kontekstId).let {
                     it.copy(
                         utloesendeMelding =
                             it.utloesendeMelding.plus(
@@ -82,24 +82,24 @@ class FeilLytterTest :
 
             jobber.size shouldBeExactly 2
 
-            jobber[0].uuid shouldBe transaksjonId
+            jobber[0].uuid shouldBe kontekstId
             jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail.utloesendeMelding
 
-            jobber[1].uuid shouldNotBe transaksjonId
+            jobber[1].uuid shouldNotBe kontekstId
             jobber[1].data.parseJson().toMap().also {
                 it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe
                     forespoerselMottattFailMedUliktInnhold.utloesendeMelding[Key.EVENT_NAME]?.fromJson(EventName.serializer())
                 it[Key.ER_DUPLIKAT_IM]?.fromJson(String.serializer()) shouldBe "kanskje"
 
-                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldNotBe transaksjonId
+                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldNotBe kontekstId
             }
         }
 
-        test("ved flere feil på samme transaksjon-ID, men ulik event, så lagres to jobber med ulik transaksjon-ID") {
+        test("ved flere feil på samme kontekst-ID, men ulik event, så lagres to jobber med ulik kontekst-ID") {
             val omEttMinutt = LocalDateTime.now().plusMinutes(1)
-            val transaksjonId = UUID.randomUUID()
-            val forespoerselMottattFail = mockFail("fox life", EventName.FORESPOERSEL_MOTTATT, transaksjonId)
-            val forespoerselBesvartFail = mockFail("nox life", EventName.FORESPOERSEL_BESVART, transaksjonId)
+            val kontekstId = UUID.randomUUID()
+            val forespoerselMottattFail = mockFail("fox life", EventName.FORESPOERSEL_MOTTATT, kontekstId)
+            val forespoerselBesvartFail = mockFail("nox life", EventName.FORESPOERSEL_BESVART, kontekstId)
 
             rapid.sendJson(forespoerselMottattFail.tilMelding())
 
@@ -113,18 +113,18 @@ class FeilLytterTest :
 
             jobber.size shouldBeExactly 2
 
-            jobber[0].uuid shouldBe transaksjonId
+            jobber[0].uuid shouldBe kontekstId
             jobber[0].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail.utloesendeMelding
 
-            jobber[1].uuid shouldNotBe transaksjonId
+            jobber[1].uuid shouldNotBe kontekstId
             jobber[1].data.parseJson().toMap().also {
                 it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe
                     forespoerselBesvartFail.utloesendeMelding[Key.EVENT_NAME]?.fromJson(EventName.serializer())
-                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldNotBe transaksjonId
+                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldNotBe kontekstId
             }
         }
 
-        test("ved flere feil på ulik transaksjon-ID, men samme event, så lagres to jobber (med ulik transaksjon-ID)") {
+        test("ved flere feil på ulik kontekst-ID, men samme event, så lagres to jobber (med ulik kontekst-ID)") {
             val omEttMinutt = LocalDateTime.now().plusMinutes(1)
             val forespoerselMottattFail1 = mockFail("ux life", EventName.FORESPOERSEL_MOTTATT)
             val forespoerselMottattFail2 = mockFail("ux life", EventName.FORESPOERSEL_MOTTATT)
@@ -148,7 +148,7 @@ class FeilLytterTest :
             jobber[1].data.parseJson().toMap() shouldContainExactly forespoerselMottattFail2.utloesendeMelding
         }
 
-        test("ved flere feil på ulik transaksjon-ID og ulik event, så lagres to jobber (med ulik transaksjon-ID)") {
+        test("ved flere feil på ulik kontekst-ID og ulik event, så lagres to jobber (med ulik kontekst-ID)") {
             val omEttMinutt = LocalDateTime.now().plusMinutes(1)
             val forespoerselMottattFail = mockFail("lux life", EventName.FORESPOERSEL_MOTTATT)
             val forespoerselBesvartFail = mockFail("rux life", EventName.FORESPOERSEL_BESVART)

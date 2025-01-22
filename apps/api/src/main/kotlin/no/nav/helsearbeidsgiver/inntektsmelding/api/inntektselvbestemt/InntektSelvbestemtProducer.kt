@@ -21,19 +21,19 @@ class InntektSelvbestemtProducer(
     }
 
     fun publish(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         request: InntektSelvbestemtRequest,
     ) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(EventName.INNTEKT_SELVBESTEMT_REQUESTED),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
         ) {
             rapid
                 .publish(
                     key = request.sykmeldtFnr,
                     Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
-                    Key.KONTEKST_ID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FNR to request.sykmeldtFnr.toJson(),

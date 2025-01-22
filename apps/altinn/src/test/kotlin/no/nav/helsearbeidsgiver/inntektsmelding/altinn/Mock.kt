@@ -21,7 +21,7 @@ object Mock {
         return Melding(
             eventName = EventName.AKTIVE_ORGNR_REQUESTED,
             behovType = BehovType.ARBEIDSGIVERE,
-            transaksjonId = UUID.randomUUID(),
+            kontekstId = UUID.randomUUID(),
             data =
                 mapOf(
                     Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
@@ -36,7 +36,7 @@ object Mock {
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to behovType.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to data.toJson(),
         )
 

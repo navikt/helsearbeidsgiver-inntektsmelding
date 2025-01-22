@@ -48,12 +48,12 @@ fun Route.lagreSelvbestemtImRoute(
     val redisPoller = RedisStore(redisConnection, RedisPrefix.LagreSelvbestemtIm).let(::RedisPoller)
 
     post(Routes.SELVBESTEMT_INNTEKTSMELDING) {
-        val transaksjonId = UUID.randomUUID()
+        val kontekstId = UUID.randomUUID()
         val mottatt = LocalDateTime.now()
 
         MdcUtils.withLogFields(
             Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
         ) {
             val skjema = lesRequestOrNull()
             when {
@@ -79,11 +79,11 @@ fun Route.lagreSelvbestemtImRoute(
 
                     val avsenderFnr = call.request.lesFnrFraAuthToken()
 
-                    producer.publish(transaksjonId, avsenderFnr, skjema, mottatt)
+                    producer.publish(kontekstId, avsenderFnr, skjema, mottatt)
 
                     val resultat =
                         runCatching {
-                            redisPoller.hent(transaksjonId)
+                            redisPoller.hent(kontekstId)
                         }
 
                     sendResponse(resultat)

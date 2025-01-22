@@ -63,8 +63,8 @@ class FeilLytter(
         sikkerLogger.info("Mottok feil.\n${json.toPretty()}")
 
         if (eventSkalHaandteres(fail.utloesendeMelding)) {
-            // slå opp transaksjonID. Hvis den finnes, kan det være en annen feilende melding i samme transaksjon: Lagre i så fall
-            // med egen id. Denne id vil så sendes med som ny transaksjonID ved rekjøring.
+            // slå opp kontekst-ID. Hvis den finnes, kan det være en annen feilende melding i samme kontekst: Lagre i så fall
+            // med egen id. Denne id vil så sendes med som ny kontekst-ID ved rekjøring.
             val eksisterendeJobb = repository.getById(fail.kontekstId)
 
             when {
@@ -138,7 +138,7 @@ class FeilLytter(
         return listOf(
             Log.klasse(this@FeilLytter),
             eventName?.let(Log::event),
-            kontekstId?.let(Log::transaksjonId),
+            kontekstId?.let(Log::kontekstId),
             behovType?.let(Log::behov),
             forespoerselId?.let(Log::forespoerselId),
             selvbestemtId?.let(Log::selvbestemtId),

@@ -86,11 +86,11 @@ suspend fun PipelineContext<Unit, ApplicationCall>.hentForespoersler(
 ) {
     loggInfoSikkerOgUsikker("Henter forespørsler for liste med vedtaksperiode-IDer: ${request.vedtaksperiodeIdListe}")
 
-    val transaksjonId = UUID.randomUUID()
+    val kontekstId = UUID.randomUUID()
 
-    hentForespoerslerProducer.publish(transaksjonId, request)
+    hentForespoerslerProducer.publish(kontekstId, request)
 
-    val resultatJson = redisPoller.hent(transaksjonId)
+    val resultatJson = redisPoller.hent(kontekstId)
 
     sikkerLogger.info("Hentet forespørslene: $resultatJson")
 

@@ -25,7 +25,7 @@ import java.util.UUID
 data class HentArbeidsforholdMelding(
     val eventName: EventName,
     val behovType: BehovType,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val data: Map<Key, JsonElement>,
     val svarKafkaKey: KafkaKey,
     val fnr: Fnr,
@@ -46,7 +46,7 @@ class HentArbeidsforholdRiver(
             HentArbeidsforholdMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.HENT_ARBEIDSFORHOLD, BehovType.serializer(), json),
-                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 svarKafkaKey = Key.SVAR_KAFKA_KEY.les(KafkaKey.serializer(), data),
                 fnr = Key.FNR.les(Fnr.serializer(), data),
@@ -59,7 +59,7 @@ class HentArbeidsforholdRiver(
         val arbeidsforhold =
             Metrics.aaregRequest
                 .recordTime(aaregClient::hentArbeidsforhold) {
-                    aaregClient.hentArbeidsforhold(fnr.verdi, transaksjonId.toString())
+                    aaregClient.hentArbeidsforhold(fnr.verdi, kontekstId.toString())
                 }.map { it.tilArbeidsforhold() }
 
         "Fant ${arbeidsforhold.size} arbeidsforhold.".also {
@@ -75,7 +75,7 @@ class HentArbeidsforholdRiver(
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 data
                     .plus(
@@ -91,7 +91,7 @@ class HentArbeidsforholdRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke hente arbeidsforhold fra Aareg.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
 
@@ -106,6 +106,6 @@ class HentArbeidsforholdRiver(
             Log.klasse(this@HentArbeidsforholdRiver),
             Log.event(eventName),
             Log.behov(behovType),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
         )
 }

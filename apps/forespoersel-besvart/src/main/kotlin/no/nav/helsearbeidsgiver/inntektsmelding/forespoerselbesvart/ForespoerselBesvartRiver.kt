@@ -22,7 +22,7 @@ import java.util.UUID
 
 data class BesvartMelding(
     val notisType: Pri.NotisType,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val forespoerselId: UUID,
     val spinnInntektsmeldingId: UUID?,
 )
@@ -35,7 +35,7 @@ class ForespoerselBesvartRiver : PriObjectRiver<BesvartMelding>() {
     override fun les(json: Map<Pri.Key, JsonElement>): BesvartMelding =
         BesvartMelding(
             notisType = Pri.Key.NOTIS.krev(Pri.NotisType.FORESPOERSEL_BESVART, Pri.NotisType.serializer(), json),
-            transaksjonId = UUID.randomUUID(),
+            kontekstId = UUID.randomUUID(),
             forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, json),
             spinnInntektsmeldingId = Pri.Key.SPINN_INNTEKTSMELDING_ID.lesOrNull(UuidSerializer, json),
         )
@@ -50,7 +50,7 @@ class ForespoerselBesvartRiver : PriObjectRiver<BesvartMelding>() {
 
         return mapOf(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
@@ -76,7 +76,7 @@ class ForespoerselBesvartRiver : PriObjectRiver<BesvartMelding>() {
         mapOf(
             Log.klasse(this@ForespoerselBesvartRiver),
             Log.priNotis(notisType),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )
 }

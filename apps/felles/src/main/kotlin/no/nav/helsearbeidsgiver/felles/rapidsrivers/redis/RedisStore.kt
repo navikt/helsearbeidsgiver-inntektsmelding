@@ -25,25 +25,25 @@ class RedisStore(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    fun lesResultat(transaksjonId: UUID): ResultJson? =
-        resultatKey(transaksjonId)
+    fun lesResultat(kontekstId: UUID): ResultJson? =
+        resultatKey(kontekstId)
             .les()
             ?.fromJson(ResultJson.serializer())
 
-    fun lesAlleMellomlagrede(transaksjonId: UUID): Map<Key, JsonElement> {
-        val prefix = listOf(keyPrefix.name, transaksjonId.toString()).joinKeySeparator(withPostfix = true)
+    fun lesAlleMellomlagrede(kontekstId: UUID): Map<Key, JsonElement> {
+        val prefix = listOf(keyPrefix.name, kontekstId.toString()).joinKeySeparator(withPostfix = true)
 
         return Key.entries
-            .map { mellomlagringKey(transaksjonId, it) }
+            .map { mellomlagringKey(kontekstId, it) }
             .lesAlle { removePrefix(prefix) }
     }
 
-    fun lesAlleFeil(transaksjonId: UUID): Map<Key, String> {
-        val prefix = listOf(keyPrefix.name, transaksjonId.toString()).joinKeySeparator(withPostfix = true)
+    fun lesAlleFeil(kontekstId: UUID): Map<Key, String> {
+        val prefix = listOf(keyPrefix.name, kontekstId.toString()).joinKeySeparator(withPostfix = true)
         val postfix = KEY_PART_SEPARATOR + KEY_FEIL_POSTFIX
 
         return Key.entries
-            .map { feilKey(transaksjonId, it) }
+            .map { feilKey(kontekstId, it) }
             .lesAlle {
                 removePrefix(prefix)
                     .removeSuffix(postfix)
@@ -51,26 +51,26 @@ class RedisStore(
     }
 
     fun skrivResultat(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         value: ResultJson,
     ) {
-        resultatKey(transaksjonId).skriv(value.toJson())
+        resultatKey(kontekstId).skriv(value.toJson())
     }
 
     fun skrivMellomlagring(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         key: Key,
         value: JsonElement,
     ) {
-        mellomlagringKey(transaksjonId, key).skriv(value)
+        mellomlagringKey(kontekstId, key).skriv(value)
     }
 
     fun skrivFeil(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         key: Key,
         value: String,
     ) {
-        feilKey(transaksjonId, key).skriv(value.toJson())
+        feilKey(kontekstId, key).skriv(value.toJson())
     }
 
     private fun String.les(): JsonElement? =
@@ -112,23 +112,23 @@ class RedisStore(
         redis.set(this, value.toString())
     }
 
-    private fun resultatKey(transaksjonId: UUID): String = listOf(keyPrefix.name, transaksjonId.toString()).joinKeySeparator()
+    private fun resultatKey(kontekstId: UUID): String = listOf(keyPrefix.name, kontekstId.toString()).joinKeySeparator()
 
     private fun mellomlagringKey(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         key: Key,
     ): String =
         listOf(
-            resultatKey(transaksjonId),
+            resultatKey(kontekstId),
             key.toString(),
         ).joinKeySeparator()
 
     private fun feilKey(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         key: Key,
     ): String =
         listOf(
-            mellomlagringKey(transaksjonId, key),
+            mellomlagringKey(kontekstId, key),
             KEY_FEIL_POSTFIX,
         ).joinKeySeparator()
 }

@@ -20,17 +20,17 @@ class HentForespoerselProducerTest :
         val producer = HentForespoerselProducer(testRapid)
 
         test("publiserer melding på forventet format") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
             val forespoerselId = UUID.randomUUID()
             val avsenderFnr = Fnr.genererGyldig()
 
-            producer.publish(transaksjonId, HentForespoerselRequest(forespoerselId), avsenderFnr)
+            producer.publish(kontekstId, HentForespoerselRequest(forespoerselId), avsenderFnr)
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-                    Key.KONTEKST_ID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to forespoerselId.toJson(),

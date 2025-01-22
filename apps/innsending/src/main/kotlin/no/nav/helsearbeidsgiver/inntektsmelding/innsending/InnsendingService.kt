@@ -154,7 +154,7 @@ class InnsendingService(
         mapOf(
             Log.klasse(this@InnsendingService),
             Log.event(eventName),
-            Log.transaksjonId(kontekstId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(skjema.forespoerselId),
         )
 

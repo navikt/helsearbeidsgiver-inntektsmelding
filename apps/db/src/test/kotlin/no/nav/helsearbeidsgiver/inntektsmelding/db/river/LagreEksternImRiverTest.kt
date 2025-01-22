@@ -52,7 +52,7 @@ class LagreEksternImRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_LAGRET.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
                 )
 
@@ -69,7 +69,7 @@ class LagreEksternImRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke lagre ekstern inntektsmelding i database.",
-                    kontekstId = innkommendeMelding.transaksjonId,
+                    kontekstId = innkommendeMelding.kontekstId,
                     utloesendeMelding = innkommendeJsonMap,
                 )
 
@@ -112,7 +112,7 @@ class LagreEksternImRiverTest :
 private fun mockInnkommendeMelding(): LagreEksternImMelding =
     LagreEksternImMelding(
         eventName = EventName.EKSTERN_INNTEKTSMELDING_MOTTATT,
-        transaksjonId = UUID.randomUUID(),
+        kontekstId = UUID.randomUUID(),
         forespoerselId = UUID.randomUUID(),
         eksternInntektsmelding = mockEksternInntektsmelding(),
     )
@@ -120,7 +120,7 @@ private fun mockInnkommendeMelding(): LagreEksternImMelding =
 private fun LagreEksternImMelding.toMap(): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
-        Key.KONTEKST_ID to transaksjonId.toJson(),
+        Key.KONTEKST_ID to kontekstId.toJson(),
         Key.DATA to
             mapOf(
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),

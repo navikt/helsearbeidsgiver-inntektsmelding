@@ -57,7 +57,7 @@ class HentDataTilSakOgOppgaveServiceTest :
             testRapid.message(2).toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED.toJson(),
-                    Key.KONTEKST_ID to Mock.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to Mock.kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
@@ -97,7 +97,7 @@ class HentDataTilSakOgOppgaveServiceTest :
 private object Mock {
     const val SKAL_HA_PAAMINNELSE = true
     val forespoersel = mockForespoersel()
-    val transaksjonId: UUID = forespoersel.vedtaksperiodeId
+    val kontekstId: UUID = forespoersel.vedtaksperiodeId
     val forespoerselId: UUID = UUID.randomUUID()
     val orgnrMedNavn = mapOf(forespoersel.orgnr to "Kåre Conradis Kål og Kålrabi")
     val personer = listOf(forespoersel.fnr).associateWith { Person(it, "Kåre Conradi") }
@@ -105,7 +105,7 @@ private object Mock {
     fun steg0(): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.FORESPOERSEL_MOTTATT.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),

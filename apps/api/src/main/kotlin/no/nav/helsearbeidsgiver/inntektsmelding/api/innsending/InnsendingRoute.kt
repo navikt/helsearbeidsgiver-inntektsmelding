@@ -43,7 +43,7 @@ fun Route.innsending(
 
     post(Routes.INNSENDING) {
         Metrics.innsendingEndpoint.recordTime(Route::innsending) {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
             val mottatt = LocalDateTime.now()
 
             val skjema = lesRequestOrNull()
@@ -70,9 +70,9 @@ fun Route.innsending(
 
                     val avsenderFnr = call.request.lesFnrFraAuthToken()
 
-                    producer.publish(transaksjonId, avsenderFnr, skjema, mottatt)
+                    producer.publish(kontekstId, avsenderFnr, skjema, mottatt)
 
-                    val resultat = runCatching { redisPoller.hent(transaksjonId) }
+                    val resultat = runCatching { redisPoller.hent(kontekstId) }
 
                     resultat
                         .onSuccess {

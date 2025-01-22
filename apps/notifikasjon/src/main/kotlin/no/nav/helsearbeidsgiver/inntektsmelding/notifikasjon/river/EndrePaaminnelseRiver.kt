@@ -27,7 +27,7 @@ import java.util.UUID
 
 data class EndrePaaminnelseMelding(
     val eventName: EventName,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val forespoerselId: UUID,
     val forespoersel: Forespoersel,
     val orgNavn: String,
@@ -48,7 +48,7 @@ class EndrePaaminnelseRiver(
 
             EndrePaaminnelseMelding(
                 eventName = Key.EVENT_NAME.krev(EventName.OPPGAVE_ENDRE_PAAMINNELSE_REQUESTED, EventName.serializer(), json),
-                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
                 forespoersel = Key.FORESPOERSEL.les(Forespoersel.serializer(), data),
                 orgNavn = Key.VIRKSOMHET.les(String.serializer(), data),
@@ -75,7 +75,7 @@ class EndrePaaminnelseRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke endre påminnelse på oppgave.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
 
@@ -89,7 +89,7 @@ class EndrePaaminnelseRiver(
         mapOf(
             Log.klasse(this@EndrePaaminnelseRiver),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )
 

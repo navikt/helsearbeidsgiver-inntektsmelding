@@ -71,7 +71,7 @@ class LagreSelvbestemtImRiverTest :
                 testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
                         Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                        Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                         Key.DATA to
                             mapOf(
                                 Key.SELVBESTEMT_INNTEKTSMELDING to nyInntektsmelding.toJson(Inntektsmelding.serializer()),
@@ -113,7 +113,7 @@ class LagreSelvbestemtImRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.SELVBESTEMT_INNTEKTSMELDING to nyInntektsmelding.toJson(Inntektsmelding.serializer()),
@@ -139,7 +139,7 @@ class LagreSelvbestemtImRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke lagre selvbestemt inntektsmelding i database.",
-                    kontekstId = innkommendeMelding.transaksjonId,
+                    kontekstId = innkommendeMelding.kontekstId,
                     utloesendeMelding = innkommendeMelding.toMap(),
                 )
 
@@ -185,7 +185,7 @@ private fun innkommendeMelding(selvbestemtInntektsmelding: Inntektsmelding = moc
     LagreSelvbestemtImMelding(
         eventName = EventName.SELVBESTEMT_IM_MOTTATT,
         behovType = BehovType.LAGRE_SELVBESTEMT_IM,
-        transaksjonId = UUID.randomUUID(),
+        kontekstId = UUID.randomUUID(),
         data =
             mapOf(
                 Key.SELVBESTEMT_INNTEKTSMELDING to selvbestemtInntektsmelding.toJson(Inntektsmelding.serializer()),
@@ -197,7 +197,7 @@ private fun LagreSelvbestemtImMelding.toMap(): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
         Key.BEHOV to behovType.toJson(),
-        Key.KONTEKST_ID to transaksjonId.toJson(),
+        Key.KONTEKST_ID to kontekstId.toJson(),
         Key.DATA to data.toJson(),
     )
 

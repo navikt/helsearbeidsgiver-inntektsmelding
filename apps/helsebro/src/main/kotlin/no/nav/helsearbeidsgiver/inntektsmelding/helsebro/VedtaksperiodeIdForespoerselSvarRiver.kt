@@ -25,7 +25,7 @@ import java.util.UUID
 data class VedtaksperiodeIdForespoerselSvarMelding(
     val eventName: EventName,
     val behovType: Pri.BehovType,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val data: Map<Key, JsonElement>,
     val forespoerselSvar: ForespoerselListeSvar,
 )
@@ -41,7 +41,7 @@ class VedtaksperiodeIdForespoerselSvarRiver : PriObjectRiver<VedtaksperiodeIdFor
         return VedtaksperiodeIdForespoerselSvarMelding(
             eventName = Key.EVENT_NAME.les(EventName.serializer(), boomerang),
             behovType = Pri.Key.BEHOV.krev(Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE, Pri.BehovType.serializer(), json),
-            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, boomerang),
+            kontekstId = Key.KONTEKST_ID.les(UuidSerializer, boomerang),
             data = boomerang[Key.DATA]?.toMap().orEmpty(),
             forespoerselSvar = forespoerselSvar,
         )
@@ -59,7 +59,7 @@ class VedtaksperiodeIdForespoerselSvarRiver : PriObjectRiver<VedtaksperiodeIdFor
         return if (forespoerselSvar.feil == null) {
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
-                Key.KONTEKST_ID to transaksjonId.toJson(),
+                Key.KONTEKST_ID to kontekstId.toJson(),
                 Key.DATA to
                     data
                         .plus(
@@ -81,12 +81,12 @@ class VedtaksperiodeIdForespoerselSvarRiver : PriObjectRiver<VedtaksperiodeIdFor
         val fail =
             Fail(
                 feilmelding = "Klarte ikke hente forespørsler for vedtaksperiode-IDer. Ukjent feil.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding =
                     mapOf(
                         Key.EVENT_NAME to eventName.toJson(),
                         Key.BEHOV to BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(),
-                        Key.KONTEKST_ID to transaksjonId.toJson(),
+                        Key.KONTEKST_ID to kontekstId.toJson(),
                         Key.DATA to data.toJson(),
                     ),
             )
@@ -102,7 +102,7 @@ class VedtaksperiodeIdForespoerselSvarRiver : PriObjectRiver<VedtaksperiodeIdFor
             Log.klasse(this@VedtaksperiodeIdForespoerselSvarRiver),
             Log.event(eventName),
             Log.behov(BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
         )
 }
 

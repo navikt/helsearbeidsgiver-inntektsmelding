@@ -39,7 +39,7 @@ fun Route.hentForespoersel(
     val redisPoller = RedisStore(redisConnection, RedisPrefix.HentForespoersel).let(::RedisPoller)
 
     post(Routes.HENT_FORESPOERSEL) {
-        val transaksjonId = UUID.randomUUID()
+        val kontekstId = UUID.randomUUID()
 
         Metrics.hentForespoerselEndpoint.recordTime(Route::hentForespoersel) {
             runCatching {
@@ -51,9 +51,9 @@ fun Route.hentForespoersel(
 
                     val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
 
-                    hentForespoerselProducer.publish(transaksjonId, request, arbeidsgiverFnr)
+                    hentForespoerselProducer.publish(kontekstId, request, arbeidsgiverFnr)
 
-                    val resultatJson = redisPoller.hent(transaksjonId)
+                    val resultatJson = redisPoller.hent(kontekstId)
 
                     sikkerLogger.info("Hentet forespørsel: $resultatJson")
 

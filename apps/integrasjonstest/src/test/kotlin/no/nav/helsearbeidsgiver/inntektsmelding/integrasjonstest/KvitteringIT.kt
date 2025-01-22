@@ -30,7 +30,7 @@ class KvitteringIT : EndToEndTest() {
 
     @Test
     fun `skal hente data til kvittering`() {
-        val transaksjonId = UUID.randomUUID()
+        val kontekstId = UUID.randomUUID()
         val skjema = mockSkjemaInntektsmelding()
 
         mockForespoerselSvarFraHelsebro(
@@ -46,7 +46,7 @@ class KvitteringIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to skjema.forespoerselId.toJson(),
@@ -68,12 +68,12 @@ class KvitteringIT : EndToEndTest() {
                 data[Key.EKSTERN_INNTEKTSMELDING] shouldBe Mock.tomResultJson
             }
 
-        redisConnection.get(RedisPrefix.Kvittering, transaksjonId).shouldNotBeNull()
+        redisConnection.get(RedisPrefix.Kvittering, kontekstId).shouldNotBeNull()
     }
 
     @Test
     fun `skal hente data til kvittering hvis fra eksternt system`() {
-        val transaksjonId = UUID.randomUUID()
+        val kontekstId = UUID.randomUUID()
         val forespoerselId = UUID.randomUUID()
 
         mockForespoerselSvarFraHelsebro(
@@ -88,7 +88,7 @@ class KvitteringIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
@@ -112,13 +112,13 @@ class KvitteringIT : EndToEndTest() {
                 eIm shouldNotBe Mock.tomResultJson
             }
 
-        redisConnection.get(RedisPrefix.Kvittering, transaksjonId).shouldNotBeNull()
+        redisConnection.get(RedisPrefix.Kvittering, kontekstId).shouldNotBeNull()
     }
 
     @Test
     fun `skal gi feilmelding når forespørsel ikke finnes`() {
         val forespoerselId = UUID.randomUUID()
-        val transaksjonId = UUID.randomUUID()
+        val kontekstId = UUID.randomUUID()
 
         mockForespoerselSvarFraHelsebro(
             forespoerselId = forespoerselId,
@@ -130,7 +130,7 @@ class KvitteringIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),

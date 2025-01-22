@@ -21,19 +21,19 @@ class HentSelvbestemtImProducer(
     }
 
     fun publish(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         selvbestemtId: UUID,
     ) {
         MdcUtils.withLogFields(
             Log.event(EventName.SELVBESTEMT_IM_REQUESTED),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.selvbestemtId(selvbestemtId),
         ) {
             rapid
                 .publish(
                     key = selvbestemtId,
                     Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
-                    Key.KONTEKST_ID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.SELVBESTEMT_ID to selvbestemtId.toJson(),

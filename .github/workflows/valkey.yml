@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-      # Midlertidig, for å trigge push til dev
-      - dev/**
     paths:
       - valkey/**
 

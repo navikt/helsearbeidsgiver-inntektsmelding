@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.json.toPretty
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -53,6 +54,9 @@ class FeilLytter(
         Melding(
             fail = Key.FAIL.les(Fail.serializer(), json),
         )
+
+    // Riveren publiserer ikke via ObjectRiver, så denne nøkkelen blir ikke brukt
+    override fun Melding.bestemNoekkel(): KafkaKey = KafkaKey(UUID.randomUUID())
 
     override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         logger.info("Mottok feil.")

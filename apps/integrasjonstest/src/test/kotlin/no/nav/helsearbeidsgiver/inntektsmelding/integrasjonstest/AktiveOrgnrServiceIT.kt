@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.aareg.Ansettelsesperiode
 import no.nav.helsearbeidsgiver.aareg.Arbeidsgiver
 import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
-import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -60,7 +59,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         val transaksjonId = UUID.randomUUID()
 
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforholdListe
-        coEvery { altinnClient.hentRettighetOrganisasjoner(any()) } returns Mock.altinnOrganisasjonSet
+        coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
 
@@ -107,7 +106,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             .firstAsMap()
             .also { melding ->
                 val data = melding[Key.DATA].shouldNotBeNull().toMap()
-                Key.ORG_RETTIGHETER.les(String.serializer().set(), data) shouldContainExactly Mock.altinnOrganisasjonSet.mapNotNull { it.orgnr }.toSet()
+                Key.ORG_RETTIGHETER.les(String.serializer().set(), data) shouldContainExactly Mock.altinnOrganisasjonSet
             }
 
         aktiveOrgnrMeldinger
@@ -141,7 +140,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         val transaksjonId = UUID.randomUUID()
 
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns emptyList()
-        coEvery { altinnClient.hentRettighetOrganisasjoner(any()) } returns Mock.altinnOrganisasjonSet
+        coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
 
@@ -188,7 +187,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             .firstAsMap()
             .also { melding ->
                 val data = melding[Key.DATA].shouldNotBeNull().toMap()
-                Key.ORG_RETTIGHETER.les(String.serializer().set(), data) shouldContainExactly Mock.altinnOrganisasjonSet.mapNotNull { it.orgnr }.toSet()
+                Key.ORG_RETTIGHETER.les(String.serializer().set(), data) shouldContainExactly Mock.altinnOrganisasjonSet
             }
 
         aktiveOrgnrMeldinger
@@ -205,7 +204,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         val transaksjonId = UUID.randomUUID()
 
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforholdListe
-        coEvery { altinnClient.hentRettighetOrganisasjoner(any()) } returns Mock.altinnOrganisasjonSet
+        coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
 
         coEvery { pdlKlient.personBolk(any()) } throws IllegalArgumentException("Ingen folk å finne her!")
@@ -312,32 +311,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                 ),
             )
 
-        val altinnOrganisasjonSet =
-            setOf(
-                AltinnOrganisasjon(
-                    navn = "ANSTENDIG PIGGSVIN BYDEL",
-                    type = "organisasjon",
-                    orgnrHovedenhet = "810007702",
-                ),
-                AltinnOrganisasjon(
-                    navn = "ANSTENDIG PIGGSVIN BARNEHAGE",
-                    type = "organisasjon",
-                    orgnr = "810007842",
-                    orgnrHovedenhet = "810007702",
-                ),
-                AltinnOrganisasjon(
-                    navn = "ANSTENDIG PIGGSVIN BRANNVESEN",
-                    type = "organisasjon",
-                    orgnr = "810008032",
-                    orgnrHovedenhet = "810007702",
-                ),
-                AltinnOrganisasjon(
-                    navn = "ANSTENDIG PIGGSVIN SYKEHJEM",
-                    type = "organisasjon",
-                    orgnr = "810007982",
-                    orgnrHovedenhet = "810007702",
-                ),
-            )
+        val altinnOrganisasjonSet = setOf("810007842", "810008032", "810007982")
 
         val underenheter = setOf("810007842")
 

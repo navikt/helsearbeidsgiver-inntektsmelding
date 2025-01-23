@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -46,6 +47,8 @@ class HentEksternImRiver(
                 spinnImId = Key.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, data),
             )
         }
+
+    override fun HentEksternImMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun HentEksternImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         logger.info("Henter ekstern inntektsmelding med ID '$spinnImId' fra Spinn.")

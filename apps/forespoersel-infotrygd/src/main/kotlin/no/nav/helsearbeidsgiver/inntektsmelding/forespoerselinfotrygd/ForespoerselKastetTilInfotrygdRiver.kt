@@ -6,6 +6,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.toPretty
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.PriObjectRiver
@@ -33,6 +34,8 @@ class ForespoerselKastetTilInfotrygdRiver : PriObjectRiver<KastetTilInfotrygdMel
             transaksjonId = UUID.randomUUID(),
             forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, json),
         )
+
+    override fun KastetTilInfotrygdMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun KastetTilInfotrygdMelding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok melding på pri-topic om ${Pri.NotisType.FORESPOERSEL_KASTET_TIL_INFOTRYGD}.")

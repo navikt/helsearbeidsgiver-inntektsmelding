@@ -1,18 +1,13 @@
 kafkaPool: nav-prod
 azure:
   enabled: true
-envFrom:
-  - type: secret
-    name: altinn-api-gw-keys-prod
+apps:
+  - name: arbeidsgiver-altinn-tilganger
+    namespace: fager
 env:
-  - name: ALTINN_URL
-    value: https://altinn.no/api/serviceowner
   - name: ALTINN_SERVICE_CODE
     value: 4936
-  - name: ALTINN_SCOPE
-    value: altinn:serviceowner/reportees
-externalHosts:
-  - altinn.no
-maskinporten:
-  consumes:
-    - "altinn:serviceowner/reportees"
+  - name: ALTINN_TILGANGER_SCOPE
+    value: api://prod-gcp.fager.arbeidsgiver-altinn-tilganger/.default
+  - name: ALTINN_TILGANGER_BASE_URL
+    value: http://arbeidsgiver-altinn-tilganger.fager

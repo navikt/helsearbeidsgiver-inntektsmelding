@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -47,6 +48,8 @@ class HentSelvbestemtImRiver(
                 selvbestemtId = Key.SELVBESTEMT_ID.les(UuidSerializer, data),
             )
         }
+
+    override fun HentSelvbestemtImMelding.bestemNoekkel(): KafkaKey = KafkaKey(selvbestemtId)
 
     override fun HentSelvbestemtImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         "Skal hente selvbestemt inntektsmelding.".also {

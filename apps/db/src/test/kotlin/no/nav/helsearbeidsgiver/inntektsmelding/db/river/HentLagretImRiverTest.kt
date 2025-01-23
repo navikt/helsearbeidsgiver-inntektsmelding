@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.domene.LagretInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
@@ -132,6 +133,7 @@ class HentLagretImRiverTest :
 private object MockHentIm {
     fun innkommendeMelding(): HentLagretImMelding {
         val forespoerselId = UUID.randomUUID()
+        val svarKafkaKey = KafkaKey(forespoerselId)
 
         return HentLagretImMelding(
             eventName = EventName.KVITTERING_REQUESTED,
@@ -139,9 +141,10 @@ private object MockHentIm {
             transaksjonId = UUID.randomUUID(),
             data =
                 mapOf(
+                    Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 ),
-            svarKafkaKey = null,
+            svarKafkaKey = svarKafkaKey,
             forespoerselId = forespoerselId,
         )
     }

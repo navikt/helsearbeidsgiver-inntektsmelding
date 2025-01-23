@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.felles.domene.Inntekt
 import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
@@ -34,7 +33,7 @@ data class Melding(
     val behovType: BehovType,
     val transaksjonId: UUID,
     val data: Map<Key, JsonElement>,
-    val svarKafkaKey: KafkaKey?,
+    val svarKafkaKey: KafkaKey,
     val orgnr: Orgnr,
     val fnr: Fnr,
     val inntektsdato: LocalDate,
@@ -57,12 +56,14 @@ class HentInntektRiver(
                 behovType = Key.BEHOV.krev(BehovType.HENT_INNTEKT, BehovType.serializer(), json),
                 transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
-                svarKafkaKey = Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), data),
+                svarKafkaKey = Key.SVAR_KAFKA_KEY.les(KafkaKey.serializer(), data),
                 orgnr = Key.ORGNR_UNDERENHET.les(Orgnr.serializer(), data),
                 fnr = Key.FNR.les(Fnr.serializer(), data),
                 inntektsdato = Key.INNTEKTSDATO.les(LocalDateSerializer, data),
             )
         }
+
+    override fun Melding.bestemNoekkel(): KafkaKey = svarKafkaKey
 
     override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val fom = inntektsdato.minusMaaneder(3)

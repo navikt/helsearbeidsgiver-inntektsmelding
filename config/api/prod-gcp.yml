@@ -2,7 +2,7 @@ kafkaPool: nav-prod
 idportenEnabled: true
 azure:
   enabled: true
-redisAccess: read
+valkeyAccess: read
 ingress: https://helsearbeidsgiver-im-api.intern.nav.no
 inboundApps:
   - name: spinntektsmelding-frontend

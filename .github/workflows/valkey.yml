@@ -1,11 +1,13 @@
-name: Deploy Redis
+name: Deploy Valkey
 
 on:
   push:
     branches:
       - main
+      # Midlertidig, for å trigge push til dev
+      - dev/**
     paths:
-      - redis/**
+      - valkey/**
 
 jobs:
   deploy:
@@ -20,5 +22,5 @@ jobs:
       - uses: nais/deploy/actions/deploy@v2
         env:
           CLUSTER: ${{ matrix.env }}-gcp
-          RESOURCE: redis/config.yml
-          VARS: redis/${{ matrix.env }}.yml
+          RESOURCE: valkey/config.yml
+          VARS: valkey/${{ matrix.env }}.yml

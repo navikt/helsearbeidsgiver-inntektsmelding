@@ -57,10 +57,10 @@ spec:
     application:
       enabled: {{ azure.enabled }}
   {{/if}}
-  {{#if redisAccess}}
+  {{#if valkeyAccess}}
   redis:
     - instance: inntektsmelding
-      access: {{ redisAccess }}
+      access: {{ valkeyAccess }}
   {{/if}}
   {{#if database}}
   gcp:

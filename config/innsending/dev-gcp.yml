@@ -1,2 +1,2 @@
 kafkaPool: nav-dev
-redisAccess: readwrite
+valkeyAccess: readwrite

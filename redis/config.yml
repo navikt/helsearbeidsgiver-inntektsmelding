@@ -1,9 +1,9 @@
 apiVersion: aiven.io/v1alpha1
-kind: Redis
+kind: Valkey
 metadata:
   labels:
     team: helsearbeidsgiver
-  name: redis-helsearbeidsgiver-inntektsmelding
+  name: valkey-helsearbeidsgiver-inntektsmelding
   namespace: helsearbeidsgiver
 spec:
   project: {{ project }}

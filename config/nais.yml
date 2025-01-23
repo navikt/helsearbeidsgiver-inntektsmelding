@@ -58,7 +58,7 @@ spec:
       enabled: {{ azure.enabled }}
   {{/if}}
   {{#if valkeyAccess}}
-  redis:
+  valkey:
     - instance: inntektsmelding
       access: {{ valkeyAccess }}
   {{/if}}

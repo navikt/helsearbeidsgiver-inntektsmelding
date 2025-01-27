@@ -12,7 +12,7 @@ import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.altinn.AltinnClient
+import no.nav.helsearbeidsgiver.altinn.Altinn3M2MClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -33,9 +33,9 @@ import java.util.UUID
 class TilgangRiverTest :
     FunSpec({
         val testRapid = TestRapid()
-        val mockAltinnClient = mockk<AltinnClient>()
+        val mockAltinn3M2MClient = mockk<Altinn3M2MClient>()
 
-        TilgangRiver(mockAltinnClient).connect(testRapid)
+        TilgangRiver(mockAltinn3M2MClient).connect(testRapid)
 
         beforeTest {
             testRapid.reset()
@@ -49,7 +49,7 @@ class TilgangRiverTest :
                     "ikke tilgang" to row(false, Tilgang.IKKE_TILGANG),
                 ),
             ) { (altinnSvar, forventetTilgang) ->
-                coEvery { mockAltinnClient.harRettighetForOrganisasjon(any(), any()) } returns altinnSvar
+                coEvery { mockAltinn3M2MClient.harTilgangTilOrganisasjon(any(), any()) } returns altinnSvar
 
                 val innkommendeMelding = MockTilgang.innkommendeMelding()
 
@@ -68,13 +68,13 @@ class TilgangRiverTest :
                     )
 
                 coVerifySequence {
-                    mockAltinnClient.harRettighetForOrganisasjon(innkommendeMelding.fnr.verdi, innkommendeMelding.orgnr.verdi)
+                    mockAltinn3M2MClient.harTilgangTilOrganisasjon(innkommendeMelding.fnr.verdi, innkommendeMelding.orgnr.verdi)
                 }
             }
         }
 
         test("håndterer feil") {
-            coEvery { mockAltinnClient.harRettighetForOrganisasjon(any(), any()) } throws NullPointerException()
+            coEvery { mockAltinn3M2MClient.harTilgangTilOrganisasjon(any(), any()) } throws NullPointerException()
 
             val innkommendeMelding = MockTilgang.innkommendeMelding()
 
@@ -92,7 +92,7 @@ class TilgangRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             coVerifySequence {
-                mockAltinnClient.harRettighetForOrganisasjon(innkommendeMelding.fnr.verdi, innkommendeMelding.orgnr.verdi)
+                mockAltinn3M2MClient.harTilgangTilOrganisasjon(innkommendeMelding.fnr.verdi, innkommendeMelding.orgnr.verdi)
             }
         }
 
@@ -114,7 +114,7 @@ class TilgangRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 coVerify(exactly = 0) {
-                    mockAltinnClient.harRettighetForOrganisasjon(any(), any())
+                    mockAltinn3M2MClient.harTilgangTilOrganisasjon(any(), any())
                 }
             }
         }

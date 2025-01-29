@@ -18,17 +18,17 @@ class InntektProducerTest :
         val inntektProducer = InntektProducer(testRapid)
 
         test("Publiserer melding på forventet format") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
             val request = InntektRequest(UUID.randomUUID(), 18.januar)
 
-            inntektProducer.publish(transaksjonId, request)
+            inntektProducer.publish(kontekstId, request)
 
             val publisert = testRapid.firstMessage().toMap()
 
             publisert shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),
-                    Key.KONTEKST_ID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to request.forespoerselId.toJson(),

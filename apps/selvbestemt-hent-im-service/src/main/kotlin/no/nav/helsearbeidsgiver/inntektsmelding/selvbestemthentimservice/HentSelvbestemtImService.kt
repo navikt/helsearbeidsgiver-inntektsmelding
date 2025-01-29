@@ -23,7 +23,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
 data class Steg0(
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val selvbestemtId: UUID,
 )
 
@@ -42,7 +42,7 @@ class HentSelvbestemtImService(
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
+            kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             selvbestemtId = Key.SELVBESTEMT_ID.les(UuidSerializer, melding),
         )
 
@@ -60,7 +60,7 @@ class HentSelvbestemtImService(
                 key = steg0.selvbestemtId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_SELVBESTEMT_IM.toJson(),
-                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
                     data
                         .plus(
@@ -88,7 +88,7 @@ class HentSelvbestemtImService(
                 success = steg1.inntektsmelding.toJson(Inntektsmelding.serializer()),
             )
 
-        redisStore.skrivResultat(steg0.transaksjonId, resultJson)
+        redisStore.skrivResultat(steg0.kontekstId, resultJson)
     }
 
     override fun onError(
@@ -103,7 +103,7 @@ class HentSelvbestemtImService(
         mapOf(
             Log.klasse(this@HentSelvbestemtImService),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.selvbestemtId(selvbestemtId),
         )
 }

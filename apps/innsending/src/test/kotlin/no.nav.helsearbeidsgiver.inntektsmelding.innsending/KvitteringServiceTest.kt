@@ -59,7 +59,7 @@ class KvitteringServiceTest :
                     "ingen inntektsmelding funnet" to null,
                 ),
             ) { lagret ->
-                val transaksjonId: UUID = UUID.randomUUID()
+                val kontekstId: UUID = UUID.randomUUID()
                 val expectedResult =
                     KvitteringResultat(
                         forespoersel = mockForespoersel(),
@@ -70,14 +70,14 @@ class KvitteringServiceTest :
                 val sykmeldtFnr = expectedResult.forespoersel.fnr
 
                 testRapid.sendJson(
-                    MockKvittering.steg0(transaksjonId),
+                    MockKvittering.steg0(kontekstId),
                 )
 
                 testRapid.inspektør.size shouldBeExactly 1
                 testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_TRENGER_IM
 
                 testRapid.sendJson(
-                    MockKvittering.steg1(transaksjonId, expectedResult.forespoersel),
+                    MockKvittering.steg1(kontekstId, expectedResult.forespoersel),
                 )
 
                 testRapid.inspektør.size shouldBeExactly 4
@@ -87,7 +87,7 @@ class KvitteringServiceTest :
 
                 testRapid.sendJson(
                     MockKvittering.steg2(
-                        transaksjonId,
+                        kontekstId,
                         mapOf(expectedResult.forespoersel.orgnr to expectedResult.orgNavn),
                         mapOf(sykmeldtFnr to Person(sykmeldtFnr, expectedResult.sykmeldtNavn)),
                         expectedResult.lagret,
@@ -98,7 +98,7 @@ class KvitteringServiceTest :
 
                 verify {
                     mockRedis.store.skrivResultat(
-                        transaksjonId,
+                        kontekstId,
                         ResultJson(
                             success = expectedResult.toJson(KvitteringResultat.serializer()),
                         ),
@@ -130,10 +130,10 @@ class KvitteringServiceTest :
     })
 
 private object MockKvittering {
-    fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
+    fun steg0(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
@@ -141,12 +141,12 @@ private object MockKvittering {
         )
 
     fun steg1(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         forespoersel: Forespoersel,
     ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
@@ -154,14 +154,14 @@ private object MockKvittering {
         )
 
     fun steg2(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         orgnrMedNavn: Map<Orgnr, String>,
         personer: Map<Fnr, Person>,
         lagret: LagretInntektsmelding?,
     ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.VIRKSOMHETER to orgnrMedNavn.toJson(orgMapSerializer),

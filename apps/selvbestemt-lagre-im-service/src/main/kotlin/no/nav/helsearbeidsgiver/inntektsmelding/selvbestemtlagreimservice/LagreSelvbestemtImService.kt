@@ -42,7 +42,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 data class Steg0(
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val skjema: SkjemaInntektsmeldingSelvbestemt,
     val avsenderFnr: Fnr,
     val mottatt: LocalDateTime,
@@ -80,7 +80,7 @@ class LagreSelvbestemtImService(
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
+            kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmeldingSelvbestemt.serializer(), melding),
             avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
             mottatt = Key.MOTTATT.les(LocalDateTimeSerializer, melding),
@@ -136,7 +136,7 @@ class LagreSelvbestemtImService(
             key = steg0.skjema.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
-            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
@@ -148,7 +148,7 @@ class LagreSelvbestemtImService(
             key = steg0.skjema.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
-            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
@@ -164,7 +164,7 @@ class LagreSelvbestemtImService(
             key = steg0.skjema.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_ARBEIDSFORHOLD.toJson(),
-            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
@@ -207,7 +207,7 @@ class LagreSelvbestemtImService(
                         key = inntektsmelding.type.id,
                         Key.EVENT_NAME to eventName.toJson(),
                         Key.BEHOV to BehovType.LAGRE_SELVBESTEMT_IM.toJson(),
-                        Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                         Key.DATA to
                             mapOf(
                                 Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
@@ -221,7 +221,7 @@ class LagreSelvbestemtImService(
                     logger.warn(feilmelding)
                     sikkerLogger.warn(feilmelding)
                     val resultJson = ResultJson(failure = feilmelding.toJson())
-                    redisStore.skrivResultat(steg0.transaksjonId, resultJson)
+                    redisStore.skrivResultat(steg0.kontekstId, resultJson)
                 }
             }
         }
@@ -244,7 +244,7 @@ class LagreSelvbestemtImService(
                         key = steg2.inntektsmelding.type.id,
                         Key.EVENT_NAME to eventName.toJson(),
                         Key.BEHOV to BehovType.OPPRETT_SELVBESTEMT_SAK.toJson(),
-                        Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                         Key.DATA to
                             mapOf(
                                 Key.SELVBESTEMT_INNTEKTSMELDING to steg2.inntektsmelding.toJson(Inntektsmelding.serializer()),
@@ -273,14 +273,14 @@ class LagreSelvbestemtImService(
                         steg2.inntektsmelding.type.id
                             .toJson(),
                 )
-            redisStore.skrivResultat(steg0.transaksjonId, resultJson)
+            redisStore.skrivResultat(steg0.kontekstId, resultJson)
 
             if (!steg2.erDuplikat) {
                 val publisert =
                     rapid.publish(
                         key = steg2.inntektsmelding.type.id,
                         Key.EVENT_NAME to EventName.SELVBESTEMT_IM_LAGRET.toJson(),
-                        Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                         Key.DATA to
                             mapOf(
                                 Key.SELVBESTEMT_INNTEKTSMELDING to steg2.inntektsmelding.toJson(Inntektsmelding.serializer()),
@@ -304,7 +304,7 @@ class LagreSelvbestemtImService(
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(eventName),
-            Log.transaksjonId(fail.kontekstId),
+            Log.kontekstId(fail.kontekstId),
         ) {
             val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding)
             val datafeil =
@@ -353,7 +353,7 @@ class LagreSelvbestemtImService(
         mapOf(
             Log.klasse(this@LagreSelvbestemtImService),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
         )
 }
 

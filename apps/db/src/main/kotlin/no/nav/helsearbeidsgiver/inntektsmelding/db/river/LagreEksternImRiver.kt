@@ -21,7 +21,7 @@ import java.util.UUID
 
 data class LagreEksternImMelding(
     val eventName: EventName,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val forespoerselId: UUID,
     val eksternInntektsmelding: EksternInntektsmelding,
 )
@@ -40,7 +40,7 @@ class LagreEksternImRiver(
 
             LagreEksternImMelding(
                 eventName = Key.EVENT_NAME.krev(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT, EventName.serializer(), json),
-                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
                 eksternInntektsmelding = Key.EKSTERN_INNTEKTSMELDING.les(EksternInntektsmelding.serializer(), data),
             )
@@ -58,7 +58,7 @@ class LagreEksternImRiver(
 
         return mapOf(
             Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_LAGRET.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
     }
@@ -70,7 +70,7 @@ class LagreEksternImRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke lagre ekstern inntektsmelding i database.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
 
@@ -84,7 +84,7 @@ class LagreEksternImRiver(
         mapOf(
             Log.klasse(this@LagreEksternImRiver),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )
 }

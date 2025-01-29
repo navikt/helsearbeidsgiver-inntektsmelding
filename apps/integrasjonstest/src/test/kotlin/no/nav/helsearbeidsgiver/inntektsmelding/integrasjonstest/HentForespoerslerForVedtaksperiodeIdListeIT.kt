@@ -25,7 +25,7 @@ import java.util.UUID
 class HentForespoerslerForVedtaksperiodeIdListeIT : EndToEndTest() {
     @Test
     fun `Test meldingsflyt for henting av forespørsler for liste av vedtaksperiode-IDer`() {
-        val transaksjonId: UUID = UUID.randomUUID()
+        val kontekstId: UUID = UUID.randomUUID()
         val vedtaksperiodeId1 = UUID.randomUUID()
         val vedtaksperiodeId2 = UUID.randomUUID()
 
@@ -39,7 +39,7 @@ class HentForespoerslerForVedtaksperiodeIdListeIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.FORESPOERSLER_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(UuidSerializer),
+            Key.KONTEKST_ID to kontekstId.toJson(UuidSerializer),
             Key.DATA to
                 mapOf(
                     Key.VEDTAKSPERIODE_ID_LISTE to listOf(vedtaksperiodeId1, vedtaksperiodeId2).toJson(UuidSerializer),
@@ -52,7 +52,7 @@ class HentForespoerslerForVedtaksperiodeIdListeIT : EndToEndTest() {
             .filter(BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE)
             .firstAsMap()
             .let {
-                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldBe transaksjonId
+                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldBe kontekstId
             }
 
         // Forespørsler hentet
@@ -61,8 +61,8 @@ class HentForespoerslerForVedtaksperiodeIdListeIT : EndToEndTest() {
             .filter(Key.FORESPOERSEL_MAP)
             .firstAsMap()
             .let {
-                // Verifiser transaksjon-ID
-                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldBe transaksjonId
+                // Verifiser kontekst-ID
+                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldBe kontekstId
 
                 // Verifiser forespoersler
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -72,7 +72,7 @@ class HentForespoerslerForVedtaksperiodeIdListeIT : EndToEndTest() {
         // API besvart gjennom redis
         val resultJson =
             redisConnection
-                .get(RedisPrefix.HentForespoerslerForVedtaksperiodeIdListe, transaksjonId)
+                .get(RedisPrefix.HentForespoerslerForVedtaksperiodeIdListe, kontekstId)
                 ?.fromJson(ResultJson.serializer())
                 .shouldNotBeNull()
 

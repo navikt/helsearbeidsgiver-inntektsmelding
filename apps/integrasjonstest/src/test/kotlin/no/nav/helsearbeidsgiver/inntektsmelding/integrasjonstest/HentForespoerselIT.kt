@@ -27,7 +27,7 @@ import java.util.UUID
 class HentForespoerselIT : EndToEndTest() {
     @Test
     fun `forespørsel hentes`() {
-        val transaksjonId: UUID = UUID.randomUUID()
+        val kontekstId: UUID = UUID.randomUUID()
         val forespoerselId: UUID = UUID.randomUUID()
 
         mockForespoerselSvarFraHelsebro(
@@ -37,7 +37,7 @@ class HentForespoerselIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(UuidSerializer),
+            Key.KONTEKST_ID to kontekstId.toJson(UuidSerializer),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer),
@@ -50,7 +50,7 @@ class HentForespoerselIT : EndToEndTest() {
             .filter(BehovType.HENT_TRENGER_IM)
             .firstAsMap()
             .let {
-                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldBe transaksjonId
+                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldBe kontekstId
             }
 
         messages
@@ -58,7 +58,7 @@ class HentForespoerselIT : EndToEndTest() {
             .filter(BehovType.HENT_VIRKSOMHET_NAVN)
             .firstAsMap()
             .let {
-                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldBe transaksjonId
+                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldBe kontekstId
             }
 
         messages
@@ -66,7 +66,7 @@ class HentForespoerselIT : EndToEndTest() {
             .filter(BehovType.HENT_PERSONER)
             .firstAsMap()
             .let {
-                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldBe transaksjonId
+                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldBe kontekstId
             }
 
         messages
@@ -74,12 +74,12 @@ class HentForespoerselIT : EndToEndTest() {
             .filter(BehovType.HENT_INNTEKT)
             .firstAsMap()
             .let {
-                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldBe transaksjonId
+                it[Key.KONTEKST_ID]?.fromJson(UuidSerializer) shouldBe kontekstId
             }
 
         val resultJson =
             redisConnection
-                .get(RedisPrefix.HentForespoersel, transaksjonId)
+                .get(RedisPrefix.HentForespoersel, kontekstId)
                 ?.fromJson(ResultJson.serializer())
                 .shouldNotBeNull()
 
@@ -99,7 +99,7 @@ class HentForespoerselIT : EndToEndTest() {
 
     @Test
     fun `dersom forespørsel ikke blir funnet så settes sak og oppgave til utgått`() {
-        val transaksjonId: UUID = UUID.randomUUID()
+        val kontekstId: UUID = UUID.randomUUID()
         val forespoerselId: UUID = UUID.randomUUID()
 
         mockForespoerselSvarFraHelsebro(
@@ -109,7 +109,7 @@ class HentForespoerselIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(UuidSerializer),
+            Key.KONTEKST_ID to kontekstId.toJson(UuidSerializer),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer),
@@ -122,20 +122,20 @@ class HentForespoerselIT : EndToEndTest() {
             .filter(BehovType.HENT_TRENGER_IM)
             .firstAsMap()
             .let {
-                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
             }
 
         messages
             .filter(EventName.SAK_OG_OPPGAVE_UTGAATT)
             .firstAsMap()
             .let {
-                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
                 Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe forespoerselId
             }
 
         val resultJson =
             redisConnection
-                .get(RedisPrefix.HentForespoersel, transaksjonId)
+                .get(RedisPrefix.HentForespoersel, kontekstId)
                 ?.fromJson(ResultJson.serializer())
                 .shouldNotBeNull()
 

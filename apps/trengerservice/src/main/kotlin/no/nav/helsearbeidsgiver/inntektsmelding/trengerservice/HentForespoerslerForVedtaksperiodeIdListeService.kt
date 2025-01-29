@@ -35,7 +35,7 @@ class HentForespoerslerForVedtaksperiodeIdListeService(
     override val eventName = EventName.FORESPOERSLER_REQUESTED
 
     data class Steg0(
-        val transaksjonId: UUID,
+        val kontekstId: UUID,
         val vedtaksperiodeIdListe: List<UUID>,
     )
 
@@ -45,7 +45,7 @@ class HentForespoerslerForVedtaksperiodeIdListeService(
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
+            kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             vedtaksperiodeIdListe = Key.VEDTAKSPERIODE_ID_LISTE.les(UuidSerializer.list(), melding),
         )
 
@@ -63,7 +63,7 @@ class HentForespoerslerForVedtaksperiodeIdListeService(
                 key = UUID.randomUUID(),
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(),
-                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.VEDTAKSPERIODE_ID_LISTE to steg0.vedtaksperiodeIdListe.toJson(UuidSerializer),
@@ -81,7 +81,7 @@ class HentForespoerslerForVedtaksperiodeIdListeService(
                 success = steg1.forespoersler.toJson(MapSerializer(UuidSerializer, Forespoersel.serializer())),
             )
 
-        redisStore.skrivResultat(steg0.transaksjonId, resultJson)
+        redisStore.skrivResultat(steg0.kontekstId, resultJson)
     }
 
     override fun onError(
@@ -102,7 +102,7 @@ class HentForespoerslerForVedtaksperiodeIdListeService(
         mapOf(
             Log.klasse(this@HentForespoerslerForVedtaksperiodeIdListeService),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
         )
 
     private fun loggBehovPublisert(

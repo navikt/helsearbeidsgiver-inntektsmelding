@@ -54,7 +54,7 @@ class HentDataTilPaaminnelseServiceTest :
             testRapid.message(2).toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.OPPGAVE_ENDRE_PAAMINNELSE_REQUESTED.toJson(),
-                    Key.KONTEKST_ID to HentDataTilPaaminnelseServiceMock.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to HentDataTilPaaminnelseServiceMock.kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to HentDataTilPaaminnelseServiceMock.forespoerselId.toJson(),
@@ -88,14 +88,14 @@ class HentDataTilPaaminnelseServiceTest :
 
 private object HentDataTilPaaminnelseServiceMock {
     val forespoersel = mockForespoersel()
-    val transaksjonId: UUID = forespoersel.vedtaksperiodeId
+    val kontekstId: UUID = forespoersel.vedtaksperiodeId
     val forespoerselId: UUID = UUID.randomUUID()
     val orgnrMedNavn = mapOf(forespoersel.orgnr to "Kåre Conradis Kål og Kålrabi")
 
     fun steg0(): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.MANUELL_ENDRE_PAAMINNELSE.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),

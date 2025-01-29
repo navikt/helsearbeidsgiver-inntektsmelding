@@ -27,7 +27,7 @@ import java.util.UUID
 data class Melding(
     val eventName: EventName,
     val behovType: BehovType,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val data: Map<Key, JsonElement>,
     val svarKafkaKey: KafkaKey,
     val fnrListe: Set<Fnr>,
@@ -48,7 +48,7 @@ class HentPersonerRiver(
             Melding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.HENT_PERSONER, BehovType.serializer(), json),
-                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 svarKafkaKey = Key.SVAR_KAFKA_KEY.les(KafkaKey.serializer(), data),
                 fnrListe = Key.FNR_LISTE.les(Fnr.serializer().set(), data),
@@ -74,7 +74,7 @@ class HentPersonerRiver(
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 data
                     .plus(
@@ -90,7 +90,7 @@ class HentPersonerRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke hente personer fra PDL.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
 
@@ -105,7 +105,7 @@ class HentPersonerRiver(
             Log.klasse(this@HentPersonerRiver),
             Log.event(eventName),
             Log.behov(behovType),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
         )
 
     private fun hentPersoner(fnrListe: Set<Fnr>): List<Person> =

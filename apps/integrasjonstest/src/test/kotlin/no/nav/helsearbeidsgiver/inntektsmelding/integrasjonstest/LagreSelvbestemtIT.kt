@@ -64,7 +64,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
     @Test
     fun `inntektsmelding lagres og prosesseres`() {
-        val transaksjonId: UUID = UUID.randomUUID()
+        val kontekstId: UUID = UUID.randomUUID()
         val nyInntektsmelding =
             Mock.inntektsmelding.copy(
                 type =
@@ -88,7 +88,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
@@ -178,22 +178,22 @@ class LagreSelvbestemtIT : EndToEndTest() {
         messages
             .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
             .firstAsMap()
-            .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, nyInntektsmelding, compareType = false)
+            .shouldContainNokTilJournalfoeringOgDistribusjon(kontekstId, nyInntektsmelding, compareType = false)
 
         messages
             .filter(EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET)
             .firstAsMap()
-            .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, nyInntektsmelding, compareType = false)
+            .shouldContainNokTilJournalfoeringOgDistribusjon(kontekstId, nyInntektsmelding, compareType = false)
 
         messages
             .filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
             .firstAsMap()
-            .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, nyInntektsmelding, compareType = false)
+            .shouldContainNokTilJournalfoeringOgDistribusjon(kontekstId, nyInntektsmelding, compareType = false)
     }
 
     @Test
     fun `endret inntektsmelding lagres og prosesseres, men uten opprettelse av sak`() {
-        val transaksjonId: UUID = UUID.randomUUID()
+        val kontekstId: UUID = UUID.randomUUID()
 
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Mock.virksomhet)
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
@@ -208,7 +208,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
@@ -253,22 +253,22 @@ class LagreSelvbestemtIT : EndToEndTest() {
         messages
             .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
             .firstAsMap()
-            .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, Mock.inntektsmelding, compareType = true)
+            .shouldContainNokTilJournalfoeringOgDistribusjon(kontekstId, Mock.inntektsmelding, compareType = true)
 
         messages
             .filter(EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET)
             .firstAsMap()
-            .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, Mock.inntektsmelding, compareType = true)
+            .shouldContainNokTilJournalfoeringOgDistribusjon(kontekstId, Mock.inntektsmelding, compareType = true)
 
         messages
             .filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
             .firstAsMap()
-            .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, Mock.inntektsmelding, compareType = true)
+            .shouldContainNokTilJournalfoeringOgDistribusjon(kontekstId, Mock.inntektsmelding, compareType = true)
     }
 
     @Test
     fun `duplikat, endret inntektsmelding lagres, men prosesseres ikke`() {
-        val transaksjonId: UUID = UUID.randomUUID()
+        val kontekstId: UUID = UUID.randomUUID()
 
         selvbestemtImRepo.lagreIm(Mock.inntektsmelding)
 
@@ -278,7 +278,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
@@ -351,13 +351,13 @@ class LagreSelvbestemtIT : EndToEndTest() {
     }
 
     private fun Map<Key, JsonElement>.shouldContainNokTilJournalfoeringOgDistribusjon(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         inntektsmelding: Inntektsmelding,
         compareType: Boolean,
     ) {
         this shouldContainAll
             mapOf(
-                Key.KONTEKST_ID to transaksjonId.toJson(),
+                Key.KONTEKST_ID to kontekstId.toJson(),
                 Key.JOURNALPOST_ID to Mock.journalpostId.toJson(),
             )
 

@@ -64,7 +64,7 @@ class HentLagretImRiverTest :
                 testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
                         Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                        Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                         Key.DATA to
                             innkommendeMelding.data
                                 .plus(
@@ -91,7 +91,7 @@ class HentLagretImRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke hente inntektsmelding fra database.",
-                    kontekstId = innkommendeMelding.transaksjonId,
+                    kontekstId = innkommendeMelding.kontekstId,
                     utloesendeMelding = innkommendeMelding.toMap(),
                 )
 
@@ -138,7 +138,7 @@ private object MockHentIm {
         return HentLagretImMelding(
             eventName = EventName.KVITTERING_REQUESTED,
             behovType = BehovType.HENT_LAGRET_IM,
-            transaksjonId = UUID.randomUUID(),
+            kontekstId = UUID.randomUUID(),
             data =
                 mapOf(
                     Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
@@ -153,7 +153,7 @@ private object MockHentIm {
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to behovType.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to data.toJson(),
         )
 

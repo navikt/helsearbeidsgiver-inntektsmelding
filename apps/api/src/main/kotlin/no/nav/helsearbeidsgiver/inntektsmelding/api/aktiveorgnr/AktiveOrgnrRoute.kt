@@ -33,15 +33,15 @@ fun Route.aktiveOrgnrRoute(
     val redisPoller = RedisStore(redisConnection, RedisPrefix.AktiveOrgnr).let(::RedisPoller)
 
     post(Routes.AKTIVEORGNR) {
-        val transaksjonId = UUID.randomUUID()
+        val kontekstId = UUID.randomUUID()
 
         try {
             val request = call.receive<AktiveOrgnrRequest>()
             val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
 
-            aktiveOrgnrProducer.publish(transaksjonId, arbeidsgiverFnr = arbeidsgiverFnr, arbeidstagerFnr = request.identitetsnummer)
+            aktiveOrgnrProducer.publish(kontekstId, arbeidsgiverFnr = arbeidsgiverFnr, arbeidstagerFnr = request.identitetsnummer)
 
-            val resultatJson = redisPoller.hent(transaksjonId)
+            val resultatJson = redisPoller.hent(kontekstId)
 
             val resultat = resultatJson.success?.fromJson(AktiveArbeidsgivere.serializer())
             if (resultat != null) {

@@ -24,43 +24,43 @@ class TilgangProducer(
     }
 
     fun publishForespoerselId(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         fnr: Fnr,
         forespoerselId: UUID,
     ) = publish(
         EventName.TILGANG_FORESPOERSEL_REQUESTED,
-        transaksjonId,
+        kontekstId,
         fnr,
         Key.FORESPOERSEL_ID to forespoerselId.toJson(),
     )
 
     fun publishOrgnr(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         fnr: Fnr,
         orgnr: String,
     ) = publish(
         EventName.TILGANG_ORG_REQUESTED,
-        transaksjonId,
+        kontekstId,
         fnr,
         Key.ORGNR_UNDERENHET to orgnr.toJson(),
     )
 
     private fun publish(
         eventName: EventName,
-        transaksjonId: UUID,
+        kontekstId: UUID,
         fnr: Fnr,
         dataField: Pair<Key, JsonElement>,
     ) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
         ) {
             rapid
                 .publish(
                     key = fnr,
                     Key.EVENT_NAME to eventName.toJson(),
-                    Key.KONTEKST_ID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FNR to fnr.toJson(),

@@ -71,7 +71,7 @@ class ServiceRiverStatefulTest :
         }
 
         test("datamelding håndteres korrekt") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
             val virksomhetNavn = "Fredrikssons Fabrikk"
 
             val eksisterendeRedisValues =
@@ -80,7 +80,7 @@ class ServiceRiverStatefulTest :
                     .plus(Key.PERSONER to "mock personer".toJson())
 
             eksisterendeRedisValues.forEach {
-                mockRedis.store.skrivMellomlagring(transaksjonId, it.key, it.value)
+                mockRedis.store.skrivMellomlagring(kontekstId, it.key, it.value)
             }
 
             val data =
@@ -91,7 +91,7 @@ class ServiceRiverStatefulTest :
             val innkommendeMelding =
                 mapOf(
                     Key.EVENT_NAME to mockService.eventName.toJson(),
-                    Key.KONTEKST_ID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to kontekstId.toJson(),
                     Key.DATA to data.toJson(),
                 )
 
@@ -100,8 +100,8 @@ class ServiceRiverStatefulTest :
             val beriketMelding = eksisterendeRedisValues + data + innkommendeMelding
 
             verifyOrder {
-                mockRedis.store.skrivMellomlagring(transaksjonId, Key.VIRKSOMHETER, virksomhetNavn.toJson())
-                mockRedis.store.lesAlleMellomlagrede(transaksjonId)
+                mockRedis.store.skrivMellomlagring(kontekstId, Key.VIRKSOMHETER, virksomhetNavn.toJson())
+                mockRedis.store.lesAlleMellomlagrede(kontekstId)
                 mockService.onData(beriketMelding)
             }
             verify(exactly = 0) {

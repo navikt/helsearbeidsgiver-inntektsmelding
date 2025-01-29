@@ -60,7 +60,7 @@ class TilgangRiverTest :
                 testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
                         Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                        Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                         Key.DATA to
                             innkommendeMelding.data
                                 .plus(Key.TILGANG to forventetTilgang.toJson(Tilgang.serializer()))
@@ -81,7 +81,7 @@ class TilgangRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke sjekke tilgang i Altinn.",
-                    kontekstId = innkommendeMelding.transaksjonId,
+                    kontekstId = innkommendeMelding.kontekstId,
                     utloesendeMelding = innkommendeMelding.toMap(),
                 )
 
@@ -128,7 +128,7 @@ private object MockTilgang {
         return TilgangMelding(
             eventName = EventName.TILGANG_FORESPOERSEL_REQUESTED,
             behovType = BehovType.TILGANGSKONTROLL,
-            transaksjonId = UUID.randomUUID(),
+            kontekstId = UUID.randomUUID(),
             data =
                 mapOf(
                     Key.ORGNR_UNDERENHET to orgnr.toJson(Orgnr.serializer()),
@@ -143,7 +143,7 @@ private object MockTilgang {
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to behovType.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to data.toJson(),
         )
 

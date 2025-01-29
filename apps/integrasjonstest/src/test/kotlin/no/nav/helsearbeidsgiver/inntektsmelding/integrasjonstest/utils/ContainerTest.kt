@@ -7,14 +7,16 @@ import org.apache.kafka.clients.admin.AdminClientConfig
 import org.apache.kafka.clients.admin.NewTopic
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
-import org.testcontainers.containers.KafkaContainer
+import org.junit.jupiter.api.TestInstance
+import org.testcontainers.kafka.ConfluentKafkaContainer
 import org.testcontainers.utility.DockerImageName
 import java.util.Properties
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class ContainerTest {
     private val topic = "helsearbeidsgiver.inntektsmelding"
 
-    private val kafkaContainer = KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.7.2"))
+    private val kafkaContainer = ConfluentKafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.8.0"))
     val redisContainer = RedisContainer(DockerImageName.parse("redis:7"))
     val postgresContainerOne = postgresContainer()
     val postgresContainerTwo = postgresContainer()

@@ -14,7 +14,7 @@ object Log {
 
     fun behov(value: BehovType) = "hag_behov" to value.name
 
-    fun transaksjonId(value: UUID) = "hag_kontekst_id" to value.toString()
+    fun kontekstId(value: UUID) = "hag_kontekst_id" to value.toString()
 
     fun forespoerselId(value: UUID) = "hag_forespoersel_id" to value.toString()
 

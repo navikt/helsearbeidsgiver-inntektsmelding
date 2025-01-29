@@ -130,20 +130,20 @@ class FjernPaaminnelseRiverTest :
 private fun forventetFail(innkommendeMelding: FjernPaaminnelseMelding): Fail =
     Fail(
         feilmelding = "Klarte ikke fjerne påminnelse fra oppgave.",
-        kontekstId = innkommendeMelding.transaksjonId,
+        kontekstId = innkommendeMelding.kontekstId,
         utloesendeMelding = innkommendeMelding.toMap(),
     )
 
 private fun FjernPaaminnelseMelding.toMap() =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
-        Key.KONTEKST_ID to transaksjonId.toJson(),
+        Key.KONTEKST_ID to kontekstId.toJson(),
         Key.FORESPOERSEL_ID to forespoerselId.toJson(),
     )
 
 fun innkommendeFjernPaaminnelseMelding(): FjernPaaminnelseMelding =
     FjernPaaminnelseMelding(
         eventName = EventName.FORESPOERSEL_KASTET_TIL_INFOTRYGD,
-        transaksjonId = UUID.randomUUID(),
+        kontekstId = UUID.randomUUID(),
         forespoerselId = UUID.randomUUID(),
     )

@@ -131,7 +131,7 @@ class HentPersonerRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke hente personer fra PDL.",
-                    kontekstId = innkommendeMelding.transaksjonId,
+                    kontekstId = innkommendeMelding.kontekstId,
                     utloesendeMelding = innkommendeJsonMap,
                 )
 
@@ -181,7 +181,7 @@ private object Mock {
         return Melding(
             eventName = EventName.TRENGER_REQUESTED,
             behovType = BehovType.HENT_PERSONER,
-            transaksjonId = UUID.randomUUID(),
+            kontekstId = UUID.randomUUID(),
             data =
                 mapOf(
                     Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
@@ -196,7 +196,7 @@ private object Mock {
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to behovType.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to data.toJson(),
         )
 
@@ -206,7 +206,7 @@ private object Mock {
     ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-            Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+            Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
             Key.DATA to
                 innkommendeMelding.data
                     .plus(

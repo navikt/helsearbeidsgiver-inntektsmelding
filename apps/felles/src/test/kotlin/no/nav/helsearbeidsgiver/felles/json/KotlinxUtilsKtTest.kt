@@ -26,7 +26,7 @@ class KotlinxUtilsKtTest :
                     mapOf(
                         Key.EVENT_NAME to "test_event",
                         Key.BEHOV to "test_behov",
-                        Key.KONTEKST_ID to "test_transaksjonId",
+                        Key.KONTEKST_ID to "test_kontekstId",
                     )
 
                 val json =

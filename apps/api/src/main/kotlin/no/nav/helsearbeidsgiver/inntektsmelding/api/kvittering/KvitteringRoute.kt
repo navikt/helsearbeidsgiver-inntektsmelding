@@ -53,7 +53,7 @@ fun Route.kvittering(
     val redisPoller = RedisStore(redisConnection, RedisPrefix.Kvittering).let(::RedisPoller)
 
     get(Routes.KVITTERING) {
-        val transaksjonId = UUID.randomUUID()
+        val kontekstId = UUID.randomUUID()
 
         val forespoerselId =
             call.parameters["uuid"]
@@ -72,8 +72,8 @@ fun Route.kvittering(
                 try {
                     tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
 
-                    kvitteringProducer.publish(transaksjonId, forespoerselId)
-                    val resultatJson = redisPoller.hent(transaksjonId)
+                    kvitteringProducer.publish(kontekstId, forespoerselId)
+                    val resultatJson = redisPoller.hent(kontekstId)
 
                     val resultat = resultatJson.success?.fromJson(KvitteringResultat.serializer())
                     if (resultat != null) {

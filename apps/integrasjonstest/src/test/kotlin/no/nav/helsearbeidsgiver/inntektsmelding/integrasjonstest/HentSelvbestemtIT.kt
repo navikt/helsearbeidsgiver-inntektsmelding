@@ -36,7 +36,7 @@ class HentSelvbestemtIT : EndToEndTest() {
 
     @Test
     fun `selvbestemt inntektsmelding hentes`() {
-        val transaksjonId: UUID = UUID.randomUUID()
+        val kontekstId: UUID = UUID.randomUUID()
         val inntektsmelding =
             mockInntektsmeldingV1().copy(
                 type =
@@ -49,7 +49,7 @@ class HentSelvbestemtIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(UuidSerializer),
+            Key.KONTEKST_ID to kontekstId.toJson(UuidSerializer),
             Key.DATA to
                 mapOf(
                     Key.SELVBESTEMT_ID to inntektsmelding.type.id.toJson(UuidSerializer),
@@ -65,7 +65,7 @@ class HentSelvbestemtIT : EndToEndTest() {
             .filter(BehovType.HENT_SELVBESTEMT_IM)
             .firstAsMap()
             .let { msg ->
-                Key.KONTEKST_ID.lesOrNull(UuidSerializer, msg) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, msg) shouldBe kontekstId
 
                 val data = msg[Key.DATA].shouldNotBeNull().toMap()
                 Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, data) shouldBe inntektsmelding.type.id
@@ -77,7 +77,7 @@ class HentSelvbestemtIT : EndToEndTest() {
             .filter(Key.SELVBESTEMT_INNTEKTSMELDING)
             .firstAsMap()
             .let { msg ->
-                Key.KONTEKST_ID.lesOrNull(UuidSerializer, msg) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, msg) shouldBe kontekstId
 
                 val data = msg[Key.DATA].shouldNotBeNull().toMap()
                 Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, data) shouldBe inntektsmelding.type.id
@@ -87,7 +87,7 @@ class HentSelvbestemtIT : EndToEndTest() {
         // Funnet inntektsmelding legges i Redis
         val redisResponse =
             redisConnection
-                .get(RedisPrefix.HentSelvbestemtIm, transaksjonId)
+                .get(RedisPrefix.HentSelvbestemtIm, kontekstId)
                 .shouldNotBeNull()
                 .fromJson(ResultJson.serializer())
 
@@ -97,7 +97,7 @@ class HentSelvbestemtIT : EndToEndTest() {
 
     @Test
     fun `selvbestemt inntektsmelding finnes ikke`() {
-        val transaksjonId: UUID = UUID.randomUUID()
+        val kontekstId: UUID = UUID.randomUUID()
         val inntektsmelding =
             mockInntektsmeldingV1().copy(
                 type =
@@ -108,7 +108,7 @@ class HentSelvbestemtIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(UuidSerializer),
+            Key.KONTEKST_ID to kontekstId.toJson(UuidSerializer),
             Key.DATA to
                 mapOf(
                     Key.SELVBESTEMT_ID to inntektsmelding.type.id.toJson(UuidSerializer),
@@ -124,7 +124,7 @@ class HentSelvbestemtIT : EndToEndTest() {
             .filter(BehovType.HENT_SELVBESTEMT_IM)
             .firstAsMap()
             .let { msg ->
-                Key.KONTEKST_ID.lesOrNull(UuidSerializer, msg) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, msg) shouldBe kontekstId
 
                 val data = msg[Key.DATA].shouldNotBeNull().toMap()
                 Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, data) shouldBe inntektsmelding.type.id
@@ -137,14 +137,14 @@ class HentSelvbestemtIT : EndToEndTest() {
             .let {
                 val fail = Key.FAIL.lesOrNull(Fail.serializer(), it).shouldNotBeNull()
 
-                Key.KONTEKST_ID.lesOrNull(UuidSerializer, fail.utloesendeMelding) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, fail.utloesendeMelding) shouldBe kontekstId
                 Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding) shouldBe BehovType.HENT_SELVBESTEMT_IM
             }
 
         // Funnet feilmelding legges i Redis
         val redisResponse =
             redisConnection
-                .get(RedisPrefix.HentSelvbestemtIm, transaksjonId)
+                .get(RedisPrefix.HentSelvbestemtIm, kontekstId)
                 .shouldNotBeNull()
                 .fromJson(ResultJson.serializer())
 

@@ -25,7 +25,7 @@ import java.util.UUID
 data class LagreImMelding(
     val eventName: EventName,
     val behovType: BehovType,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val data: Map<Key, JsonElement>,
     val inntektsmelding: Inntektsmelding,
     val innsendingId: Long,
@@ -46,7 +46,7 @@ class LagreImRiver(
             LagreImMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.LAGRE_IM, BehovType.serializer(), json),
-                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
                 innsendingId = Key.INNSENDING_ID.les(Long.serializer(), data),
@@ -63,7 +63,7 @@ class LagreImRiver(
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 data
                     .plus(
@@ -83,7 +83,7 @@ class LagreImRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke lagre inntektsmelding i database.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
 
@@ -98,7 +98,7 @@ class LagreImRiver(
             Log.klasse(this@LagreImRiver),
             Log.event(eventName),
             Log.behov(behovType),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(inntektsmelding.type.id),
         )
 }

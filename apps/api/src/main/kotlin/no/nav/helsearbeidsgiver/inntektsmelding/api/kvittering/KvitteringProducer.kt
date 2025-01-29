@@ -21,20 +21,20 @@ class KvitteringProducer(
     }
 
     fun publish(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         forespoerselId: UUID,
     ) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(EventName.KVITTERING_REQUESTED),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         ) {
             rapid
                 .publish(
                     key = forespoerselId,
                     Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-                    Key.KONTEKST_ID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to forespoerselId.toJson(),

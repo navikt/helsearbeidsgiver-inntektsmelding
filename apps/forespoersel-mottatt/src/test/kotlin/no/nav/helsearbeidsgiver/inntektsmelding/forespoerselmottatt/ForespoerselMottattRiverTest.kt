@@ -64,7 +64,7 @@ class ForespoerselMottattRiverTest :
 private fun mockInnkommendeMelding(): Melding =
     Melding(
         notisType = Pri.NotisType.FORESPØRSEL_MOTTATT,
-        transaksjonId = UUID.randomUUID(),
+        kontekstId = UUID.randomUUID(),
         forespoerselId = UUID.randomUUID(),
         forespoerselFraBro = Mock.forespoerselFraBro,
         skalHaPaaminnelse = true,

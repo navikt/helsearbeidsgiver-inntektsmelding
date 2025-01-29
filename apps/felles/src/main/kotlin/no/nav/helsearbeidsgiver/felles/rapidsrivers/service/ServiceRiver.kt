@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
@@ -55,7 +54,7 @@ class ServiceRiverStateful<S>(
         when (this) {
             is DataMelding -> {
                 dataMap.forEach { (key, data) ->
-                    service.redisStore.skrivMellomlagring(transaksjonId, key, data)
+                    service.redisStore.skrivMellomlagring(kontekstId, key, data)
                 }
 
                 "Lagret ${dataMap.size} nøkler (med data) i Redis.".also {
@@ -63,7 +62,7 @@ class ServiceRiverStateful<S>(
                     sikkerLogger.info("$it\n${json.toPretty()}")
                 }
 
-                val meldingMedRedisData = service.redisStore.lesAlleMellomlagrede(transaksjonId).plus(json)
+                val meldingMedRedisData = service.redisStore.lesAlleMellomlagrede(kontekstId).plus(json)
 
                 service.onData(meldingMedRedisData)
             }
@@ -75,10 +74,10 @@ class ServiceRiverStateful<S>(
                 }
 
                 val meldingMedRedisData =
-                    service.redisStore.lesAlleMellomlagrede(transaksjonId).plus(
+                    service.redisStore.lesAlleMellomlagrede(kontekstId).plus(
                         mapOf(
                             Key.EVENT_NAME to eventName.toJson(),
-                            Key.KONTEKST_ID to transaksjonId.toJson(),
+                            Key.KONTEKST_ID to kontekstId.toJson(),
                         ),
                     )
 
@@ -103,7 +102,7 @@ sealed class ServiceRiver : ObjectRiver<ServiceMelding>() {
 
                 FailMelding(
                     eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), fail.utloesendeMelding),
-                    transaksjonId = Key.KONTEKST_ID.krev(fail.kontekstId, UuidSerializer, fail.utloesendeMelding),
+                    kontekstId = Key.KONTEKST_ID.krev(fail.kontekstId, UuidSerializer, fail.utloesendeMelding),
                     fail = fail,
                 )
             }
@@ -118,7 +117,7 @@ sealed class ServiceRiver : ObjectRiver<ServiceMelding>() {
                 if (nestedData != null) {
                     DataMelding(
                         eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), json),
-                        transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                        kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                         dataMap = nestedData,
                     )
                 } else {
@@ -155,13 +154,13 @@ sealed class ServiceRiver : ObjectRiver<ServiceMelding>() {
                 is DataMelding ->
                     mapOf(
                         Log.event(eventName),
-                        Log.transaksjonId(transaksjonId),
+                        Log.kontekstId(kontekstId),
                     )
 
                 is FailMelding ->
                     mapOf(
                         Log.event(eventName),
-                        Log.transaksjonId(transaksjonId),
+                        Log.kontekstId(kontekstId),
                     )
             },
         )

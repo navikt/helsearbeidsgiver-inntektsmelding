@@ -23,7 +23,7 @@ private const val AVSENDER_NAV_NO_SELVBESTEMT = "NAV_NO_SELVBESTEMT"
 
 class HentEksternImMelding(
     val eventName: EventName,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val forespoerselId: UUID,
     val spinnImId: UUID,
 )
@@ -42,7 +42,7 @@ class HentEksternImRiver(
 
             HentEksternImMelding(
                 eventName = Key.EVENT_NAME.krev(EventName.FORESPOERSEL_BESVART, EventName.serializer(), json),
-                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
                 spinnImId = Key.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, data),
             )
@@ -60,7 +60,7 @@ class HentEksternImRiver(
         } else {
             mapOf(
                 Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
-                Key.KONTEKST_ID to transaksjonId.toJson(),
+                Key.KONTEKST_ID to kontekstId.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.FORESPOERSEL_ID to forespoerselId.toJson(),
@@ -83,7 +83,7 @@ class HentEksternImRiver(
         val fail =
             Fail(
                 feilmelding = feilmelding,
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
 
@@ -97,7 +97,7 @@ class HentEksternImRiver(
         mapOf(
             Log.klasse(this@HentEksternImRiver),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )
 }

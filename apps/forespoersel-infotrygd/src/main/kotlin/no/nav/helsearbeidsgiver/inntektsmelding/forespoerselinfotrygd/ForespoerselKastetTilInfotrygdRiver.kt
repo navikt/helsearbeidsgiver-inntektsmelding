@@ -19,7 +19,7 @@ import java.util.UUID
 
 data class KastetTilInfotrygdMelding(
     val notisType: Pri.NotisType,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val forespoerselId: UUID,
 )
 
@@ -31,7 +31,7 @@ class ForespoerselKastetTilInfotrygdRiver : PriObjectRiver<KastetTilInfotrygdMel
     override fun les(json: Map<Pri.Key, JsonElement>): KastetTilInfotrygdMelding =
         KastetTilInfotrygdMelding(
             notisType = Pri.Key.NOTIS.krev(Pri.NotisType.FORESPOERSEL_KASTET_TIL_INFOTRYGD, Pri.NotisType.serializer(), json),
-            transaksjonId = UUID.randomUUID(),
+            kontekstId = UUID.randomUUID(),
             forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, json),
         )
 
@@ -43,7 +43,7 @@ class ForespoerselKastetTilInfotrygdRiver : PriObjectRiver<KastetTilInfotrygdMel
 
         return mapOf(
             Key.EVENT_NAME to EventName.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
     }
@@ -65,7 +65,7 @@ class ForespoerselKastetTilInfotrygdRiver : PriObjectRiver<KastetTilInfotrygdMel
         mapOf(
             Log.klasse(this@ForespoerselKastetTilInfotrygdRiver),
             Log.priNotis(notisType),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )
 }

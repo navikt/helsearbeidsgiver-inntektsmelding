@@ -20,17 +20,17 @@ class AktiveOrgnrProducerTest :
         val producer = AktiveOrgnrProducer(testRapid)
 
         test("publiserer melding på forventet format") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
             val arbeidsgiverFnr = Fnr.genererGyldig()
             val arbeidstagerFnr = Fnr.genererGyldig()
 
-            producer.publish(transaksjonId, arbeidsgiverFnr, arbeidstagerFnr)
+            producer.publish(kontekstId, arbeidsgiverFnr, arbeidstagerFnr)
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-                    Key.KONTEKST_ID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FNR to arbeidstagerFnr.toJson(),

@@ -39,7 +39,7 @@ class TilgangForespoerselService(
     override val eventName = EventName.TILGANG_FORESPOERSEL_REQUESTED
 
     data class Steg0(
-        val transaksjonId: UUID,
+        val kontekstId: UUID,
         val forespoerselId: UUID,
         val avsenderFnr: Fnr,
     )
@@ -54,7 +54,7 @@ class TilgangForespoerselService(
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
+            kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
             avsenderFnr = Key.FNR.les(Fnr.serializer(), melding),
         )
@@ -78,7 +78,7 @@ class TilgangForespoerselService(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
                     data
                         .plus(
@@ -103,7 +103,7 @@ class TilgangForespoerselService(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
-                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
                     data
                         .plus(
@@ -132,7 +132,7 @@ class TilgangForespoerselService(
                 success = steg2.tilgang.toJson(Tilgang.serializer()),
             )
 
-        redisStore.skrivResultat(steg0.transaksjonId, tilgang)
+        redisStore.skrivResultat(steg0.kontekstId, tilgang)
 
         sikkerLogger.info("$eventName fullført.")
     }
@@ -144,7 +144,7 @@ class TilgangForespoerselService(
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(eventName),
-            Log.transaksjonId(fail.kontekstId),
+            Log.kontekstId(fail.kontekstId),
         ) {
             val tilgangResultat =
                 ResultJson(
@@ -161,7 +161,7 @@ class TilgangForespoerselService(
         mapOf(
             Log.klasse(this@TilgangForespoerselService),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )
 }

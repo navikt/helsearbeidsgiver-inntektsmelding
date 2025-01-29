@@ -104,7 +104,7 @@ class HentInntektRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.DATA to
                         innkommendeMelding.data
                             .plus(Key.INNTEKT to forventetInntekt.toJson(Inntekt.serializer()))
@@ -124,7 +124,7 @@ class HentInntektRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke hente inntekt fra Inntektskomponenten.",
-                    kontekstId = innkommendeMelding.transaksjonId,
+                    kontekstId = innkommendeMelding.kontekstId,
                     utloesendeMelding = innkommendeMelding.toMap(),
                 )
 
@@ -172,7 +172,7 @@ private object Mock {
         return Melding(
             eventName = EventName.TRENGER_REQUESTED,
             behovType = BehovType.HENT_INNTEKT,
-            transaksjonId = UUID.randomUUID(),
+            kontekstId = UUID.randomUUID(),
             data =
                 mapOf(
                     Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
@@ -191,7 +191,7 @@ private object Mock {
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to behovType.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to data.toJson(),
         )
 

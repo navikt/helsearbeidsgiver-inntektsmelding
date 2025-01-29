@@ -58,7 +58,7 @@ class HentSelvbestemtImRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.SELVBESTEMT_ID to innkommendeMelding.selvbestemtId.toJson(),
@@ -134,7 +134,7 @@ private fun innkommendeMelding(): HentSelvbestemtImMelding {
     return HentSelvbestemtImMelding(
         eventName = EventName.SELVBESTEMT_IM_REQUESTED,
         behovType = BehovType.HENT_SELVBESTEMT_IM,
-        transaksjonId = UUID.randomUUID(),
+        kontekstId = UUID.randomUUID(),
         data =
             mapOf(
                 Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
@@ -147,14 +147,14 @@ private fun HentSelvbestemtImMelding.toMap(): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
         Key.BEHOV to behovType.toJson(),
-        Key.KONTEKST_ID to transaksjonId.toJson(),
+        Key.KONTEKST_ID to kontekstId.toJson(),
         Key.DATA to data.toJson(),
     )
 
 private fun HentSelvbestemtImMelding.toFail(feilmelding: String): Fail =
     Fail(
         feilmelding = feilmelding,
-        kontekstId = transaksjonId,
+        kontekstId = kontekstId,
         utloesendeMelding = toMap(),
     )
 

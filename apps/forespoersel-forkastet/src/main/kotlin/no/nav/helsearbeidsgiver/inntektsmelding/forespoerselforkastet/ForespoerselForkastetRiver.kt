@@ -19,7 +19,7 @@ import java.util.UUID
 
 data class ForkastetMelding(
     val notisType: Pri.NotisType,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val forespoerselId: UUID,
 )
 
@@ -31,7 +31,7 @@ class ForespoerselForkastetRiver : PriObjectRiver<ForkastetMelding>() {
     override fun les(json: Map<Pri.Key, JsonElement>): ForkastetMelding =
         ForkastetMelding(
             notisType = Pri.Key.NOTIS.krev(Pri.NotisType.FORESPOERSEL_FORKASTET, Pri.NotisType.serializer(), json),
-            transaksjonId = UUID.randomUUID(),
+            kontekstId = UUID.randomUUID(),
             forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, json),
         )
 
@@ -46,7 +46,7 @@ class ForespoerselForkastetRiver : PriObjectRiver<ForkastetMelding>() {
 
         return mapOf(
             Key.EVENT_NAME to EventName.FORESPOERSEL_FORKASTET.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
     }
@@ -67,7 +67,7 @@ class ForespoerselForkastetRiver : PriObjectRiver<ForkastetMelding>() {
         mapOf(
             Log.klasse(this@ForespoerselForkastetRiver),
             Log.priNotis(notisType),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )
 }

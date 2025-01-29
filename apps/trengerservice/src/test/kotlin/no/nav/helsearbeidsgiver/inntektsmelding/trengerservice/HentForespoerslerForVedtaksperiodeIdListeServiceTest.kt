@@ -43,20 +43,20 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
         }
 
         test("forespørsler hentes og svar sendes ut på redis") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
 
-            testRapid.sendJson(MockHent.steg0(transaksjonId))
+            testRapid.sendJson(MockHent.steg0(kontekstId))
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.message(0).lesBehov() shouldBe BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE
 
-            testRapid.sendJson(MockHent.steg1(transaksjonId))
+            testRapid.sendJson(MockHent.steg1(kontekstId))
 
             testRapid.inspektør.size shouldBeExactly 1
 
             verify {
                 mockRedisStore.skrivResultat(
-                    transaksjonId,
+                    kontekstId,
                     ResultJson(
                         success = forespoersler.toJson(MapSerializer(UuidSerializer, Forespoersel.serializer())),
                     ),
@@ -102,20 +102,20 @@ private object MockHent {
             forespoerselId2 to mockForespoersel().copy(vedtaksperiodeId = vedtaksperiodeId2),
         )
 
-    fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
+    fun steg0(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.FORESPOERSLER_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIdListe.toJson(UuidSerializer),
                 ).toJson(),
         )
 
-    fun steg1(transaksjonId: UUID): Map<Key, JsonElement> =
+    fun steg1(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.FORESPOERSLER_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIdListe.toJson(UuidSerializer),

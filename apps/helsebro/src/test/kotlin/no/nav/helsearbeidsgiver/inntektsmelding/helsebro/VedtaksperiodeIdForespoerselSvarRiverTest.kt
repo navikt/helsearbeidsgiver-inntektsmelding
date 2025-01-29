@@ -40,14 +40,14 @@ class VedtaksperiodeIdForespoerselSvarRiverTest :
 
             val boomerangMap = forespoerselListeSvarMock.boomerang.toMap()
             val eventName = Key.EVENT_NAME.les(EventName.serializer(), boomerangMap)
-            val transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, boomerangMap)
+            val kontekstId = Key.KONTEKST_ID.les(UuidSerializer, boomerangMap)
             val data = boomerangMap[Key.DATA]?.toMap().orEmpty()
             val forespoersler = forespoerselListeSvarMock.resultat.associate { it.forespoerselId to it.toForespoersel() }
 
             val forventetSvar =
                 mapOf(
                     Key.EVENT_NAME to eventName.toJson(),
-                    Key.KONTEKST_ID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to kontekstId.toJson(),
                     Key.DATA to
                         data
                             .plus(
@@ -74,7 +74,7 @@ class VedtaksperiodeIdForespoerselSvarRiverTest :
             val boomerangMap = forespoerselListeSvarMock.boomerang.toMap()
 
             val eventName = Key.EVENT_NAME.les(EventName.serializer(), boomerangMap)
-            val transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, boomerangMap)
+            val kontekstId = Key.KONTEKST_ID.les(UuidSerializer, boomerangMap)
             val data = boomerangMap[Key.DATA]?.toMap().orEmpty()
 
             val feilmelding = "Klarte ikke hente forespørsler for vedtaksperiode-IDer. Ukjent feil."
@@ -82,12 +82,12 @@ class VedtaksperiodeIdForespoerselSvarRiverTest :
             val forventetSvar =
                 Fail(
                     feilmelding = feilmelding,
-                    kontekstId = transaksjonId,
+                    kontekstId = kontekstId,
                     utloesendeMelding =
                         mapOf(
                             Key.EVENT_NAME to eventName.toJson(),
                             Key.BEHOV to BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(),
-                            Key.KONTEKST_ID to transaksjonId.toJson(),
+                            Key.KONTEKST_ID to kontekstId.toJson(),
                             Key.DATA to data.toJson(),
                         ),
                 )

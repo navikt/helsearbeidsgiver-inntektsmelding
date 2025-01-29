@@ -39,7 +39,7 @@ fun Route.hentSelvbestemtImRoute(
     val redisPoller = RedisStore(redisConnection, RedisPrefix.HentSelvbestemtIm).let(::RedisPoller)
 
     get(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID) {
-        val transaksjonId = UUID.randomUUID()
+        val kontekstId = UUID.randomUUID()
 
         val selvbestemtId =
             call.parameters["selvbestemtId"]
@@ -56,12 +56,12 @@ fun Route.hentSelvbestemtImRoute(
             MdcUtils.withLogFields(
                 Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID),
                 Log.selvbestemtId(selvbestemtId),
-                Log.transaksjonId(transaksjonId),
+                Log.kontekstId(kontekstId),
             ) {
-                producer.publish(transaksjonId, selvbestemtId)
+                producer.publish(kontekstId, selvbestemtId)
 
                 runCatching {
-                    redisPoller.hent(transaksjonId)
+                    redisPoller.hent(kontekstId)
                 }.onSuccess { result ->
                     val inntektsmelding = result.success?.fromJson(Inntektsmelding.serializer())
 

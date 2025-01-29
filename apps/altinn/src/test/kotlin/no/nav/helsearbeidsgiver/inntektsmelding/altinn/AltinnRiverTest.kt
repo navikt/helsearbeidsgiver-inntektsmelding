@@ -50,7 +50,7 @@ class AltinnRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.DATA to
                         innkommendeMelding.data
                             .plus(
@@ -71,7 +71,7 @@ class AltinnRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke hente organisasjonsrettigheter fra Altinn.",
-                    kontekstId = innkommendeMelding.transaksjonId,
+                    kontekstId = innkommendeMelding.kontekstId,
                     utloesendeMelding = innkommendeJsonMap,
                 )
 

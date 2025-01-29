@@ -45,24 +45,24 @@ class InntektSelvbestemtServiceTest :
         }
 
         test("hent inntekt") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
 
             testRapid.sendJson(
-                Mock.melding(transaksjonId, Mock.steg0Data),
+                Mock.melding(kontekstId, Mock.steg0Data),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_INNTEKT
 
             testRapid.sendJson(
-                Mock.melding(transaksjonId, Mock.steg1Data),
+                Mock.melding(kontekstId, Mock.steg1Data),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
 
             verify {
                 mockRedisStore.skrivResultat(
-                    transaksjonId,
+                    kontekstId,
                     ResultJson(
                         success = Mock.inntekt.toJson(Inntekt.serializer()),
                     ),
@@ -121,12 +121,12 @@ private object Mock {
         )
 
     fun melding(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         data: Map<Key, JsonElement>,
     ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to data.toJson(),
         )
 }

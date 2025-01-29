@@ -22,20 +22,20 @@ class AktiveOrgnrProducer(
     }
 
     fun publish(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         arbeidsgiverFnr: Fnr,
         arbeidstagerFnr: Fnr,
     ) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(EventName.AKTIVE_ORGNR_REQUESTED),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
         ) {
             rapid
                 .publish(
                     key = arbeidstagerFnr,
                     Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-                    Key.KONTEKST_ID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FNR to arbeidstagerFnr.toJson(),

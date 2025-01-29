@@ -40,24 +40,24 @@ class HentSelvbestemtImServiceTest :
         }
 
         test("hent inntektsmelding") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
 
             testRapid.sendJson(
-                Mock.startMelding(transaksjonId),
+                Mock.startMelding(kontekstId),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_SELVBESTEMT_IM
 
             testRapid.sendJson(
-                Mock.dataMelding(transaksjonId),
+                Mock.dataMelding(kontekstId),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
 
             verify {
                 mockRedisStore.skrivResultat(
-                    transaksjonId,
+                    kontekstId,
                     ResultJson(
                         success = Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
                     ),
@@ -97,20 +97,20 @@ private object Mock {
     private val selvbestemtId: UUID = UUID.randomUUID()
     val inntektsmelding = mockInntektsmeldingV1()
 
-    fun startMelding(transaksjonId: UUID): Map<Key, JsonElement> =
+    fun startMelding(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
                 ).toJson(),
         )
 
-    fun dataMelding(transaksjonId: UUID): Map<Key, JsonElement> =
+    fun dataMelding(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SELVBESTEMT_ID to selvbestemtId.toJson(),

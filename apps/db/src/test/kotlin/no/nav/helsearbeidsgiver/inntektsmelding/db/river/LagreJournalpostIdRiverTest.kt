@@ -61,7 +61,7 @@ class LagreJournalpostIdRiverTest :
                 testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET.toJson(),
-                        Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                         Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
                         Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
                     )
@@ -99,7 +99,7 @@ class LagreJournalpostIdRiverTest :
                 testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET.toJson(),
-                        Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                         Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
                         Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
                     )
@@ -141,7 +141,7 @@ class LagreJournalpostIdRiverTest :
                 val forventetFail =
                     Fail(
                         feilmelding = "Klarte ikke lagre journalpost-ID '${innkommendeMelding.journalpostId}'.",
-                        kontekstId = innkommendeMelding.transaksjonId,
+                        kontekstId = innkommendeMelding.kontekstId,
                         utloesendeMelding = innkommendeMelding.toMap(),
                     )
 
@@ -175,7 +175,7 @@ class LagreJournalpostIdRiverTest :
                 val forventetFail =
                     Fail(
                         feilmelding = "Klarte ikke lagre journalpost-ID '${innkommendeMelding.journalpostId}'.",
-                        kontekstId = innkommendeMelding.transaksjonId,
+                        kontekstId = innkommendeMelding.kontekstId,
                         utloesendeMelding = innkommendeMelding.toMap(),
                     )
 
@@ -225,7 +225,7 @@ private object Mock {
     fun innkommendeMelding(inntektsmelding: Inntektsmelding = mockInntektsmeldingV1()): LagreJournalpostIdMelding =
         LagreJournalpostIdMelding(
             eventName = EventName.INNTEKTSMELDING_JOURNALFOERT,
-            transaksjonId = UUID.randomUUID(),
+            kontekstId = UUID.randomUUID(),
             inntektsmelding = inntektsmelding,
             journalpostId = randomDigitString(10),
             innsendingId = INNSENDING_ID,
@@ -234,7 +234,7 @@ private object Mock {
     fun LagreJournalpostIdMelding.toMap(): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),

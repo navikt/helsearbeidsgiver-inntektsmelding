@@ -56,7 +56,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
     @Test
     fun `Test hente aktive organisasjoner`() {
-        val transaksjonId = UUID.randomUUID()
+        val kontekstId = UUID.randomUUID()
 
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforholdListe
         coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet
@@ -65,7 +65,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FNR to Mock.fnr.toJson(),
@@ -73,7 +73,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                 ).toJson(),
         )
 
-        redisConnection.get(RedisPrefix.AktiveOrgnr, transaksjonId) shouldBe Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE
+        redisConnection.get(RedisPrefix.AktiveOrgnr, kontekstId) shouldBe Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE
 
         val aktiveOrgnrMeldinger = messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
 
@@ -137,7 +137,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
     @Test
     fun `ingen arbeidsforhold`() {
-        val transaksjonId = UUID.randomUUID()
+        val kontekstId = UUID.randomUUID()
 
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns emptyList()
         coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet
@@ -146,7 +146,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FNR to Mock.fnr.toJson(),
@@ -154,7 +154,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                 ).toJson(),
         )
 
-        redisConnection.get(RedisPrefix.AktiveOrgnr, transaksjonId)?.parseJson() shouldBe Mock.resultatIngenArbeidsforholdJson
+        redisConnection.get(RedisPrefix.AktiveOrgnr, kontekstId)?.parseJson() shouldBe Mock.resultatIngenArbeidsforholdJson
 
         val aktiveOrgnrMeldinger = messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
 
@@ -201,7 +201,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
     @Test
     fun `Ved feil under henting av personer så svarer service med feil`() {
-        val transaksjonId = UUID.randomUUID()
+        val kontekstId = UUID.randomUUID()
 
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforholdListe
         coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet
@@ -212,12 +212,12 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         val expectedFail =
             Fail(
                 feilmelding = "Klarte ikke hente personer fra PDL.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding =
                     mapOf(
                         Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
                         Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
-                        Key.KONTEKST_ID to transaksjonId.toJson(),
+                        Key.KONTEKST_ID to kontekstId.toJson(),
                         Key.DATA to
                             mapOf(
                                 Key.SVAR_KAFKA_KEY to KafkaKey(Mock.fnr).toJson(),
@@ -232,7 +232,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FNR to Mock.fnr.toJson(),
@@ -242,7 +242,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         val response =
             redisConnection
-                .get(RedisPrefix.AktiveOrgnr, transaksjonId)
+                .get(RedisPrefix.AktiveOrgnr, kontekstId)
                 ?.fromJson(ResultJson.serializer())
                 .shouldNotBeNull()
 

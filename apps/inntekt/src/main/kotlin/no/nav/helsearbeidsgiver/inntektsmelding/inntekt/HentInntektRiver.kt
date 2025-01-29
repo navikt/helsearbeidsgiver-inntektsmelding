@@ -31,7 +31,7 @@ import java.util.UUID
 data class Melding(
     val eventName: EventName,
     val behovType: BehovType,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val data: Map<Key, JsonElement>,
     val svarKafkaKey: KafkaKey,
     val orgnr: Orgnr,
@@ -54,7 +54,7 @@ class HentInntektRiver(
             Melding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.HENT_INNTEKT, BehovType.serializer(), json),
-                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 svarKafkaKey = Key.SVAR_KAFKA_KEY.les(KafkaKey.serializer(), data),
                 orgnr = Key.ORGNR_UNDERENHET.les(Orgnr.serializer(), data),
@@ -70,7 +70,7 @@ class HentInntektRiver(
         val middle = inntektsdato.minusMaaneder(2)
         val tom = inntektsdato.minusMaaneder(1)
 
-        val inntektPerOrgnrOgMaaned = hentInntektPerOrgnrOgMaaned(fnr, fom, tom, transaksjonId)
+        val inntektPerOrgnrOgMaaned = hentInntektPerOrgnrOgMaaned(fnr, fom, tom, kontekstId)
 
         val inntektPerMaaned = inntektPerOrgnrOgMaaned[orgnr.verdi].orEmpty()
 
@@ -82,7 +82,7 @@ class HentInntektRiver(
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 data
                     .plus(
@@ -98,7 +98,7 @@ class HentInntektRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke hente inntekt fra Inntektskomponenten.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
 
@@ -113,17 +113,17 @@ class HentInntektRiver(
             Log.klasse(this@HentInntektRiver),
             Log.event(eventName),
             Log.behov(behovType),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
         )
 
     private fun hentInntektPerOrgnrOgMaaned(
         fnr: Fnr,
         fom: YearMonth,
         tom: YearMonth,
-        transaksjonId: UUID,
+        kontekstId: UUID,
     ): Map<String, Map<YearMonth, Double>> {
         val navConsumerId = "helsearbeidsgiver-im-inntekt"
-        val callId = "$navConsumerId-$transaksjonId"
+        val callId = "$navConsumerId-$kontekstId"
 
         sikkerLogger.info("Henter inntekt for $fnr i perioden $fom til $tom (callId: $callId).")
 

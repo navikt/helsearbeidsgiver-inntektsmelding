@@ -52,7 +52,7 @@ class HentEksternImRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
@@ -112,7 +112,7 @@ class HentEksternImRiverTest :
                 val forventetFail =
                     Fail(
                         feilmelding = expectedFeilmelding,
-                        kontekstId = innkommendeMelding.transaksjonId,
+                        kontekstId = innkommendeMelding.kontekstId,
                         utloesendeMelding = innkommendeJsonMap,
                     )
 
@@ -157,7 +157,7 @@ private object Mock {
     fun innkommendeMelding(): HentEksternImMelding =
         HentEksternImMelding(
             eventName = EventName.FORESPOERSEL_BESVART,
-            transaksjonId = UUID.randomUUID(),
+            kontekstId = UUID.randomUUID(),
             forespoerselId = UUID.randomUUID(),
             spinnImId = UUID.randomUUID(),
         )
@@ -165,7 +165,7 @@ private object Mock {
     fun HentEksternImMelding.toMap(): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),

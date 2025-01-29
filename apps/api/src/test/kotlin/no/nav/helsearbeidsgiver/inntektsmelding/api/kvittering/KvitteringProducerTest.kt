@@ -18,16 +18,16 @@ class KvitteringProducerTest :
         val producer = KvitteringProducer(testRapid)
 
         test("publiserer melding på forventet format") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
             val forespoerselId = UUID.randomUUID()
 
-            producer.publish(transaksjonId, forespoerselId)
+            producer.publish(kontekstId, forespoerselId)
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-                    Key.KONTEKST_ID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to forespoerselId.toJson(),

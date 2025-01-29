@@ -24,7 +24,7 @@ import java.util.UUID
 
 data class LagreJournalpostIdMelding(
     val eventName: EventName,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val inntektsmelding: Inntektsmelding,
     val journalpostId: String,
     val innsendingId: Long?,
@@ -43,7 +43,7 @@ class LagreJournalpostIdRiver(
         } else {
             LagreJournalpostIdMelding(
                 eventName = Key.EVENT_NAME.krev(EventName.INNTEKTSMELDING_JOURNALFOERT, EventName.serializer(), json),
-                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), json),
                 journalpostId = Key.JOURNALPOST_ID.les(String.serializer(), json),
                 innsendingId = Key.INNSENDING_ID.lesOrNull(Long.serializer(), json),
@@ -84,7 +84,7 @@ class LagreJournalpostIdRiver(
 
         return mapOf(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
         ).also {
@@ -100,7 +100,7 @@ class LagreJournalpostIdRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke lagre journalpost-ID '$journalpostId'.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
 
@@ -114,7 +114,7 @@ class LagreJournalpostIdRiver(
         mapOf(
             Log.klasse(this@LagreJournalpostIdRiver),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             when (inntektsmelding.type) {
                 is Inntektsmelding.Type.Forespurt -> Log.forespoerselId(inntektsmelding.type.id)
                 is Inntektsmelding.Type.Selvbestemt -> Log.selvbestemtId(inntektsmelding.type.id)

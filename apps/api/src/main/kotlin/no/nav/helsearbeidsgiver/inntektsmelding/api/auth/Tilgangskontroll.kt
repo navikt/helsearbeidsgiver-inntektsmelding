@@ -25,8 +25,8 @@ class Tilgangskontroll(
         request: ApplicationRequest,
         forespoerselId: UUID,
     ) {
-        validerTilgang(redisPollerForespoersel, request, forespoerselId.toString()) { transaksjonId, fnr ->
-            tilgangProducer.publishForespoerselId(transaksjonId, fnr, forespoerselId)
+        validerTilgang(redisPollerForespoersel, request, forespoerselId.toString()) { kontekstId, fnr ->
+            tilgangProducer.publishForespoerselId(kontekstId, fnr, forespoerselId)
         }
     }
 
@@ -34,8 +34,8 @@ class Tilgangskontroll(
         request: ApplicationRequest,
         orgnr: String,
     ) {
-        validerTilgang(redisPollerOrg, request, orgnr) { transaksjonId, fnr ->
-            tilgangProducer.publishOrgnr(transaksjonId, fnr, orgnr)
+        validerTilgang(redisPollerOrg, request, orgnr) { kontekstId, fnr ->
+            tilgangProducer.publishOrgnr(kontekstId, fnr, orgnr)
         }
     }
 
@@ -45,7 +45,7 @@ class Tilgangskontroll(
         cacheKeyPostfix: String,
         publish: (UUID, Fnr) -> Unit,
     ) {
-        val transaksjonId = UUID.randomUUID()
+        val kontekstId = UUID.randomUUID()
         val innloggerFnr = request.lesFnrFraAuthToken()
 
         val tilgang =
@@ -53,11 +53,11 @@ class Tilgangskontroll(
                 cache.get("$innloggerFnr:$cacheKeyPostfix") {
                     logger.info("Fant ikke tilgang i cache, ber om tilgangskontroll.")
 
-                    publish(transaksjonId, innloggerFnr)
+                    publish(kontekstId, innloggerFnr)
 
                     val tilgang =
                         redisPoller
-                            .hent(transaksjonId)
+                            .hent(kontekstId)
                             .success
                             ?.fromJson(Tilgang.serializer())
 

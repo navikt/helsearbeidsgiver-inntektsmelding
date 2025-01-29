@@ -61,7 +61,7 @@ class HentArbeidsforholdRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.DATA to
                         innkommendeMelding.data
                             .plus(Key.ARBEIDSFORHOLD to expectedArbeidsforhold.toJson(Arbeidsforhold.serializer()))
@@ -69,7 +69,7 @@ class HentArbeidsforholdRiverTest :
                 )
 
             coVerifySequence {
-                mockAaregClient.hentArbeidsforhold(innkommendeMelding.fnr.verdi, innkommendeMelding.transaksjonId.toString())
+                mockAaregClient.hentArbeidsforhold(innkommendeMelding.fnr.verdi, innkommendeMelding.kontekstId.toString())
             }
         }
 
@@ -81,7 +81,7 @@ class HentArbeidsforholdRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke hente arbeidsforhold fra Aareg.",
-                    kontekstId = innkommendeMelding.transaksjonId,
+                    kontekstId = innkommendeMelding.kontekstId,
                     utloesendeMelding = innkommendeMelding.toMap(),
                 )
 
@@ -92,7 +92,7 @@ class HentArbeidsforholdRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             coVerifySequence {
-                mockAaregClient.hentArbeidsforhold(innkommendeMelding.fnr.verdi, innkommendeMelding.transaksjonId.toString())
+                mockAaregClient.hentArbeidsforhold(innkommendeMelding.fnr.verdi, innkommendeMelding.kontekstId.toString())
             }
         }
 
@@ -128,7 +128,7 @@ private object Mock {
         return HentArbeidsforholdMelding(
             eventName = EventName.AKTIVE_ORGNR_REQUESTED,
             behovType = BehovType.HENT_ARBEIDSFORHOLD,
-            transaksjonId = UUID.randomUUID(),
+            kontekstId = UUID.randomUUID(),
             data =
                 mapOf(
                     Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
@@ -143,7 +143,7 @@ private object Mock {
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to behovType.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to data.toJson(),
         )
 

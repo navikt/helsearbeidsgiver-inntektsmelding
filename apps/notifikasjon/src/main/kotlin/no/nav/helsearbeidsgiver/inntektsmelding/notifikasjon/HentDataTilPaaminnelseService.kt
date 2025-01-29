@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -32,7 +31,7 @@ class HentDataTilPaaminnelseService(
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
+            kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
         )
 
@@ -59,7 +58,7 @@ class HentDataTilPaaminnelseService(
             key = steg0.forespoerselId,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
                 data
                     .plus(
@@ -77,7 +76,7 @@ class HentDataTilPaaminnelseService(
             key = steg0.forespoerselId,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
-            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
                 data
                     .plus(
@@ -105,7 +104,7 @@ class HentDataTilPaaminnelseService(
         rapid.publish(
             key = steg0.forespoerselId,
             Key.EVENT_NAME to EventName.OPPGAVE_ENDRE_PAAMINNELSE_REQUESTED.toJson(),
-            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
@@ -119,7 +118,7 @@ class HentDataTilPaaminnelseService(
         mapOf(
             Log.klasse(this@HentDataTilPaaminnelseService),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )
 
@@ -134,7 +133,7 @@ class HentDataTilPaaminnelseService(
     }
 
     data class Steg0(
-        val transaksjonId: UUID,
+        val kontekstId: UUID,
         val forespoerselId: UUID,
     )
 

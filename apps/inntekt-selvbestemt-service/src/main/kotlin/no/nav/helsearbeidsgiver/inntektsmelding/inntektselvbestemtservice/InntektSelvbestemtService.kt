@@ -29,7 +29,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 data class Steg0(
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val orgnr: Orgnr,
     val sykmeldtFnr: Fnr,
     val inntektsdato: LocalDate,
@@ -50,7 +50,7 @@ class InntektSelvbestemtService(
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
+            kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             orgnr = Key.ORGNR_UNDERENHET.les(Orgnr.serializer(), melding),
             sykmeldtFnr = Key.FNR.les(Fnr.serializer(), melding),
             inntektsdato = Key.INNTEKTSDATO.les(LocalDateSerializer, melding),
@@ -70,7 +70,7 @@ class InntektSelvbestemtService(
                 key = steg0.sykmeldtFnr,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
-                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
                     data
                         .plus(
@@ -103,7 +103,7 @@ class InntektSelvbestemtService(
                 success = steg1.inntekt.toJson(Inntekt.serializer()),
             )
 
-        redisStore.skrivResultat(steg0.transaksjonId, resultJson)
+        redisStore.skrivResultat(steg0.kontekstId, resultJson)
 
         sikkerLogger.info("$eventName fullført.")
     }
@@ -115,7 +115,7 @@ class InntektSelvbestemtService(
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(eventName),
-            Log.transaksjonId(fail.kontekstId),
+            Log.kontekstId(fail.kontekstId),
         ) {
             val feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
             val resultJson = ResultJson(failure = feilmelding.toJson())
@@ -135,6 +135,6 @@ class InntektSelvbestemtService(
         mapOf(
             Log.klasse(this@InntektSelvbestemtService),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
         )
 }

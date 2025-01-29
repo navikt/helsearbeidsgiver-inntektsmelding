@@ -27,7 +27,7 @@ sealed interface Service {
     )
 }
 
-// TODO lese påkrevde felt som transaksjonId her?
+// TODO lese påkrevde felt som kontekstId her?
 abstract class ServiceMed1Steg<S0, S1> : Service {
     protected abstract val logger: Logger
     protected abstract val sikkerLogger: Logger

@@ -322,44 +322,44 @@ private object Mock {
     fun innkommendeMelding(): UtgaattForespoerselMelding =
         UtgaattForespoerselMelding(
             eventName = EventName.FORESPOERSEL_FORKASTET,
-            transaksjonId = UUID.randomUUID(),
+            kontekstId = UUID.randomUUID(),
             forespoerselId = UUID.randomUUID(),
         )
 
     fun UtgaattForespoerselMelding.toMap(): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
 
     fun forventetUtgaaendeMelding(innkommendeMelding: UtgaattForespoerselMelding): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_UTGAATT.toJson(),
-            Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+            Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
             Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
         )
 
     fun forventetFail(innkommendeMelding: UtgaattForespoerselMelding): Fail =
         Fail(
             feilmelding = "Klarte ikke sette oppgave til utgått og/eller avbryte sak for forespurt inntektmelding.",
-            kontekstId = innkommendeMelding.transaksjonId,
+            kontekstId = innkommendeMelding.kontekstId,
             utloesendeMelding = innkommendeMelding.toMap(),
         )
 
     fun forespoerselIkkeFunnetFail(): Fail {
         val eventName = EventName.TRENGER_REQUESTED
-        val transaksjonId = UUID.randomUUID()
+        val kontekstId = UUID.randomUUID()
         val forespoerselId = UUID.randomUUID()
 
         return Fail(
             feilmelding = "Klarte ikke hente forespørsel. Feilet med kode 'FORESPOERSEL_IKKE_FUNNET'.",
-            kontekstId = transaksjonId,
+            kontekstId = kontekstId,
             utloesendeMelding =
                 mapOf(
                     Key.EVENT_NAME to eventName.toJson(),
                     Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                    Key.KONTEKST_ID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to forespoerselId.toJson(),

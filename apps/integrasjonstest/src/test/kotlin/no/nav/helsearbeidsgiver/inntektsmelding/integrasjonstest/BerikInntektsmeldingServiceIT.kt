@@ -75,7 +75,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
-            Key.KONTEKST_ID to Mock.transaksjonId.toJson(),
+            Key.KONTEKST_ID to Mock.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
@@ -90,7 +90,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.FORESPOERSEL_SVAR)
             .firstAsMap()
-            .verifiserTransaksjonId(Mock.transaksjonId)
+            .verifiserKontekstId(Mock.kontekstId)
             .verifiserForespoerselIdFraSkjema()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -102,7 +102,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.VIRKSOMHETER)
             .firstAsMap()
-            .verifiserTransaksjonId(Mock.transaksjonId)
+            .verifiserKontekstId(Mock.kontekstId)
             .verifiserForespoerselIdFraSkjema()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -114,7 +114,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
-            .verifiserTransaksjonId(Mock.transaksjonId)
+            .verifiserKontekstId(Mock.kontekstId)
             .verifiserForespoerselIdFraSkjema()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -126,7 +126,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.PERSONER)
             .firstAsMap()
-            .verifiserTransaksjonId(Mock.transaksjonId)
+            .verifiserKontekstId(Mock.kontekstId)
             .verifiserForespoerselIdFraSkjema()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -142,7 +142,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         messages
             .filter(EventName.INNTEKTSMELDING_MOTTATT)
             .firstAsMap()
-            .verifiserTransaksjonId(Mock.transaksjonId)
+            .verifiserKontekstId(Mock.kontekstId)
             .verifiserForespoerselId()
             .also {
                 shouldNotThrowAny {
@@ -196,7 +196,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
-            Key.KONTEKST_ID to Mock.transaksjonId.toJson(),
+            Key.KONTEKST_ID to Mock.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
@@ -211,7 +211,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.FORESPOERSEL_SVAR)
             .firstAsMap()
-            .verifiserTransaksjonId(Mock.transaksjonId)
+            .verifiserKontekstId(Mock.kontekstId)
             .verifiserForespoerselIdFraSkjema()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -223,7 +223,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.VIRKSOMHETER)
             .firstAsMap()
-            .verifiserTransaksjonId(Mock.transaksjonId)
+            .verifiserKontekstId(Mock.kontekstId)
             .verifiserForespoerselIdFraSkjema()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -241,13 +241,13 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         messages.filterFeil().all().size shouldBe 1
 
         // Det blir satt opp en bakgrunnsjobb som kan gjenoppta berikelsen senere
-        val bakgrunnsjobb = bakgrunnsjobbRepository.getById(Mock.transaksjonId)
+        val bakgrunnsjobb = bakgrunnsjobbRepository.getById(Mock.kontekstId)
 
         bakgrunnsjobb.also {
             it.shouldNotBeNull()
             it.data.parseJson().also { data ->
                 data.lesBehov() shouldBe BehovType.HENT_PERSONER
-                data.toMap().verifiserForespoerselId().verifiserTransaksjonId(Mock.transaksjonId)
+                data.toMap().verifiserForespoerselId().verifiserKontekstId(Mock.kontekstId)
             }
         }
 
@@ -259,7 +259,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.PERSONER)
             .firstAsMap()
-            .verifiserTransaksjonId(Mock.transaksjonId)
+            .verifiserKontekstId(Mock.kontekstId)
             .verifiserForespoerselIdFraSkjema()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -275,7 +275,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         messages
             .filter(EventName.INNTEKTSMELDING_MOTTATT)
             .firstAsMap()
-            .verifiserTransaksjonId(Mock.transaksjonId)
+            .verifiserKontekstId(Mock.kontekstId)
             .verifiserForespoerselId()
             .also {
                 shouldNotThrowAny {
@@ -296,9 +296,9 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             }
     }
 
-    private fun Map<Key, JsonElement>.verifiserTransaksjonId(transaksjonId: UUID): Map<Key, JsonElement> =
+    private fun Map<Key, JsonElement>.verifiserKontekstId(kontekstId: UUID): Map<Key, JsonElement> =
         also {
-            Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+            Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
         }
 
     private fun Map<Key, JsonElement>.verifiserForespoerselId(): Map<Key, JsonElement> =
@@ -318,7 +318,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
     private object Mock {
         val fnrAg = Fnr.genererGyldig()
         val orgnr = Orgnr.genererGyldig()
-        val transaksjonId: UUID = UUID.randomUUID()
+        val kontekstId: UUID = UUID.randomUUID()
         val mottatt = 19.august.kl(19, 5, 0, 0)
 
         val skjema = mockSkjemaInntektsmelding()

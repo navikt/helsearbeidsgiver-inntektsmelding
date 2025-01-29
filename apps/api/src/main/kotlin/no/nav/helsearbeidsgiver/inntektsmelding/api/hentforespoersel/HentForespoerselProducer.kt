@@ -20,7 +20,7 @@ class HentForespoerselProducer(
     }
 
     fun publish(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         request: HentForespoerselRequest,
         arbeidsgiverFnr: Fnr,
     ) {
@@ -28,15 +28,15 @@ class HentForespoerselProducer(
             .publish(
                 key = request.uuid,
                 Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-                Key.KONTEKST_ID to transaksjonId.toJson(),
+                Key.KONTEKST_ID to kontekstId.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.FORESPOERSEL_ID to request.uuid.toJson(),
                         Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
                     ).toJson(),
             ).also {
-                logger.info("Publiserte trenger behov med transaksjonId=$transaksjonId")
-                sikkerLogger.info("Publiserte trenger behov med transaksjonId=$transaksjonId json=${it.toPretty()}")
+                logger.info("Publiserte trenger behov med kontekstId=$kontekstId")
+                sikkerLogger.info("Publiserte trenger behov med kontekstId=$kontekstId json=${it.toPretty()}")
             }
     }
 }

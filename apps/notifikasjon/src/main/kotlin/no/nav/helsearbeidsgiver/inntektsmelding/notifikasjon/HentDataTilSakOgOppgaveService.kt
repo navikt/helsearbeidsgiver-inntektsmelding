@@ -26,7 +26,7 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 data class Steg0(
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val forespoerselId: UUID,
     val forespoersel: Forespoersel,
     val skalHaPaaminnelse: Boolean,
@@ -50,7 +50,7 @@ class HentDataTilSakOgOppgaveService(
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
+            kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
             forespoersel = Key.FORESPOERSEL.les(Forespoersel.serializer(), melding),
             skalHaPaaminnelse = Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), melding),
@@ -79,7 +79,7 @@ class HentDataTilSakOgOppgaveService(
             key = steg0.forespoerselId,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
-            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
                 data
                     .plus(
@@ -100,7 +100,7 @@ class HentDataTilSakOgOppgaveService(
             key = steg0.forespoerselId,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
-            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
                 data
                     .plus(
@@ -129,7 +129,7 @@ class HentDataTilSakOgOppgaveService(
         rapid.publish(
             key = steg0.forespoerselId,
             Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED.toJson(),
-            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
@@ -145,7 +145,7 @@ class HentDataTilSakOgOppgaveService(
         mapOf(
             Log.klasse(this@HentDataTilSakOgOppgaveService),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )
 

@@ -55,7 +55,7 @@ class OpprettSelvbestemtSakRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.SELVBESTEMT_INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
@@ -97,7 +97,7 @@ class OpprettSelvbestemtSakRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.SELVBESTEMT_INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
@@ -158,7 +158,7 @@ private fun innkommendeMelding(): OpprettSelvbestemtSakMelding {
     return OpprettSelvbestemtSakMelding(
         eventName = EventName.SELVBESTEMT_IM_MOTTATT,
         behovType = BehovType.OPPRETT_SELVBESTEMT_SAK,
-        transaksjonId = UUID.randomUUID(),
+        kontekstId = UUID.randomUUID(),
         data =
             mapOf(
                 Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
@@ -171,14 +171,14 @@ private fun OpprettSelvbestemtSakMelding.toMap(): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
         Key.BEHOV to behovType.toJson(),
-        Key.KONTEKST_ID to transaksjonId.toJson(),
+        Key.KONTEKST_ID to kontekstId.toJson(),
         Key.DATA to data.toJson(),
     )
 
 private fun OpprettSelvbestemtSakMelding.toFail(): Fail =
     Fail(
         feilmelding = "Klarte ikke lagre sak for selvbestemt inntektsmelding.",
-        kontekstId = transaksjonId,
+        kontekstId = kontekstId,
         utloesendeMelding = toMap(),
     )
 

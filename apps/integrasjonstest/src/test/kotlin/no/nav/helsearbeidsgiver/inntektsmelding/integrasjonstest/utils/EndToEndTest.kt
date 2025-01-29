@@ -356,8 +356,8 @@ abstract class EndToEndTest : ContainerTest() {
 
     fun RedisConnection.get(
         prefix: RedisPrefix,
-        transaksjonId: UUID,
-    ): String? = get("$prefix#$transaksjonId")
+        kontekstId: UUID,
+    ): String? = get("$prefix#$kontekstId")
 
     fun truncateDatabase() {
         transaction(inntektsmeldingDatabase.db) {

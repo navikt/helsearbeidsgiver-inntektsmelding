@@ -24,7 +24,7 @@ import java.util.UUID
 data class TrengerForespoerselMelding(
     val eventName: EventName,
     val behovType: BehovType,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val data: Map<Key, JsonElement>,
     val forespoerselId: UUID,
 )
@@ -44,7 +44,7 @@ class TrengerForespoerselRiver(
             TrengerForespoerselMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.HENT_TRENGER_IM, BehovType.serializer(), json),
-                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
             )
@@ -60,7 +60,7 @@ class TrengerForespoerselRiver(
                 Pri.Key.BOOMERANG to
                     mapOf(
                         Key.EVENT_NAME to eventName.toJson(),
-                        Key.KONTEKST_ID to transaksjonId.toJson(),
+                        Key.KONTEKST_ID to kontekstId.toJson(),
                         Key.DATA to data.toJson(),
                     ).toJson(),
             ).onSuccess {
@@ -81,7 +81,7 @@ class TrengerForespoerselRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke spørre Storebror om forespørsel.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
 
@@ -96,7 +96,7 @@ class TrengerForespoerselRiver(
             Log.klasse(this@TrengerForespoerselRiver),
             Log.event(eventName),
             Log.behov(BehovType.HENT_TRENGER_IM),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )
 }

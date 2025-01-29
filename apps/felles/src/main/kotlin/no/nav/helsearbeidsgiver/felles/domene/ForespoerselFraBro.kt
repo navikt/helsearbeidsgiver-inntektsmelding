@@ -16,7 +16,6 @@ import java.util.UUID
 data class ForespoerselFraBro(
     val orgnr: Orgnr,
     val fnr: Fnr,
-    /** Ikke bruk ved henting av én forespørsel (Storebror lekker feil id). */
     val forespoerselId: UUID,
     val vedtaksperiodeId: UUID,
     val sykmeldingsperioder: List<Periode>,

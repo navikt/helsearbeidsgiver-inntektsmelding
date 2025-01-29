@@ -5,8 +5,6 @@ import io.kotest.matchers.maps.shouldContainExactly
 import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail.Companion.serializer
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -21,7 +19,7 @@ class FailTest :
 
                 fail.tilMelding() shouldContainExactly
                     mapOf(
-                        Key.FAIL to fail.toJson(serializer()),
+                        Key.FAIL to fail.toJson(Fail.serializer()),
                     )
             }
         }

@@ -71,8 +71,12 @@ spec:
             users:
               - name: {{ database.user }}
             {{/if}}
-        {{#if database.logicalDecoding}}
         flags:
+          - name: cloudsql.enable_pgaudit
+            value: "true"
+          - name: pgaudit.log
+            value: 'write'
+        {{#if database.logicalDecoding}}
           - name: cloudsql.logical_decoding
             value: "on"
         {{/if}}

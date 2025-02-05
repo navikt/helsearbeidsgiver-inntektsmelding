@@ -29,17 +29,17 @@ class TilgangskontrollIT : EndToEndTest() {
         clearAllMocks()
 
         coEvery {
-            altinnClient.harRettighetForOrganisasjon(Mock.innloggetFnr.verdi, Mock.orgnrMedTilgang.verdi)
+            altinnClient.harTilgangTilOrganisasjon(fnr = Mock.innloggetFnr.verdi, orgnr = Mock.orgnrMedTilgang.verdi)
         } returns true
 
         coEvery {
-            altinnClient.harRettighetForOrganisasjon(Mock.innloggetFnr.verdi, Mock.orgnrUtenTilgang.verdi)
+            altinnClient.harTilgangTilOrganisasjon(fnr = Mock.innloggetFnr.verdi, orgnr = Mock.orgnrUtenTilgang.verdi)
         } returns false
     }
 
     @Test
     fun `forespoersel - skal få tilgang`() {
-        val transaksjonId: UUID = UUID.randomUUID()
+        val kontekstId: UUID = UUID.randomUUID()
 
         mockForespoerselSvarFraHelsebro(
             forespoerselId = Mock.forespoerselId,
@@ -50,14 +50,14 @@ class TilgangskontrollIT : EndToEndTest() {
                 ),
         )
 
-        tilgangProducer.publishForespoerselId(transaksjonId, Mock.innloggetFnr, Mock.forespoerselId)
+        tilgangProducer.publishForespoerselId(kontekstId, Mock.innloggetFnr, Mock.forespoerselId)
 
         messages
             .filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
             .filter(BehovType.HENT_TRENGER_IM)
             .firstAsMap()
             .also {
-                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
 
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
                 Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data) shouldBe Mock.forespoerselId

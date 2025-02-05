@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
@@ -27,9 +26,9 @@ import java.util.UUID
 data class HentVirksomhetMelding(
     val eventName: EventName,
     val behovType: BehovType,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val data: Map<Key, JsonElement>,
-    val svarKafkaKey: KafkaKey?,
+    val svarKafkaKey: KafkaKey,
     val orgnr: Set<Orgnr>,
 )
 
@@ -49,14 +48,14 @@ class HentVirksomhetNavnRiver(
             HentVirksomhetMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.HENT_VIRKSOMHET_NAVN, BehovType.serializer(), json),
-                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
-                svarKafkaKey = Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), data),
+                svarKafkaKey = Key.SVAR_KAFKA_KEY.les(KafkaKey.serializer(), data),
                 orgnr = Key.ORGNR_UNDERENHETER.les(Orgnr.serializer().set(), data),
             )
         }
 
-    override fun HentVirksomhetMelding.bestemNoekkel(): KafkaKey? = svarKafkaKey
+    override fun HentVirksomhetMelding.bestemNoekkel(): KafkaKey = svarKafkaKey
 
     override fun HentVirksomhetMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val orgnrMedNavn =
@@ -77,7 +76,7 @@ class HentVirksomhetNavnRiver(
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 data
                     .plus(Key.VIRKSOMHETER to orgnrMedNavn.toJson())
@@ -92,7 +91,7 @@ class HentVirksomhetNavnRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke hente virksomhet fra Brreg.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
 
@@ -107,7 +106,7 @@ class HentVirksomhetNavnRiver(
             Log.klasse(this@HentVirksomhetNavnRiver),
             Log.event(eventName),
             Log.behov(behovType),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
         )
 }
 

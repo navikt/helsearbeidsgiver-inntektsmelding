@@ -37,7 +37,7 @@ fun Route.inntektSelvbestemtRoute(
     val redisPoller = RedisStore(redisConnection, RedisPrefix.InntektSelvbestemt).let(::RedisPoller)
 
     post(Routes.INNTEKT_SELVBESTEMT) {
-        val transaksjonId = UUID.randomUUID()
+        val kontekstId = UUID.randomUUID()
 
         val request = call.receive<InntektSelvbestemtRequest>()
 
@@ -49,9 +49,9 @@ fun Route.inntektSelvbestemtRoute(
         }
 
         try {
-            inntektSelvbestemtProducer.publish(transaksjonId, request)
+            inntektSelvbestemtProducer.publish(kontekstId, request)
 
-            val resultatJson = redisPoller.hent(transaksjonId)
+            val resultatJson = redisPoller.hent(kontekstId)
             sikkerLogger.info("Fikk inntektsresultat for selvbestemt inntektsmelding:\n$resultatJson")
 
             val resultat = resultatJson.success?.fromJson(Inntekt.serializer())

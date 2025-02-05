@@ -19,7 +19,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingGammeltFormat
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -43,8 +43,8 @@ import java.util.UUID
 class InnsendingServiceIT : EndToEndTest() {
     @Test
     fun `Test at innsending er mottatt`() {
-        val transaksjonId: UUID = UUID.randomUUID()
-        val tidligereInntektsmelding = mockInntektsmelding()
+        val kontekstId: UUID = UUID.randomUUID()
+        val tidligereInntektsmelding = mockInntektsmeldingGammeltFormat()
 
         val innsendingId = imRepository.lagreInntektsmeldingSkjema(Mock.skjema, 9.desember.atStartOfDay())
         imRepository.oppdaterMedBeriketDokument(Mock.skjema.forespoerselId, innsendingId, tidligereInntektsmelding)
@@ -79,7 +79,7 @@ class InnsendingServiceIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to Mock.skjema.forespoerselId.toJson(),
@@ -94,7 +94,7 @@ class InnsendingServiceIT : EndToEndTest() {
             .filter(EventName.INSENDING_STARTED)
             .filter(Key.FORESPOERSEL_SVAR)
             .firstAsMap()
-            .verifiserTransaksjonId(transaksjonId)
+            .verifiserKontekstId(kontekstId)
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
                 data[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoerselSvar.toForespoersel()
@@ -105,7 +105,7 @@ class InnsendingServiceIT : EndToEndTest() {
             .filter(EventName.INSENDING_STARTED)
             .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
-            .verifiserTransaksjonId(transaksjonId)
+            .verifiserKontekstId(kontekstId)
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
                 data[Key.ER_DUPLIKAT_IM]?.fromJson(Boolean.serializer()) shouldBe false
@@ -115,7 +115,7 @@ class InnsendingServiceIT : EndToEndTest() {
         messages
             .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .firstAsMap()
-            .verifiserTransaksjonId(transaksjonId)
+            .verifiserKontekstId(kontekstId)
             .verifiserForespoerselIdFraSkjema()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -145,7 +145,7 @@ class InnsendingServiceIT : EndToEndTest() {
         // API besvart gjennom redis
         shouldNotThrowAny {
             redisConnection
-                .get(RedisPrefix.Innsending, transaksjonId)
+                .get(RedisPrefix.Innsending, kontekstId)
                 .shouldNotBeNull()
                 .fromJson(ResultJson.serializer())
                 .success
@@ -154,9 +154,9 @@ class InnsendingServiceIT : EndToEndTest() {
         }
     }
 
-    private fun Map<Key, JsonElement>.verifiserTransaksjonId(transaksjonId: UUID): Map<Key, JsonElement> =
+    private fun Map<Key, JsonElement>.verifiserKontekstId(kontekstId: UUID): Map<Key, JsonElement> =
         also {
-            Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+            Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
         }
 
     private fun Map<Key, JsonElement>.verifiserForespoerselIdFraSkjema(): Map<Key, JsonElement> =

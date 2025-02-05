@@ -2,13 +2,11 @@ package no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
-import no.nav.helsearbeidsgiver.felles.domene.ForslagInntekt
-import no.nav.helsearbeidsgiver.felles.utils.zoneIdOslo
+import no.nav.helsearbeidsgiver.felles.utils.toOffsetDateTimeOslo
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -38,12 +36,7 @@ fun mapInntektsmelding(
                 )
             }
         } else {
-            Inntekt(
-                beloep = (forespoersel.forespurtData.inntekt.forslag as ForslagInntekt.Fastsatt).fastsattInntekt,
-                inntektsdato = forespoersel.forslagInntektsdato(),
-                naturalytelser = emptyList(),
-                endringAarsak = null,
-            )
+            null
         }
 
     val refusjon =
@@ -76,7 +69,7 @@ fun mapInntektsmelding(
         inntekt = inntekt,
         refusjon = refusjon,
         aarsakInnsending = aarsakInnsending,
-        mottatt = mottatt.atZone(zoneIdOslo).toOffsetDateTime(),
+        mottatt = mottatt.toOffsetDateTimeOslo(),
         vedtaksperiodeId = forespoersel.vedtaksperiodeId,
     )
 }

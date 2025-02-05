@@ -255,7 +255,7 @@ fun innkommendeOpprettForespoerselSakOgOppgaveMelding(): OpprettForespoerselSakO
     val forespoersel = mockForespoersel()
     return OpprettForespoerselSakOgOppgaveMelding(
         eventName = EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED,
-        transaksjonId = UUID.randomUUID(),
+        kontekstId = UUID.randomUUID(),
         forespoerselId = UUID.randomUUID(),
         sykmeldt = Person(forespoersel.fnr, "Peer Gynt"),
         orgNavn = "Peer Gynts Løgn og Bedrageri LTD",
@@ -267,7 +267,7 @@ fun innkommendeOpprettForespoerselSakOgOppgaveMelding(): OpprettForespoerselSakO
 private fun OpprettForespoerselSakOgOppgaveMelding.toMap() =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
-        Key.KONTEKST_ID to transaksjonId.toJson(),
+        Key.KONTEKST_ID to kontekstId.toJson(),
         Key.DATA to
             mapOf(
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
@@ -285,7 +285,7 @@ private fun forventetUtgaaendeMelding(
 ): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETTET.toJson(),
-        Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+        Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
         Key.DATA to
             mapOf(
                 Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
@@ -297,6 +297,6 @@ private fun forventetUtgaaendeMelding(
 private fun forventetFail(innkommendeMelding: OpprettForespoerselSakOgOppgaveMelding): Fail =
     Fail(
         feilmelding = "Klarte ikke opprette sak og/eller oppgave for forespurt inntektmelding.",
-        kontekstId = innkommendeMelding.transaksjonId,
+        kontekstId = innkommendeMelding.kontekstId,
         utloesendeMelding = innkommendeMelding.toMap(),
     )

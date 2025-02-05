@@ -81,12 +81,12 @@ class LagreSelvbestemtImServiceTest :
         }
 
         test("helt ny inntektsmelding lagres og sak opprettes") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
             val nyInntektsmelding = Mock.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Ny)
 
             testRapid.sendJson(
                 Mock
-                    .steg0(transaksjonId)
+                    .steg0(kontekstId)
                     .plusData(
                         Pair(
                             Key.SKJEMA_INNTEKTSMELDING,
@@ -114,7 +114,7 @@ class LagreSelvbestemtImServiceTest :
             mockStatic(OffsetDateTime::class) {
                 every { OffsetDateTime.now() } returns nyInntektsmelding.mottatt
 
-                testRapid.sendJson(Mock.steg1(transaksjonId))
+                testRapid.sendJson(Mock.steg1(kontekstId))
             }
 
             testRapid.inspektør.size shouldBeExactly 4
@@ -129,24 +129,24 @@ class LagreSelvbestemtImServiceTest :
                 }
             }
 
-            testRapid.sendJson(Mock.steg2(transaksjonId, nyInntektsmelding))
+            testRapid.sendJson(Mock.steg2(kontekstId, nyInntektsmelding))
 
             testRapid.inspektør.size shouldBeExactly 5
             testRapid.message(4).lesBehov() shouldBe BehovType.OPPRETT_SELVBESTEMT_SAK
 
-            testRapid.sendJson(Mock.steg3(transaksjonId))
+            testRapid.sendJson(Mock.steg3(kontekstId))
 
             testRapid.inspektør.size shouldBeExactly 6
             testRapid.message(5).toMap().also {
                 Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.SELVBESTEMT_IM_LAGRET
-                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
 
                 it.lesInntektsmelding().shouldBeEqualToIgnoringFields(nyInntektsmelding, Inntektsmelding::id)
             }
 
             verify {
                 mockRedis.store.skrivResultat(
-                    transaksjonId,
+                    kontekstId,
                     ResultJson(
                         success = nyInntektsmelding.type.id.toJson(),
                     ),
@@ -155,11 +155,11 @@ class LagreSelvbestemtImServiceTest :
         }
 
         test("endret inntektsmelding lagres uten at sak opprettes") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
             val endretInntektsmelding = Mock.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
 
             testRapid.sendJson(
-                Mock.steg0(transaksjonId),
+                Mock.steg0(kontekstId),
             )
 
             testRapid.inspektør.size shouldBeExactly 3
@@ -180,7 +180,7 @@ class LagreSelvbestemtImServiceTest :
                 every { OffsetDateTime.now() } returns endretInntektsmelding.mottatt
 
                 testRapid.sendJson(
-                    Mock.steg1(transaksjonId),
+                    Mock.steg1(kontekstId),
                 )
             }
 
@@ -191,20 +191,20 @@ class LagreSelvbestemtImServiceTest :
             }
 
             testRapid.sendJson(
-                Mock.steg2(transaksjonId, endretInntektsmelding),
+                Mock.steg2(kontekstId, endretInntektsmelding),
             )
 
             testRapid.inspektør.size shouldBeExactly 5
             testRapid.message(4).toMap().also {
                 Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.SELVBESTEMT_IM_LAGRET
-                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
 
                 it.lesInntektsmelding().shouldBeEqualToIgnoringFields(endretInntektsmelding, Inntektsmelding::id)
             }
 
             verify {
                 mockRedis.store.skrivResultat(
-                    transaksjonId,
+                    kontekstId,
                     ResultJson(
                         success = endretInntektsmelding.type.id.toJson(),
                     ),
@@ -213,18 +213,18 @@ class LagreSelvbestemtImServiceTest :
         }
 
         test("duplikat inntektsmelding lagres uten at sluttevent publiseres") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
             val duplikatInntektsmelding = Mock.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
 
             testRapid.sendJson(
-                Mock.steg0(transaksjonId),
+                Mock.steg0(kontekstId),
             )
 
             mockStatic(OffsetDateTime::class) {
                 every { OffsetDateTime.now() } returns duplikatInntektsmelding.mottatt
 
                 testRapid.sendJson(
-                    Mock.steg1(transaksjonId),
+                    Mock.steg1(kontekstId),
                 )
             }
 
@@ -236,7 +236,7 @@ class LagreSelvbestemtImServiceTest :
 
             testRapid.sendJson(
                 Mock
-                    .steg2(transaksjonId, duplikatInntektsmelding)
+                    .steg2(kontekstId, duplikatInntektsmelding)
                     .plusData(Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer())),
             )
 
@@ -248,7 +248,7 @@ class LagreSelvbestemtImServiceTest :
 
             verify {
                 mockRedis.store.skrivResultat(
-                    transaksjonId,
+                    kontekstId,
                     ResultJson(
                         success = duplikatInntektsmelding.type.id.toJson(),
                     ),
@@ -257,7 +257,7 @@ class LagreSelvbestemtImServiceTest :
         }
 
         test("bruk defaultverdier ved håndterbare feil under henting av data") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
 
             val inntektsmeldingMedDefaults =
                 Mock.inntektsmelding.let {
@@ -276,10 +276,10 @@ class LagreSelvbestemtImServiceTest :
                 }
 
             testRapid.sendJson(
-                Mock.steg0(transaksjonId),
+                Mock.steg0(kontekstId),
             )
             testRapid.sendJson(
-                Mock.steg1(transaksjonId).minusData(Key.VIRKSOMHETER, Key.PERSONER),
+                Mock.steg1(kontekstId).minusData(Key.VIRKSOMHETER, Key.PERSONER),
             )
 
             testRapid.sendJson(
@@ -289,10 +289,10 @@ class LagreSelvbestemtImServiceTest :
                     behovType = BehovType.HENT_VIRKSOMHET_NAVN,
                 ).let {
                     it.copy(
-                        kontekstId = transaksjonId,
+                        kontekstId = kontekstId,
                         utloesendeMelding =
                             it.utloesendeMelding.plus(
-                                Key.KONTEKST_ID to transaksjonId.toJson(),
+                                Key.KONTEKST_ID to kontekstId.toJson(),
                             ),
                     )
                 }.tilMelding(),
@@ -308,10 +308,10 @@ class LagreSelvbestemtImServiceTest :
                         behovType = BehovType.HENT_PERSONER,
                     ).let {
                         it.copy(
-                            kontekstId = transaksjonId,
+                            kontekstId = kontekstId,
                             utloesendeMelding =
                                 it.utloesendeMelding.plus(
-                                    Key.KONTEKST_ID to transaksjonId.toJson(),
+                                    Key.KONTEKST_ID to kontekstId.toJson(),
                                 ),
                         )
                     }.tilMelding(),
@@ -325,32 +325,32 @@ class LagreSelvbestemtImServiceTest :
             }
 
             testRapid.sendJson(
-                Mock.steg2(transaksjonId, inntektsmeldingMedDefaults),
+                Mock.steg2(kontekstId, inntektsmeldingMedDefaults),
             )
 
             testRapid.inspektør.size shouldBeExactly 5
             testRapid.message(4).toMap().also {
                 Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.SELVBESTEMT_IM_LAGRET
-                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
 
                 it.lesInntektsmelding().shouldBeEqualToIgnoringFields(inntektsmeldingMedDefaults, Inntektsmelding::id)
             }
 
             verify {
                 mockRedis.store.skrivMellomlagring(
-                    transaksjonId,
+                    kontekstId,
                     Key.VIRKSOMHETER,
                     emptyMap<String, String>().toJson(),
                 )
 
                 mockRedis.store.skrivMellomlagring(
-                    transaksjonId,
+                    kontekstId,
                     Key.PERSONER,
                     emptyMap<String, JsonElement>().toJson(),
                 )
 
                 mockRedis.store.skrivResultat(
-                    transaksjonId,
+                    kontekstId,
                     ResultJson(
                         success = inntektsmeldingMedDefaults.type.id.toJson(),
                     ),
@@ -398,11 +398,11 @@ class LagreSelvbestemtImServiceTest :
         }
 
         test("stopp flyt ved ikke aktivt arbeidsforhold") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
             val inntektsmelding = Mock.inntektsmelding
 
             testRapid.sendJson(
-                Mock.steg0(transaksjonId),
+                Mock.steg0(kontekstId),
             )
 
             mockStatic(OffsetDateTime::class) {
@@ -410,7 +410,7 @@ class LagreSelvbestemtImServiceTest :
 
                 testRapid.sendJson(
                     Mock
-                        .steg1(transaksjonId)
+                        .steg1(kontekstId)
                         .plusData(Key.ARBEIDSFORHOLD to Mock.lagArbeidsforhold("123456789").toJson(Arbeidsforhold.serializer())),
                 )
             }
@@ -419,7 +419,7 @@ class LagreSelvbestemtImServiceTest :
 
             verify {
                 mockRedis.store.skrivResultat(
-                    transaksjonId,
+                    kontekstId,
                     ResultJson(
                         failure = "Mangler arbeidsforhold i perioden".toJson(),
                     ),
@@ -522,10 +522,10 @@ private object Mock {
             mottatt = 16.august.kl(18, 19, 0, 0),
         )
 
-    fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
+    fun steg0(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
@@ -534,10 +534,10 @@ private object Mock {
                 ).toJson(),
         )
 
-    fun steg1(transaksjonId: UUID): Map<Key, JsonElement> =
+    fun steg1(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.VIRKSOMHETER to mapOf(skjema.avsender.orgnr.verdi to ORG_NAVN).toJson(),
@@ -551,12 +551,12 @@ private object Mock {
         )
 
     fun steg2(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         inntektsmelding: Inntektsmelding,
     ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
@@ -564,10 +564,10 @@ private object Mock {
                 ).toJson(),
         )
 
-    fun steg3(transaksjonId: UUID): Map<Key, JsonElement> =
+    fun steg3(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SAK_ID to "folkelig-lurendreier-sak-id".toJson(),

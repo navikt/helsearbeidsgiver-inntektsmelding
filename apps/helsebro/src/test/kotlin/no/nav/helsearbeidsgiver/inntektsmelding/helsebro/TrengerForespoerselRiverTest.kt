@@ -30,14 +30,14 @@ class TrengerForespoerselRiverTest :
             every { mockPriProducer.send(*anyVararg<Pair<Pri.Key, JsonElement>>()) } returns Result.success(JsonNull)
 
             val expectedEvent = EventName.INNTEKT_REQUESTED
-            val expectedTransaksjonId = UUID.randomUUID()
+            val expectedKontekstId = UUID.randomUUID()
             val expectedForespoerselId = UUID.randomUUID()
             val journalpostId = "denne skal i boomerangen"
 
             testRapid.sendJson(
                 Key.EVENT_NAME to expectedEvent.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                Key.KONTEKST_ID to expectedTransaksjonId.toJson(),
+                Key.KONTEKST_ID to expectedKontekstId.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
@@ -54,7 +54,7 @@ class TrengerForespoerselRiverTest :
                     Pri.Key.BOOMERANG to
                         mapOf(
                             Key.EVENT_NAME to expectedEvent.toJson(),
-                            Key.KONTEKST_ID to expectedTransaksjonId.toJson(),
+                            Key.KONTEKST_ID to expectedKontekstId.toJson(),
                             Key.DATA to
                                 mapOf(
                                     Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),

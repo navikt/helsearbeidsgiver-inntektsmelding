@@ -24,7 +24,7 @@ import java.util.UUID
 data class ForespoerselSvarMelding(
     val eventName: EventName,
     val behovType: Pri.BehovType,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val data: Map<Key, JsonElement>,
     val forespoerselSvar: ForespoerselSvar,
 )
@@ -40,7 +40,7 @@ class ForespoerselSvarRiver : PriObjectRiver<ForespoerselSvarMelding>() {
         return ForespoerselSvarMelding(
             eventName = Key.EVENT_NAME.les(EventName.serializer(), boomerang),
             behovType = Pri.Key.BEHOV.krev(Pri.BehovType.TRENGER_FORESPØRSEL, Pri.BehovType.serializer(), json),
-            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, boomerang),
+            kontekstId = Key.KONTEKST_ID.les(UuidSerializer, boomerang),
             data = boomerang[Key.DATA]?.toMap().orEmpty(),
             forespoerselSvar = forespoerselSvar,
         )
@@ -57,7 +57,7 @@ class ForespoerselSvarRiver : PriObjectRiver<ForespoerselSvarMelding>() {
 
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
-                Key.KONTEKST_ID to transaksjonId.toJson(),
+                Key.KONTEKST_ID to kontekstId.toJson(),
                 Key.DATA to
                     data
                         .plus(
@@ -94,12 +94,12 @@ class ForespoerselSvarRiver : PriObjectRiver<ForespoerselSvarMelding>() {
         val fail =
             Fail(
                 feilmelding = feilmelding,
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding =
                     mapOf(
                         Key.EVENT_NAME to eventName.toJson(),
                         Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                        Key.KONTEKST_ID to transaksjonId.toJson(),
+                        Key.KONTEKST_ID to kontekstId.toJson(),
                         Key.DATA to data.toJson(),
                     ),
             )
@@ -115,7 +115,7 @@ class ForespoerselSvarRiver : PriObjectRiver<ForespoerselSvarMelding>() {
             Log.klasse(this@ForespoerselSvarRiver),
             Log.event(eventName),
             Log.behov(BehovType.HENT_TRENGER_IM),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselSvar.forespoerselId),
         )
 }

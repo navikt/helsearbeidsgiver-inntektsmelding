@@ -24,18 +24,18 @@ class InnsendingProducerTest :
         val producer = InnsendingProducer(testRapid)
 
         test("publiserer melding på forventet format") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
             val avsenderFnr = Fnr.genererGyldig()
             val skjema = mockSkjemaInntektsmelding()
             val mottatt = 12.oktober.atStartOfDay()
 
-            producer.publish(transaksjonId, avsenderFnr, skjema, mottatt)
+            producer.publish(kontekstId, avsenderFnr, skjema, mottatt)
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-                    Key.KONTEKST_ID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),

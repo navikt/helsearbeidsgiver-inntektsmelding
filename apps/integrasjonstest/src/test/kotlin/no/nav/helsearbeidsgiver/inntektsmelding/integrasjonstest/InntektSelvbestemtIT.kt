@@ -31,7 +31,7 @@ class InntektSelvbestemtIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
-            Key.KONTEKST_ID to Mock.transaksjonId.toJson(),
+            Key.KONTEKST_ID to Mock.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FNR to Mock.fnr.toJson(),
@@ -47,7 +47,7 @@ class InntektSelvbestemtIT : EndToEndTest() {
                 mapOf(
                     Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
                     Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
-                    Key.KONTEKST_ID to Mock.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to Mock.kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.SVAR_KAFKA_KEY to KafkaKey(Mock.fnr).toJson(),
@@ -64,7 +64,7 @@ class InntektSelvbestemtIT : EndToEndTest() {
             .shouldContainExactly(
                 mapOf(
                     Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
-                    Key.KONTEKST_ID to Mock.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to Mock.kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.SVAR_KAFKA_KEY to KafkaKey(Mock.fnr).toJson(),
@@ -81,7 +81,7 @@ class InntektSelvbestemtIT : EndToEndTest() {
         val fnr = Fnr.genererGyldig()
         val orgnr = Orgnr.genererGyldig()
         val inntektsdato = 15.juli(2019)
-        val transaksjonId: UUID = UUID.randomUUID()
+        val kontekstId: UUID = UUID.randomUUID()
 
         val inntektPerOrgnrOgMaaned =
             mapOf(

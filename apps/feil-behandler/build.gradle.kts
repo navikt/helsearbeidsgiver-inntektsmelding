@@ -11,6 +11,5 @@ dependencies {
     implementation("no.nav.helsearbeidsgiver:hag-bakgrunnsjobb:$bakgrunnsjobbVersion")
 
     runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")
-
     testImplementation("org.testcontainers:postgresql:$testcontainersPostgresqlVersion")
 }

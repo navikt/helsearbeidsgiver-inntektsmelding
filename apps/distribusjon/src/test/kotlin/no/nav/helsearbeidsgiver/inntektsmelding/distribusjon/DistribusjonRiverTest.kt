@@ -57,7 +57,7 @@ class DistribusjonRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.INNTEKTSMELDING_DISTRIBUERT.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
                     Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
                 )
@@ -100,7 +100,7 @@ class DistribusjonRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.INNTEKTSMELDING_DISTRIBUERT.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
                     Key.INNTEKTSMELDING to selvbestemtInntektsmelding.toJson(Inntektsmelding.serializer()),
                 )
@@ -129,7 +129,7 @@ class DistribusjonRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke distribuere IM med journalpost-ID '${innkommendeMelding.journalpostId}'.",
-                    kontekstId = innkommendeMelding.transaksjonId,
+                    kontekstId = innkommendeMelding.kontekstId,
                     utloesendeMelding = innkommendeJsonMap,
                 )
 
@@ -175,7 +175,7 @@ private object Mock {
     fun innkommendeMelding(): Melding =
         Melding(
             eventName = EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET,
-            transaksjonId = UUID.randomUUID(),
+            kontekstId = UUID.randomUUID(),
             inntektsmelding = mockInntektsmeldingV1(),
             journalpostId = randomDigitString(13),
         )
@@ -183,7 +183,7 @@ private object Mock {
     fun Melding.toMap(): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
         )

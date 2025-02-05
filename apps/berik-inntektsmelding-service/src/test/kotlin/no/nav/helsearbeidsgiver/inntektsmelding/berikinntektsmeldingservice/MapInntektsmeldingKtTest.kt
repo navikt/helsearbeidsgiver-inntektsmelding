@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -17,7 +16,7 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.utenPaakrevdAGP
 import no.nav.helsearbeidsgiver.felles.test.mock.utenPaakrevdInntekt
 import no.nav.helsearbeidsgiver.felles.test.mock.utenPaakrevdRefusjon
-import no.nav.helsearbeidsgiver.felles.utils.zoneIdOslo
+import no.nav.helsearbeidsgiver.felles.utils.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.juli
@@ -83,7 +82,7 @@ class MapInntektsmeldingKtTest :
 
                     vedtaksperiodeId shouldBe forespoersel.vedtaksperiodeId
 
-                    mottatt shouldBe imMottatt.atZone(zoneIdOslo).toOffsetDateTime()
+                    mottatt shouldBe imMottatt.toOffsetDateTimeOslo()
                 }
             }
 
@@ -131,7 +130,7 @@ class MapInntektsmeldingKtTest :
                 inntektsmelding.agp.shouldBeNull()
             }
 
-            test("bruker fastsatt inntekt (fra Spleis) dersom inntekt _ikke_ er påkrevd") {
+            test("fjerner inntekt dersom inntekt _ikke_ er påkrevd") {
                 val forespoersel = mockForespoersel().utenPaakrevdInntekt()
                 val skjema = mockSkjemaInntektsmelding()
 
@@ -146,16 +145,8 @@ class MapInntektsmeldingKtTest :
                         mottatt = 6.desember.atStartOfDay(),
                     )
 
-                val fastsattInntekt = 8795.0
-
-                inntektsmelding.inntekt shouldNotBe skjema.inntekt
-                inntektsmelding.inntekt.also {
-                    it.shouldNotBeNull()
-                    it.beloep shouldBe fastsattInntekt
-                    it.inntektsdato shouldBe forespoersel.forslagInntektsdato()
-                    it.naturalytelser.shouldBeEmpty()
-                    it.endringAarsak.shouldBeNull()
-                }
+                skjema.inntekt.shouldNotBeNull()
+                inntektsmelding.inntekt.shouldBeNull()
             }
 
             test("bruker innsendt inntektsdato dersom AGP er påkrevd") {

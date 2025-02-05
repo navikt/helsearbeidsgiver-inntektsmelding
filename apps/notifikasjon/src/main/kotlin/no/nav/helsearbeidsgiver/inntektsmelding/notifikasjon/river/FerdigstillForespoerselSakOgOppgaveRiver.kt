@@ -23,7 +23,7 @@ import java.util.UUID
 
 data class FerdigstillForespoerselSakMelding(
     val eventName: EventName,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val forespoerselId: UUID,
 )
 
@@ -47,7 +47,7 @@ class FerdigstillForespoerselSakOgOppgaveRiver(
             } else {
                 FerdigstillForespoerselSakMelding(
                     eventName = eventName,
-                    transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                    kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                     forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, json) ?: Key.FORESPOERSEL_ID.les(UuidSerializer, data),
                 )
             }
@@ -63,7 +63,7 @@ class FerdigstillForespoerselSakOgOppgaveRiver(
 
         return mapOf(
             Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_FERDIGSTILT.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
     }
@@ -75,7 +75,7 @@ class FerdigstillForespoerselSakOgOppgaveRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke ferdigstille sak og/eller oppgave for forespurt inntektmelding.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
 
@@ -89,7 +89,7 @@ class FerdigstillForespoerselSakOgOppgaveRiver(
         mapOf(
             Log.klasse(this@FerdigstillForespoerselSakOgOppgaveRiver),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )
 }

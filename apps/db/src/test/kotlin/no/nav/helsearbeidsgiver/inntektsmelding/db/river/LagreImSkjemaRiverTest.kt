@@ -83,7 +83,7 @@ class LagreImSkjemaRiverTest :
                 testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
                         Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                        Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                         Key.DATA to
                             mapOf(
                                 Key.FORESPOERSEL_SVAR to innkommendeMelding.forespoersel.toJson(Forespoersel.serializer()),
@@ -117,7 +117,7 @@ class LagreImSkjemaRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_SVAR to innkommendeMelding.forespoersel.toJson(Forespoersel.serializer()),
@@ -146,7 +146,7 @@ class LagreImSkjemaRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke lagre inntektsmeldingskjema i database.",
-                    kontekstId = innkommendeMelding.transaksjonId,
+                    kontekstId = innkommendeMelding.kontekstId,
                     utloesendeMelding = innkommendeMelding.toMap(),
                 )
 
@@ -195,7 +195,7 @@ private fun innkommendeMelding(
     return LagreImSkjemaMelding(
         eventName = EventName.INSENDING_STARTED,
         behovType = BehovType.LAGRE_IM_SKJEMA,
-        transaksjonId = UUID.randomUUID(),
+        kontekstId = UUID.randomUUID(),
         data =
             mapOf(
                 Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
@@ -212,7 +212,7 @@ private fun LagreImSkjemaMelding.toMap(): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
         Key.BEHOV to behovType.toJson(),
-        Key.KONTEKST_ID to transaksjonId.toJson(),
+        Key.KONTEKST_ID to kontekstId.toJson(),
         Key.DATA to data.toJson(),
     )
 

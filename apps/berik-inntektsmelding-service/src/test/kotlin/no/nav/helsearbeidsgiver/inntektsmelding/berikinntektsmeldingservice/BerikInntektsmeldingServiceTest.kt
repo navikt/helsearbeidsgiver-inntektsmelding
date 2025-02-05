@@ -55,9 +55,9 @@ class BerikInntektsmeldingServiceTest :
         }
 
         test("nytt inntektsmeldingskjema berikes, lagres og sendes videre til journalføring") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
 
-            testRapid.sendJson(Mock.steg0(transaksjonId))
+            testRapid.sendJson(Mock.steg0(kontekstId))
 
             // Melding med forventet behov og data sendt for å hente forespørsel
             testRapid.inspektør.size shouldBeExactly 1
@@ -68,7 +68,7 @@ class BerikInntektsmeldingServiceTest :
                 Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data) shouldBe Mock.skjema.forespoerselId
             }
 
-            testRapid.sendJson(Mock.steg1(transaksjonId))
+            testRapid.sendJson(Mock.steg1(kontekstId))
 
             // Melding med forventet behov og data sendt for å hente virksomhetsnavn
             testRapid.inspektør.size shouldBeExactly 2
@@ -79,7 +79,7 @@ class BerikInntektsmeldingServiceTest :
                 Key.ORGNR_UNDERENHETER.lesOrNull(Orgnr.serializer().set(), data) shouldNotBe null
             }
 
-            testRapid.sendJson(Mock.steg2(transaksjonId))
+            testRapid.sendJson(Mock.steg2(kontekstId))
 
             // Melding med forventet behov og data sendt for å hente personnavn
             testRapid.inspektør.size shouldBeExactly 3
@@ -90,7 +90,7 @@ class BerikInntektsmeldingServiceTest :
                 Key.FNR_LISTE.lesOrNull(Fnr.serializer().set(), data) shouldNotBe null
             }
 
-            testRapid.sendJson(Mock.steg3(transaksjonId))
+            testRapid.sendJson(Mock.steg3(kontekstId))
 
             // Melding med forventet behov og data sendt for å lagre inntektsmelding
             testRapid.inspektør.size shouldBeExactly 4
@@ -102,7 +102,7 @@ class BerikInntektsmeldingServiceTest :
                 Key.INNSENDING_ID.lesOrNull(Long.serializer(), data) shouldBe Mock.INNSENDING_ID
             }
 
-            testRapid.sendJson(Mock.steg4(transaksjonId))
+            testRapid.sendJson(Mock.steg4(kontekstId))
 
             // Inntektsmelding sendt videre til journalføring med forventet data
             testRapid.inspektør.size shouldBeExactly 5
@@ -167,10 +167,10 @@ private object Mock {
             sykmeldt.fnr to sykmeldt,
         )
 
-    fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
+    fun steg0(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
@@ -180,23 +180,23 @@ private object Mock {
                 ).toJson(),
         )
 
-    fun steg1(transaksjonId: UUID): Map<Key, JsonElement> =
-        steg0(transaksjonId).plusData(
+    fun steg1(kontekstId: UUID): Map<Key, JsonElement> =
+        steg0(kontekstId).plusData(
             Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
         )
 
-    fun steg2(transaksjonId: UUID): Map<Key, JsonElement> =
-        steg1(transaksjonId).plusData(
+    fun steg2(kontekstId: UUID): Map<Key, JsonElement> =
+        steg1(kontekstId).plusData(
             Key.VIRKSOMHETER to orgnrMedNavn.toJson(orgMapSerializer),
         )
 
-    fun steg3(transaksjonId: UUID): Map<Key, JsonElement> =
-        steg2(transaksjonId).plusData(
+    fun steg3(kontekstId: UUID): Map<Key, JsonElement> =
+        steg2(kontekstId).plusData(
             Key.PERSONER to personer.toJson(personMapSerializer),
         )
 
-    fun steg4(transaksjonId: UUID): Map<Key, JsonElement> =
-        steg3(transaksjonId).plusData(
+    fun steg4(kontekstId: UUID): Map<Key, JsonElement> =
+        steg3(kontekstId).plusData(
             mapOf(
                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
                 Key.INNTEKTSMELDING to mockInntektsmeldingV1().toJson(Inntektsmelding.serializer()),

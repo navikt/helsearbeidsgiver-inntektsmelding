@@ -20,14 +20,14 @@ class HentForespoerslerProducer(
     }
 
     fun publish(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         request: HentForespoerslerRequest,
     ) {
         rapid
             .publish(
                 key = UUID.randomUUID(),
                 Key.EVENT_NAME to EventName.FORESPOERSLER_REQUESTED.toJson(),
-                Key.KONTEKST_ID to transaksjonId.toJson(),
+                Key.KONTEKST_ID to kontekstId.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.VEDTAKSPERIODE_ID_LISTE to request.vedtaksperiodeIdListe.toJson(UuidSerializer),

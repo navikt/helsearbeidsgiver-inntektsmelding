@@ -22,7 +22,7 @@ import java.util.UUID
 
 data class FjernPaaminnelseMelding(
     val eventName: EventName,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val forespoerselId: UUID,
 )
 
@@ -39,7 +39,7 @@ class FjernPaaminnelseRiver(
         } else {
             FjernPaaminnelseMelding(
                 eventName = Key.EVENT_NAME.krev(EventName.FORESPOERSEL_KASTET_TIL_INFOTRYGD, EventName.serializer(), json),
-                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json),
             )
         }
@@ -60,7 +60,7 @@ class FjernPaaminnelseRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke fjerne påminnelse fra oppgave.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
 
@@ -74,7 +74,7 @@ class FjernPaaminnelseRiver(
         mapOf(
             Log.klasse(this@FjernPaaminnelseRiver),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )
 

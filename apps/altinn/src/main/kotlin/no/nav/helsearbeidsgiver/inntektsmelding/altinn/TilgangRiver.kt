@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.altinn.AltinnClient
+import no.nav.helsearbeidsgiver.altinn.Altinn3M2MClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -26,14 +26,14 @@ import java.util.UUID
 data class TilgangMelding(
     val eventName: EventName,
     val behovType: BehovType,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val data: Map<Key, JsonElement>,
     val orgnr: Orgnr,
     val fnr: Fnr,
 )
 
 class TilgangRiver(
-    private val altinnClient: AltinnClient,
+    private val altinnClient: Altinn3M2MClient,
 ) : ObjectRiver<TilgangMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -47,7 +47,7 @@ class TilgangRiver(
             TilgangMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.TILGANGSKONTROLL, BehovType.serializer(), json),
-                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 orgnr = Key.ORGNR_UNDERENHET.les(Orgnr.serializer(), data),
                 fnr = Key.FNR.les(Fnr.serializer(), data),
@@ -58,15 +58,15 @@ class TilgangRiver(
 
     override fun TilgangMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val harTilgang =
-            Metrics.altinnRequest.recordTime(altinnClient::harRettighetForOrganisasjon) {
-                altinnClient.harRettighetForOrganisasjon(fnr.verdi, orgnr.verdi)
+            Metrics.altinnRequest.recordTime(altinnClient::harTilgangTilOrganisasjon) {
+                altinnClient.harTilgangTilOrganisasjon(fnr = fnr.verdi, orgnr = orgnr.verdi)
             }
 
         val tilgang = if (harTilgang) Tilgang.HAR_TILGANG else Tilgang.IKKE_TILGANG
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 data
                     .plus(
@@ -82,7 +82,7 @@ class TilgangRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke sjekke tilgang i Altinn.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
 
@@ -97,6 +97,6 @@ class TilgangRiver(
             Log.klasse(this@TilgangRiver),
             Log.event(eventName),
             Log.behov(behovType),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
         )
 }

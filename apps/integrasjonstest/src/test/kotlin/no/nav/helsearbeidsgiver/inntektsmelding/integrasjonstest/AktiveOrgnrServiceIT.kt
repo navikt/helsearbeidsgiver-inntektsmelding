@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.aareg.Ansettelsesperiode
 import no.nav.helsearbeidsgiver.aareg.Arbeidsgiver
 import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
-import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -57,16 +56,16 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
     @Test
     fun `Test hente aktive organisasjoner`() {
-        val transaksjonId = UUID.randomUUID()
+        val kontekstId = UUID.randomUUID()
 
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforholdListe
-        coEvery { altinnClient.hentRettighetOrganisasjoner(any()) } returns Mock.altinnOrganisasjonSet
+        coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
 
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FNR to Mock.fnr.toJson(),
@@ -74,7 +73,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                 ).toJson(),
         )
 
-        redisConnection.get(RedisPrefix.AktiveOrgnr, transaksjonId) shouldBe Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE
+        redisConnection.get(RedisPrefix.AktiveOrgnr, kontekstId) shouldBe Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE
 
         val aktiveOrgnrMeldinger = messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
 
@@ -107,7 +106,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             .firstAsMap()
             .also { melding ->
                 val data = melding[Key.DATA].shouldNotBeNull().toMap()
-                Key.ORG_RETTIGHETER.les(String.serializer().set(), data) shouldContainExactly Mock.altinnOrganisasjonSet.mapNotNull { it.orgnr }.toSet()
+                Key.ORG_RETTIGHETER.les(String.serializer().set(), data) shouldContainExactly Mock.altinnOrganisasjonSet
             }
 
         aktiveOrgnrMeldinger
@@ -138,16 +137,16 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
     @Test
     fun `ingen arbeidsforhold`() {
-        val transaksjonId = UUID.randomUUID()
+        val kontekstId = UUID.randomUUID()
 
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns emptyList()
-        coEvery { altinnClient.hentRettighetOrganisasjoner(any()) } returns Mock.altinnOrganisasjonSet
+        coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
 
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FNR to Mock.fnr.toJson(),
@@ -155,7 +154,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                 ).toJson(),
         )
 
-        redisConnection.get(RedisPrefix.AktiveOrgnr, transaksjonId)?.parseJson() shouldBe Mock.resultatIngenArbeidsforholdJson
+        redisConnection.get(RedisPrefix.AktiveOrgnr, kontekstId)?.parseJson() shouldBe Mock.resultatIngenArbeidsforholdJson
 
         val aktiveOrgnrMeldinger = messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
 
@@ -188,7 +187,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             .firstAsMap()
             .also { melding ->
                 val data = melding[Key.DATA].shouldNotBeNull().toMap()
-                Key.ORG_RETTIGHETER.les(String.serializer().set(), data) shouldContainExactly Mock.altinnOrganisasjonSet.mapNotNull { it.orgnr }.toSet()
+                Key.ORG_RETTIGHETER.les(String.serializer().set(), data) shouldContainExactly Mock.altinnOrganisasjonSet
             }
 
         aktiveOrgnrMeldinger
@@ -202,10 +201,10 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
     @Test
     fun `Ved feil under henting av personer så svarer service med feil`() {
-        val transaksjonId = UUID.randomUUID()
+        val kontekstId = UUID.randomUUID()
 
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforholdListe
-        coEvery { altinnClient.hentRettighetOrganisasjoner(any()) } returns Mock.altinnOrganisasjonSet
+        coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
 
         coEvery { pdlKlient.personBolk(any()) } throws IllegalArgumentException("Ingen folk å finne her!")
@@ -213,12 +212,12 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         val expectedFail =
             Fail(
                 feilmelding = "Klarte ikke hente personer fra PDL.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding =
                     mapOf(
                         Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
                         Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
-                        Key.KONTEKST_ID to transaksjonId.toJson(),
+                        Key.KONTEKST_ID to kontekstId.toJson(),
                         Key.DATA to
                             mapOf(
                                 Key.SVAR_KAFKA_KEY to KafkaKey(Mock.fnr).toJson(),
@@ -233,7 +232,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FNR to Mock.fnr.toJson(),
@@ -243,7 +242,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         val response =
             redisConnection
-                .get(RedisPrefix.AktiveOrgnr, transaksjonId)
+                .get(RedisPrefix.AktiveOrgnr, kontekstId)
                 ?.fromJson(ResultJson.serializer())
                 .shouldNotBeNull()
 
@@ -312,32 +311,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                 ),
             )
 
-        val altinnOrganisasjonSet =
-            setOf(
-                AltinnOrganisasjon(
-                    navn = "ANSTENDIG PIGGSVIN BYDEL",
-                    type = "organisasjon",
-                    orgnrHovedenhet = "810007702",
-                ),
-                AltinnOrganisasjon(
-                    navn = "ANSTENDIG PIGGSVIN BARNEHAGE",
-                    type = "organisasjon",
-                    orgnr = "810007842",
-                    orgnrHovedenhet = "810007702",
-                ),
-                AltinnOrganisasjon(
-                    navn = "ANSTENDIG PIGGSVIN BRANNVESEN",
-                    type = "organisasjon",
-                    orgnr = "810008032",
-                    orgnrHovedenhet = "810007702",
-                ),
-                AltinnOrganisasjon(
-                    navn = "ANSTENDIG PIGGSVIN SYKEHJEM",
-                    type = "organisasjon",
-                    orgnr = "810007982",
-                    orgnrHovedenhet = "810007702",
-                ),
-            )
+        val altinnOrganisasjonSet = setOf("810007842", "810008032", "810007982")
 
         val underenheter = setOf("810007842")
 

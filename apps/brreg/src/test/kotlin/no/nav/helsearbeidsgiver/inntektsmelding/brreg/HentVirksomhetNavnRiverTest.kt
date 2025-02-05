@@ -18,6 +18,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
@@ -59,7 +60,7 @@ class HentVirksomhetNavnRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.DATA to
                         innkommendeMelding.data
                             .plus(Key.VIRKSOMHETER to orgnrMedNavn.mapKeys { it.key.verdi }.toJson())
@@ -90,7 +91,7 @@ class HentVirksomhetNavnRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.DATA to
                         innkommendeMelding.data
                             .plus(Key.VIRKSOMHETER to orgnrMedNavn.mapKeys { it.key.verdi }.toJson())
@@ -121,7 +122,7 @@ class HentVirksomhetNavnRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.DATA to
                         innkommendeMelding.data
                             .plus(Key.VIRKSOMHETER to emptyMap<String, String>().toJson())
@@ -141,7 +142,7 @@ class HentVirksomhetNavnRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke hente virksomhet fra Brreg.",
-                    kontekstId = innkommendeMelding.transaksjonId,
+                    kontekstId = innkommendeMelding.kontekstId,
                     utloesendeMelding = innkommendeMelding.toMap(),
                 )
 
@@ -181,24 +182,28 @@ class HentVirksomhetNavnRiverTest :
     })
 
 private object Mock {
-    fun innkommendeMelding(orgnr: Set<Orgnr>): HentVirksomhetMelding =
-        HentVirksomhetMelding(
+    fun innkommendeMelding(orgnr: Set<Orgnr>): HentVirksomhetMelding {
+        val svarKafkaKey = KafkaKey(UUID.randomUUID())
+
+        return HentVirksomhetMelding(
             eventName = EventName.TRENGER_REQUESTED,
             behovType = BehovType.HENT_VIRKSOMHET_NAVN,
-            transaksjonId = UUID.randomUUID(),
+            kontekstId = UUID.randomUUID(),
             data =
                 mapOf(
+                    Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
                     Key.ORGNR_UNDERENHETER to orgnr.toJson(Orgnr.serializer()),
                 ),
-            svarKafkaKey = null,
+            svarKafkaKey = svarKafkaKey,
             orgnr = orgnr,
         )
+    }
 
     fun HentVirksomhetMelding.toMap(): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to behovType.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to data.toJson(),
         )
 

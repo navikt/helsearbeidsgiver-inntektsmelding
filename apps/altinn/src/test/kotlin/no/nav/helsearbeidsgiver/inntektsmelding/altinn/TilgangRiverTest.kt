@@ -12,7 +12,7 @@ import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.altinn.AltinnClient
+import no.nav.helsearbeidsgiver.altinn.Altinn3M2MClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -33,9 +33,9 @@ import java.util.UUID
 class TilgangRiverTest :
     FunSpec({
         val testRapid = TestRapid()
-        val mockAltinnClient = mockk<AltinnClient>()
+        val mockAltinn3M2MClient = mockk<Altinn3M2MClient>()
 
-        TilgangRiver(mockAltinnClient).connect(testRapid)
+        TilgangRiver(mockAltinn3M2MClient).connect(testRapid)
 
         beforeTest {
             testRapid.reset()
@@ -49,7 +49,7 @@ class TilgangRiverTest :
                     "ikke tilgang" to row(false, Tilgang.IKKE_TILGANG),
                 ),
             ) { (altinnSvar, forventetTilgang) ->
-                coEvery { mockAltinnClient.harRettighetForOrganisasjon(any(), any()) } returns altinnSvar
+                coEvery { mockAltinn3M2MClient.harTilgangTilOrganisasjon(any(), any()) } returns altinnSvar
 
                 val innkommendeMelding = MockTilgang.innkommendeMelding()
 
@@ -60,7 +60,7 @@ class TilgangRiverTest :
                 testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
                         Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                        Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                         Key.DATA to
                             innkommendeMelding.data
                                 .plus(Key.TILGANG to forventetTilgang.toJson(Tilgang.serializer()))
@@ -68,20 +68,20 @@ class TilgangRiverTest :
                     )
 
                 coVerifySequence {
-                    mockAltinnClient.harRettighetForOrganisasjon(innkommendeMelding.fnr.verdi, innkommendeMelding.orgnr.verdi)
+                    mockAltinn3M2MClient.harTilgangTilOrganisasjon(innkommendeMelding.fnr.verdi, innkommendeMelding.orgnr.verdi)
                 }
             }
         }
 
         test("håndterer feil") {
-            coEvery { mockAltinnClient.harRettighetForOrganisasjon(any(), any()) } throws NullPointerException()
+            coEvery { mockAltinn3M2MClient.harTilgangTilOrganisasjon(any(), any()) } throws NullPointerException()
 
             val innkommendeMelding = MockTilgang.innkommendeMelding()
 
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke sjekke tilgang i Altinn.",
-                    kontekstId = innkommendeMelding.transaksjonId,
+                    kontekstId = innkommendeMelding.kontekstId,
                     utloesendeMelding = innkommendeMelding.toMap(),
                 )
 
@@ -92,7 +92,7 @@ class TilgangRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             coVerifySequence {
-                mockAltinnClient.harRettighetForOrganisasjon(innkommendeMelding.fnr.verdi, innkommendeMelding.orgnr.verdi)
+                mockAltinn3M2MClient.harTilgangTilOrganisasjon(innkommendeMelding.fnr.verdi, innkommendeMelding.orgnr.verdi)
             }
         }
 
@@ -114,7 +114,7 @@ class TilgangRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 coVerify(exactly = 0) {
-                    mockAltinnClient.harRettighetForOrganisasjon(any(), any())
+                    mockAltinn3M2MClient.harTilgangTilOrganisasjon(any(), any())
                 }
             }
         }
@@ -128,7 +128,7 @@ private object MockTilgang {
         return TilgangMelding(
             eventName = EventName.TILGANG_FORESPOERSEL_REQUESTED,
             behovType = BehovType.TILGANGSKONTROLL,
-            transaksjonId = UUID.randomUUID(),
+            kontekstId = UUID.randomUUID(),
             data =
                 mapOf(
                     Key.ORGNR_UNDERENHET to orgnr.toJson(Orgnr.serializer()),
@@ -143,7 +143,7 @@ private object MockTilgang {
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to behovType.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to data.toJson(),
         )
 

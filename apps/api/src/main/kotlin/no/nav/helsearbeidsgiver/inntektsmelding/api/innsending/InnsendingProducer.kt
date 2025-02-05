@@ -22,7 +22,7 @@ class InnsendingProducer(
     }
 
     fun publish(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         arbeidsgiverFnr: Fnr,
         skjemaInntektsmelding: SkjemaInntektsmelding,
         mottatt: LocalDateTime,
@@ -31,7 +31,7 @@ class InnsendingProducer(
             .publish(
                 key = skjemaInntektsmelding.forespoerselId,
                 Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-                Key.KONTEKST_ID to transaksjonId.toJson(),
+                Key.KONTEKST_ID to kontekstId.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
@@ -39,7 +39,7 @@ class InnsendingProducer(
                         Key.MOTTATT to mottatt.toJson(),
                     ).toJson(),
             ).also {
-                logger.info("Publiserte til kafka forespørselId: ${skjemaInntektsmelding.forespoerselId} og transaksjonId=$transaksjonId")
+                logger.info("Publiserte til kafka forespørselId: ${skjemaInntektsmelding.forespoerselId} og kontekstId=$kontekstId")
                 sikkerLogger.info("Publiserte til kafka forespørselId: ${skjemaInntektsmelding.forespoerselId} json=${it.toPretty()}")
             }
     }

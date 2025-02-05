@@ -73,7 +73,7 @@ class JournalfoerImRiverTest :
                 testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
-                        Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                         Key.JOURNALPOST_ID to journalpostId.toJson(),
                         Key.INNTEKTSMELDING to Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
                         Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
@@ -94,8 +94,8 @@ class JournalfoerImRiverTest :
                                 it shouldHaveSize 1
                                 it.first().dokumentVarianter.map(DokumentVariant::filtype) shouldContainExactly listOf("XML", "PDFA")
                             },
-                        eksternReferanseId = "ARI-${innkommendeMelding.transaksjonId}",
-                        callId = "callId_${innkommendeMelding.transaksjonId}",
+                        eksternReferanseId = "ARI-${innkommendeMelding.kontekstId}",
+                        callId = "callId_${innkommendeMelding.kontekstId}",
                     )
                 }
             }
@@ -118,7 +118,7 @@ class JournalfoerImRiverTest :
                 testRapid.firstMessage().toMap() shouldContainExactly
                     mapOf(
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
-                        Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                         Key.JOURNALPOST_ID to journalpostId.toJson(),
                         Key.INNTEKTSMELDING to Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
                     )
@@ -138,8 +138,8 @@ class JournalfoerImRiverTest :
                                 it shouldHaveSize 1
                                 it.first().dokumentVarianter.map(DokumentVariant::filtype) shouldContainExactly listOf("XML", "PDFA")
                             },
-                        eksternReferanseId = "ARI-${innkommendeMelding.transaksjonId}",
-                        callId = "callId_${innkommendeMelding.transaksjonId}",
+                        eksternReferanseId = "ARI-${innkommendeMelding.kontekstId}",
+                        callId = "callId_${innkommendeMelding.kontekstId}",
                     )
                 }
             }
@@ -157,7 +157,7 @@ class JournalfoerImRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke journalføre.",
-                    kontekstId = innkommendeMelding.transaksjonId,
+                    kontekstId = innkommendeMelding.kontekstId,
                     utloesendeMelding = innkommendeJsonMap,
                 )
 
@@ -208,14 +208,14 @@ private object Mock {
     ): JournalfoerImMelding =
         JournalfoerImMelding(
             eventName = eventName,
-            transaksjonId = UUID.randomUUID(),
+            kontekstId = UUID.randomUUID(),
             inntektsmelding = inntektsmelding,
         )
 
     fun JournalfoerImMelding.toMap(imKey: Key = Key.INNTEKTSMELDING): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     imKey to inntektsmelding.toJson(Inntektsmelding.serializer()),

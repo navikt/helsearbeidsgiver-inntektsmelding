@@ -11,7 +11,7 @@ import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
 import kotlinx.serialization.builtins.serializer
-import no.nav.helsearbeidsgiver.altinn.AltinnClient
+import no.nav.helsearbeidsgiver.altinn.Altinn3M2MClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -27,7 +27,7 @@ class AltinnRiverTest :
     FunSpec({
         val testRapid = TestRapid()
 
-        val mockAltinnClient = mockk<AltinnClient>(relaxed = true)
+        val mockAltinnClient = mockk<Altinn3M2MClient>(relaxed = true)
 
         AltinnRiver(mockAltinnClient).connect(testRapid)
 
@@ -39,21 +39,18 @@ class AltinnRiverTest :
         test("henter organisasjonsrettigheter med id fra behov") {
             val innkommendeMelding = Mock.innkommendeMelding()
 
-            coEvery { mockAltinnClient.hentRettighetOrganisasjoner(any()) } returns Mock.altinnOrganisasjoner
+            coEvery { mockAltinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjoner
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            val altinnOrgnr =
-                Mock.altinnOrganisasjoner
-                    .mapNotNull { it.orgnr }
-                    .toSet()
+            val altinnOrgnr = Mock.altinnOrganisasjoner
 
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.DATA to
                         innkommendeMelding.data
                             .plus(
@@ -62,7 +59,7 @@ class AltinnRiverTest :
                 )
 
             coVerifySequence {
-                mockAltinnClient.hentRettighetOrganisasjoner(innkommendeMelding.fnr.verdi)
+                mockAltinnClient.hentTilganger(innkommendeMelding.fnr.verdi)
             }
         }
 
@@ -74,11 +71,11 @@ class AltinnRiverTest :
             val forventetFail =
                 Fail(
                     feilmelding = "Klarte ikke hente organisasjonsrettigheter fra Altinn.",
-                    kontekstId = innkommendeMelding.transaksjonId,
+                    kontekstId = innkommendeMelding.kontekstId,
                     utloesendeMelding = innkommendeJsonMap,
                 )
 
-            coEvery { mockAltinnClient.hentRettighetOrganisasjoner(any()) } throws NullPointerException()
+            coEvery { mockAltinnClient.hentTilganger(any()) } throws NullPointerException()
 
             testRapid.sendJson(innkommendeJsonMap)
 
@@ -87,7 +84,7 @@ class AltinnRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             coVerifySequence {
-                mockAltinnClient.hentRettighetOrganisasjoner(innkommendeMelding.fnr.verdi)
+                mockAltinnClient.hentTilganger(innkommendeMelding.fnr.verdi)
             }
         }
 
@@ -109,7 +106,7 @@ class AltinnRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 coVerify(exactly = 0) {
-                    mockAltinnClient.hentRettighetOrganisasjoner(any())
+                    mockAltinnClient.hentTilganger(any())
                 }
             }
         }

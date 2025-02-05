@@ -41,26 +41,30 @@ fun mockForespurtData(): ForespurtData =
         inntekt =
             ForespurtData.Inntekt(
                 paakrevd = true,
-                forslag = ForslagInntekt.Grunnlag(forrigeInntekt = null),
+                forslag = null,
             ),
         refusjon =
             ForespurtData.Refusjon(
                 paakrevd = true,
-                forslag =
-                    ForslagRefusjon(
-                        perioder =
-                            listOf(
-                                ForslagRefusjon.Periode(
-                                    fom = 10.januar(2017),
-                                    beloep = 10.48,
-                                ),
-                                ForslagRefusjon.Periode(
-                                    fom = 2.februar(2017),
-                                    beloep = 98.26,
-                                ),
-                            ),
-                        opphoersdato = 26.februar(2017),
-                    ),
+                forslag = mockForespurtDataForslagRefusjon(),
+            ),
+    )
+
+fun mockForespurtDataMedTomtInntektForslag(): ForespurtData =
+    ForespurtData(
+        arbeidsgiverperiode =
+            ForespurtData.Arbeidsgiverperiode(
+                paakrevd = true,
+            ),
+        inntekt =
+            ForespurtData.Inntekt(
+                paakrevd = true,
+                forslag = ForslagInntekt(forrigeInntekt = null),
+            ),
+        refusjon =
+            ForespurtData.Refusjon(
+                paakrevd = true,
+                forslag = mockForespurtDataForslagRefusjon(),
             ),
     )
 
@@ -74,7 +78,7 @@ fun mockForespurtDataMedForrigeInntekt(): ForespurtData =
             ForespurtData.Inntekt(
                 paakrevd = true,
                 forslag =
-                    ForslagInntekt.Grunnlag(
+                    ForslagInntekt(
                         forrigeInntekt =
                             ForrigeInntekt(
                                 skjæringstidspunkt = 1.januar.minusYears(1),
@@ -86,56 +90,7 @@ fun mockForespurtDataMedForrigeInntekt(): ForespurtData =
         refusjon =
             ForespurtData.Refusjon(
                 paakrevd = true,
-                forslag =
-                    ForslagRefusjon(
-                        perioder =
-                            listOf(
-                                ForslagRefusjon.Periode(
-                                    fom = 10.januar(2017),
-                                    beloep = 10.48,
-                                ),
-                                ForslagRefusjon.Periode(
-                                    fom = 2.februar(2017),
-                                    beloep = 98.26,
-                                ),
-                            ),
-                        opphoersdato = 26.februar(2017),
-                    ),
-            ),
-    )
-
-fun mockForespurtDataMedFastsattInntekt(): ForespurtData =
-    ForespurtData(
-        arbeidsgiverperiode =
-            ForespurtData.Arbeidsgiverperiode(
-                paakrevd = true,
-            ),
-        inntekt =
-            ForespurtData.Inntekt(
-                paakrevd = false,
-                forslag =
-                    ForslagInntekt.Fastsatt(
-                        fastsattInntekt = 31415.92,
-                    ),
-            ),
-        refusjon =
-            ForespurtData.Refusjon(
-                paakrevd = true,
-                forslag =
-                    ForslagRefusjon(
-                        perioder =
-                            listOf(
-                                ForslagRefusjon.Periode(
-                                    fom = 1.januar,
-                                    beloep = 31415.92,
-                                ),
-                                ForslagRefusjon.Periode(
-                                    fom = 15.januar,
-                                    beloep = 3.14,
-                                ),
-                            ),
-                        opphoersdato = null,
-                    ),
+                forslag = mockForespurtDataForslagRefusjon(),
             ),
     )
 
@@ -157,10 +112,7 @@ fun Forespoersel.utenPaakrevdInntekt(): Forespoersel =
                 inntekt =
                     ForespurtData.Inntekt(
                         paakrevd = false,
-                        forslag =
-                            ForslagInntekt.Fastsatt(
-                                fastsattInntekt = 8795.0,
-                            ),
+                        forslag = null,
                     ),
             ),
     )
@@ -179,4 +131,20 @@ fun Forespoersel.utenPaakrevdRefusjon(): Forespoersel =
                             ),
                     ),
             ),
+    )
+
+private fun mockForespurtDataForslagRefusjon(): ForslagRefusjon =
+    ForslagRefusjon(
+        perioder =
+            listOf(
+                ForslagRefusjon.Periode(
+                    fom = 10.januar(2017),
+                    beloep = 10.48,
+                ),
+                ForslagRefusjon.Periode(
+                    fom = 2.februar(2017),
+                    beloep = 98.26,
+                ),
+            ),
+        opphoersdato = 26.februar(2017),
     )

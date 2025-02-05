@@ -281,27 +281,27 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
 private fun innkommendeMelding(): FerdigstillForespoerselSakMelding =
     FerdigstillForespoerselSakMelding(
         eventName = EventName.FORESPOERSEL_BESVART,
-        transaksjonId = UUID.randomUUID(),
+        kontekstId = UUID.randomUUID(),
         forespoerselId = UUID.randomUUID(),
     )
 
 private fun forventetUtgaaendeMelding(innkommendeMelding: FerdigstillForespoerselSakMelding): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_FERDIGSTILT.toJson(),
-        Key.KONTEKST_ID to innkommendeMelding.transaksjonId.toJson(),
+        Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
         Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
     )
 
 private fun forventetFail(innkommendeMelding: FerdigstillForespoerselSakMelding): Fail =
     Fail(
         feilmelding = "Klarte ikke ferdigstille sak og/eller oppgave for forespurt inntektmelding.",
-        kontekstId = innkommendeMelding.transaksjonId,
+        kontekstId = innkommendeMelding.kontekstId,
         utloesendeMelding = innkommendeMelding.toMap(),
     )
 
 private fun FerdigstillForespoerselSakMelding.toMap(): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
-        Key.KONTEKST_ID to transaksjonId.toJson(),
+        Key.KONTEKST_ID to kontekstId.toJson(),
         Key.FORESPOERSEL_ID to forespoerselId.toJson(),
     )

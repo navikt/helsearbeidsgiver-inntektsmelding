@@ -25,7 +25,7 @@ import java.util.UUID
 data class LagreSelvbestemtImMelding(
     val eventName: EventName,
     val behovType: BehovType,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val data: Map<Key, JsonElement>,
     val selvbestemtInntektsmelding: Inntektsmelding,
 )
@@ -45,7 +45,7 @@ class LagreSelvbestemtImRiver(
             LagreSelvbestemtImMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.LAGRE_SELVBESTEMT_IM, BehovType.serializer(), json),
-                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 selvbestemtInntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
             )
@@ -79,7 +79,7 @@ class LagreSelvbestemtImRiver(
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 data
                     .plus(
@@ -95,7 +95,7 @@ class LagreSelvbestemtImRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke lagre selvbestemt inntektsmelding i database.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
 
@@ -110,7 +110,7 @@ class LagreSelvbestemtImRiver(
             Log.klasse(this@LagreSelvbestemtImRiver),
             Log.event(eventName),
             Log.behov(behovType),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.selvbestemtId(selvbestemtInntektsmelding.type.id),
         )
 }

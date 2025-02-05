@@ -21,7 +21,7 @@ import java.util.UUID
 
 data class Melding(
     val eventName: EventName,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val forespoerselId: UUID,
 )
 
@@ -39,7 +39,7 @@ class MarkerForespoerselBesvartRiver(
 
             Melding(
                 eventName = Key.EVENT_NAME.krev(EventName.INNTEKTSMELDING_MOTTATT, EventName.serializer(), json),
-                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
             )
         }
@@ -79,7 +79,7 @@ class MarkerForespoerselBesvartRiver(
         mapOf(
             Log.klasse(this@MarkerForespoerselBesvartRiver),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )
 }

@@ -26,7 +26,7 @@ import java.util.UUID
 
 data class JournalfoerImMelding(
     val eventName: EventName,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val inntektsmelding: Inntektsmelding,
 )
 
@@ -42,7 +42,7 @@ class JournalfoerImRiver(
         } else {
             val data = json[Key.DATA]?.toMap().orEmpty()
             val eventName = Key.EVENT_NAME.les(EventName.serializer(), json)
-            val transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json)
+            val kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json)
 
             val inntektsmelding =
                 when (eventName) {
@@ -56,7 +56,7 @@ class JournalfoerImRiver(
             } else {
                 JournalfoerImMelding(
                     eventName = eventName,
-                    transaksjonId = transaksjonId,
+                    kontekstId = kontekstId,
                     inntektsmelding = inntektsmelding,
                 )
             }
@@ -70,11 +70,11 @@ class JournalfoerImRiver(
             sikkerLogger.info("$it Innkommende melding:\n${json.toPretty()}")
         }
 
-        val journalpostId = opprettOgFerdigstillJournalpost(transaksjonId, inntektsmelding)
+        val journalpostId = opprettOgFerdigstillJournalpost(kontekstId, inntektsmelding)
 
         return mapOf(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.INNSENDING_ID to json[Key.DATA]?.toMap()?.get(Key.INNSENDING_ID),
@@ -92,7 +92,7 @@ class JournalfoerImRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke journalføre.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
 
@@ -106,7 +106,7 @@ class JournalfoerImRiver(
         mapOf(
             Log.klasse(this@JournalfoerImRiver),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             when (inntektsmelding.type) {
                 is Inntektsmelding.Type.Forespurt -> Log.forespoerselId(inntektsmelding.type.id)
                 is Inntektsmelding.Type.Selvbestemt -> Log.selvbestemtId(inntektsmelding.type.id)
@@ -114,7 +114,7 @@ class JournalfoerImRiver(
         )
 
     private fun opprettOgFerdigstillJournalpost(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         inntektsmelding: Inntektsmelding,
     ): String {
         "Prøver å opprette og ferdigstille journalpost.".also {
@@ -133,9 +133,9 @@ class JournalfoerImRiver(
                             navn = inntektsmelding.avsender.orgNavn,
                         ),
                     datoMottatt = LocalDate.now(),
-                    dokumenter = tilDokumenter(transaksjonId, inntektsmelding),
-                    eksternReferanseId = "ARI-$transaksjonId",
-                    callId = "callId_$transaksjonId",
+                    dokumenter = tilDokumenter(kontekstId, inntektsmelding),
+                    eksternReferanseId = "ARI-$kontekstId",
+                    callId = "callId_$kontekstId",
                 )
             }
 

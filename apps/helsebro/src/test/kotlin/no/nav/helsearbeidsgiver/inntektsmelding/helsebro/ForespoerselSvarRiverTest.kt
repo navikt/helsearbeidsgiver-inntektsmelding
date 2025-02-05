@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -35,12 +34,9 @@ class ForespoerselSvarRiverTest :
             testRapid.reset()
         }
 
-        withData(
-            mapOf(
-                "Ved suksessfullt svar på behov så publiseres data på simba-rapid" to mockForespoerselSvarMedSuksess(),
-                "Ved suksessfullt svar med fastsatt inntekt på behov så publiseres data på simba-rapid" to mockForespoerselSvarMedSuksessMedFastsattInntekt(),
-            ),
-        ) { expectedIncoming ->
+        test("Ved suksessfullt svar på behov så publiseres data på simba-rapid") {
+            val expectedIncoming = mockForespoerselSvarMedSuksess()
+
             testRapid.sendJson(
                 Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
                 Pri.Key.LOESNING to expectedIncoming.toJson(ForespoerselSvar.serializer()),
@@ -93,17 +89,17 @@ fun mockFail(forespoerselSvar: ForespoerselSvar): Fail {
     val boomerangMap = forespoerselSvar.boomerang.toMap()
 
     val eventName = Key.EVENT_NAME.les(EventName.serializer(), boomerangMap)
-    val transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, boomerangMap)
+    val kontekstId = Key.KONTEKST_ID.les(UuidSerializer, boomerangMap)
     val data = boomerangMap[Key.DATA]?.toMap().orEmpty()
 
     return Fail(
         feilmelding = feilmelding,
-        kontekstId = transaksjonId,
+        kontekstId = kontekstId,
         utloesendeMelding =
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                Key.KONTEKST_ID to transaksjonId.toJson(),
+                Key.KONTEKST_ID to kontekstId.toJson(),
                 Key.DATA to data.toJson(),
             ),
     )

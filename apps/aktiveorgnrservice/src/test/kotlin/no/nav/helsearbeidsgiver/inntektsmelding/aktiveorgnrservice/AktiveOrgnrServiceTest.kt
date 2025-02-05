@@ -56,12 +56,12 @@ class AktiveOrgnrServiceTest :
         }
 
         test("henter aktive orgnr") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
             val orgnr = Orgnr.genererGyldig()
             val expectedSuccess = Mock.successResult(orgnr)
 
             testRapid.sendJson(
-                Mock.startmelding(transaksjonId),
+                Mock.startmelding(kontekstId),
             )
 
             testRapid.inspektør.size shouldBeExactly 3
@@ -79,35 +79,35 @@ class AktiveOrgnrServiceTest :
             }
 
             testRapid.sendJson(
-                Mock.steg1Data(transaksjonId, orgnr),
+                Mock.steg1Data(kontekstId, orgnr),
             )
 
             testRapid.inspektør.size shouldBeExactly 4
             testRapid.message(3).lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
 
             testRapid.sendJson(
-                Mock.steg2Data(transaksjonId, orgnr),
+                Mock.steg2Data(kontekstId, orgnr),
             )
 
             verify {
-                mockRedis.store.skrivResultat(transaksjonId, expectedSuccess)
+                mockRedis.store.skrivResultat(kontekstId, expectedSuccess)
             }
         }
 
         test("svarer med tom liste dersom sykmeldt mangler arbeidsforhold") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
             val orgnr = Orgnr.genererGyldig()
             val expectedSuccess = Mock.successResultTomListe()
 
             testRapid.sendJson(
-                Mock.startmelding(transaksjonId),
+                Mock.startmelding(kontekstId),
             )
 
             testRapid.inspektør.size shouldBeExactly 3
 
             testRapid.sendJson(
                 Mock
-                    .steg1Data(transaksjonId, orgnr)
+                    .steg1Data(kontekstId, orgnr)
                     .plusData(Key.ARBEIDSFORHOLD to emptyList<Arbeidsforhold>().toJson(Arbeidsforhold.serializer())),
             )
 
@@ -115,24 +115,24 @@ class AktiveOrgnrServiceTest :
             testRapid.inspektør.size shouldBeExactly 3
 
             verify {
-                mockRedis.store.skrivResultat(transaksjonId, expectedSuccess)
+                mockRedis.store.skrivResultat(kontekstId, expectedSuccess)
             }
         }
 
         test("svarer med tom liste dersom sykmeldtes arbeidsforhold og avsenders org-rettigheter ikke gjelder samme org") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
             val orgnr = Orgnr.genererGyldig()
             val expectedSuccess = Mock.successResultTomListe()
 
             testRapid.sendJson(
-                Mock.startmelding(transaksjonId),
+                Mock.startmelding(kontekstId),
             )
 
             testRapid.inspektør.size shouldBeExactly 3
 
             testRapid.sendJson(
                 Mock
-                    .steg1Data(transaksjonId, orgnr)
+                    .steg1Data(kontekstId, orgnr)
                     .plusData(Key.ORG_RETTIGHETER to setOf(Orgnr.genererGyldig().verdi).toJson(String.serializer())),
             )
 
@@ -140,25 +140,25 @@ class AktiveOrgnrServiceTest :
             testRapid.inspektør.size shouldBeExactly 3
 
             verify {
-                mockRedis.store.skrivResultat(transaksjonId, expectedSuccess)
+                mockRedis.store.skrivResultat(kontekstId, expectedSuccess)
             }
         }
 
         test("svarer med feilmelding dersom avsender mangler org-rettigheter") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
             val orgnr = Orgnr.genererGyldig()
             val feilmelding = "Må ha orgrettigheter for å kunne hente virksomheter."
             val expectedFailure = Mock.failureResult(feilmelding)
 
             testRapid.sendJson(
-                Mock.startmelding(transaksjonId),
+                Mock.startmelding(kontekstId),
             )
 
             testRapid.inspektør.size shouldBeExactly 3
 
             testRapid.sendJson(
                 Mock
-                    .steg1Data(transaksjonId, orgnr)
+                    .steg1Data(kontekstId, orgnr)
                     .plusData(Key.ORG_RETTIGHETER to emptySet<String>().toJson(String.serializer())),
             )
 
@@ -166,7 +166,7 @@ class AktiveOrgnrServiceTest :
             testRapid.inspektør.size shouldBeExactly 3
 
             verify {
-                mockRedis.store.skrivResultat(transaksjonId, expectedFailure)
+                mockRedis.store.skrivResultat(kontekstId, expectedFailure)
             }
         }
 
@@ -239,10 +239,10 @@ private object Mock {
             failure = feilmelding.toJson(),
         )
 
-    fun startmelding(transaksjonId: UUID): Map<Key, JsonElement> =
+    fun startmelding(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FNR to sykmeldtFnr.toJson(),
@@ -251,12 +251,12 @@ private object Mock {
         )
 
     fun steg1Data(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         orgnr: Orgnr,
     ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSFORHOLD to
@@ -277,12 +277,12 @@ private object Mock {
         )
 
     fun steg2Data(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         orgnr: Orgnr,
     ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.VIRKSOMHETER to mapOf(orgnr.verdi to ORG_NAVN).toJson(),

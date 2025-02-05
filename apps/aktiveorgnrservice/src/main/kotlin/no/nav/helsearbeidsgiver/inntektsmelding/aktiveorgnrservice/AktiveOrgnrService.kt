@@ -32,7 +32,7 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 data class Steg0(
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val sykmeldtFnr: Fnr,
     val avsenderFnr: Fnr,
 )
@@ -63,7 +63,7 @@ class AktiveOrgnrService(
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
+            kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             sykmeldtFnr = Key.FNR.les(Fnr.serializer(), melding),
             avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
         )
@@ -103,7 +103,7 @@ class AktiveOrgnrService(
             key = steg0.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
-            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
@@ -115,7 +115,7 @@ class AktiveOrgnrService(
             key = steg0.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_ARBEIDSFORHOLD.toJson(),
-            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
@@ -127,7 +127,7 @@ class AktiveOrgnrService(
             key = steg0.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
-            Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+            Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
@@ -149,7 +149,7 @@ class AktiveOrgnrService(
             val arbeidsgivere = trekkUtArbeidsforhold(steg1.arbeidsforhold, steg1.orgrettigheter)
 
             if (steg1.orgrettigheter.isEmpty()) {
-                onError(steg0.transaksjonId, "Må ha orgrettigheter for å kunne hente virksomheter.")
+                onError(steg0.kontekstId, "Må ha orgrettigheter for å kunne hente virksomheter.")
             } else if (arbeidsgivere.isEmpty()) {
                 utfoerSteg2(data, steg0, steg1, Steg2(emptyMap()))
             } else {
@@ -157,7 +157,7 @@ class AktiveOrgnrService(
                     key = steg0.sykmeldtFnr,
                     Key.EVENT_NAME to eventName.toJson(),
                     Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
-                    Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.SVAR_KAFKA_KEY to KafkaKey(steg0.sykmeldtFnr).toJson(),
@@ -196,7 +196,7 @@ class AktiveOrgnrService(
                         ).toJson(AktiveArbeidsgivere.serializer()),
                 )
 
-            redisStore.skrivResultat(steg0.transaksjonId, gyldigResponse)
+            redisStore.skrivResultat(steg0.kontekstId, gyldigResponse)
         } else {
             "Steg 1 er ikke komplett under utførelse av steg 2.".also {
                 logger.error(it)
@@ -213,7 +213,7 @@ class AktiveOrgnrService(
     }
 
     private fun onError(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         feilmelding: String,
     ) {
         logger.error(feilmelding)
@@ -221,14 +221,14 @@ class AktiveOrgnrService(
 
         val feilResponse = ResultJson(failure = feilmelding.toJson())
 
-        redisStore.skrivResultat(transaksjonId, feilResponse)
+        redisStore.skrivResultat(kontekstId, feilResponse)
     }
 
     override fun Steg0.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this@AktiveOrgnrService),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
         )
 
     private fun trekkUtArbeidsforhold(

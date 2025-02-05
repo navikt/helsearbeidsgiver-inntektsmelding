@@ -23,7 +23,7 @@ import java.util.UUID
 
 data class Melding(
     val notisType: Pri.NotisType,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val forespoerselId: UUID,
     val forespoerselFraBro: ForespoerselFraBro,
     val skalHaPaaminnelse: Boolean,
@@ -37,7 +37,7 @@ class ForespoerselMottattRiver : PriObjectRiver<Melding>() {
     override fun les(json: Map<Pri.Key, JsonElement>): Melding =
         Melding(
             notisType = Pri.Key.NOTIS.krev(Pri.NotisType.FORESPØRSEL_MOTTATT, Pri.NotisType.serializer(), json),
-            transaksjonId = UUID.randomUUID(),
+            kontekstId = UUID.randomUUID(),
             forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, json),
             forespoerselFraBro = Pri.Key.FORESPOERSEL.les(ForespoerselFraBro.serializer(), json),
             skalHaPaaminnelse = Pri.Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), json),
@@ -51,7 +51,7 @@ class ForespoerselMottattRiver : PriObjectRiver<Melding>() {
 
         return mapOf(
             Key.EVENT_NAME to EventName.FORESPOERSEL_MOTTATT.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
@@ -77,7 +77,7 @@ class ForespoerselMottattRiver : PriObjectRiver<Melding>() {
         mapOf(
             Log.klasse(this@ForespoerselMottattRiver),
             Log.priNotis(notisType),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )
 }

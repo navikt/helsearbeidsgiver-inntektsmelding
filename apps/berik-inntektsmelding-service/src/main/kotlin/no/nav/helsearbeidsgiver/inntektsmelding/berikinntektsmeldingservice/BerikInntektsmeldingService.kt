@@ -36,7 +36,7 @@ private const val UKJENT_NAVN = "Ukjent navn"
 private const val UKJENT_VIRKSOMHET = "Ukjent virksomhet"
 
 data class Steg0(
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val avsenderFnr: Fnr,
     val skjema: SkjemaInntektsmelding,
     val innsendingId: Long,
@@ -70,7 +70,7 @@ class BerikInntektsmeldingService(
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
+            kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
             skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding),
             innsendingId = Key.INNSENDING_ID.les(Long.serializer(), melding),
@@ -107,7 +107,7 @@ class BerikInntektsmeldingService(
                 key = steg0.skjema.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
                     data
                         .plus(Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson())
@@ -125,7 +125,7 @@ class BerikInntektsmeldingService(
                 key = steg0.skjema.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
-                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
                     data
                         .plus(
@@ -148,7 +148,7 @@ class BerikInntektsmeldingService(
                 key = steg0.skjema.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
-                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
                     data
                         .plus(
@@ -192,7 +192,7 @@ class BerikInntektsmeldingService(
                 key = steg0.skjema.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.LAGRE_IM.toJson(),
-                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
                     data
                         .plus(
@@ -217,7 +217,7 @@ class BerikInntektsmeldingService(
                 rapid.publish(
                     key = steg0.skjema.forespoerselId,
                     Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
-                    Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                    Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
@@ -246,7 +246,7 @@ class BerikInntektsmeldingService(
         mapOf(
             Log.klasse(this@BerikInntektsmeldingService),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(skjema.forespoerselId),
         )
 

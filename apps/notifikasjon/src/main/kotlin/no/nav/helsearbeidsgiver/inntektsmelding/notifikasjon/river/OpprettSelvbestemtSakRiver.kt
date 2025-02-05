@@ -27,7 +27,7 @@ import java.util.UUID
 data class OpprettSelvbestemtSakMelding(
     val eventName: EventName,
     val behovType: BehovType,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val data: Map<Key, JsonElement>,
     val inntektsmelding: Inntektsmelding,
 )
@@ -48,7 +48,7 @@ class OpprettSelvbestemtSakRiver(
             OpprettSelvbestemtSakMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.OPPRETT_SELVBESTEMT_SAK, BehovType.serializer(), json),
-                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
             )
@@ -69,7 +69,7 @@ class OpprettSelvbestemtSakRiver(
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 data
                     .plus(
@@ -85,7 +85,7 @@ class OpprettSelvbestemtSakRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke lagre sak for selvbestemt inntektsmelding.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
 
@@ -100,7 +100,7 @@ class OpprettSelvbestemtSakRiver(
             Log.klasse(this@OpprettSelvbestemtSakRiver),
             Log.event(eventName),
             Log.behov(behovType),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.selvbestemtId(inntektsmelding.type.id),
         )
 }

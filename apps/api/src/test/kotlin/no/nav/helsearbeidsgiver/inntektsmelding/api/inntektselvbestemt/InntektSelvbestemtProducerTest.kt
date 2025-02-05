@@ -22,18 +22,18 @@ class InntektSelvbestemtProducerTest :
         val producer = InntektSelvbestemtProducer(testRapid)
 
         test("publiserer melding på forventet format") {
-            val transaksjonId = UUID.randomUUID()
+            val kontekstId = UUID.randomUUID()
             val sykmeldtFnr = Fnr.genererGyldig()
             val orgnr = Orgnr.genererGyldig()
             val inntektsdato = 12.april
 
-            producer.publish(transaksjonId, InntektSelvbestemtRequest(sykmeldtFnr, orgnr, inntektsdato))
+            producer.publish(kontekstId, InntektSelvbestemtRequest(sykmeldtFnr, orgnr, inntektsdato))
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
-                    Key.KONTEKST_ID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.FNR to sykmeldtFnr.toJson(),

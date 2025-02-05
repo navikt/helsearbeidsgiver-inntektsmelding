@@ -16,7 +16,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import no.nav.hag.utils.bakgrunnsjobb.PostgresBakgrunnsjobbRepository
 import no.nav.helsearbeidsgiver.aareg.AaregClient
-import no.nav.helsearbeidsgiver.altinn.AltinnClient
+import no.nav.helsearbeidsgiver.altinn.Altinn3M2MClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.brreg.Virksomhet
@@ -176,7 +176,7 @@ abstract class EndToEndTest : ContainerTest() {
 
     val bakgrunnsjobbRepository by lazy { PostgresBakgrunnsjobbRepository(bakgrunnsjobbDatabase.dataSource) }
 
-    val altinnClient = mockk<AltinnClient>()
+    val altinnClient = mockk<Altinn3M2MClient>()
     val pdlKlient = mockk<PdlClient>()
     val priProducer = mockk<PriProducer>()
     val spinnKlient = mockk<SpinnKlient>()
@@ -363,8 +363,8 @@ abstract class EndToEndTest : ContainerTest() {
 
     fun RedisConnection.get(
         prefix: RedisPrefix,
-        transaksjonId: UUID,
-    ): String? = get("$prefix#$transaksjonId")
+        kontekstId: UUID,
+    ): String? = get("$prefix#$kontekstId")
 
     fun truncateDatabase() {
         transaction(inntektsmeldingDatabase.db) {

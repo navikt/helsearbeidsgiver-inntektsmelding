@@ -24,20 +24,20 @@ class LagreSelvbestemtImProducer(
     }
 
     fun publish(
-        transaksjonId: UUID,
+        kontekstId: UUID,
         avsenderFnr: Fnr,
         skjema: SkjemaInntektsmeldingSelvbestemt,
         mottatt: LocalDateTime,
     ) {
         MdcUtils.withLogFields(
             Log.event(EventName.SELVBESTEMT_IM_MOTTATT),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
         ) {
             rapid
                 .publish(
                     key = skjema.sykmeldtFnr,
                     Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-                    Key.KONTEKST_ID to transaksjonId.toJson(),
+                    Key.KONTEKST_ID to kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
                             Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),

@@ -28,7 +28,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 data class Steg0(
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val forespoerselId: UUID,
     val skjaeringstidspunkt: LocalDate,
 )
@@ -52,7 +52,7 @@ class InntektService(
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
+            kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
             skjaeringstidspunkt = Key.INNTEKTSDATO.les(LocalDateSerializer, melding),
         )
@@ -76,7 +76,7 @@ class InntektService(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
                     data
                         .plus(
@@ -101,7 +101,7 @@ class InntektService(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
-                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
                     data
                         .plus(
@@ -132,7 +132,7 @@ class InntektService(
                 success = steg2.inntekt.toJson(Inntekt.serializer()),
             )
 
-        redisStore.skrivResultat(steg0.transaksjonId, resultJson)
+        redisStore.skrivResultat(steg0.kontekstId, resultJson)
 
         sikkerLogger.info("$eventName fullført.")
     }
@@ -152,7 +152,7 @@ class InntektService(
         redisStore.skrivResultat(fail.kontekstId, resultJson)
 
         MdcUtils.withLogFields(
-            Log.transaksjonId(fail.kontekstId),
+            Log.kontekstId(fail.kontekstId),
         ) {
             sikkerLogger.error("$eventName terminert.")
         }
@@ -162,7 +162,7 @@ class InntektService(
         mapOf(
             Log.klasse(this@InntektService),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )
 }

@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.trengerservice
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -40,7 +39,7 @@ private const val UKJENT_NAVN = "Ukjent navn"
 private const val UKJENT_VIRKSOMHET = "Ukjent virksomhet"
 
 data class Steg0(
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val forespoerselId: UUID,
     val avsenderFnr: Fnr,
 )
@@ -71,7 +70,7 @@ class HentForespoerselService(
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
-            transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, melding),
+            kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
             avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
         )
@@ -113,7 +112,7 @@ class HentForespoerselService(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
@@ -134,7 +133,7 @@ class HentForespoerselService(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
-                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
@@ -147,7 +146,7 @@ class HentForespoerselService(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
-                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
@@ -164,7 +163,7 @@ class HentForespoerselService(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
-                Key.KONTEKST_ID to steg0.transaksjonId.toJson(),
+                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
@@ -186,7 +185,7 @@ class HentForespoerselService(
             val avsenderNavn = steg2.personer[steg0.avsenderFnr]?.navn ?: UKJENT_NAVN
             val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr] ?: UKJENT_VIRKSOMHET
 
-            val feil = redisStore.lesAlleFeil(steg0.transaksjonId)
+            val feil = redisStore.lesAlleFeil(steg0.kontekstId)
 
             val resultJson =
                 ResultJson(
@@ -201,7 +200,7 @@ class HentForespoerselService(
                         ).toJson(HentForespoerselResultat.serializer()),
                 )
 
-            redisStore.skrivResultat(steg0.transaksjonId, resultJson)
+            redisStore.skrivResultat(steg0.kontekstId, resultJson)
         }
     }
 
@@ -265,7 +264,7 @@ class HentForespoerselService(
         mapOf(
             Log.klasse(this@HentForespoerselService),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )
 

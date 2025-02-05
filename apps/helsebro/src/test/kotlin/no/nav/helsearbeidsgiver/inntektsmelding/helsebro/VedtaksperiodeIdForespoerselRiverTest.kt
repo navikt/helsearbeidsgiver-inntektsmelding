@@ -31,13 +31,13 @@ class VedtaksperiodeIdForespoerselRiverTest :
             every { mockPriProducer.send(*anyVararg<Pair<Pri.Key, JsonElement>>()) } returns Result.success(JsonNull)
 
             val expectedEvent = EventName.FORESPOERSLER_REQUESTED
-            val expectedTransaksjonId = UUID.randomUUID()
+            val expectedKontekstId = UUID.randomUUID()
             val expectedVedtaksperiodeIdListe = listOf(UUID.randomUUID(), UUID.randomUUID())
 
             testRapid.sendJson(
                 Key.EVENT_NAME to expectedEvent.toJson(),
                 Key.BEHOV to BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(),
-                Key.KONTEKST_ID to expectedTransaksjonId.toJson(),
+                Key.KONTEKST_ID to expectedKontekstId.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.VEDTAKSPERIODE_ID_LISTE to expectedVedtaksperiodeIdListe.toJson(UuidSerializer),
@@ -53,7 +53,7 @@ class VedtaksperiodeIdForespoerselRiverTest :
                     Pri.Key.BOOMERANG to
                         mapOf(
                             Key.EVENT_NAME to expectedEvent.toJson(),
-                            Key.KONTEKST_ID to expectedTransaksjonId.toJson(),
+                            Key.KONTEKST_ID to expectedKontekstId.toJson(),
                             Key.DATA to
                                 mapOf(
                                     Key.VEDTAKSPERIODE_ID_LISTE to expectedVedtaksperiodeIdListe.toJson(UuidSerializer),

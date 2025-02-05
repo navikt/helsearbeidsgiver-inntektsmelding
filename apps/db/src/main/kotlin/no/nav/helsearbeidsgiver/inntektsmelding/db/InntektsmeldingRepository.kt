@@ -1,13 +1,16 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convertAgp
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convertInntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.domene.LagretInntektsmelding
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SortOrder
@@ -25,25 +28,51 @@ class InntektsmeldingRepository(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    fun hentNyesteEksternEllerInternInntektsmelding(forespoerselId: UUID): Triple<SkjemaInntektsmelding?, Inntektsmelding?, EksternInntektsmelding?> =
-        Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::hentNyesteEksternEllerInternInntektsmelding) {
+    fun hentNyesteInntektsmelding(forespoerselId: UUID): LagretInntektsmelding? =
+        Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::hentNyesteInntektsmelding) {
             transaction(db) {
                 InntektsmeldingEntitet
                     .select(
-                        InntektsmeldingEntitet.skjema,
                         InntektsmeldingEntitet.dokument,
+                        InntektsmeldingEntitet.skjema,
                         InntektsmeldingEntitet.eksternInntektsmelding,
+                        InntektsmeldingEntitet.innsendt,
                     ).where { InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString() }
                     .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
                     .limit(1)
                     .map {
-                        Triple(
-                            it[InntektsmeldingEntitet.skjema],
+                        Quadruple(
                             it[InntektsmeldingEntitet.dokument],
+                            it[InntektsmeldingEntitet.skjema],
                             it[InntektsmeldingEntitet.eksternInntektsmelding],
+                            it[InntektsmeldingEntitet.innsendt],
                         )
-                    }.firstOrNull()
-            }.orDefault(Triple(null, null, null))
+                    }
+            }.firstOrNull()
+                ?.let { result ->
+                    val inntektsmelding = result.first
+                    val skjema = result.second
+                    val eksternInntektsmelding = result.third
+                    val mottatt = result.fourth
+
+                    when {
+                        skjema != null -> LagretInntektsmelding.Skjema(inntektsmelding?.innsenderNavn, skjema, mottatt)
+                        inntektsmelding != null -> {
+                            val bakoverkompatibeltSkjema =
+                                SkjemaInntektsmelding(
+                                    forespoerselId = forespoerselId,
+                                    avsenderTlf = inntektsmelding.telefonnummer.orEmpty(),
+                                    agp = inntektsmelding.convertAgp(),
+                                    inntekt = inntektsmelding.convertInntekt(),
+                                    refusjon = inntektsmelding.refusjon.convert(),
+                                )
+
+                            LagretInntektsmelding.Skjema(inntektsmelding.innsenderNavn, bakoverkompatibeltSkjema, mottatt)
+                        }
+                        eksternInntektsmelding != null -> LagretInntektsmelding.Ekstern(eksternInntektsmelding)
+                        else -> null
+                    }
+                }
         }
 
     fun oppdaterJournalpostId(
@@ -82,7 +111,7 @@ class InntektsmeldingRepository(
             InntektsmeldingEntitet.insert {
                 it[this.forespoerselId] = forespoerselId.toString()
                 it[eksternInntektsmelding] = eksternIm
-                it[innsendt] = LocalDateTime.now()
+                it[innsendt] = eksternIm.tidspunkt
             }
         }
     }
@@ -149,18 +178,25 @@ class InntektsmeldingRepository(
             }
         }
     }
-
-    private fun hentNyesteImQuery(forespoerselId: UUID): Query =
-        InntektsmeldingEntitet
-            .selectAll()
-            .where { (InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()) and InntektsmeldingEntitet.dokument.isNotNull() }
-            .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
-            .limit(1)
-
-    private fun hentNyesteImSkjemaQuery(forespoerselId: UUID): Query =
-        InntektsmeldingEntitet
-            .selectAll()
-            .where { InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString() }
-            .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
-            .limit(1)
 }
+
+private class Quadruple<A, B, C, D>(
+    val first: A,
+    val second: B,
+    val third: C,
+    val fourth: D,
+)
+
+private fun hentNyesteImQuery(forespoerselId: UUID): Query =
+    InntektsmeldingEntitet
+        .selectAll()
+        .where { (InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()) and InntektsmeldingEntitet.dokument.isNotNull() }
+        .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
+        .limit(1)
+
+private fun hentNyesteImSkjemaQuery(forespoerselId: UUID): Query =
+    InntektsmeldingEntitet
+        .selectAll()
+        .where { InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString() }
+        .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
+        .limit(1)

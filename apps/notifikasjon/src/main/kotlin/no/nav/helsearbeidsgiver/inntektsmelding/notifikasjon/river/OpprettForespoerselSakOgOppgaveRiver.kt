@@ -27,7 +27,7 @@ import java.util.UUID
 
 data class OpprettForespoerselSakOgOppgaveMelding(
     val eventName: EventName,
-    val transaksjonId: UUID,
+    val kontekstId: UUID,
     val forespoerselId: UUID,
     val forespoersel: Forespoersel,
     val sykmeldt: Person,
@@ -51,7 +51,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
 
             OpprettForespoerselSakOgOppgaveMelding(
                 eventName = Key.EVENT_NAME.krev(EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED, EventName.serializer(), json),
-                transaksjonId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
                 forespoersel = Key.FORESPOERSEL.les(Forespoersel.serializer(), data),
                 sykmeldt = Key.SYKMELDT.les(Person.serializer(), data),
@@ -88,7 +88,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
 
         return mapOf(
             Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETTET.toJson(),
-            Key.KONTEKST_ID to transaksjonId.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
@@ -105,7 +105,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
         val fail =
             Fail(
                 feilmelding = "Klarte ikke opprette sak og/eller oppgave for forespurt inntektmelding.",
-                kontekstId = transaksjonId,
+                kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
 
@@ -119,7 +119,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
         mapOf(
             Log.klasse(this@OpprettForespoerselSakOgOppgaveRiver),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )
 }

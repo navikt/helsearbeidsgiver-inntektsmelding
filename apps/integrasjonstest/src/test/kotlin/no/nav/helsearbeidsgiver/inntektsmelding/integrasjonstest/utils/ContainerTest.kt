@@ -17,7 +17,7 @@ abstract class ContainerTest {
     private val topic = "helsearbeidsgiver.inntektsmelding"
 
     private val kafkaContainer = ConfluentKafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.8.0"))
-    val redisContainer = RedisContainer(DockerImageName.parse("redis:7"))
+    val redisContainer = RedisContainer(DockerImageName.parse("redis:latest"))
     val postgresContainerOne = postgresContainer()
     val postgresContainerTwo = postgresContainer()
 

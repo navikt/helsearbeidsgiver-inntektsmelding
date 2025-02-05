@@ -57,6 +57,11 @@ spec:
     application:
       enabled: {{ azure.enabled }}
   {{/if}}
+  {{#if valkeyAccess}}
+  valkey:
+    - instance: inntektsmelding
+      access: {{ valkeyAccess }}
+  {{/if}}
   {{#if database}}
   gcp:
     sqlInstances:

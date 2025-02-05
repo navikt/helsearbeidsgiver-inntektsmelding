@@ -2,12 +2,8 @@ kafkaPool: nav-dev
 idportenEnabled: true
 azure:
   enabled: true
+valkeyAccess: read
 ingress: https://helsearbeidsgiver-im-api.intern.dev.nav.no
-env:
-  - name: REDIS_URL
-    value: redis://helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local:6379/0
-apps:
-  - name: helsearbeidsgiver-redis
 inboundApps:
   - name: spinntektsmelding-frontend
 

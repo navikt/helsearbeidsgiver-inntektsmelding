@@ -58,7 +58,13 @@ object Routes {
 
 fun main() {
     val rapid = RapidApplication.create(System.getenv())
-    val redisConnection = RedisConnection(Env.Redis.url)
+    val redisConnection =
+        RedisConnection(
+            host = Env.Redis.host,
+            port = Env.Redis.port,
+            username = Env.Redis.username,
+            password = Env.Redis.password,
+        )
 
     embeddedServer(
         factory = Netty,

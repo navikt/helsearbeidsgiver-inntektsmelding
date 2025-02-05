@@ -1,0 +1,24 @@
+name: Deploy Valkey
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - valkey/**
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    strategy:
+      matrix:
+        env: [dev, prod]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: ${{ matrix.env }}-gcp
+          RESOURCE: valkey/config.yml
+          VARS: valkey/${{ matrix.env }}.yml

@@ -1,0 +1,10 @@
+apiVersion: aiven.io/v1alpha1
+kind: Valkey
+metadata:
+  labels:
+    team: helsearbeidsgiver
+  name: valkey-helsearbeidsgiver-inntektsmelding
+  namespace: helsearbeidsgiver
+spec:
+  project: {{ project }}
+  plan: {{ plan }}

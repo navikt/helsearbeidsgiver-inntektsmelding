@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.api.ApiInnsendingService
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "helsearbeidsgiver-im-innsending".logger()
@@ -36,6 +37,14 @@ fun RapidsConnection.createInnsending(redisConnection: RedisConnection): RapidsC
             InnsendingService(
                 rapid = this,
                 redisStore = RedisStore(redisConnection, RedisPrefix.Innsending),
+            ),
+        ).connect(this)
+
+        logger.info("Starter ${ApiInnsendingService::class.simpleName}...")
+        ServiceRiverStateless(
+            ApiInnsendingService(
+                rapid = this,
+                redisStore = RedisStore(redisConnection, RedisPrefix.ApiInnsending),
             ),
         ).connect(this)
 

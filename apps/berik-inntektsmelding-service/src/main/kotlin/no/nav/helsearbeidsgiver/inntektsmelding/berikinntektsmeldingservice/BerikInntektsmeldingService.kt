@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -37,7 +38,7 @@ private const val UKJENT_VIRKSOMHET = "Ukjent virksomhet"
 
 data class Steg0(
     val kontekstId: UUID,
-    val avsenderFnr: Fnr,
+    val avsenderFnr: Fnr?,
     val skjema: SkjemaInntektsmelding,
     val innsendingId: Long,
     val mottatt: LocalDateTime,
@@ -71,7 +72,7 @@ class BerikInntektsmeldingService(
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
             kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
-            avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
+            avsenderFnr = Key.ARBEIDSGIVER_FNR.lesOrNull(Fnr.serializer(), melding),
             skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding),
             innsendingId = Key.INNSENDING_ID.les(Long.serializer(), melding),
             mottatt = Key.MOTTATT.les(LocalDateTimeSerializer, melding),
@@ -155,7 +156,7 @@ class BerikInntektsmeldingService(
                             mapOf(
                                 Key.SVAR_KAFKA_KEY to KafkaKey(steg0.skjema.forespoerselId).toJson(),
                                 Key.FNR_LISTE to
-                                    listOf(
+                                    listOfNotNull(
                                         steg1.forespoersel.fnr,
                                         steg0.avsenderFnr,
                                     ).toJson(Fnr.serializer()),

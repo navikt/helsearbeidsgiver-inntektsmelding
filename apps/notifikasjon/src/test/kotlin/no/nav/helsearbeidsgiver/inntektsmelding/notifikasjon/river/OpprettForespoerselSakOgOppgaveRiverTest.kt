@@ -75,7 +75,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                     virksomhetsnummer = innkommendeMelding.forespoersel.orgnr.verdi,
                     grupperingsid = innkommendeMelding.forespoerselId.toString(),
                     merkelapp = NotifikasjonTekst.MERKELAPP,
-                    lenke = "en-slags-url/im-dialog/${innkommendeMelding.forespoerselId}",
+                    lenke = null,
                     tittel = NotifikasjonTekst.sakTittel(innkommendeMelding.sykmeldt),
                     statusTekst = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
                     tilleggsinfo = NotifikasjonTekst.sakTilleggsinfo(innkommendeMelding.forespoersel.sykmeldingsperioder),

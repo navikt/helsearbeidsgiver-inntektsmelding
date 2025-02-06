@@ -81,7 +81,7 @@ object NotifikasjonTekst {
 }
 
 fun ArbeidsgiverNotifikasjonKlient.opprettSak(
-    lenke: String,
+    lenke: String?,
     inntektsmeldingTypeId: UUID,
     orgnr: Orgnr,
     sykmeldt: Person,

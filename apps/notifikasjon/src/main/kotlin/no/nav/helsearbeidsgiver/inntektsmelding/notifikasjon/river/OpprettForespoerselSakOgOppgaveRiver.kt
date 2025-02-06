@@ -67,7 +67,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
 
         val sakId =
             agNotifikasjonKlient.opprettSak(
-                lenke = lenke,
+                lenke = null,
                 inntektsmeldingTypeId = forespoerselId,
                 orgnr = forespoersel.orgnr,
                 sykmeldt = sykmeldt,

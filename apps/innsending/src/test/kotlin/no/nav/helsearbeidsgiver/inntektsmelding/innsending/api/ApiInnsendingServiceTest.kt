@@ -16,7 +16,6 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
-import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -35,8 +34,6 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.kl
-import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class ApiInnsendingServiceTest :
@@ -101,7 +98,6 @@ class ApiInnsendingServiceTest :
                 Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
 
                 val data = it[Key.DATA]?.toMap().orEmpty()
-                Key.ARBEIDSGIVER_FNR.lesOrNull(Fnr.serializer(), data) shouldBe Mock.avsender.fnr
                 Key.SKJEMA_INNTEKTSMELDING.lesOrNull(SkjemaInntektsmelding.serializer(), data) shouldBe nyttSkjema
                 Key.INNSENDING_ID.lesOrNull(Long.serializer(), data) shouldBe Mock.INNSENDING_ID
             }
@@ -151,7 +147,7 @@ class ApiInnsendingServiceTest :
             val fail =
                 mockFail(
                     feilmelding = "Databasen er smekk full.",
-                    eventName = EventName.INSENDING_STARTED,
+                    eventName = EventName.API_INNSENDING_STARTET,
                     behovType = BehovType.HENT_TRENGER_IM,
                 )
 
@@ -175,22 +171,15 @@ class ApiInnsendingServiceTest :
 private object Mock {
     const val INNSENDING_ID = 1L
 
-    val avsender =
-        Person(
-            fnr = Fnr.genererGyldig(),
-            navn = "Skrue McDuck",
-        )
-
     val skjema = mockSkjemaInntektsmelding()
     val mottatt = 15.august.kl(12, 0, 0, 0)
 
     fun steg0(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
-            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.EVENT_NAME to EventName.API_INNSENDING_STARTET.toJson(),
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
                     Key.MOTTATT to mottatt.toJson(),
                 ).toJson(),

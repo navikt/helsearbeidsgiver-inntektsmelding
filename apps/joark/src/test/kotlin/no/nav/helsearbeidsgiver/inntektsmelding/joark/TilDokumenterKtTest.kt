@@ -20,7 +20,7 @@ class TilDokumenterKtTest {
         assertEquals(2, dokumenter[0].dokumentVarianter.size)
         assertEquals("XML", dokumenter[0].dokumentVarianter[0].filtype)
         assertEquals("PDFA", dokumenter[0].dokumentVarianter[1].filtype)
-        assertEquals("Inntektsmelding-${mockInntektsmelding.avsender.orgnr.verdi}-05.10.2018 - [...] - 22.10.2018", dokumenter[0].tittel)
+        assertEquals("Inntektsmelding-05.10.2018 - [...] - 22.10.2018", dokumenter[0].tittel)
     }
 
     @Test
@@ -32,7 +32,7 @@ class TilDokumenterKtTest {
                     20.oktober til 22.oktober,
                 ),
             )
-        assertEquals("Inntektsmelding-${im.avsender.orgnr.verdi}-04.10.2018 - [...] - 22.10.2018", im.tilDokumentbeskrivelse())
+        assertEquals("Inntektsmelding-04.10.2018 - [...] - 22.10.2018", im.tilDokumentbeskrivelse())
     }
 
     @Test
@@ -43,13 +43,13 @@ class TilDokumenterKtTest {
                     1.oktober til 16.oktober,
                 ),
             )
-        assertEquals("Inntektsmelding-${im.avsender.orgnr.verdi}-01.10.2018 - 16.10.2018", im.tilDokumentbeskrivelse())
+        assertEquals("Inntektsmelding-01.10.2018 - 16.10.2018", im.tilDokumentbeskrivelse())
     }
 
     @Test
     fun dokumentbeskrivelseIngenPeriode() {
         val im = mockInntekstmeldingMedPerioder(emptyList())
-        assertEquals("Inntektsmelding-${im.avsender.orgnr.verdi}-(ingen agp)", im.tilDokumentbeskrivelse())
+        assertEquals("Inntektsmelding-(ingen agp)", im.tilDokumentbeskrivelse())
     }
 
     private fun mockInntekstmeldingMedPerioder(perioder: List<Periode>): Inntektsmelding =

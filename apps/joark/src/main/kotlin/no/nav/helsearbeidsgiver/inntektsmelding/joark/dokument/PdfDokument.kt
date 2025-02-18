@@ -18,6 +18,8 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykefravaer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
 import no.nav.helsearbeidsgiver.felles.utils.tilNorskFormat
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.tilTekst
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 
 private const val FORKLARING_ENDRING = "Forklaring for endring"
 
@@ -197,21 +199,22 @@ class PdfDokument(
             "Registrert inntekt (per ${inntektsmelding.inntekt?.inntektsdato?.tilNorskFormat()})",
             "${inntektsmelding.inntekt?.beloep?.tilNorskFormat()} kr/måned",
         )
-        val endringAarsak = inntektsmelding.inntekt?.endringAarsak
-        when (endringAarsak) {
-            null -> return // trenger ikke sende inn årsak...
-            is Bonus -> addBonus()
-            is Feilregistrert -> addFeilregistrert()
-            is Ferie -> addFerie(endringAarsak)
-            is Ferietrekk -> addFerietrekk()
-            is NyStilling -> addNyStilling(endringAarsak)
-            is NyStillingsprosent -> addNyStillingsprosent(endringAarsak)
-            is Nyansatt -> addNyAnsatt()
-            is Permisjon -> addPermisjon(endringAarsak)
-            is Permittering -> addPermittering(endringAarsak)
-            is Sykefravaer -> addSykefravaer(endringAarsak)
-            is Tariffendring -> addTariffendring(endringAarsak)
-            is VarigLoennsendring -> addVarigLonnsendring(endringAarsak)
+        val endringAarsaker = inntektsmelding.inntekt?.endringAarsaker.orDefault(emptyList())
+        endringAarsaker.forEach { endringAarsak ->
+            when (endringAarsak) {
+                is Bonus -> addBonus()
+                is Feilregistrert -> addFeilregistrert()
+                is Ferie -> addFerie(endringAarsak)
+                is Ferietrekk -> addFerietrekk()
+                is NyStilling -> addNyStilling(endringAarsak)
+                is NyStillingsprosent -> addNyStillingsprosent(endringAarsak)
+                is Nyansatt -> addNyAnsatt()
+                is Permisjon -> addPermisjon(endringAarsak)
+                is Permittering -> addPermittering(endringAarsak)
+                is Sykefravaer -> addSykefravaer(endringAarsak)
+                is Tariffendring -> addTariffendring(endringAarsak)
+                is VarigLoennsendring -> addVarigLonnsendring(endringAarsak)
+            }
         }
     }
 
@@ -248,7 +251,7 @@ class PdfDokument(
     }
 
     private fun addTariffendring(tariffendring: Tariffendring) {
-        addLabel(FORKLARING_ENDRING, "Tariffendring")
+        addLabel("Forklaring for endring (2 av 2)", "Tariffendring")
         addLabel("Gjelder fra", tariffendring.gjelderFra.tilNorskFormat(), linefeed = false)
         addLabel("Ble kjent", tariffendring.bleKjent.tilNorskFormat(), kolonneTo)
     }

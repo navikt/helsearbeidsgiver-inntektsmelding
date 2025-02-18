@@ -22,4 +22,7 @@ dependencies {
     testImplementation("io.ktor:ktor-client-core:$ktorVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("no.nav.security:mock-oauth2-server:$mockOauth2ServerVersion")
+
+    //  midlertidlig for flere endringsaarsaker
+    testImplementation("io.kotest:kotest-assertions-json:5.8.0")
 }

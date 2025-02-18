@@ -50,7 +50,7 @@ object NotifikasjonTekst {
         selvbestemtId: UUID,
     ): String = "$linkUrl/im-dialog/kvittering/agi/$selvbestemtId"
 
-    fun sakTittel(sykmeldt: Person): String = "Inntektsmelding for ${sykmeldt.navn}: f. ${sykmeldt.fnr.lesFoedselsdato()}"
+    fun sakTittel(sykmeldt: Person): String = "Sykepenger for ${sykmeldt.navn} (f. ${sykmeldt.fnr.lesFoedselsdato()})"
 
     fun sakTilleggsinfo(sykmeldingsperioder: List<Periode>): String = "Sykmeldingsperiode ${sykmeldingsperioder.tilKortFormat()}"
 

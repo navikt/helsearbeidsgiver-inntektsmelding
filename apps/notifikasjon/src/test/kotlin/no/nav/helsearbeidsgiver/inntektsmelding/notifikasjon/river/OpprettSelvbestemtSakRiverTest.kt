@@ -72,8 +72,8 @@ class OpprettSelvbestemtSakRiverTest :
                             .toString(),
                     lenke = "$mockUrl/im-dialog/kvittering/agi/${innkommendeMelding.inntektsmelding.type.id}",
                     tittel =
-                        "Inntektsmelding for ${innkommendeMelding.inntektsmelding.sykmeldt.navn}: " +
-                            "f. ${innkommendeMelding.inntektsmelding.sykmeldt.fnr.verdi.take(6)}",
+                        "Sykepenger for ${innkommendeMelding.inntektsmelding.sykmeldt.navn} " +
+                            "(f. ${innkommendeMelding.inntektsmelding.sykmeldt.fnr.verdi.take(6)})",
                     statusTekst = "Mottatt – Se kvittering eller korriger inntektsmelding",
                     tilleggsinfo = "Sykmeldingsperiode 05.10.2018 - [...] - 03.11.2018",
                     initiellStatus = SaksStatus.FERDIG,

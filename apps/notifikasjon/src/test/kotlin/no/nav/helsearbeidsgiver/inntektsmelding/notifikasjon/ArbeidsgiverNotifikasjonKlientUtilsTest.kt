@@ -18,13 +18,13 @@ class ArbeidsgiverNotifikasjonKlientUtilsTest :
             test("fnr gir forventet saktittel") {
                 val person = Person(Fnr("31030267462"), "James Bånn")
 
-                NotifikasjonTekst.sakTittel(person) shouldBe "Inntektsmelding for James Bånn: f. 310302"
+                NotifikasjonTekst.sakTittel(person) shouldBe "Sykepenger for James Bånn (f. 310302)"
             }
 
             test("dnr gir forventet saktittel") {
                 val person = Person(Fnr("63047505900"), "Pierce Brosjan")
 
-                NotifikasjonTekst.sakTittel(person) shouldBe "Inntektsmelding for Pierce Brosjan: f. 230475"
+                NotifikasjonTekst.sakTittel(person) shouldBe "Sykepenger for Pierce Brosjan (f. 230475)"
             }
         }
 

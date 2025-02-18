@@ -17,13 +17,13 @@ import java.util.UUID
 import kotlin.time.Duration.Companion.days
 
 // 13x30 dager
-val sakLevetid = 390.days
+val sakLevetid = 5.days
 
 private val logger = "arbeidsgiver-notifikasjon-klient-utils".logger()
 private val sikkerLogger = sikkerLogger()
 
 object NotifikasjonTekst {
-    const val MERKELAPP = "Inntektsmelding sykepenger"
+    const val MERKELAPP = "Sykepenger"
 
     @Deprecated("Bruk NotifikasjonTekst.MERKELAPP. Utdatert siden 21.05.2024.")
     const val MERKELAPP_GAMMEL = "Inntektsmelding"
@@ -50,7 +50,7 @@ object NotifikasjonTekst {
         selvbestemtId: UUID,
     ): String = "$linkUrl/im-dialog/kvittering/agi/$selvbestemtId"
 
-    fun sakTittel(sykmeldt: Person): String = "Inntektsmelding for ${sykmeldt.navn}: f. ${sykmeldt.fnr.lesFoedselsdato()}"
+    fun sakTittel(sykmeldt: Person): String = "Sykepenger for ${sykmeldt.navn} (f. ${sykmeldt.fnr.lesFoedselsdato()})"
 
     fun sakTilleggsinfo(sykmeldingsperioder: List<Periode>): String = "Sykmeldingsperiode ${sykmeldingsperioder.tilKortFormat()}"
 

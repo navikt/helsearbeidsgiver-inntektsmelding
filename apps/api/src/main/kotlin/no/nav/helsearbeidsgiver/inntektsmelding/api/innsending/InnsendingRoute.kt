@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.utils.fyllUtMangledeEndringsAarsaker
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
@@ -94,6 +95,19 @@ fun Route.innsending(
     }
 }
 
+// // midlertidlig duplisering for å støtte flere endringsÅrsaker
+// fun SkjemaInntektsmelding.fyllUtMangledeEndringsAarsaker(): SkjemaInntektsmelding {
+//    val medEndringsAarsakerfyllt = this.copy(inntekt = this.inntekt?.copy(endringAarsaker = listOfNotNull(this.inntekt?.endringAarsak)))
+//    val verdiMangler = this.inntekt?.endringAarsaker.isNullOrEmpty()
+//    return if (verdiMangler) medEndringsAarsakerfyllt else this
+// }
+//
+// fun Inntektsmelding.fyllUtMangledeEndringsAarsaker(): Inntektsmelding {
+//    val medEndringsAarsakerfyllt = this.copy(inntekt = this.inntekt?.copy(endringAarsaker = listOfNotNull(this.inntekt?.endringAarsak)))
+//    val verdiMangler = this.inntekt?.endringAarsaker.isNullOrEmpty()
+//    return if (verdiMangler) medEndringsAarsakerfyllt else this
+// }
+
 private suspend fun PipelineContext<Unit, ApplicationCall>.lesRequestOrNull(): SkjemaInntektsmelding? =
     call
         .receiveText()
@@ -105,6 +119,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.lesRequestOrNull(): S
                         sikkerLogger.info("$it\n${json.toPretty()}")
                     }
                 }.fromJson(SkjemaInntektsmelding.serializer())
+                .fyllUtMangledeEndringsAarsaker()
         }.getOrElse { error ->
             "Klarte ikke parse json for inntektsmeldingsskjema.".also {
                 logger.error(it)

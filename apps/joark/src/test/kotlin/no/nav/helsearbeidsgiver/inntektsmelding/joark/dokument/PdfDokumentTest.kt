@@ -247,6 +247,7 @@ class PdfDokumentTest {
                         im.inntekt.shouldNotBeNull().copy(
                             beloep = 123.0,
                             endringAarsak = it.value,
+                            endringAarsaker = listOf(it.value),
                         ),
                 ),
             )
@@ -258,6 +259,7 @@ class PdfDokumentTest {
                     im.inntekt.shouldNotBeNull().copy(
                         beloep = 123.0,
                         endringAarsak = null,
+                        endringAarsaker = emptyList(),
                     ),
             ),
         )
@@ -267,7 +269,7 @@ class PdfDokumentTest {
         title: String,
         im: Inntektsmelding,
     ) {
-        // val file = File(System.getProperty("user.home"), "/Desktop/$title.pdf")
+//        val file = File(System.getProperty("user.home"), "/Desktop/pdf/$title.pdf")
         val file = File.createTempFile(title, ".pdf")
         val writer = FileOutputStream(file)
         writer.write(PdfDokument(im).export())

@@ -1,5 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.hentselvbestemtim
 
+import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldBeEmpty
 import io.ktor.client.statement.bodyAsText
@@ -76,6 +78,14 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
             val response = get(pathMedId)
 
             val actualJson = response.bodyAsText()
+
+            println("expected vs actual json:")
+            println(actualJson)
+            println(Mock.successResponseJson(expectedInntektsmelding))
+
+            assertSoftly {
+                actualJson shouldEqualJson Mock.successResponseJson(expectedInntektsmelding)
+            }
 
             response.status shouldBe HttpStatusCode.OK
             actualJson shouldBe Mock.successResponseJson(expectedInntektsmelding)
@@ -318,7 +328,8 @@ private fun Inntekt.hardcodedJson(): String =
         "beloep": $beloep,
         "inntektsdato": "$inntektsdato",
         "naturalytelser": [${naturalytelser.joinToString(transform = Naturalytelse::hardcodedJson)}],
-        "endringAarsak": ${endringAarsak?.hardcodedJson()}
+        "endringAarsak": ${endringAarsak?.hardcodedJson()},
+        "endringAarsaker": [${endringAarsak?.hardcodedJson()}]
     }
     """
 

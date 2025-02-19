@@ -130,6 +130,12 @@ fun mockInntekt(): Inntekt =
             NyStillingsprosent(
                 gjelderFra = 16.oktober,
             ),
+        endringAarsaker =
+            listOf(
+                NyStillingsprosent(
+                    gjelderFra = 16.oktober,
+                ),
+            ),
     )
 
 fun mockRefusjon(): Refusjon =

@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.string.shouldContain
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Feilregistrert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferie
@@ -30,6 +31,7 @@ import java.time.LocalDate
 class PdfDokumentTest {
     private val dag = LocalDate.of(2022, 12, 24)
     private val im = mockInntektsmeldingV1()
+    private val endringAarsaker = endringAarsakMap().values.toList()
 
     @Test
     fun `betaler full lønn i arbeidsgiverperioden`() {
@@ -224,20 +226,7 @@ class PdfDokumentTest {
 
     @Test
     fun `med inntekt endring årsak - alle varianter`() {
-        val perioder = listOf(Periode(dag, dag.plusDays(12)), Periode(dag.plusDays(13), dag.plusDays(18)))
-        val map = HashMap<String, InntektEndringAarsak>()
-        map["bonus"] = Bonus
-        map["feilregistrert"] = Feilregistrert
-        map["ferie"] = Ferie(perioder)
-        map["ferietrekk"] = Ferietrekk
-        map["nyansatt"] = Nyansatt
-        map["nystilling"] = NyStilling(dag)
-        map["nystillingsprosent"] = NyStillingsprosent(dag)
-        map["permisjon"] = Permisjon(perioder)
-        map["permittering"] = Permittering(perioder)
-        map["sykefravaer"] = Sykefravaer(perioder)
-        map["tariffendring"] = Tariffendring(dag, dag.plusDays(2))
-        map["variglonnsendring"] = VarigLoennsendring(dag)
+        val map = endringAarsakMap()
 
         map.forEach {
             writePDF(
@@ -265,12 +254,66 @@ class PdfDokumentTest {
         )
     }
 
+    @Test
+    fun `med en begrunnelse blir teksten lagt til`() {
+        endringAarsaker.map { listOf(it) }.map { it.tilIm() }.forEach { im ->
+            im.inntekt?.endringAarsaker?.forEach { endring ->
+                pdfTekstFraIm(im) shouldContain "Endringsårsak\n${endring.beskrivelse()}"
+            }
+        }
+    }
+
+    @Test
+    fun `med alle mulige parvise kombinasjoner av begrunnelser blir teksten lagt til`() {
+        endringAarsaker
+            .parviseKombinasjoner()
+            .map { it.tilIm() }
+            .forEach { im ->
+                im.inntekt?.endringAarsaker?.forEachIndexed { indeks, endring ->
+                    pdfTekstFraIm(im) shouldContain "Endringsårsak (${indeks + 1} av 2)\n${endring.beskrivelse()}"
+                }
+            }
+    }
+
+    private fun <E> List<E>.parviseKombinasjoner(): List<List<E>> = flatMapIndexed { i, foorste -> drop(i + 1).map { andre -> listOf(foorste, andre) } }
+
+    @Test
+    fun `med 2, 3, 4 og 5 begrunnelser blir teksten lagt til`() {
+        (2..5).forEach { n ->
+            endringAarsaker
+                .windowed(n, 1, partialWindows = false)
+                .map { it.tilIm() }
+                .forEach { im ->
+                    im.inntekt?.endringAarsaker?.forEachIndexed { indeks, endring ->
+                        val tekst = pdfTekstFraIm(im)
+                        tekst shouldContain "Endringsårsak (${indeks + 1} av $n)"
+                        tekst shouldContain endring.beskrivelse()
+                    }
+                }
+        }
+    }
+
+    private fun List<InntektEndringAarsak>.tilIm(): Inntektsmelding =
+        im.copy(
+            inntekt =
+                im.inntekt.shouldNotBeNull().copy(
+                    beloep = 123.0,
+                    endringAarsaker = this,
+                ),
+        )
+
+    private fun pdfTekstFraIm(im: Inntektsmelding): String {
+        val pdfDok = PdfDokument(im).export()
+        val pdfTekst = extractTextFromPdf(pdfDok)
+        return pdfTekst.shouldNotBeNull()
+    }
+
     private fun writePDF(
         title: String,
         im: Inntektsmelding,
     ) {
-//        val file = File(System.getProperty("user.home"), "/Desktop/pdf/$title.pdf")
-        val file = File.createTempFile(title, ".pdf")
+        val file = File(System.getProperty("user.home"), "/Desktop/pdf/$title.pdf")
+//        val file = File.createTempFile(title, ".pdf")
         val writer = FileOutputStream(file)
         writer.write(PdfDokument(im).export())
         println("Lagde PDF $title med filnavn ${file.toPath()}")
@@ -283,5 +326,23 @@ class PdfDokumentTest {
         val allTextInDocument = pdfStripper.getText(pdfReader)
         pdfReader.close()
         return allTextInDocument
+    }
+
+    private fun endringAarsakMap(): HashMap<String, InntektEndringAarsak> {
+        val perioder = listOf(Periode(dag, dag.plusDays(12)), Periode(dag.plusDays(13), dag.plusDays(18)))
+        val map = HashMap<String, InntektEndringAarsak>()
+        map["bonus"] = Bonus
+        map["feilregistrert"] = Feilregistrert
+        map["ferie"] = Ferie(perioder)
+        map["ferietrekk"] = Ferietrekk
+        map["nyansatt"] = Nyansatt
+        map["nystilling"] = NyStilling(dag)
+        map["nystillingsprosent"] = NyStillingsprosent(dag)
+        map["permisjon"] = Permisjon(perioder)
+        map["permittering"] = Permittering(perioder)
+        map["sykefravaer"] = Sykefravaer(perioder)
+        map["tariffendring"] = Tariffendring(dag, dag.plusDays(2))
+        map["variglonnsendring"] = VarigLoennsendring(dag)
+        return map
     }
 }

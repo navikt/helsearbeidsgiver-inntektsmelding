@@ -2,6 +2,7 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.*
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Feilregistrert
@@ -27,7 +28,6 @@ class PdfDokument(
 ) {
     private val pdf = PdfBuilder(bodySize = 20, topText = "Innsendt: ${inntektsmelding.mottatt.tilNorskFormat()}") // Setter skriftstørrelsen på labels og text
     private var y = 0
-    private var forklaringEndring = FORKLARING_ENDRING
     private val kolonneEn = 0
     private val kolonneTo = 420
     private val naturalytelse1 = kolonneEn
@@ -199,29 +199,51 @@ class PdfDokument(
             "Registrert inntekt (per ${inntektsmelding.inntekt?.inntektsdato?.tilNorskFormat()})",
             "${inntektsmelding.inntekt?.beloep?.tilNorskFormat()} kr/måned",
         )
+
         val endringAarsaker = inntektsmelding.inntekt?.endringAarsaker.orDefault(emptyList())
         val antall = endringAarsaker.size
         endringAarsaker.forEachIndexed { indeks, endringAarsak ->
-            forklaringEndring = FORKLARING_ENDRING + if (antall > 1) " (${indeks + 1} av $antall)" else ""
+
+            val forklaringEndring =
+                if (antall > 1) {
+                    "$FORKLARING_ENDRING (${indeks + 1} av $antall)"
+                } else {
+                    FORKLARING_ENDRING
+                }
 
             when (endringAarsak) {
-                is Bonus -> addBonus()
-                is Feilregistrert -> addFeilregistrert()
-                is Ferie -> addFerie(endringAarsak)
-                is Ferietrekk -> addFerietrekk()
-                is NyStilling -> addNyStilling(endringAarsak)
-                is NyStillingsprosent -> addNyStillingsprosent(endringAarsak)
-                is Nyansatt -> addNyAnsatt()
-                is Permisjon -> addPermisjon(endringAarsak)
-                is Permittering -> addPermittering(endringAarsak)
-                is Sykefravaer -> addSykefravaer(endringAarsak)
-                is Tariffendring -> addTariffendring(endringAarsak)
-                is VarigLoennsendring -> addVarigLonnsendring(endringAarsak)
+                is Bonus ->
+                    addLabel(forklaringEndring, endringAarsak.beskrivelse())
+                is Feilregistrert ->
+                    addLabel(forklaringEndring, endringAarsak.beskrivelse())
+                is Nyansatt ->
+                    addLabel(forklaringEndring, endringAarsak.beskrivelse())
+                is Ferietrekk ->
+                    addLabel(forklaringEndring, endringAarsak.beskrivelse())
+
+                is Ferie ->
+                    addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.ferier)
+                is Permisjon ->
+                    addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.permisjoner)
+                is Permittering ->
+                    addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.permitteringer)
+                is Sykefravaer ->
+                    addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.sykefravaer)
+
+                is NyStilling ->
+                    addNyStilling(forklaringEndring, endringAarsak)
+                is Tariffendring ->
+                    addTariffendring(forklaringEndring, endringAarsak)
+                is VarigLoennsendring ->
+                    addVarigLonnsendring(forklaringEndring, endringAarsak)
+                is NyStillingsprosent ->
+                    addNyStillingsprosent(forklaringEndring, endringAarsak)
             }
         }
     }
 
     private fun addInntektEndringPerioder(
+        forklaringEndring: String,
         endringAarsak: String,
         perioder: List<Periode>,
     ) {
@@ -229,59 +251,37 @@ class PdfDokument(
         addPerioder(kolonneTo, perioder)
     }
 
-    private fun addPermisjon(permisjon: Permisjon) {
-        addInntektEndringPerioder("Permisjon", permisjon.permisjoner)
-    }
-
-    private fun addFerie(ferie: Ferie) {
-        addInntektEndringPerioder("Ferie", ferie.ferier)
-    }
-
-    private fun addPermittering(permittering: Permittering) {
-        addInntektEndringPerioder("Permittering", permittering.permitteringer)
-    }
-
-    private fun addSykefravaer(sykefravaer: Sykefravaer) {
-        addInntektEndringPerioder("Sykefravær", sykefravaer.sykefravaer)
-    }
-
-    private fun addNyAnsatt() {
-        addLabel(forklaringEndring, "Nyansatt")
-    }
-
-    private fun addFeilregistrert() {
-        addLabel(forklaringEndring, "Mangelfull eller uriktig rapportering til A-ordningen")
-    }
-
-    private fun addTariffendring(tariffendring: Tariffendring) {
-        addLabel(forklaringEndring, "Tariffendring")
+    private fun addTariffendring(
+        forklaringEndring: String,
+        tariffendring: Tariffendring,
+    ) {
+        addLabel(forklaringEndring, tariffendring.beskrivelse())
         addLabel("Gjelder fra", tariffendring.gjelderFra.tilNorskFormat(), linefeed = false)
         addLabel("Ble kjent", tariffendring.bleKjent.tilNorskFormat(), kolonneTo)
     }
 
-    private fun addVarigLonnsendring(varigLoennsendring: VarigLoennsendring) {
-        addLabel(forklaringEndring, "Varig lønnsendring")
+    private fun addVarigLonnsendring(
+        forklaringEndring: String,
+        varigLoennsendring: VarigLoennsendring,
+    ) {
+        addLabel(forklaringEndring, varigLoennsendring.beskrivelse())
         addLabel("Gjelder fra", varigLoennsendring.gjelderFra.tilNorskFormat())
     }
 
-    private fun addNyStilling(nyStilling: NyStilling) {
-        addLabel(forklaringEndring, "Ny stilling", linefeed = false)
+    private fun addNyStilling(
+        forklaringEndring: String,
+        nyStilling: NyStilling,
+    ) {
+        addLabel(forklaringEndring, nyStilling.beskrivelse(), linefeed = false)
         addLabel("Gjelder fra", nyStilling.gjelderFra.tilNorskFormat(), kolonneTo)
     }
 
-    private fun addNyStillingsprosent(nyStillingsprosent: NyStillingsprosent) {
-        addLabel(forklaringEndring, "Ny stillingsprosent", linefeed = false)
+    private fun addNyStillingsprosent(
+        forklaringEndring: String,
+        nyStillingsprosent: NyStillingsprosent,
+    ) {
+        addLabel(forklaringEndring, nyStillingsprosent.beskrivelse(), linefeed = false)
         addLabel("Gjelder fra", nyStillingsprosent.gjelderFra.tilNorskFormat(), kolonneTo)
-    }
-
-    private fun addBonus() {
-        addLabel(forklaringEndring, "Bonus")
-        // addLabel("Estimert årlig bonus", årligBonus.tilNorskFormat())
-        // addLabel("Dato siste bonus", datoBonus.tilNorskFormat())
-    }
-
-    private fun addFerietrekk() {
-        addLabel(forklaringEndring, "Ferietrekk/Utbetaling av feriepenger")
     }
 
     private fun addRefusjon() {
@@ -338,3 +338,21 @@ class PdfDokument(
         moveCursorBy(pdf.bodySize)
     }
 }
+
+public fun InntektEndringAarsak.beskrivelse(): String =
+    when (this) {
+        is Bonus -> "Bonus"
+        is Feilregistrert -> "Mangelfull eller uriktig rapportering til A-ordningen"
+        is Nyansatt -> "Nyansatt"
+        is Ferietrekk -> "Ferietrekk/Utbetaling av feriepenger"
+        is Ferie -> "Ferie"
+        is Permisjon -> "Permisjon"
+        is Permittering -> "Permittering"
+        is Sykefravaer -> "Sykefravær"
+        is NyStilling -> "Ny stilling"
+        is Tariffendring -> "Tariffendring"
+        is VarigLoennsendring -> "Varig lønnsendring"
+        is NyStillingsprosent -> "Ny stillingsprosent"
+
+        else -> throw NotImplementedError("Ingen beskrivelse definert for InntektEndringAarsak")
+    }

@@ -79,8 +79,6 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
 
             val actualJson = response.bodyAsText()
 
-            println("expected vs actual json:")
-            println(actualJson)
             println(Mock.successResponseJson(expectedInntektsmelding))
 
             assertSoftly {

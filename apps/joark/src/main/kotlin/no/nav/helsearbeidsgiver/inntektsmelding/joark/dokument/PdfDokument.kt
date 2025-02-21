@@ -212,13 +212,7 @@ class PdfDokument(
                 }
 
             when (endringAarsak) {
-                is Bonus ->
-                    addLabel(forklaringEndring, endringAarsak.beskrivelse())
-                is Feilregistrert ->
-                    addLabel(forklaringEndring, endringAarsak.beskrivelse())
-                is Nyansatt ->
-                    addLabel(forklaringEndring, endringAarsak.beskrivelse())
-                is Ferietrekk ->
+                is Bonus, is Feilregistrert, is Nyansatt, is Ferietrekk ->
                     addLabel(forklaringEndring, endringAarsak.beskrivelse())
 
                 is Ferie ->
@@ -339,7 +333,7 @@ class PdfDokument(
     }
 }
 
-public fun InntektEndringAarsak.beskrivelse(): String =
+fun InntektEndringAarsak.beskrivelse(): String =
     when (this) {
         is Bonus -> "Bonus"
         is Feilregistrert -> "Mangelfull eller uriktig rapportering til A-ordningen"

@@ -2,12 +2,12 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.*
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Feilregistrert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferie
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferietrekk
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.InntektEndringAarsak
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStilling
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStillingsprosent

@@ -264,22 +264,8 @@ class PdfDokumentTest {
     }
 
     @Test
-    fun `med alle mulige parvise kombinasjoner av begrunnelser blir teksten lagt til`() {
-        endringAarsaker
-            .parviseKombinasjoner()
-            .map { it.tilIm() }
-            .forEach { im ->
-                im.inntekt?.endringAarsaker?.forEachIndexed { indeks, endring ->
-                    pdfTekstFraIm(im) shouldContain "Endringsårsak (${indeks + 1} av 2)\n${endring.beskrivelse()}"
-                }
-            }
-    }
-
-    private fun <E> List<E>.parviseKombinasjoner(): List<List<E>> = flatMapIndexed { i, foorste -> drop(i + 1).map { andre -> listOf(foorste, andre) } }
-
-    @Test
-    fun `med 2, 3, 4 og 5 begrunnelser blir teksten lagt til`() {
-        (2..5).forEach { n ->
+    fun `med 2, 3, 4, 5 eller 6 begrunnelser blir teksten lagt til`() {
+        (2..6).forEach { n ->
             endringAarsaker
                 .windowed(n, 1, partialWindows = false)
                 .map { it.tilIm() }

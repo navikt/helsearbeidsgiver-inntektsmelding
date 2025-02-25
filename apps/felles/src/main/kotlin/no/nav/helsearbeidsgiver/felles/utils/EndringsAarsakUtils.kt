@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.felles.utils
 
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 
 // midlertidlig duplisering for å støtte flere endringsÅrsaker
@@ -10,7 +11,7 @@ fun SkjemaInntektsmelding.konverterEndringAarsakTilListe(): SkjemaInntektsmeldin
         this.copy(
             inntekt =
                 this.inntekt?.copy(
-                    endringAarsaker = listOfNotNull(this.inntekt?.endringAarsak),
+                    endringAarsaker = listOfNotNull(this.inntekt?.endringAarsak, Bonus),
                     endringAarsak = null,
                 ),
         )

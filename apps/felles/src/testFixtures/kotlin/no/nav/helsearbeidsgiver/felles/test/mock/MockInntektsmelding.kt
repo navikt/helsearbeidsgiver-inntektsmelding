@@ -145,18 +145,18 @@ fun mockRefusjon(): Refusjon =
             listOf(
                 RefusjonEndring(
                     beloep = 140.9,
-                    startdato = 14.oktober,
+                    startdato = 1.november,
                 ),
                 RefusjonEndring(
                     beloep = 130.8,
-                    startdato = 18.oktober,
+                    startdato = 18.november,
                 ),
                 RefusjonEndring(
                     beloep = 120.7,
-                    startdato = 21.oktober,
+                    startdato = 21.november,
                 ),
             ),
-        sluttdato = 31.oktober,
+        sluttdato = 30.november,
     )
 
 fun mockInntektsmeldingGammeltFormat(): InntektsmeldingGammeltFormat = mockInntektsmeldingV1().convert()

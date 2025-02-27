@@ -42,7 +42,7 @@ subprojects {
     )
 
     tasks {
-        register<DependencyReportTask>("allDependencies"){}
+        register<DependencyReportTask>("allDependencies") {}
 
         withType<Test> {
             useJUnitPlatform()

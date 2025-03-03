@@ -71,7 +71,7 @@ private fun Inntektsmelding.tilArbeidsforhold(): Arbeidsforhold =
     Arbeidsforhold().also { af ->
         af.beregnetInntekt =
             InntektXml().also {
-                it.aarsakVedEndring = inntekt?.endringAarsak?.tilTekst()
+                it.aarsakVedEndring = inntekt?.endringAarsaker?.get(0)?.tilTekst()
                 it.beloep = inntekt?.beloep?.toBigDecimal()
             }
         af.foersteFravaersdag =

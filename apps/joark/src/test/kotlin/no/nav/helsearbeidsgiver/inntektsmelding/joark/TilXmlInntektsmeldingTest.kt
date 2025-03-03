@@ -62,6 +62,7 @@ class TilXmlInntektsmeldingTest {
                         inntektsdato = 20.oktober,
                         naturalytelser = emptyList(),
                         endringAarsak = null,
+                        endringAarsaker = emptyList(),
                     ),
             )
         val im = tilXmlInntektsmelding(inntektmeldingUtenAarsak)

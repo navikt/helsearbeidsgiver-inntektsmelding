@@ -1,29 +1,26 @@
 # helsearbeidsgiver-inntektsmelding
 
-Mono repo for team HelseArbeidsgiver 
+Mono repo for team HelseArbeidsgiver
 
-### For testing
+### Kjøre lokalt: 
+Tjenesten består av mange mikrotjenester som kommuniserer med hverandre via rapids-and-rivers (kafka)
 
-```sh
-curl -vvv -H "Content-Type: application/json" -d '{
-    "identitetsnummer": "10107400090",
-    "orgnrUnderenhet": "874568112"
-}' https://helsearbeidsgiver-im-api.intern.dev.nav.no/api/v1/inntektsmelding
-```
-### Lokal utvikling: 
-
+For å kjøre lokalt, må man starte infrastruktur via docker, og så starte respektive apper under apps
 ```
 cd docker/local
-docker-compose up #starter kafka, redis, postgre, oauth2 mock lokalt
-
-Start:
- LocalIntegrasjonApp.kt
- LocalAkkumulatorApp.kt
- LocalApiApp.kt
+docker-compose up #starter kafka, redis, postgres, oauth2 mock lokalt
 ```
+Og deretter start feks: 
+ LocalApiApp.kt
+
 
 ### Aggregert Testdekning: 
 ```
 gradle testCodeCoverageReport
 ```
 Output havner i build/reports/jacoco/testCodeCoverageReport
+
+### Aggregert oversikt over avhengigheter (Software Bill Of Materials)
+```
+gradle allDependencies
+```

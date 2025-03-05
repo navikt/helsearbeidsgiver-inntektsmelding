@@ -74,7 +74,7 @@ jobs:
     permissions:
       packages: write
     needs: generate_vars
-    if: needs.generate_vars.outputs.is_matrix_empty == 'false'
+    if: needs.generate_vars.outputs.is_matrix_empty == 'false' && env.DRY_RUN != 'true'
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.generate_vars.outputs.matrix) }}

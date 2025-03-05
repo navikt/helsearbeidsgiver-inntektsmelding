@@ -106,7 +106,7 @@ jobs:
           team: helsearbeidsgiver
           image_suffix: ${{ matrix.project }}
           dockerfile: Dockerfile
-          docker_context: ${{ matrix.project }}
+          docker_context: apps/${{ matrix.project }}
 
   deploy:
     runs-on: ubuntu-latest

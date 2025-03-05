@@ -6,6 +6,7 @@ on:
       - main
       - preprod/**
       - dev/**
+  workflow_dispatch:
 
 env:
   DOCKER_REGISTRY: ghcr.io

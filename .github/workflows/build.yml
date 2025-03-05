@@ -74,6 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       packages: write
+      id-token: write
     needs: generate_vars
     if: needs.generate_vars.outputs.is_matrix_empty == 'false'
     strategy:
@@ -97,20 +98,15 @@ jobs:
         with:
           files: "apps/${{ matrix.project }}/build/libs/app.jar"
 
-      - name: Create docker tag
+      - name: build docker image
         if: steps.app_jar.outputs.files_exists == 'true'
-        run: |
-          echo "IMAGE=$DOCKER_REGISTRY/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}:${{ needs.generate_vars.outputs.short_sha }}" >> $GITHUB_ENV
-
-      - name: Build docker image
-        if: steps.app_jar.outputs.files_exists == 'true'
-        run: docker build apps/${{ matrix.project }} --pull -t $IMAGE -f Dockerfile
-
-      - name: Push docker image
-        if: steps.app_jar.outputs.files_exists == 'true'
-        run: |
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login --username $GITHUB_REPOSITORY --password-stdin https://$DOCKER_REGISTRY
-          docker push $IMAGE
+        uses: nais/docker-build-push@v0
+        id: docker-build-push
+        with:
+          team: helsearbeidsgiver
+          image_suffix: ${{ matrix.project }}
+          dockerfile: Dockerfile
+          docker_context: ${{ matrix.project }}
 
   deploy:
     runs-on: ubuntu-latest

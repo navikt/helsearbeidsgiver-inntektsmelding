@@ -44,9 +44,9 @@ jobs:
       - name: Determine projects to deploy
         id: set_matrix
         run: |
-          MATRIX=$(./gradlew -q buildMatrix --console=plain)
+          MATRIX='{"project": ["bro-spinn"]}'
           echo $MATRIX
-          DEPLOY_MATRIX=$(./gradlew -q deployMatrixDev --console=plain)
+          DEPLOY_MATRIX='{"project": ["bro-spinn"], "cluster": ["dev-gcp"], "exclude": []}'
           echo $DEPLOY_MATRIX
           MATRIX_SIZE=$(echo $MATRIX | jq '.project|length')
           DEPLOY_MATRIX_SIZE=$(echo $DEPLOY_MATRIX | jq '.project|length')

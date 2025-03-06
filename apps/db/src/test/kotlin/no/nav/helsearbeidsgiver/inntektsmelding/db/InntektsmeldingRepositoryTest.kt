@@ -82,9 +82,6 @@ class InntektsmeldingRepositoryTest :
             record.getOrNull(InntektsmeldingEntitet.dokument) shouldBe beriketDokument
 
             inntektsmeldingRepo.hentNyesteBerikedeInnsendingId(skjema.forespoerselId) shouldBe innsendingId
-
-//            val lagretInntektsmelding = inntektsmeldingRepo.hentNyesteInntektsmelding(skjema.forespoerselId).shouldBeInstanceOf<LagretInntektsmelding.Skjema>()
-//            lagretInntektsmelding.skjema.inntekt?.endringAarsaker shouldBe listOf(skjema.inntekt?.endringAarsak!!)
         }
 
         test("skal lagre hvert innsendte skjema med ny innsendingId, men hente nyeste berikede inntektsmelding") {

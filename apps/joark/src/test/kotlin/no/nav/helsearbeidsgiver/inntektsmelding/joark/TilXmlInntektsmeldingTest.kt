@@ -23,7 +23,6 @@ class TilXmlInntektsmeldingTest {
     @Test
     fun `skal mappe inntektsmelding til xml-skjema`() {
         val im = mockInntektsmeldingV1()
-        val im2 = im.copy(inntekt = im.inntekt?.copy(endringAarsaker = null))
         val imXml = tilXmlInntektsmelding(im)
         val skjema = imXml.skjemainnhold
         Assertions.assertNotNull(skjema.aarsakTilInnsending)

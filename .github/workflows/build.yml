@@ -138,12 +138,17 @@ jobs:
         id: set_dynamic_docker_image
         run: echo "docker_image_var=docker_image_${{ matrix.project }}" >> $GITHUB_ENV
 
+      - name: Set docker image output
+        id: set_docker_image_output
+        run: echo "docker_image=${{ needs.build.outputs['docker_image_' + env.docker_image_var] }}" >> $GITHUB_ENV
+
       - name: Sjekk om needs output fungerer
         id: sjekk_need_output
         run: |
-          echo "${{ needs.build.outputs[env.docker_image_var] }}"
+          echo "${{ env.docker_image }}"
           echo "${{ needs.build.outputs.docker_image_bro-spinn }}"
           echo "hello"
+
 #      - name: Deploy
 #        if: env.IMAGE_EXISTS == 'true' && steps.confirm_config_file.outputs.files_exists == 'true'
 #        uses: nais/deploy/actions/deploy@v2

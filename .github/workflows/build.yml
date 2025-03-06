@@ -42,9 +42,9 @@ jobs:
       - name: Determine projects to deploy
         id: set_matrix
         run: |
-          MATRIX='{"project": ["bro-spinn", "joark"]}'
+          MATRIX='{"project": ["bro-spinn", "brreg"]}'
           echo $MATRIX
-          DEPLOY_MATRIX='{"project": ["bro-spinn", "joark"], "cluster": ["dev-gcp"], "exclude": []}'
+          DEPLOY_MATRIX='{"project": ["bro-spinn", "brreg"], "cluster": ["dev-gcp"], "exclude": []}'
           echo $DEPLOY_MATRIX
           MATRIX_SIZE=$(echo $MATRIX | jq '.project|length')
           DEPLOY_MATRIX_SIZE=$(echo $DEPLOY_MATRIX | jq '.project|length')

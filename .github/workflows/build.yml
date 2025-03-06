@@ -141,8 +141,8 @@ jobs:
       - name: Sjekk om needs output fungerer
         id: sjekk_need_output
         run: |
-          echo ${{ needs.build.outputs[env.docker_image_var] }}
-          echo ${{ needs.build.outputs.docker_image_bro-spinn }}
+          echo "${{ needs.build.outputs[env.docker_image_var] }}"
+          echo "${{ needs.build.outputs.docker_image_bro-spinn }}"
           echo "hello"
 #      - name: Deploy
 #        if: env.IMAGE_EXISTS == 'true' && steps.confirm_config_file.outputs.files_exists == 'true'

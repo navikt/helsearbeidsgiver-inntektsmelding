@@ -140,7 +140,7 @@ jobs:
 
       - name: Set docker image output
         id: set_docker_image_output
-        run: echo "docker_image=${{ needs.build.outputs['docker_image_' + env.docker_image_var] }}" >> $GITHUB_ENV
+        run: echo "docker_image=${{ needs.build.outputs[env.docker_image_var] }}" >> $GITHUB_ENV
 
       - name: Sjekk om needs output fungerer
         id: sjekk_need_output

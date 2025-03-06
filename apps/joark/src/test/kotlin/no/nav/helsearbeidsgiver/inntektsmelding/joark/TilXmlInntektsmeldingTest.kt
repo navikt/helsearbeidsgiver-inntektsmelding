@@ -48,6 +48,13 @@ class TilXmlInntektsmeldingTest {
         Assertions.assertEquals(2, skjema.opphoerAvNaturalytelseListe.size)
         Assertions.assertNotNull(skjema.avsendersystem.innsendingstidspunkt)
         Assertions.assertNotNull(skjema.arbeidsforhold.beregnetInntekt.aarsakVedEndring)
+        Assertions.assertEquals(
+            im.inntekt
+                ?.endringAarsaker
+                ?.firstOrNull()
+                ?.tilTekst(),
+            skjema.arbeidsforhold.beregnetInntekt.aarsakVedEndring,
+        )
         println(xmlMapper().writeValueAsString(imXml))
     }
 
@@ -61,6 +68,7 @@ class TilXmlInntektsmeldingTest {
                         inntektsdato = 20.oktober,
                         naturalytelser = emptyList(),
                         endringAarsak = null,
+                        endringAarsaker = emptyList(),
                     ),
             )
         val im = tilXmlInntektsmelding(inntektmeldingUtenAarsak)

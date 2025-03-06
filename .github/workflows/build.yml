@@ -104,7 +104,7 @@ jobs:
         id: docker-build-push
         with:
           team: helsearbeidsgiver
-          image_suffix: ${{ matrix.project }}
+          image_suffix: im-${{ matrix.project }}
           tag: ${{ needs.generate_vars.outputs.short_sha }}
           dockerfile: Dockerfile
           docker_context: apps/${{ matrix.project }}

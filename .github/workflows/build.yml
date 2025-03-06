@@ -9,8 +9,6 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKER_REGISTRY: ghcr.io
-  DOCKER_IMAGE_PREFIX: ${{ github.repository }}/im-
   ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -121,28 +119,13 @@ jobs:
     concurrency:
       group: deploy-dev-${{ matrix.project }}
     steps:
-      - name: Check if docker image exists
-        run: |
-          LAYERS=$(curl -X GET https://$DOCKER_REGISTRY/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.short_sha }} -u $GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }} | jq '.layers')
-          if [ "$LAYERS" == 'null' ]; then
-            echo "IMAGE_EXISTS=false" >> $GITHUB_ENV
-          else
-            echo "IMAGE_EXISTS=true" >> $GITHUB_ENV
-          fi
-
-      - name: Fetch sources
-        if: env.IMAGE_EXISTS == 'true'
-        uses: actions/checkout@v4
-
       - name: Determine app configuration file
-        if: env.IMAGE_EXISTS == 'true'
         run: |
           CONFIG_FILE="config/${{ matrix.project }}/${{ matrix.cluster }}.yml"
           echo "VARS=$CONFIG_FILE" >> $GITHUB_ENV # VARS-variable is used by nais/deploy/actions/deploy
 
       - name: Confirm app configuration file existence
         id: confirm_config_file
-        if: env.IMAGE_EXISTS == 'true'
         uses: andstor/file-existence-action@v3
         with:
           files: "${{ env.VARS }}"

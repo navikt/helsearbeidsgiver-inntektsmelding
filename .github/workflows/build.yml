@@ -105,6 +105,7 @@ jobs:
         with:
           team: helsearbeidsgiver
           image_suffix: ${{ matrix.project }}
+          tag: ${{ needs.generate_vars.outputs.short_sha }}
           dockerfile: Dockerfile
           docker_context: apps/${{ matrix.project }}
 

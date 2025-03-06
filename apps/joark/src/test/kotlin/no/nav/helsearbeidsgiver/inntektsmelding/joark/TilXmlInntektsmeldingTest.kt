@@ -23,6 +23,7 @@ class TilXmlInntektsmeldingTest {
     @Test
     fun `skal mappe inntektsmelding til xml-skjema`() {
         val im = mockInntektsmeldingV1()
+        val im2 = im.copy(inntekt = im.inntekt?.copy(endringAarsaker = null))
         val imXml = tilXmlInntektsmelding(im)
         val skjema = imXml.skjemainnhold
         Assertions.assertNotNull(skjema.aarsakTilInnsending)
@@ -48,7 +49,13 @@ class TilXmlInntektsmeldingTest {
         Assertions.assertEquals(2, skjema.opphoerAvNaturalytelseListe.size)
         Assertions.assertNotNull(skjema.avsendersystem.innsendingstidspunkt)
         Assertions.assertNotNull(skjema.arbeidsforhold.beregnetInntekt.aarsakVedEndring)
-        Assertions.assertEquals(im.inntekt?.endringAarsaker!![0].tilTekst(), skjema.arbeidsforhold.beregnetInntekt.aarsakVedEndring)
+        Assertions.assertEquals(
+            im.inntekt
+                ?.endringAarsaker
+                ?.firstOrNull()
+                ?.tilTekst(),
+            skjema.arbeidsforhold.beregnetInntekt.aarsakVedEndring,
+        )
         println(xmlMapper().writeValueAsString(imXml))
     }
 

@@ -110,7 +110,7 @@ jobs:
       - name: lageπ build-fil
         if: ${{ always() }}
         run: |
-          echo oui > "${{ matrix.project }}_build_${{ steps.docker-build-push.outcome }}.txt"
+          echo ${{ steps.docker-build-push.outputs.image }} > "${{ matrix.project }}_build_${{ steps.docker-build-push.outcome }}.txt"
       - name: laste opp build-fil
         if: ${{ always() }}
         uses: actions/upload-artifact@v4

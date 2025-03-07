@@ -107,6 +107,19 @@ jobs:
           dockerfile: Dockerfile
           docker_context: apps/${{ matrix.project }}
 
+      - name: lageπ build-fil
+        if: ${{ always() }}
+        run: |
+          echo oui > "${{ matrix.project }}_build_${{ steps.docker-build-push.outcome }}.txt"
+      - name: laste opp build-fil
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          retention-days: 1
+          name: "${{ matrix.project }}_build_result"
+          path: "${{ matrix.project }}_build_${{ steps.docker-build-push.outcome }}.txt"
+
       - name: Set docker image output
         id: set-docker-image-output
         run: echo "docker_image_${{ matrix.project }}=${{ steps.docker-build-push.outputs.image }}" >> $GITHUB_OUTPUT
@@ -148,6 +161,22 @@ jobs:
           echo "${{ env.docker_image }}"
           echo "${{ needs.build.outputs.docker_image_bro-spinn }}"
           echo "hello"
+
+      - name: create env vars
+        run: |
+          # VARS og IMAGE er miljøvariabler som leses automatisk av nais/deploy/actions/deploy
+          VARS_FILE="config/${{ matrix.project }}/${{ matrix.cluster }}.yml"
+          echo "VARS=$VARS_FILE" >> $GITHUB_ENV
+
+      - name: laste ned build-fil
+        uses: actions/download-artifact@v4
+        with:
+          name: "${{ matrix.project }}_build_result"
+      - name: ser om vi har nais config og at bygget gikk bra
+        id: deploy-files
+        uses: andstor/file-existence-action@v3
+        with:
+          files: "${{ env.VARS }}, ${{ matrix.project }}_build_success.txt"
 
 #      - name: Deploy
 #        if: env.IMAGE_EXISTS == 'true' && steps.confirm_config_file.outputs.files_exists == 'true'

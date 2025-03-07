@@ -120,10 +120,6 @@ jobs:
           name: "${{ matrix.project }}_build_result"
           path: "${{ matrix.project }}_build_${{ steps.docker-build-push.outcome }}.txt"
 
-      - name: Set docker image output
-        id: set-docker-image-output
-        run: echo "docker_image_${{ matrix.project }}=${{ steps.docker-build-push.outputs.image }}" >> $GITHUB_OUTPUT
-
   deploy:
     runs-on: ubuntu-latest
     permissions:
@@ -165,17 +161,15 @@ jobs:
         with:
           files: "${{ env.VARS }}, ${{ matrix.project }}_build_success.txt"
 
-      - name: Sjekk om needs output fungerer
-        id: sjekk_need_output
-        run: |
-          echo "hello"
-          echo "build_output=$(cat ${{ matrix.project }}_build_success.txt)" >> $GITHUB_ENV
+      - name: Sett docker image som env-var
+        id: sett_docker_image_var
+        run: echo "docker_image=$(cat ${{ matrix.project }}_build_success.txt)" >> $GITHUB_ENV
 
       - name: Deploy
         if: steps.deploy-files.outputs.files_exists == 'true'
         uses: nais/deploy/actions/deploy@v2
         env:
           CLUSTER: ${{ matrix.cluster }}
-          IMAGE: ${{ env.build_output }}
+          IMAGE: ${{ env.docker_image }}
           RESOURCE: config/nais.yml
           VAR: team=helsearbeidsgiver,app=${{ matrix.project }}

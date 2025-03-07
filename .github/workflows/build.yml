@@ -147,21 +147,6 @@ jobs:
         with:
           files: "${{ env.VARS }}"
 
-      - name: Set project docker image variable
-        id: set_dynamic_docker_image
-        run: echo "docker_image_var=docker_image_${{ matrix.project }}" >> $GITHUB_ENV
-
-      - name: Set docker image output
-        id: set_docker_image_output
-        run: echo "docker_image=${{ needs.build.outputs[env.docker_image_var] }}" >> $GITHUB_ENV
-
-      - name: Sjekk om needs output fungerer
-        id: sjekk_need_output
-        run: |
-          echo "${{ env.docker_image }}"
-          echo "${{ needs.build.outputs.docker_image_bro-spinn }}"
-          echo "hello"
-
       - name: Fetch sources
         uses: actions/checkout@v4
       - name: create env vars
@@ -179,6 +164,12 @@ jobs:
         uses: andstor/file-existence-action@v3
         with:
           files: "${{ env.VARS }}, ${{ matrix.project }}_build_success.txt"
+
+      - name: Sjekk om needs output fungerer
+        id: sjekk_need_output
+        run: |
+          echo "hello"
+          echo "build_output=$(cat ${{ matrix.project }}_build_success.txt)" 
 
 #      - name: Deploy
 #        if: env.IMAGE_EXISTS == 'true' && steps.confirm_config_file.outputs.files_exists == 'true'

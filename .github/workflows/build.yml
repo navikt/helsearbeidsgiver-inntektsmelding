@@ -162,6 +162,8 @@ jobs:
           echo "${{ needs.build.outputs.docker_image_bro-spinn }}"
           echo "hello"
 
+      - name: Fetch sources
+        uses: actions/checkout@v4
       - name: create env vars
         run: |
           # VARS og IMAGE er miljøvariabler som leses automatisk av nais/deploy/actions/deploy

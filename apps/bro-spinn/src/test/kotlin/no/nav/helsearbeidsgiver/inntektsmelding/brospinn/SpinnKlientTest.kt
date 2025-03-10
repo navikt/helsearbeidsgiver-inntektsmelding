@@ -36,6 +36,6 @@ class SpinnKlientTest :
         test("Hvis inntektsmelding finnes returneres system navn") {
             val spinnKlient = mockSpinnKlient(expectedJson, HttpStatusCode.OK)
             val result = spinnKlient.hentEksternInntektsmelding(UUID.randomUUID())
-            result.avsenderSystemNavn shouldBe "NAV_NO"
+            result.avsenderSystemNavn shouldBe "NAV_NO1"
         }
     })

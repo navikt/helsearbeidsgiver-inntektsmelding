@@ -6,7 +6,6 @@ on:
       - main
       - preprod/**
       - dev/**
-  workflow_dispatch:
 
 env:
   ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}

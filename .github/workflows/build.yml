@@ -106,7 +106,7 @@ jobs:
           dockerfile: Dockerfile
           docker_context: apps/${{ matrix.project }}
 
-      - name: lageπ build-fil
+      - name: lag build fil
         if: ${{ always() }}
         run: |
           echo ${{ steps.docker-build-push.outputs.image }} > "${{ matrix.project }}_build_${{ steps.docker-build-push.outcome }}.txt"

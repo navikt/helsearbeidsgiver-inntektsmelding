@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Feilregistrert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferie
@@ -229,7 +230,7 @@ class PdfDokumentTest {
     fun `med ingen arbeidsgiverperiode`() {
         val medAgp = im
         val agpErNull = im.copy(agp = null)
-        val agpHarTomPeriodeListe = im.copy(agp = im.agp.shouldNotBeNull().copy(perioder = emptyList()))
+        val agpHarTomPeriodeListe = im.copy(agp = Arbeidsgiverperiode(emptyList(), emptyList(), null))
 
         mapOf(
             "med_arbeidsgiverperiode" to medAgp,

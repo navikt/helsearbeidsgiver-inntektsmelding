@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Feilregistrert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferie
@@ -222,6 +223,27 @@ class PdfDokumentTest {
                     ),
             ),
         )
+    }
+
+    @Test
+    fun `med ingen arbeidsgiverperiode`() {
+        val medAgp = im
+        val agpErNull = im.copy(agp = null)
+        val agpHarTomPeriodeListe = im.copy(agp = im.agp.shouldNotBeNull().copy(perioder = emptyList()))
+
+        mapOf(
+            "med_arbeidsgiverperiode" to medAgp,
+            "med_arbeidsgiverperiode_lik_null" to agpErNull,
+            "med_ingen_arbeidsgiver_perioder" to agpHarTomPeriodeListe,
+        ).forEach { (filNavn, im) ->
+            writePDF(filNavn, im)
+        }
+
+        val pdfAgpRelevantTekst = "Betaler arbeidsgiver full lønn til arbeidstaker i arbeidsgiverperioden?"
+
+        pdfTekstFraIm(medAgp) shouldContain pdfAgpRelevantTekst
+        pdfTekstFraIm(agpErNull) shouldNotContain pdfAgpRelevantTekst
+        pdfTekstFraIm(agpHarTomPeriodeListe) shouldNotContain pdfAgpRelevantTekst
     }
 
     @Test

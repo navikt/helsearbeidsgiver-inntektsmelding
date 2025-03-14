@@ -46,7 +46,7 @@ jobs:
           TESTS=$(find ./apps/integrasjonstest/ -name "*IT.kt" -exec basename {} .kt \; | jq -R -s -c 'split("\n")[:-1]' | jq -c '{"test": .}')
           echo "matrix=${TESTS}" >> $GITHUB_OUTPUT
 
-  felles-integrsjonstest:
+  felles-integrasjonstest:
     needs: build
     runs-on: ubuntu-latest
     strategy:

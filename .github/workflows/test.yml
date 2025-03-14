@@ -15,6 +15,9 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Test
-        run: ./gradlew test --tests --parallel --build-cache '*Test' jacocoTestReport -Dorg.gradle.jvmargs=-Xmx32g
+        run: |
+          ./gradlew :integrasjonstest:test -Porg.gradle.parallel=false --tests '*Test'
+          ./gradlew test --parallel --build-cache --tests '*Test' -Dorg.gradle.jvmargs=-Xmx32g -x :integrasjonstest:test
+          ./gradlew jacocoTestReport -Dorg.gradle.jvmargs=-Xmx32g
         env:
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}

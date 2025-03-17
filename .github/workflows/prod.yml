@@ -144,13 +144,6 @@ jobs:
         with:
           files: "${{ env.VARS }}"
 
-      - name: Confirm app configuration file existence
-        id: confirm_config_file
-        if: env.IMAGE_EXISTS == 'true'
-        uses: andstor/file-existence-action@v3
-        with:
-          files: "${{ env.VARS }}"
-
       - name: Fetch sources
         if: env.IMAGE_EXISTS == 'true'
         uses: actions/checkout@v4

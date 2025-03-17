@@ -145,7 +145,6 @@ jobs:
           files: "${{ env.VARS }}"
 
       - name: Fetch sources
-        if: env.IMAGE_EXISTS == 'true'
         uses: actions/checkout@v4
 
       - name: create env vars

@@ -100,7 +100,13 @@ class ApiInnsendingService(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.LAGRE_IM_SKJEMA.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
-                Key.DATA to data.toJson(),
+                Key.DATA to
+                    data
+                        .plus(
+                            Key.SKJEMA_INNTEKTSMELDING to // TODO LAGRE_IM_SKJEMA tar imot skjemaIM for vanlig flyt.. stygg hack for nå
+                                steg0.innsending.skjema
+                                    .toJson(SkjemaInntektsmelding.serializer()),
+                        ).toJson(),
             ).also { loggBehovPublisert(BehovType.LAGRE_IM_SKJEMA, it) }
     }
 

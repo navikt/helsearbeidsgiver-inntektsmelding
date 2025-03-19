@@ -103,7 +103,7 @@ class ApiInnsendingService(
                 Key.DATA to
                     data
                         .plus(
-                            Key.SKJEMA_INNTEKTSMELDING to // TODO LAGRE_IM_SKJEMA tar imot skjemaIM for vanlig flyt.. stygg hack for nå
+                            Key.SKJEMA_INNTEKTSMELDING to // TODO LAGRE_IM_SKJEMA tar imot skjemaIM i vanlig flyt.. litt stygg hack for nå
                                 steg0.innsending.skjema
                                     .toJson(SkjemaInntektsmelding.serializer()),
                         ).toJson(),

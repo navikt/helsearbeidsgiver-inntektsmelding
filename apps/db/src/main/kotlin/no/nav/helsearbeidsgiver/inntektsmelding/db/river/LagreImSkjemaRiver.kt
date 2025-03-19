@@ -36,7 +36,7 @@ data class LagreImSkjemaMelding(
     val data: Map<Key, JsonElement>,
     val forespoersel: Forespoersel,
     val skjema: SkjemaInntektsmelding,
-    val innsending: Innsending?, // Ikke i bruk enda
+    val innsending: Innsending?, // TODO: Ikke i bruk enda
     val mottatt: LocalDateTime,
 )
 

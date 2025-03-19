@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsm
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.LagretInntektsmelding
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
+import no.nav.helsearbeidsgiver.felles.utils.konverterEndringAarsakTilListe
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -56,7 +57,7 @@ class InntektsmeldingRepository(
                     val mottatt = result.fourth
 
                     when {
-                        skjema != null -> LagretInntektsmelding.Skjema(inntektsmelding?.innsenderNavn, skjema, mottatt)
+                        skjema != null -> LagretInntektsmelding.Skjema(inntektsmelding?.innsenderNavn, skjema.konverterEndringAarsakTilListe(), mottatt)
                         inntektsmelding != null -> {
                             val bakoverkompatibeltSkjema =
                                 SkjemaInntektsmelding(

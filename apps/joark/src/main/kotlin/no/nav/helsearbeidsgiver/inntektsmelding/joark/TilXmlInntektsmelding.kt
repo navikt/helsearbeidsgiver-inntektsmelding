@@ -71,7 +71,8 @@ private fun Inntektsmelding.tilArbeidsforhold(): Arbeidsforhold =
     Arbeidsforhold().also { af ->
         af.beregnetInntekt =
             InntektXml().also {
-                it.aarsakVedEndring = inntekt?.endringAarsak?.tilTekst()
+                // beholder bare første element og bevisst forkaster resten for å unngå endring i XML formatet
+                it.aarsakVedEndring = inntekt?.endringAarsaker?.firstOrNull()?.tilTekst()
                 it.beloep = inntekt?.beloep?.toBigDecimal()
             }
         af.foersteFravaersdag =

@@ -318,7 +318,8 @@ private fun Inntekt.hardcodedJson(): String =
         "beloep": $beloep,
         "inntektsdato": "$inntektsdato",
         "naturalytelser": [${naturalytelser.joinToString(transform = Naturalytelse::hardcodedJson)}],
-        "endringAarsak": ${endringAarsak?.hardcodedJson()}
+        "endringAarsak": ${endringAarsak?.hardcodedJson()},
+        "endringAarsaker": [${endringAarsak?.hardcodedJson()}]
     }
     """
 

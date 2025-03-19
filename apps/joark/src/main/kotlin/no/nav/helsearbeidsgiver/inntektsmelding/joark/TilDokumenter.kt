@@ -50,12 +50,11 @@ fun tilDokumenter(
 private fun ByteArray.encode(): String = base64.encodeToString(this)
 
 fun Inntektsmelding.tilDokumentbeskrivelse(): String {
-    val orgnr = this.avsender.orgnr.verdi
     val agp =
         this.agp
             ?.perioder
             ?.ifEmpty { null }
             ?.tilKortFormat()
             .orDefault("(ingen agp)")
-    return "Inntektsmelding-$orgnr-$agp"
+    return "Inntektsmelding-$agp"
 }

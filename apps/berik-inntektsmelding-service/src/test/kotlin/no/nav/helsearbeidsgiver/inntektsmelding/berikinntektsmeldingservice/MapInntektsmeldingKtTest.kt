@@ -44,6 +44,7 @@ class MapInntektsmeldingKtTest :
                         sykmeldtNavn = sykmeldtNavn,
                         avsenderNavn = avsenderNavn,
                         mottatt = imMottatt,
+                        innsending = null, // TODO: test med innsending != null (API-innsendt) også.
                     )
 
                 inntektsmelding.apply {

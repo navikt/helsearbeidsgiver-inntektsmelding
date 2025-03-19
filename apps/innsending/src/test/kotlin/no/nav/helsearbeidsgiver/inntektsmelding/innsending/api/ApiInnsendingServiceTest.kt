@@ -9,9 +9,8 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -26,13 +25,12 @@ import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.json.plusData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
-import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInnsending
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
-import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.kl
 import java.util.UUID
 
@@ -53,25 +51,9 @@ class ApiInnsendingServiceTest :
 
         test("nytt inntektsmeldingskjema lagres og sendes videre til beriking") {
             val kontekstId = UUID.randomUUID()
-
-            val nyttSkjema =
-                Mock.skjema.let { skjema ->
-                    skjema.copy(
-                        agp =
-                            skjema.agp?.let { agp ->
-                                Arbeidsgiverperiode(
-                                    perioder = agp.perioder,
-                                    egenmeldinger = listOf(13.juli til 31.juli),
-                                    redusertLoennIAgp = agp.redusertLoennIAgp,
-                                )
-                            },
-                    )
-                }
-
+            val innsending = Mock.innsending
             testRapid.sendJson(
-                Mock.steg0(kontekstId).plusData(
-                    Key.SKJEMA_INNTEKTSMELDING to nyttSkjema.toJson(SkjemaInntektsmelding.serializer()),
-                ),
+                Mock.steg0(kontekstId),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
@@ -79,7 +61,7 @@ class ApiInnsendingServiceTest :
 
             testRapid.sendJson(
                 Mock.steg1(kontekstId).plusData(
-                    Key.SKJEMA_INNTEKTSMELDING to nyttSkjema.toJson(SkjemaInntektsmelding.serializer()),
+                    Key.INNSENDING to innsending.toJson(Innsending.serializer()),
                 ),
             )
 
@@ -88,7 +70,7 @@ class ApiInnsendingServiceTest :
 
             testRapid.sendJson(
                 Mock.steg2(kontekstId).plusData(
-                    Key.SKJEMA_INNTEKTSMELDING to nyttSkjema.toJson(SkjemaInntektsmelding.serializer()),
+                    Key.SKJEMA_INNTEKTSMELDING to innsending.skjema.toJson(SkjemaInntektsmelding.serializer()),
                 ),
             )
 
@@ -98,7 +80,7 @@ class ApiInnsendingServiceTest :
                 Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
 
                 val data = it[Key.DATA]?.toMap().orEmpty()
-                Key.SKJEMA_INNTEKTSMELDING.lesOrNull(SkjemaInntektsmelding.serializer(), data) shouldBe nyttSkjema
+                Key.SKJEMA_INNTEKTSMELDING.lesOrNull(SkjemaInntektsmelding.serializer(), data) shouldBe innsending.skjema
                 Key.INNSENDING_ID.lesOrNull(Long.serializer(), data) shouldBe Mock.INNSENDING_ID
             }
 
@@ -106,7 +88,7 @@ class ApiInnsendingServiceTest :
                 mockRedisStore.skrivResultat(
                     kontekstId,
                     ResultJson(
-                        success = nyttSkjema.forespoerselId.toJson(),
+                        success = innsending.skjema.forespoerselId.toJson(),
                     ),
                 )
             }
@@ -114,13 +96,20 @@ class ApiInnsendingServiceTest :
 
         test("duplikat skjema sendes _ikke_ videre til beriking") {
             val kontekstId = UUID.randomUUID()
+            val innsending = mockInnsending()
 
-            testRapid.sendJson(Mock.steg0(kontekstId))
+            testRapid.sendJson(
+                Mock.steg0(kontekstId),
+            )
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.message(0).lesBehov() shouldBe BehovType.HENT_TRENGER_IM
 
-            testRapid.sendJson(Mock.steg1(kontekstId))
+            testRapid.sendJson(
+                Mock.steg1(kontekstId).plusData(
+                    Key.INNSENDING to innsending.toJson(Innsending.serializer()),
+                ),
+            )
 
             testRapid.inspektør.size shouldBeExactly 2
             testRapid.message(1).lesBehov() shouldBe BehovType.LAGRE_IM_SKJEMA
@@ -137,7 +126,9 @@ class ApiInnsendingServiceTest :
                 mockRedisStore.skrivResultat(
                     kontekstId,
                     ResultJson(
-                        success = Mock.skjema.forespoerselId.toJson(),
+                        success =
+                            Mock.innsending.skjema.forespoerselId
+                                .toJson(),
                     ),
                 )
             }
@@ -171,7 +162,7 @@ class ApiInnsendingServiceTest :
 private object Mock {
     const val INNSENDING_ID = 1L
 
-    val skjema = mockSkjemaInntektsmelding()
+    val innsending = mockInnsending()
     val mottatt = 15.august.kl(12, 0, 0, 0)
 
     fun steg0(kontekstId: UUID): Map<Key, JsonElement> =
@@ -180,7 +171,7 @@ private object Mock {
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
+                    Key.INNSENDING to innsending.toJson(Innsending.serializer()),
                     Key.MOTTATT to mottatt.toJson(),
                 ).toJson(),
         )
@@ -195,6 +186,8 @@ private object Mock {
             mapOf(
                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
                 Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
+                Key.SKJEMA_INNTEKTSMELDING to innsending.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                Key.INNSENDING to innsending.toJson(Innsending.serializer()),
             ),
         )
 }

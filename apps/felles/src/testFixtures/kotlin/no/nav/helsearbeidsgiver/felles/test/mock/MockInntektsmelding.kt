@@ -6,12 +6,15 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Kanal
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStillingsprosent
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RefusjonEndring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.AvsenderSystem
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaAvsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
@@ -25,6 +28,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.september
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.util.UUID
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding as InntektsmeldingGammeltFormat
@@ -38,6 +42,22 @@ fun mockSkjemaInntektsmelding(): SkjemaInntektsmelding {
         inntekt = inntektsmelding.inntekt,
         refusjon = inntektsmelding.refusjon,
     )
+}
+
+fun mockInnsending(): Innsending {
+    val skjema = mockSkjemaInntektsmelding()
+    val innsending =
+        Innsending(
+            innsendingId = UUID.randomUUID(),
+            skjema = skjema,
+            aarsakInnsending = AarsakInnsending.Ny,
+            type = Inntektsmelding.Type.Forespurt(skjema.forespoerselId),
+            avsenderSystem = AvsenderSystem(Orgnr.genererGyldig(), "TigerSys", "3.0"),
+            innsendtTid = OffsetDateTime.now(),
+            kanal = Kanal.NAV_NO,
+            versjon = 1,
+        )
+    return innsending
 }
 
 fun mockSkjemaInntektsmeldingSelvbestemt(): SkjemaInntektsmeldingSelvbestemt {

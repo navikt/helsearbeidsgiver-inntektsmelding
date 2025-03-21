@@ -141,6 +141,7 @@ private fun List<String>.joinKeySeparator(withPostfix: Boolean = false): String 
 
 enum class RedisPrefix {
     AktiveOrgnr,
+    ApiInnsending,
     HentForespoersel,
     HentForespoerslerForVedtaksperiodeIdListe,
     HentSelvbestemtIm,

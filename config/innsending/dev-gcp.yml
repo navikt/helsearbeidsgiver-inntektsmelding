@@ -1,2 +1,5 @@
 kafkaPool: nav-dev
 valkeyAccess: readwrite
+env:
+  - name: KAFKA_EXTRA_TOPIC
+    value: helsearbeidsgiver.api-innsending

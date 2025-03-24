@@ -70,7 +70,7 @@ class LagreImSkjemaRiver(
 
         val erDuplikat = sisteImSkjema?.erDuplikatAv(skjema, forespoersel) ?: false
 
-        // TODO: ta imot innsendingId fra innsending og bruke den..?
+        // TODO: bruk innsendingId fra innsending og lagre den, nå bare videresender vi innsendingId
         val innsendingId =
             if (erDuplikat) {
                 sikkerLogger.warn("Fant duplikat av inntektsmeldingskjema.")

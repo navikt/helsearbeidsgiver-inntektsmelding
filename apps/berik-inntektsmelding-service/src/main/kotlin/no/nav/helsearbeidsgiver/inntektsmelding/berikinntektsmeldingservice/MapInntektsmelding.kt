@@ -20,7 +20,7 @@ fun mapInntektsmelding(
     sykmeldtNavn: String,
     avsenderNavn: String,
     mottatt: LocalDateTime,
-    innsending: Innsending? = null,
+    innsending: Innsending? = null, // TODO: kanskje heller en separat mapping for api-innsending?
 ): Inntektsmelding {
     val agp =
         if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
@@ -49,7 +49,6 @@ fun mapInntektsmelding(
             null
         }
     return Inntektsmelding(
-        // TODO: skitten innsending ?-logikk - fix fix
         id = innsending?.innsendingId ?: UUID.randomUUID(),
         type =
             innsending?.type

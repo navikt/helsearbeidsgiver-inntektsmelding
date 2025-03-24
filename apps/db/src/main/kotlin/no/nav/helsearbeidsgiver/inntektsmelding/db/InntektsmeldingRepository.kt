@@ -151,7 +151,7 @@ class InntektsmeldingRepository(
 
     fun oppdaterMedBeriketDokument(
         forespoerselId: UUID,
-        innsendingId: Long,
+        innsendingId: Long, // TODO: denne kan erstattes med inntektsmelding.id når ny IM payload brukes
         inntektsmeldingDokument: Inntektsmelding,
     ) {
         val antallOppdatert =

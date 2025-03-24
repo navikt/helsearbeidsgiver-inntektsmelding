@@ -63,24 +63,23 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
         clearAllMocks()
     }
 
-//    @Test // TODO: funker ikke med ny versjon av hag-domene Inntektsmelding - AvsenderSystem mangler
-//    fun `gir OK med inntektsmelding`() =
-//        testApi {
-//            val expectedInntektsmelding = mockInntektsmeldingV1()
-//
-//            coEvery { mockRedisConnection.get(any()) } returnsMany
-//                listOf(
-//                    Mock.successResult(expectedInntektsmelding),
-//                    harTilgangResultat,
-//                )
-//
-//            val response = get(pathMedId)
-//
-//            val actualJson = response.bodyAsText()
-//
-//            response.status shouldBe HttpStatusCode.OK
-//            actualJson shouldBe Mock.successResponseJson(expectedInntektsmelding)
-//        }
+    @Test
+    fun `gir OK med inntektsmelding`() =
+        testApi {
+            val expectedInntektsmelding = mockInntektsmeldingV1()
+            coEvery { mockRedisConnection.get(any()) } returnsMany
+                listOf(
+                    Mock.successResult(expectedInntektsmelding),
+                    harTilgangResultat,
+                )
+
+            val response = get(pathMedId)
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.OK
+            actualJson shouldBe Mock.successResponseJson(expectedInntektsmelding)
+        }
 
     @Test
     fun `manglende tilgang gir 500-feil`() =
@@ -256,6 +255,7 @@ private fun Inntektsmelding.hardcodedJson(): String =
         "aarsakInnsending": "$aarsakInnsending",
         "mottatt": "$mottatt",
         "vedtaksperiodeId": "$vedtaksperiodeId",
+        "kanal": "$kanal",
         "avsenderSystem": ${avsenderSystem.hardcodedJson()}
     }
     """.removeJsonWhitespace()

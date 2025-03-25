@@ -4,7 +4,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.AvsenderSystem
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
@@ -74,6 +73,5 @@ fun mapInntektsmelding(
         aarsakInnsending = innsending?.aarsakInnsending ?: aarsakInnsending,
         mottatt = mottatt.toOffsetDateTimeOslo(),
         vedtaksperiodeId = forespoersel.vedtaksperiodeId,
-        avsenderSystem = innsending?.avsenderSystem ?: AvsenderSystem(),
     )
 }

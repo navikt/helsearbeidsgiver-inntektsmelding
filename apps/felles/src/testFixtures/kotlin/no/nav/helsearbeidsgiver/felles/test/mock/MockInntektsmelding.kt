@@ -6,7 +6,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Kanal
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStillingsprosent
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
@@ -51,10 +50,16 @@ fun mockInnsending(): Innsending {
             innsendingId = UUID.randomUUID(),
             skjema = skjema,
             aarsakInnsending = AarsakInnsending.Ny,
-            type = Inntektsmelding.Type.Forespurt(skjema.forespoerselId),
-            avsenderSystem = AvsenderSystem(Orgnr.genererGyldig(), "TigerSys", "3.0"),
+            type =
+                Inntektsmelding.Type.ForespurtEkstern(
+                    skjema.forespoerselId,
+                    AvsenderSystem(
+                        orgnr = Orgnr.genererGyldig(),
+                        navn = "Tigersys",
+                        versjon = "3.0.0",
+                    ),
+                ),
             innsendtTid = OffsetDateTime.now(),
-            kanal = Kanal.NAV_NO,
             versjon = 1,
         )
     return innsending

@@ -254,9 +254,7 @@ private fun Inntektsmelding.hardcodedJson(): String =
         "refusjon": ${refusjon?.hardcodedJson()},
         "aarsakInnsending": "$aarsakInnsending",
         "mottatt": "$mottatt",
-        "vedtaksperiodeId": "$vedtaksperiodeId",
-        "kanal": "$kanal",
-        "avsenderSystem": ${avsenderSystem.hardcodedJson()}
+        "vedtaksperiodeId": "$vedtaksperiodeId"
     }
     """.removeJsonWhitespace()
 
@@ -266,7 +264,8 @@ private fun Inntektsmelding.Type.hardcodedJson(): String =
             """
             {
                 "type": "Forespurt",
-                "id": "$id"
+                "id": "$id",
+                "avsenderSystem": ${this.avsenderSystem.hardcodedJson()}
             }
             """
 
@@ -274,7 +273,17 @@ private fun Inntektsmelding.Type.hardcodedJson(): String =
             """
             {
                 "type": "Selvbestemt",
-                "id": "$id"
+                "id": "$id",
+                "avsenderSystem": ${this.avsenderSystem.hardcodedJson()}
+            }
+            """
+
+        is Inntektsmelding.Type.ForespurtEkstern ->
+            """
+            {
+                "type": "ForespurtEkstern",
+                "id": "$id",
+                "avsenderSystem": ${this.avsenderSystem.hardcodedJson()}
             }
             """
     }
@@ -301,8 +310,8 @@ private fun AvsenderSystem.hardcodedJson(): String =
     """
     {
         "orgnr": "$orgnr",
-        "avsenderSystemNavn": "$avsenderSystemNavn",
-        "avsenderSystemVersjon": "$avsenderSystemVersjon"
+        "navn": "$navn",
+        "versjon": "$versjon"
     }
     """
 

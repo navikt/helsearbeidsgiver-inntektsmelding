@@ -40,13 +40,16 @@ fun RapidsConnection.createInnsending(redisConnection: RedisConnection): RapidsC
             ),
         ).connect(this)
 
-        logger.info("Starter ${ApiInnsendingService::class.simpleName}...")
-        ServiceRiverStateless(
-            ApiInnsendingService(
-                rapid = this,
-                redisStore = RedisStore(redisConnection, RedisPrefix.ApiInnsending),
-            ),
-        ).connect(this)
+        // TODO: Enable i prod når vi kobler til nytt kafka-topic
+        if ("dev-gcp".equals(System.getenv()["NAIS_CLUSTER_NAME"], ignoreCase = true)) {
+            logger.info("Starter ${ApiInnsendingService::class.simpleName}...")
+            ServiceRiverStateless(
+                ApiInnsendingService(
+                    rapid = this,
+                    redisStore = RedisStore(redisConnection, RedisPrefix.ApiInnsending),
+                ),
+            ).connect(this)
+        }
 
         logger.info("Starter ${KvitteringService::class.simpleName}...")
         ServiceRiverStateful(

@@ -19,7 +19,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingGammeltFormat
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -44,10 +44,10 @@ class InnsendingServiceIT : EndToEndTest() {
     @Test
     fun `Test at innsending er mottatt`() {
         val kontekstId: UUID = UUID.randomUUID()
-        val tidligereInntektsmelding = mockInntektsmeldingGammeltFormat()
+        val tidligereInntektsmelding = mockInntektsmeldingV1()
 
         val innsendingId = imRepository.lagreInntektsmeldingSkjema(Mock.skjema, 9.desember.atStartOfDay())
-        imRepository.oppdaterMedBeriketDokument(Mock.skjema.forespoerselId, innsendingId, tidligereInntektsmelding)
+        imRepository.oppdaterMedBeriketDokument(innsendingId, tidligereInntektsmelding)
 
         mockForespoerselSvarFraHelsebro(
             forespoerselId = Mock.skjema.forespoerselId,

@@ -39,7 +39,7 @@ private const val UKJENT_VIRKSOMHET = "Ukjent virksomhet"
 
 data class Steg0(
     val kontekstId: UUID,
-    val avsenderFnr: Fnr?,
+    val avsenderFnr: Fnr?, // TODO: trenger ikke nullable når / om vi lager egen service for API-innsendt
     val skjema: SkjemaInntektsmelding,
     val innsending: Innsending?, // TODO: Kan dele opp API-innsending-berik i egen service
     val innsendingId: Long,

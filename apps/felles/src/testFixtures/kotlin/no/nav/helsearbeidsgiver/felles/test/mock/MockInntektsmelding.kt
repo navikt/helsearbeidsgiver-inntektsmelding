@@ -43,24 +43,22 @@ fun mockSkjemaInntektsmelding(): SkjemaInntektsmelding {
 
 fun mockInnsending(): Innsending {
     val skjema = mockSkjemaInntektsmelding()
-    val innsending =
-        Innsending(
-            innsendingId = UUID.randomUUID(),
-            skjema = skjema,
-            aarsakInnsending = AarsakInnsending.Ny,
-            type =
-                Inntektsmelding.Type.ForespurtEkstern(
-                    skjema.forespoerselId,
-                    AvsenderSystem(
-                        orgnr = Orgnr.genererGyldig(),
-                        navn = "Tigersys",
-                        versjon = "3.0.0",
-                    ),
+    return Innsending(
+        innsendingId = UUID.randomUUID(),
+        skjema = skjema,
+        aarsakInnsending = AarsakInnsending.Ny,
+        type =
+            Inntektsmelding.Type.ForespurtEkstern(
+                skjema.forespoerselId,
+                AvsenderSystem(
+                    orgnr = Orgnr.genererGyldig(),
+                    navn = "Tigersys",
+                    versjon = "3.0.0",
                 ),
-            innsendtTid = OffsetDateTime.now(),
-            versjon = 1,
-        )
-    return innsending
+            ),
+        innsendtTid = OffsetDateTime.now(),
+        versjon = 1,
+    )
 }
 
 fun mockSkjemaInntektsmeldingSelvbestemt(): SkjemaInntektsmeldingSelvbestemt {

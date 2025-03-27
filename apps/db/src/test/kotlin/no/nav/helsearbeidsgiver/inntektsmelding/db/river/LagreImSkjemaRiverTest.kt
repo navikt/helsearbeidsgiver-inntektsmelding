@@ -205,6 +205,7 @@ private fun innkommendeMelding(
         forespoersel = forespoersel,
         skjema = skjema,
         mottatt = mottatt,
+        innsending = null,
     )
 }
 

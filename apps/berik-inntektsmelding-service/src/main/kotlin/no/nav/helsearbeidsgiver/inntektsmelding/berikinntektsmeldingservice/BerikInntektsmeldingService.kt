@@ -5,6 +5,7 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -12,6 +13,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -37,10 +39,12 @@ private const val UKJENT_VIRKSOMHET = "Ukjent virksomhet"
 
 data class Steg0(
     val kontekstId: UUID,
-    val avsenderFnr: Fnr,
+    val avsenderFnr: Fnr?, // TODO: trenger ikke nullable når / om vi lager egen service for API-innsendt
     val skjema: SkjemaInntektsmelding,
+    val innsending: Innsending?, // TODO: Kan dele opp API-innsending-berik i egen service
     val innsendingId: Long,
     val mottatt: LocalDateTime,
+    // TODO: forespørsel er jo her allerede.!
 )
 
 data class Steg1(
@@ -71,9 +75,10 @@ class BerikInntektsmeldingService(
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
             kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
-            avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding),
+            avsenderFnr = Key.ARBEIDSGIVER_FNR.lesOrNull(Fnr.serializer(), melding),
             skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding),
             innsendingId = Key.INNSENDING_ID.les(Long.serializer(), melding),
+            innsending = Key.INNSENDING.lesOrNull(Innsending.serializer(), melding),
             mottatt = Key.MOTTATT.les(LocalDateTimeSerializer, melding),
         )
 
@@ -98,7 +103,7 @@ class BerikInntektsmeldingService(
             erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
         )
 
-    override fun utfoerSteg0(
+    override fun utfoerSteg0( // TODO: Forespørsel sendes inn, trenger ikke slå opp!?
         data: Map<Key, JsonElement>,
         steg0: Steg0,
     ) {
@@ -155,7 +160,7 @@ class BerikInntektsmeldingService(
                             mapOf(
                                 Key.SVAR_KAFKA_KEY to KafkaKey(steg0.skjema.forespoerselId).toJson(),
                                 Key.FNR_LISTE to
-                                    listOf(
+                                    listOfNotNull(
                                         steg1.forespoersel.fnr,
                                         steg0.avsenderFnr,
                                     ).toJson(Fnr.serializer()),
@@ -174,10 +179,11 @@ class BerikInntektsmeldingService(
         val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr] ?: UKJENT_VIRKSOMHET
         val sykmeldtNavn = steg3.personer[steg1.forespoersel.fnr]?.navn ?: UKJENT_NAVN
         val avsenderNavn = steg3.personer[steg0.avsenderFnr]?.navn ?: UKJENT_NAVN
-        val aarsakInnsending = if (steg1.forespoersel.erBesvart) AarsakInnsending.Endring else AarsakInnsending.Ny
+        val aarsakInnsending = if (steg1.forespoersel.erBesvart) AarsakInnsending.Endring else AarsakInnsending.Ny // !!! hmm
 
         val inntektsmelding =
             mapInntektsmelding(
+                innsending = steg0.innsending,
                 forespoersel = steg1.forespoersel,
                 skjema = steg0.skjema,
                 aarsakInnsending = aarsakInnsending,

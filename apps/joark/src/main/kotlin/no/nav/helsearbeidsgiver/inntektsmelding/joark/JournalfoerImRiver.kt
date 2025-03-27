@@ -108,7 +108,7 @@ class JournalfoerImRiver(
             Log.event(eventName),
             Log.kontekstId(kontekstId),
             when (inntektsmelding.type) {
-                is Inntektsmelding.Type.Forespurt -> Log.forespoerselId(inntektsmelding.type.id)
+                is Inntektsmelding.Type.Forespurt, is Inntektsmelding.Type.ForespurtEkstern -> Log.forespoerselId(inntektsmelding.type.id)
                 is Inntektsmelding.Type.Selvbestemt -> Log.selvbestemtId(inntektsmelding.type.id)
             },
         )

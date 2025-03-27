@@ -57,7 +57,7 @@ class LagreJournalpostIdRiver(
         sikkerLogger.info("Mottok melding:\n${json.toPretty()}")
 
         when (inntektsmelding.type) {
-            is Inntektsmelding.Type.Forespurt -> {
+            is Inntektsmelding.Type.Forespurt, is Inntektsmelding.Type.ForespurtEkstern -> {
                 if (innsendingId != null) {
                     imRepo.oppdaterJournalpostId(innsendingId, journalpostId)
 
@@ -116,7 +116,7 @@ class LagreJournalpostIdRiver(
             Log.event(eventName),
             Log.kontekstId(kontekstId),
             when (inntektsmelding.type) {
-                is Inntektsmelding.Type.Forespurt -> Log.forespoerselId(inntektsmelding.type.id)
+                is Inntektsmelding.Type.Forespurt, is Inntektsmelding.Type.ForespurtEkstern -> Log.forespoerselId(inntektsmelding.type.id)
                 is Inntektsmelding.Type.Selvbestemt -> Log.selvbestemtId(inntektsmelding.type.id)
             },
         )

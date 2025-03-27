@@ -11,6 +11,8 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RefusjonEndring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.AvsenderSystem
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaAvsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
@@ -25,6 +27,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.september
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import java.time.OffsetDateTime
 import java.util.UUID
 
 fun mockSkjemaInntektsmelding(): SkjemaInntektsmelding {
@@ -35,6 +38,26 @@ fun mockSkjemaInntektsmelding(): SkjemaInntektsmelding {
         agp = inntektsmelding.agp,
         inntekt = inntektsmelding.inntekt,
         refusjon = inntektsmelding.refusjon,
+    )
+}
+
+fun mockInnsending(): Innsending {
+    val skjema = mockSkjemaInntektsmelding()
+    return Innsending(
+        innsendingId = UUID.randomUUID(),
+        skjema = skjema,
+        aarsakInnsending = AarsakInnsending.Ny,
+        type =
+            Inntektsmelding.Type.ForespurtEkstern(
+                skjema.forespoerselId,
+                AvsenderSystem(
+                    orgnr = Orgnr.genererGyldig(),
+                    navn = "Tigersys",
+                    versjon = "3.0.0",
+                ),
+            ),
+        innsendtTid = OffsetDateTime.now(),
+        versjon = 1,
     )
 }
 

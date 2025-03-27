@@ -30,6 +30,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykefravaer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.AvsenderSystem
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
@@ -66,7 +67,6 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
     fun `gir OK med inntektsmelding`() =
         testApi {
             val expectedInntektsmelding = mockInntektsmeldingV1()
-
             coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     Mock.successResult(expectedInntektsmelding),
@@ -264,7 +264,8 @@ private fun Inntektsmelding.Type.hardcodedJson(): String =
             """
             {
                 "type": "Forespurt",
-                "id": "$id"
+                "id": "$id",
+                "avsenderSystem": ${this.avsenderSystem.hardcodedJson()}
             }
             """
 
@@ -272,7 +273,17 @@ private fun Inntektsmelding.Type.hardcodedJson(): String =
             """
             {
                 "type": "Selvbestemt",
-                "id": "$id"
+                "id": "$id",
+                "avsenderSystem": ${this.avsenderSystem.hardcodedJson()}
+            }
+            """
+
+        is Inntektsmelding.Type.ForespurtEkstern ->
+            """
+            {
+                "type": "ForespurtEkstern",
+                "id": "$id",
+                "avsenderSystem": ${this.avsenderSystem.hardcodedJson()}
             }
             """
     }
@@ -292,6 +303,15 @@ private fun Avsender.hardcodedJson(): String =
         "orgNavn": "$orgNavn",
         "navn": "$navn",
         "tlf": "$tlf"
+    }
+    """
+
+private fun AvsenderSystem.hardcodedJson(): String =
+    """
+    {
+        "orgnr": "$orgnr",
+        "navn": "$navn",
+        "versjon": "$versjon"
     }
     """
 

@@ -4,6 +4,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.utils.toOffsetDateTimeOslo
@@ -18,6 +19,7 @@ fun mapInntektsmelding(
     sykmeldtNavn: String,
     avsenderNavn: String,
     mottatt: LocalDateTime,
+    innsending: Innsending? = null, // TODO: kanskje heller en separat mapping for api-innsending?
 ): Inntektsmelding {
     val agp =
         if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
@@ -45,13 +47,13 @@ fun mapInntektsmelding(
         } else {
             null
         }
-
     return Inntektsmelding(
-        id = UUID.randomUUID(),
+        id = innsending?.innsendingId ?: UUID.randomUUID(),
         type =
-            Inntektsmelding.Type.Forespurt(
-                id = skjema.forespoerselId,
-            ),
+            innsending?.type
+                ?: Inntektsmelding.Type.Forespurt(
+                    id = skjema.forespoerselId,
+                ),
         sykmeldt =
             Sykmeldt(
                 fnr = forespoersel.fnr,
@@ -68,7 +70,7 @@ fun mapInntektsmelding(
         agp = agp,
         inntekt = inntekt,
         refusjon = refusjon,
-        aarsakInnsending = aarsakInnsending,
+        aarsakInnsending = innsending?.aarsakInnsending ?: aarsakInnsending,
         mottatt = mottatt.toOffsetDateTimeOslo(),
         vedtaksperiodeId = forespoersel.vedtaksperiodeId,
     )

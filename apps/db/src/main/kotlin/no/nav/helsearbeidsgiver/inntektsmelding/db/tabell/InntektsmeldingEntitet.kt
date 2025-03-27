@@ -1,8 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.tabell
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
+import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.InntektsmeldingGammeltFormat
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.datetime
@@ -13,12 +13,13 @@ object InntektsmeldingEntitet : Table("inntektsmelding") {
         long("id").autoIncrement(
             idSeqName = "inntektsmelding_id_seq",
         )
+    val inntektsmeldingId = uuid("inntektsmelding_id").nullable()
     val forespoerselId = varchar(name = "forespoersel_id", length = 40)
     val dokument =
-        jsonb<Inntektsmelding>(
+        jsonb<InntektsmeldingGammeltFormat>(
             name = "dokument",
             jsonConfig = jsonConfig,
-            kSerializer = Inntektsmelding.serializer(),
+            kSerializer = InntektsmeldingGammeltFormat.serializer(),
         ).nullable()
     val eksternInntektsmelding =
         jsonb<EksternInntektsmelding>(
@@ -33,6 +34,8 @@ object InntektsmeldingEntitet : Table("inntektsmelding") {
             kSerializer = SkjemaInntektsmelding.serializer(),
         ).nullable()
     val innsendt = datetime("innsendt")
+    val avsenderNavn = text("avsender_navn").nullable()
     val journalpostId = varchar("journalpostid", 30).nullable()
+
     override val primaryKey = PrimaryKey(id, name = "id")
 }

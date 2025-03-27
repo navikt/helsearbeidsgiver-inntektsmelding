@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.felles.test.mock
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
@@ -19,6 +18,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsm
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.utils.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.date.november
@@ -28,9 +28,7 @@ import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import java.util.UUID
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding as InntektsmeldingGammeltFormat
 
 fun mockSkjemaInntektsmelding(): SkjemaInntektsmelding {
     val inntektsmelding = mockInntektsmeldingV1()
@@ -111,7 +109,7 @@ fun mockInntektsmeldingV1(): Inntektsmelding =
         inntekt = mockInntekt(),
         refusjon = mockRefusjon(),
         aarsakInnsending = AarsakInnsending.Endring,
-        mottatt = 14.mars.kl(14, 41, 42, 0).atOffset(ZoneOffset.ofHours(1)),
+        mottatt = 14.mars.kl(14, 41, 42, 0).toOffsetDateTimeOslo(),
         vedtaksperiodeId = UUID.randomUUID(),
     )
 
@@ -183,8 +181,6 @@ fun mockRefusjon(): Refusjon =
             ),
         sluttdato = 30.november,
     )
-
-fun mockInntektsmeldingGammeltFormat(): InntektsmeldingGammeltFormat = mockInntektsmeldingV1().convert()
 
 fun mockEksternInntektsmelding(): EksternInntektsmelding =
     EksternInntektsmelding(

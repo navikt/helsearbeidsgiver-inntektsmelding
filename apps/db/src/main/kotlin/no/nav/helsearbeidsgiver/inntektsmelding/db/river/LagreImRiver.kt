@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -56,9 +55,7 @@ class LagreImRiver(
     override fun LagreImMelding.bestemNoekkel(): KafkaKey = KafkaKey(inntektsmelding.type.id)
 
     override fun LagreImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        val inntektsmeldingGammeltFormat = inntektsmelding.convert()
-
-        imRepo.oppdaterMedBeriketDokument(inntektsmelding.type.id, innsendingId, inntektsmeldingGammeltFormat)
+        imRepo.oppdaterMedBeriketDokument(innsendingId, inntektsmelding)
         sikkerLogger.info("Lagret inntektsmelding.")
 
         return mapOf(

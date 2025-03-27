@@ -14,7 +14,6 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -45,7 +44,7 @@ class LagreImRiverTest :
         }
 
         test("inntektsmelding lagres") {
-            every { mockImRepo.oppdaterMedBeriketDokument(any(), any(), any()) } just Runs
+            every { mockImRepo.oppdaterMedBeriketDokument(any(), any()) } just Runs
 
             val nyInntektsmelding = mockInntektsmeldingV1()
 
@@ -68,13 +67,13 @@ class LagreImRiverTest :
                 )
 
             verifySequence {
-                mockImRepo.oppdaterMedBeriketDokument(innkommendeMelding.inntektsmelding.type.id, innsendingId, nyInntektsmelding.convert())
+                mockImRepo.oppdaterMedBeriketDokument(innsendingId, nyInntektsmelding)
             }
         }
 
         test("håndterer at repo feiler") {
             every {
-                mockImRepo.oppdaterMedBeriketDokument(any(), any(), any())
+                mockImRepo.oppdaterMedBeriketDokument(any(), any())
             } throws RuntimeException("thank you, next")
 
             val innkommendeMelding = innkommendeMelding(innsendingId)
@@ -93,7 +92,7 @@ class LagreImRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             verifySequence {
-                mockImRepo.oppdaterMedBeriketDokument(any(), any(), any())
+                mockImRepo.oppdaterMedBeriketDokument(any(), any())
             }
         }
 
@@ -114,7 +113,7 @@ class LagreImRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 verify(exactly = 0) {
-                    mockImRepo.oppdaterMedBeriketDokument(any(), any(), any())
+                    mockImRepo.oppdaterMedBeriketDokument(any(), any())
                 }
             }
         }

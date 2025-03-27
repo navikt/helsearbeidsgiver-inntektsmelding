@@ -10,7 +10,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingGammeltFormat
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
@@ -33,7 +33,7 @@ class KvitteringIT : EndToEndTest() {
     fun `skal hente data til kvittering`() {
         val kontekstId = UUID.randomUUID()
         val skjema = mockSkjemaInntektsmelding()
-        val inntektsmelding = mockInntektsmeldingGammeltFormat()
+        val inntektsmelding = mockInntektsmeldingV1()
         val mottatt = 3.desember.atStartOfDay()
 
         mockForespoerselSvarFraHelsebro(
@@ -45,7 +45,7 @@ class KvitteringIT : EndToEndTest() {
         )
 
         val innsendingId = imRepository.lagreInntektsmeldingSkjema(skjema, mottatt)
-        imRepository.oppdaterMedBeriketDokument(skjema.forespoerselId, innsendingId, inntektsmelding)
+        imRepository.oppdaterMedBeriketDokument(innsendingId, inntektsmelding)
 
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
@@ -67,7 +67,7 @@ class KvitteringIT : EndToEndTest() {
                 success.shouldNotBeNull()
                 success.fromJson(LagretInntektsmelding.serializer()) shouldBe
                     LagretInntektsmelding.Skjema(
-                        avsenderNavn = inntektsmelding.innsenderNavn,
+                        avsenderNavn = inntektsmelding.avsender.navn,
                         skjema = skjema,
                         mottatt = mottatt,
                     )

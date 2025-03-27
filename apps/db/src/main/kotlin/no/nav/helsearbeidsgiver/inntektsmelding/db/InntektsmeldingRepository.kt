@@ -1,14 +1,15 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convertAgp
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convertInntekt
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.LagretInntektsmelding
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.utils.konverterEndringAarsakTilListe
+import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.InntektsmeldingGammeltFormat
+import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.convert
+import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.convertAgp
+import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.convertInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -34,43 +35,49 @@ class InntektsmeldingRepository(
             transaction(db) {
                 InntektsmeldingEntitet
                     .select(
-                        InntektsmeldingEntitet.dokument,
                         InntektsmeldingEntitet.skjema,
+                        InntektsmeldingEntitet.dokument,
                         InntektsmeldingEntitet.eksternInntektsmelding,
                         InntektsmeldingEntitet.innsendt,
+                        InntektsmeldingEntitet.avsenderNavn,
                     ).where { InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString() }
                     .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
                     .limit(1)
                     .map {
-                        Quadruple(
-                            it[InntektsmeldingEntitet.dokument],
+                        InntektsmeldingResult(
                             it[InntektsmeldingEntitet.skjema],
+                            it[InntektsmeldingEntitet.dokument],
                             it[InntektsmeldingEntitet.eksternInntektsmelding],
                             it[InntektsmeldingEntitet.innsendt],
+                            it[InntektsmeldingEntitet.avsenderNavn],
                         )
                     }
             }.firstOrNull()
                 ?.let { result ->
-                    val inntektsmelding = result.first
-                    val skjema = result.second
-                    val eksternInntektsmelding = result.third
-                    val mottatt = result.fourth
-
                     when {
-                        skjema != null -> LagretInntektsmelding.Skjema(inntektsmelding?.innsenderNavn, skjema.konverterEndringAarsakTilListe(), mottatt)
-                        inntektsmelding != null -> {
+                        result.skjema != null ->
+                            LagretInntektsmelding.Skjema(
+                                avsenderNavn = result.avsenderNavn ?: result.inntektsmeldingGammeltFormat?.innsenderNavn,
+                                skjema = result.skjema.konverterEndringAarsakTilListe(),
+                                mottatt = result.mottatt,
+                            )
+                        result.inntektsmeldingGammeltFormat != null -> {
                             val bakoverkompatibeltSkjema =
                                 SkjemaInntektsmelding(
                                     forespoerselId = forespoerselId,
-                                    avsenderTlf = inntektsmelding.telefonnummer.orEmpty(),
-                                    agp = inntektsmelding.convertAgp(),
-                                    inntekt = inntektsmelding.convertInntekt(),
-                                    refusjon = inntektsmelding.refusjon.convert(),
+                                    avsenderTlf = result.inntektsmeldingGammeltFormat.telefonnummer.orEmpty(),
+                                    agp = result.inntektsmeldingGammeltFormat.convertAgp(),
+                                    inntekt = result.inntektsmeldingGammeltFormat.convertInntekt(),
+                                    refusjon = result.inntektsmeldingGammeltFormat.refusjon.convert(),
                                 )
 
-                            LagretInntektsmelding.Skjema(inntektsmelding.innsenderNavn, bakoverkompatibeltSkjema, mottatt)
+                            LagretInntektsmelding.Skjema(
+                                avsenderNavn = result.inntektsmeldingGammeltFormat.innsenderNavn,
+                                skjema = bakoverkompatibeltSkjema,
+                                mottatt = result.mottatt,
+                            )
                         }
-                        eksternInntektsmelding != null -> LagretInntektsmelding.Ekstern(eksternInntektsmelding)
+                        result.eksternInntektsmelding != null -> LagretInntektsmelding.Ekstern(result.eksternInntektsmelding)
                         else -> null
                     }
                 }
@@ -150,30 +157,29 @@ class InntektsmeldingRepository(
         }
 
     fun oppdaterMedBeriketDokument(
-        forespoerselId: UUID,
         innsendingId: Long, // TODO: denne kan erstattes med inntektsmelding.id når ny IM payload brukes
-        inntektsmeldingDokument: Inntektsmelding,
+        inntektsmelding: Inntektsmelding,
     ) {
         val antallOppdatert =
-            Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::oppdaterMedBeriketDokument) {
-                transaction(db) {
-                    InntektsmeldingEntitet.update(
-                        where = {
-                            InntektsmeldingEntitet.id eq innsendingId
-                        },
-                    ) {
-                        it[dokument] = inntektsmeldingDokument
-                    }
+            transaction(db) {
+                InntektsmeldingEntitet.update(
+                    where = {
+                        InntektsmeldingEntitet.id eq innsendingId
+                    },
+                ) {
+                    it[inntektsmeldingId] = inntektsmelding.id
+                    it[dokument] = inntektsmelding.convert()
+                    it[avsenderNavn] = inntektsmelding.avsender.navn
                 }
             }
 
         if (antallOppdatert == 1) {
-            "Lagret inntektsmelding for forespørsel-ID $forespoerselId i database.".also {
+            "Lagret inntektsmelding for forespørsel-ID ${inntektsmelding.type.id} i database.".also {
                 logger.info(it)
                 sikkerLogger.info(it)
             }
         } else {
-            "Oppdaterte uventet antall ($antallOppdatert) rader ved lagring av inntektsmelding med forespørsel-ID $forespoerselId.".also {
+            "Oppdaterte uventet antall ($antallOppdatert) rader ved lagring av inntektsmelding med forespørsel-ID ${inntektsmelding.type.id}.".also {
                 logger.error(it)
                 sikkerLogger.error(it)
             }
@@ -181,11 +187,12 @@ class InntektsmeldingRepository(
     }
 }
 
-private class Quadruple<A, B, C, D>(
-    val first: A,
-    val second: B,
-    val third: C,
-    val fourth: D,
+private class InntektsmeldingResult(
+    val skjema: SkjemaInntektsmelding?,
+    val inntektsmeldingGammeltFormat: InntektsmeldingGammeltFormat?,
+    val eksternInntektsmelding: EksternInntektsmelding?,
+    val mottatt: LocalDateTime,
+    val avsenderNavn: String?,
 )
 
 private fun hentNyesteImQuery(forespoerselId: UUID): Query =

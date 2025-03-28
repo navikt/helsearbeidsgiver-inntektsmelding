@@ -57,7 +57,7 @@ class InntektsmeldingRepositoryTest :
 
             val skjema = mockSkjemaInntektsmelding()
 
-            val innsendingId = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema, 9.desember.atStartOfDay())
+            val innsendingId = inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, 9.desember.atStartOfDay())
 
             val beriketDokument = mockInntektsmeldingV1().copy(mottatt = OffsetDateTime.now())
             inntektsmeldingRepo.oppdaterMedBeriketDokument(innsendingId, beriketDokument)
@@ -80,9 +80,9 @@ class InntektsmeldingRepositoryTest :
             val skjema = mockSkjemaInntektsmelding()
             val mottatt = 27.mars.atStartOfDay()
 
-            val innsendingId1 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema, mottatt)
-            val innsendingId2 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema, mottatt.plusHours(3))
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema, mottatt.plusHours(6))
+            val innsendingId1 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, mottatt)
+            val innsendingId2 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, mottatt.plusHours(3))
+            inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, mottatt.plusHours(6))
 
             innsendingId1 shouldNotBeEqual innsendingId2
 
@@ -103,7 +103,7 @@ class InntektsmeldingRepositoryTest :
             val skjema = mockSkjemaInntektsmelding()
             val inntektsmelding = mockInntektsmeldingV1()
 
-            val innsendingId = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema, 9.desember.atStartOfDay())
+            val innsendingId = inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, 9.desember.atStartOfDay())
 
             inntektsmeldingRepo.oppdaterMedBeriketDokument(innsendingId, inntektsmelding)
 
@@ -125,7 +125,7 @@ class InntektsmeldingRepositoryTest :
             val skjema = mockSkjemaInntektsmelding()
             val journalpost1 = randomDigitString(7)
 
-            val innsendingId = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema, 9.desember.atStartOfDay())
+            val innsendingId = inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, 9.desember.atStartOfDay())
             val beriketDokument = mockInntektsmeldingV1().copy(mottatt = OffsetDateTime.now())
             inntektsmeldingRepo.oppdaterMedBeriketDokument(innsendingId, beriketDokument)
 
@@ -144,8 +144,8 @@ class InntektsmeldingRepositoryTest :
             val journalpostId = "jp-mollefonken-kjele"
             val mottatt = 16.mars.atStartOfDay()
 
-            val innsendingId1 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema, mottatt)
-            val innsendingId2 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema, mottatt.plusHours(3))
+            val innsendingId1 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, mottatt)
+            val innsendingId2 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, mottatt.plusHours(3))
 
             val beriketDokument = mockInntektsmeldingV1().copy(mottatt = OffsetDateTime.now())
             inntektsmeldingRepo.oppdaterMedBeriketDokument(innsendingId1, beriketDokument.copy(id = UUID.randomUUID()))
@@ -181,8 +181,8 @@ class InntektsmeldingRepositoryTest :
             val nyJournalpostId = "jp-gallant-badehette"
             val mottatt = 5.mars.atStartOfDay()
 
-            val innsendingId1 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema, mottatt)
-            val innsendingId2 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema, mottatt.plusHours(3))
+            val innsendingId1 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, mottatt)
+            val innsendingId2 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, mottatt.plusHours(3))
 
             val beriketDokument = mockInntektsmeldingV1().copy(mottatt = OffsetDateTime.now())
             inntektsmeldingRepo.oppdaterMedBeriketDokument(innsendingId1, beriketDokument.copy(id = UUID.randomUUID()))
@@ -239,7 +239,7 @@ class InntektsmeldingRepositoryTest :
             val mottatt = 9.desember.atStartOfDay()
             val journalpostId = "jp-slem-fryser"
 
-            val innsendingId1 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema, mottatt)
+            val innsendingId1 = inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, mottatt)
 
             val beriketDokument = mockInntektsmeldingV1().copy(mottatt = mottatt.toOffsetDateTimeOslo())
             inntektsmeldingRepo.oppdaterMedBeriketDokument(innsendingId1, beriketDokument)
@@ -277,9 +277,9 @@ class InntektsmeldingRepositoryTest :
                 val b = mockEksternInntektsmelding().copy(tidspunkt = mottatt.plusHours(1))
                 val c = mockSkjemaInntektsmelding().copy(forespoerselId = forespoerselId)
 
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(a, mottatt)
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), a, mottatt)
                 inntektsmeldingRepo.lagreEksternInntektsmelding(forespoerselId, b)
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(c, mottatt.plusHours(2))
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), c, mottatt.plusHours(2))
 
                 val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(forespoerselId)
 
@@ -297,7 +297,7 @@ class InntektsmeldingRepositoryTest :
 
                 val skjemaUtenEndringsAarsaker = skjema.copy(inntekt = skjema.inntekt?.copy(endringAarsaker = emptyList()))
 
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjemaUtenEndringsAarsaker, mottatt)
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjemaUtenEndringsAarsaker, mottatt)
 
                 val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(skjema.forespoerselId)
 
@@ -315,7 +315,7 @@ class InntektsmeldingRepositoryTest :
                 val inntektsmelding = mockInntektsmeldingV1().copy(inntekt = null)
                 val mottatt = 9.desember.atStartOfDay()
 
-                val innsendingId = inntektsmeldingRepo.lagreInntektsmeldingSkjema(skjema, mottatt)
+                val innsendingId = inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, mottatt)
                 inntektsmeldingRepo.oppdaterMedBeriketDokument(innsendingId, inntektsmelding)
 
                 val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(skjema.forespoerselId)
@@ -372,7 +372,7 @@ class InntektsmeldingRepositoryTest :
             }
 
             test("tåler at det er ingenting å hente") {
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(mockSkjemaInntektsmelding(), 9.desember.atStartOfDay())
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), mockSkjemaInntektsmelding(), 9.desember.atStartOfDay())
 
                 val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(UUID.randomUUID())
 

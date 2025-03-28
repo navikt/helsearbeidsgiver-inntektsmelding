@@ -21,6 +21,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.kl
+import java.util.UUID
 
 class MapInntektsmeldingKtTest :
     FunSpec({
@@ -28,6 +29,7 @@ class MapInntektsmeldingKtTest :
         context(::mapInntektsmelding.name) {
 
             test("inntektsmelding mappes korrekt med AGP, inntekt og refusjon påkrevd") {
+                val inntektsmeldingId = UUID.randomUUID()
                 val forespoersel = mockForespoersel()
                 val skjema = mockSkjemaInntektsmelding()
                 val virksomhetNavn = "Skrekkinngytende smaker LLC"
@@ -37,6 +39,7 @@ class MapInntektsmeldingKtTest :
 
                 val inntektsmelding =
                     mapInntektsmelding(
+                        inntektsmeldingId = inntektsmeldingId,
                         forespoersel = forespoersel,
                         skjema = skjema,
                         aarsakInnsending = AarsakInnsending.Endring,
@@ -48,6 +51,8 @@ class MapInntektsmeldingKtTest :
                     )
 
                 inntektsmelding.apply {
+                    id shouldBe inntektsmeldingId
+
                     type shouldBe
                         Inntektsmelding.Type.Forespurt(
                             id = skjema.forespoerselId,
@@ -98,6 +103,7 @@ class MapInntektsmeldingKtTest :
 
                 val inntektsmelding =
                     mapInntektsmelding(
+                        inntektsmeldingId = UUID.randomUUID(),
                         forespoersel = forespoersel,
                         skjema = skjema,
                         aarsakInnsending = AarsakInnsending.Endring,
@@ -118,6 +124,7 @@ class MapInntektsmeldingKtTest :
 
                 val inntektsmelding =
                     mapInntektsmelding(
+                        inntektsmeldingId = UUID.randomUUID(),
                         forespoersel = forespoersel,
                         skjema = skjema,
                         aarsakInnsending = AarsakInnsending.Endring,
@@ -137,6 +144,7 @@ class MapInntektsmeldingKtTest :
 
                 val inntektsmelding =
                     mapInntektsmelding(
+                        inntektsmeldingId = UUID.randomUUID(),
                         forespoersel = forespoersel,
                         skjema = skjema,
                         aarsakInnsending = AarsakInnsending.Endring,
@@ -164,6 +172,7 @@ class MapInntektsmeldingKtTest :
 
                 val inntektsmelding =
                     mapInntektsmelding(
+                        inntektsmeldingId = UUID.randomUUID(),
                         forespoersel = forespoersel,
                         skjema = skjema,
                         aarsakInnsending = AarsakInnsending.Endring,
@@ -194,6 +203,7 @@ class MapInntektsmeldingKtTest :
 
                 val inntektsmelding =
                     mapInntektsmelding(
+                        inntektsmeldingId = UUID.randomUUID(),
                         forespoersel = forespoersel,
                         skjema = skjema,
                         aarsakInnsending = AarsakInnsending.Endring,
@@ -231,6 +241,7 @@ class MapInntektsmeldingKtTest :
 
                 val inntektsmelding =
                     mapInntektsmelding(
+                        inntektsmeldingId = UUID.randomUUID(),
                         forespoersel = forespoersel,
                         skjema = skjema,
                         aarsakInnsending = AarsakInnsending.Endring,
@@ -254,6 +265,7 @@ class MapInntektsmeldingKtTest :
 
                 val inntektsmelding =
                     mapInntektsmelding(
+                        inntektsmeldingId = UUID.randomUUID(),
                         forespoersel = forespoersel,
                         skjema = skjema,
                         aarsakInnsending = AarsakInnsending.Endring,

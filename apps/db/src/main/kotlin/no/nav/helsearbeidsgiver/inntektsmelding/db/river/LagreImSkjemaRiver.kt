@@ -35,6 +35,7 @@ data class LagreImSkjemaMelding(
     val kontekstId: UUID,
     val data: Map<Key, JsonElement>,
     val forespoersel: Forespoersel,
+    val inntektsmeldingId: UUID,
     val skjema: SkjemaInntektsmelding,
     val innsending: Innsending?, // TODO: Ikke i bruk enda
     val mottatt: LocalDateTime,
@@ -57,6 +58,8 @@ class LagreImSkjemaRiver(
                 kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), data),
+                // TODO fjern default etter overgangsfase
+                inntektsmeldingId = Key.INNTEKTSMELDING_ID.lesOrNull(UuidSerializer, data) ?: UUID.randomUUID(),
                 skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), data),
                 mottatt = Key.MOTTATT.les(LocalDateTimeSerializer, data),
                 innsending = Key.INNSENDING.lesOrNull(Innsending.serializer(), data),
@@ -76,7 +79,7 @@ class LagreImSkjemaRiver(
                 sikkerLogger.warn("Fant duplikat av inntektsmeldingskjema.")
                 INNSENDING_ID_VED_DUPLIKAT
             } else {
-                repository.lagreInntektsmeldingSkjema(skjema, mottatt).also {
+                repository.lagreInntektsmeldingSkjema(inntektsmeldingId, skjema, mottatt).also {
                     sikkerLogger.info("Lagret inntektsmeldingskjema.")
                 }
             }

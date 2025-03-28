@@ -46,7 +46,7 @@ class InnsendingServiceIT : EndToEndTest() {
         val kontekstId: UUID = UUID.randomUUID()
         val tidligereInntektsmelding = mockInntektsmeldingV1()
 
-        val innsendingId = imRepository.lagreInntektsmeldingSkjema(Mock.skjema, 9.desember.atStartOfDay())
+        val innsendingId = imRepository.lagreInntektsmeldingSkjema(UUID.randomUUID(), Mock.skjema, 9.desember.atStartOfDay())
         imRepository.oppdaterMedBeriketDokument(innsendingId, tidligereInntektsmelding)
 
         mockForespoerselSvarFraHelsebro(
@@ -128,6 +128,14 @@ class InnsendingServiceIT : EndToEndTest() {
                     data[Key.ARBEIDSGIVER_FNR]
                         .shouldNotBeNull()
                         .fromJson(Fnr.serializer())
+
+                    data[Key.FORESPOERSEL_SVAR]
+                        .shouldNotBeNull()
+                        .fromJson(Forespoersel.serializer())
+
+                    data[Key.INNTEKTSMELDING_ID]
+                        .shouldNotBeNull()
+                        .fromJson(UuidSerializer)
 
                     data[Key.SKJEMA_INNTEKTSMELDING]
                         .shouldNotBeNull()

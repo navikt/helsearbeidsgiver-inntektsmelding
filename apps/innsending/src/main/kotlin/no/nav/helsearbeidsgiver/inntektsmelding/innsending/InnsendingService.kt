@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -39,6 +40,7 @@ data class Steg1(
 )
 
 data class Steg2(
+    val inntektsmeldingId: UUID,
     val erDuplikat: Boolean,
     val innsendingId: Long,
 )
@@ -67,6 +69,8 @@ class InnsendingService(
 
     override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 =
         Steg2(
+            // TODO fjern default etter overgangsfase
+            inntektsmeldingId = Key.INNTEKTSMELDING_ID.lesOrNull(UuidSerializer, melding) ?: UUID.randomUUID(),
             erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
             innsendingId = Key.INNSENDING_ID.les(Long.serializer(), melding),
         )
@@ -93,13 +97,20 @@ class InnsendingService(
         steg0: Steg0,
         steg1: Steg1,
     ) {
+        // Oppretter unik ID for hver inntektsmelding
+        val inntektsmeldingId = UUID.randomUUID()
+
         rapid
             .publish(
                 key = steg0.skjema.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.LAGRE_IM_SKJEMA.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
-                Key.DATA to data.toJson(),
+                Key.DATA to
+                    data
+                        .plus(
+                            Key.INNTEKTSMELDING_ID to inntektsmeldingId.toJson(),
+                        ).toJson(),
             ).also { loggBehovPublisert(BehovType.LAGRE_IM_SKJEMA, it) }
     }
 
@@ -125,8 +136,9 @@ class InnsendingService(
                     Key.DATA to
                         mapOf(
                             Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
-                            Key.SKJEMA_INNTEKTSMELDING to steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
                             Key.FORESPOERSEL_SVAR to steg1.forespoersel.toJson(Forespoersel.serializer()),
+                            Key.INNTEKTSMELDING_ID to steg2.inntektsmeldingId.toJson(),
+                            Key.SKJEMA_INNTEKTSMELDING to steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
                             Key.INNSENDING_ID to steg2.innsendingId.toJson(Long.serializer()),
                             Key.MOTTATT to steg0.mottatt.toJson(),
                         ).toJson(),

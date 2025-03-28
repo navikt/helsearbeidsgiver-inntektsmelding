@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
-import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
@@ -55,7 +54,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
     fun `skal berike og lagre inntektsmeldinger`() {
         val tidligereInntektsmelding = mockInntektsmeldingV1()
 
-        val innsendingId = imRepository.lagreInntektsmeldingSkjema(Mock.skjema, 10.desember.atStartOfDay())
+        val innsendingId = imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, 10.desember.atStartOfDay())
         imRepository.oppdaterMedBeriketDokument(innsendingId, tidligereInntektsmelding)
 
         coEvery {
@@ -68,34 +67,19 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                 dokumenter = emptyList(),
             )
 
-        mockForespoerselSvarFraHelsebro(
-            forespoerselId = Mock.forespoerselId,
-            forespoerselSvar = Mock.forespoerselSvar,
-        )
-
         publish(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
             Key.KONTEKST_ID to Mock.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
+                    Key.FORESPOERSEL_SVAR to Mock.forespoersel.toJson(Forespoersel.serializer()),
+                    Key.INNTEKTSMELDING_ID to UUID.randomUUID().toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
                     Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
                     Key.MOTTATT to Mock.mottatt.toJson(),
                 ).toJson(),
         )
-
-        // Forespørsel hentet
-        messages
-            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.FORESPOERSEL_SVAR)
-            .firstAsMap()
-            .verifiserKontekstId(Mock.kontekstId)
-            .verifiserForespoerselIdFraSkjema()
-            .also {
-                val data = it[Key.DATA].shouldNotBeNull().toMap()
-                data[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel
-            }
 
         // Virksomhetsnavn hentet
         messages
@@ -170,7 +154,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
     fun `skal opprette en bakgrunnsjobb som gjenopptar berikelsen av inntektsmeldingen senere dersom oppslaget mot pdl feiler`() {
         val tidligereInntektsmelding = mockInntektsmeldingV1()
 
-        val innsendingId = imRepository.lagreInntektsmeldingSkjema(Mock.skjema, 10.desember.atStartOfDay())
+        val innsendingId = imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, 10.desember.atStartOfDay())
         imRepository.oppdaterMedBeriketDokument(innsendingId, tidligereInntektsmelding)
 
         coEvery {
@@ -189,34 +173,19 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                 maxMekker,
             )
 
-        mockForespoerselSvarFraHelsebro(
-            forespoerselId = Mock.forespoerselId,
-            forespoerselSvar = Mock.forespoerselSvar,
-        )
-
         publish(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
             Key.KONTEKST_ID to Mock.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
+                    Key.FORESPOERSEL_SVAR to Mock.forespoersel.toJson(Forespoersel.serializer()),
+                    Key.INNTEKTSMELDING_ID to UUID.randomUUID().toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
                     Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
                     Key.MOTTATT to Mock.mottatt.toJson(),
                 ).toJson(),
         )
-
-        // Forespørsel hentet
-        messages
-            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
-            .filter(Key.FORESPOERSEL_SVAR)
-            .firstAsMap()
-            .verifiserKontekstId(Mock.kontekstId)
-            .verifiserForespoerselIdFraSkjema()
-            .also {
-                val data = it[Key.DATA].shouldNotBeNull().toMap()
-                data[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel
-            }
 
         // Virksomhetsnavn hentet
         messages
@@ -247,7 +216,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             it.shouldNotBeNull()
             it.data.parseJson().also { data ->
                 data.lesBehov() shouldBe BehovType.HENT_PERSONER
-                data.toMap().verifiserForespoerselId().verifiserKontekstId(Mock.kontekstId)
+                data.toMap().verifiserForespoerselIdFraSkjema().verifiserKontekstId(Mock.kontekstId)
             }
         }
 
@@ -344,20 +313,6 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
                 opprettetUpresisIkkeBruk = 2.august,
-            )
-
-        val forespoerselSvar =
-            ForespoerselFraBro(
-                orgnr = forespoersel.orgnr,
-                fnr = forespoersel.fnr,
-                forespoerselId = forespoerselId,
-                vedtaksperiodeId = forespoersel.vedtaksperiodeId,
-                egenmeldingsperioder = forespoersel.egenmeldingsperioder,
-                sykmeldingsperioder = forespoersel.sykmeldingsperioder,
-                bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager,
-                forespurtData = mockForespurtData(),
-                erBesvart = false,
-                opprettetUpresisIkkeBruk = forespoersel.opprettetUpresisIkkeBruk,
             )
     }
 }

@@ -46,9 +46,8 @@ class LagreImSkjemaRiverTest :
             clearAllMocks()
         }
 
-        val inntektsmeldingSkjema = mockSkjemaInntektsmelding()
         val inntektsmeldingSkjemaMedEndredeEgenmeldinger =
-            inntektsmeldingSkjema.let { skjema ->
+            mockSkjemaInntektsmelding().let { skjema ->
                 skjema.copy(
                     agp =
                         skjema.agp?.let { agp ->
@@ -69,12 +68,10 @@ class LagreImSkjemaRiverTest :
                 ),
             ) { eksisterendeInntektsmeldingskjema ->
                 val innsendingId = 1L
+                val innkommendeMelding = innkommendeMelding()
+
                 every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns eksisterendeInntektsmeldingskjema
-                every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } returns innsendingId
-
-                val nyttInntektsmeldingSkjema = mockSkjemaInntektsmelding()
-
-                val innkommendeMelding = innkommendeMelding(skjema = nyttInntektsmeldingSkjema)
+                every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any(), any()) } returns innsendingId
 
                 testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -87,6 +84,7 @@ class LagreImSkjemaRiverTest :
                         Key.DATA to
                             mapOf(
                                 Key.FORESPOERSEL_SVAR to innkommendeMelding.forespoersel.toJson(Forespoersel.serializer()),
+                                Key.INNTEKTSMELDING_ID to innkommendeMelding.inntektsmeldingId.toJson(),
                                 Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.skjema.toJson(SkjemaInntektsmelding.serializer()),
                                 Key.MOTTATT to innkommendeMelding.mottatt.toJson(),
                                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
@@ -96,7 +94,11 @@ class LagreImSkjemaRiverTest :
 
                 verifySequence {
                     mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.skjema.forespoerselId)
-                    mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(nyttInntektsmeldingSkjema, innkommendeMelding.mottatt)
+                    mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(
+                        innkommendeMelding.inntektsmeldingId,
+                        innkommendeMelding.skjema,
+                        innkommendeMelding.mottatt,
+                    )
                 }
             }
         }
@@ -104,11 +106,10 @@ class LagreImSkjemaRiverTest :
         test("duplikat lagres ikke, men svarer OK") {
             val innsendingId = 1L
             val innsendingIdVedDuplikat = -1L
+            val innkommendeMelding = innkommendeMelding()
 
-            every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns inntektsmeldingSkjema
-            every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any()) } returns innsendingId
-
-            val innkommendeMelding = innkommendeMelding(skjema = inntektsmeldingSkjema)
+            every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns innkommendeMelding.skjema
+            every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any(), any()) } returns innsendingId
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -121,6 +122,7 @@ class LagreImSkjemaRiverTest :
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_SVAR to innkommendeMelding.forespoersel.toJson(Forespoersel.serializer()),
+                            Key.INNTEKTSMELDING_ID to innkommendeMelding.inntektsmeldingId.toJson(),
                             Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.skjema.toJson(SkjemaInntektsmelding.serializer()),
                             Key.MOTTATT to innkommendeMelding.mottatt.toJson(),
                             Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
@@ -132,15 +134,11 @@ class LagreImSkjemaRiverTest :
                 mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.skjema.forespoerselId)
             }
             verify(exactly = 0) {
-                mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingSkjema, innkommendeMelding.mottatt)
+                mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(innkommendeMelding.inntektsmeldingId, innkommendeMelding.skjema, innkommendeMelding.mottatt)
             }
         }
 
         test("håndterer at repo feiler") {
-            every {
-                mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any())
-            } throws RuntimeException("Tråbbel med den Rolls-Royce? Den jo vere garantert!")
-
             val innkommendeMelding = innkommendeMelding()
 
             val forventetFail =
@@ -149,6 +147,10 @@ class LagreImSkjemaRiverTest :
                     kontekstId = innkommendeMelding.kontekstId,
                     utloesendeMelding = innkommendeMelding.toMap(),
                 )
+
+            every {
+                mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any())
+            } throws RuntimeException("Tråbbel med den Rolls-Royce? Den jo vere garantert!")
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -160,7 +162,7 @@ class LagreImSkjemaRiverTest :
                 mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any())
             }
             verify(exactly = 0) {
-                mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any())
+                mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any(), any())
             }
         }
         context("ignorerer melding") {
@@ -181,17 +183,18 @@ class LagreImSkjemaRiverTest :
 
                 verify(exactly = 0) {
                     mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any())
-                    mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any())
+                    mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any(), any())
                 }
             }
         }
     })
 
-private fun innkommendeMelding(
-    forespoersel: Forespoersel = mockForespoersel(),
-    skjema: SkjemaInntektsmelding = mockSkjemaInntektsmelding(),
-): LagreImSkjemaMelding {
+private fun innkommendeMelding(): LagreImSkjemaMelding {
+    val forespoersel = mockForespoersel()
+    val inntektsmeldingId = UUID.randomUUID()
+    val skjema = mockSkjemaInntektsmelding()
     val mottatt = 10.november.kl(13, 55, 0, 0)
+
     return LagreImSkjemaMelding(
         eventName = EventName.INSENDING_STARTED,
         behovType = BehovType.LAGRE_IM_SKJEMA,
@@ -199,10 +202,12 @@ private fun innkommendeMelding(
         data =
             mapOf(
                 Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
+                Key.INNTEKTSMELDING_ID to inntektsmeldingId.toJson(),
                 Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
                 Key.MOTTATT to mottatt.toJson(),
             ),
         forespoersel = forespoersel,
+        inntektsmeldingId = inntektsmeldingId,
         skjema = skjema,
         mottatt = mottatt,
         innsending = null,

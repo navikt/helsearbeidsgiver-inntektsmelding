@@ -61,6 +61,7 @@ class InntektsmeldingRepository(
                                 skjema = result.skjema.konverterEndringAarsakTilListe(),
                                 mottatt = result.mottatt,
                             )
+
                         result.inntektsmeldingGammeltFormat != null -> {
                             val bakoverkompatibeltSkjema =
                                 SkjemaInntektsmelding(
@@ -77,6 +78,7 @@ class InntektsmeldingRepository(
                                 mottatt = result.mottatt,
                             )
                         }
+
                         result.eksternInntektsmelding != null -> LagretInntektsmelding.Ekstern(result.eksternInntektsmelding)
                         else -> null
                     }
@@ -84,14 +86,14 @@ class InntektsmeldingRepository(
         }
 
     fun oppdaterJournalpostId(
-        innsendingId: Long,
+        inntektsmeldingId: UUID,
         journalpostId: String,
     ) {
         Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::oppdaterJournalpostId) {
             val antallOppdatert =
                 transaction(db) {
                     InntektsmeldingEntitet.update(
-                        where = { InntektsmeldingEntitet.id eq innsendingId },
+                        where = { InntektsmeldingEntitet.inntektsmeldingId eq inntektsmeldingId },
                     ) {
                         it[InntektsmeldingEntitet.journalpostId] = journalpostId
                     }
@@ -124,15 +126,6 @@ class InntektsmeldingRepository(
         }
     }
 
-    fun hentNyesteBerikedeInnsendingId(forespoerselId: UUID): Long? =
-        Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::hentNyesteBerikedeInnsendingId) {
-            transaction(db) {
-                hentNyesteImQuery(forespoerselId)
-                    .firstOrNull()
-                    ?.getOrNull(InntektsmeldingEntitet.id)
-            }
-        }
-
     fun lagreInntektsmeldingSkjema(
         inntektsmeldingId: UUID,
         inntektsmeldingSkjema: SkjemaInntektsmelding,
@@ -158,19 +151,21 @@ class InntektsmeldingRepository(
             }
         }
 
-    fun oppdaterMedBeriketDokument(
-        innsendingId: Long, // TODO: denne kan erstattes med inntektsmelding.id når ny IM payload brukes
-        inntektsmelding: Inntektsmelding,
-    ) {
+    fun hentNyesteBerikedeInntektsmeldigId(forespoerselId: UUID): UUID? =
+        transaction(db) {
+            hentNyesteImQuery(forespoerselId)
+                .firstOrNull()
+                ?.getOrNull(InntektsmeldingEntitet.inntektsmeldingId)
+        }
+
+    fun oppdaterMedBeriketDokument(inntektsmelding: Inntektsmelding) {
         val antallOppdatert =
             transaction(db) {
                 InntektsmeldingEntitet.update(
                     where = {
-                        InntektsmeldingEntitet.id eq innsendingId
+                        InntektsmeldingEntitet.inntektsmeldingId eq inntektsmelding.id
                     },
                 ) {
-                    // TODO fjern etter overgangsfase
-                    it[inntektsmeldingId] = inntektsmelding.id
                     it[dokument] = inntektsmelding.convert()
                     it[avsenderNavn] = inntektsmelding.avsender.navn
                 }

@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toPretty
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
@@ -27,7 +26,6 @@ data class LagreJournalpostIdMelding(
     val kontekstId: UUID,
     val inntektsmelding: Inntektsmelding,
     val journalpostId: String,
-    val innsendingId: Long?,
 )
 
 class LagreJournalpostIdRiver(
@@ -46,7 +44,6 @@ class LagreJournalpostIdRiver(
                 kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), json),
                 journalpostId = Key.JOURNALPOST_ID.les(String.serializer(), json),
-                innsendingId = Key.INNSENDING_ID.lesOrNull(Long.serializer(), json),
             )
         }
 
@@ -58,22 +55,14 @@ class LagreJournalpostIdRiver(
 
         when (inntektsmelding.type) {
             is Inntektsmelding.Type.Forespurt, is Inntektsmelding.Type.ForespurtEkstern -> {
-                if (innsendingId != null) {
-                    imRepo.oppdaterJournalpostId(innsendingId, journalpostId)
+                imRepo.oppdaterJournalpostId(inntektsmelding.id, journalpostId)
 
-                    if (imRepo.hentNyesteBerikedeInnsendingId(inntektsmelding.type.id) != innsendingId) {
-                        "Inntektsmelding journalført, men ikke distribuert pga. nyere innsending.".also {
-                            logger.info(it)
-                            sikkerLogger.info(it)
-                        }
-                        return null
+                if (imRepo.hentNyesteBerikedeInntektsmeldigId(inntektsmelding.type.id) != inntektsmelding.id) {
+                    "Inntektsmelding journalført, men ikke distribuert pga. nyere innsending.".also {
+                        logger.info(it)
+                        sikkerLogger.info(it)
                     }
-                } else {
-                    "Klarte ikke journalføre pga. manglende innsending-ID for forespørsel '${inntektsmelding.type.id}' og journalpost-ID '$journalpostId'."
-                        .also {
-                            logger.error(it)
-                            sikkerLogger.error(it)
-                        }
+                    return null
                 }
             }
 

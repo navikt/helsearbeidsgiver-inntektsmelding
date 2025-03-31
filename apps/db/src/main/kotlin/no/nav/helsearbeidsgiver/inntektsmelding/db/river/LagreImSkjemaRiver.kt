@@ -58,8 +58,7 @@ class LagreImSkjemaRiver(
                 kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), data),
-                // TODO fjern default etter overgangsfase
-                inntektsmeldingId = Key.INNTEKTSMELDING_ID.lesOrNull(UuidSerializer, data) ?: UUID.randomUUID(),
+                inntektsmeldingId = Key.INNTEKTSMELDING_ID.les(UuidSerializer, data),
                 skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), data),
                 mottatt = Key.MOTTATT.les(LocalDateTimeSerializer, data),
                 innsending = Key.INNSENDING.lesOrNull(Innsending.serializer(), data),

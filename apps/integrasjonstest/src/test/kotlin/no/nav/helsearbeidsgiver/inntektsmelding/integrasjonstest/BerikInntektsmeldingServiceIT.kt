@@ -54,8 +54,8 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
     fun `skal berike og lagre inntektsmeldinger`() {
         val tidligereInntektsmelding = mockInntektsmeldingV1()
 
-        val innsendingId = imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, 10.desember.atStartOfDay())
-        imRepository.oppdaterMedBeriketDokument(innsendingId, tidligereInntektsmelding)
+        imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, 10.desember.atStartOfDay())
+        imRepository.oppdaterMedBeriketDokument(tidligereInntektsmelding)
 
         coEvery {
             dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
@@ -76,7 +76,6 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                     Key.FORESPOERSEL_SVAR to Mock.forespoersel.toJson(Forespoersel.serializer()),
                     Key.INNTEKTSMELDING_ID to UUID.randomUUID().toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
-                    Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
                     Key.MOTTATT to Mock.mottatt.toJson(),
                 ).toJson(),
         )
@@ -154,8 +153,8 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
     fun `skal opprette en bakgrunnsjobb som gjenopptar berikelsen av inntektsmeldingen senere dersom oppslaget mot pdl feiler`() {
         val tidligereInntektsmelding = mockInntektsmeldingV1()
 
-        val innsendingId = imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, 10.desember.atStartOfDay())
-        imRepository.oppdaterMedBeriketDokument(innsendingId, tidligereInntektsmelding)
+        imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, 10.desember.atStartOfDay())
+        imRepository.oppdaterMedBeriketDokument(tidligereInntektsmelding)
 
         coEvery {
             dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
@@ -182,7 +181,6 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                     Key.FORESPOERSEL_SVAR to Mock.forespoersel.toJson(Forespoersel.serializer()),
                     Key.INNTEKTSMELDING_ID to UUID.randomUUID().toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
-                    Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
                     Key.MOTTATT to Mock.mottatt.toJson(),
                 ).toJson(),
         )

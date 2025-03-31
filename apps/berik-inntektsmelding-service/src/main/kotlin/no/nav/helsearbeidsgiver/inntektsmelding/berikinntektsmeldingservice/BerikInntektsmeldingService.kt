@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed3Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -44,7 +45,7 @@ data class Steg0(
     val inntektsmeldingId: UUID,
     val skjema: SkjemaInntektsmelding,
     val innsending: Innsending?, // TODO: Kan dele opp API-innsending-berik i egen service
-    val innsendingId: Long,
+    val innsendingId: Long?,
     val mottatt: LocalDateTime,
 )
 
@@ -74,10 +75,9 @@ class BerikInntektsmeldingService(
             kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             avsenderFnr = Key.ARBEIDSGIVER_FNR.lesOrNull(Fnr.serializer(), melding),
             forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding),
-            // TODO fjern default etter overgangsfase
-            inntektsmeldingId = Key.INNTEKTSMELDING_ID.lesOrNull(UuidSerializer, melding) ?: UUID.randomUUID(),
+            inntektsmeldingId = Key.INNTEKTSMELDING_ID.les(UuidSerializer, melding),
             skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding),
-            innsendingId = Key.INNSENDING_ID.les(Long.serializer(), melding),
+            innsendingId = Key.INNSENDING_ID.lesOrNull(Long.serializer(), melding),
             innsending = Key.INNSENDING.lesOrNull(Innsending.serializer(), melding),
             mottatt = Key.MOTTATT.les(LocalDateTimeSerializer, melding),
         )
@@ -180,9 +180,10 @@ class BerikInntektsmeldingService(
                         .plus(
                             mapOf(
                                 Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                                Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
+                                Key.INNSENDING_ID to steg0.innsendingId?.toJson(Long.serializer()),
                             ),
-                        ).toJson(),
+                        ).mapValuesNotNull { it }
+                        .toJson(),
             ).also { loggBehovPublisert(BehovType.LAGRE_IM, it) }
     }
 
@@ -203,8 +204,9 @@ class BerikInntektsmeldingService(
                         mapOf(
                             Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
                             Key.INNTEKTSMELDING to steg3.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                            Key.INNSENDING_ID to steg0.innsendingId.toJson(Long.serializer()),
-                        ).toJson(),
+                            Key.INNSENDING_ID to steg0.innsendingId?.toJson(Long.serializer()),
+                        ).mapValuesNotNull { it }
+                            .toJson(),
                 )
 
             MdcUtils.withLogFields(

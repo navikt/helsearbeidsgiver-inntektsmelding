@@ -12,6 +12,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 fun mapInntektsmelding(
+    inntektsmeldingId: UUID,
     forespoersel: Forespoersel,
     skjema: SkjemaInntektsmelding,
     aarsakInnsending: AarsakInnsending,
@@ -48,7 +49,7 @@ fun mapInntektsmelding(
             null
         }
     return Inntektsmelding(
-        id = innsending?.innsendingId ?: UUID.randomUUID(),
+        id = innsending?.innsendingId ?: inntektsmeldingId,
         type =
             innsending?.type
                 ?: Inntektsmelding.Type.Forespurt(

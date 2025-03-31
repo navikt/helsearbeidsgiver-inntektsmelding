@@ -134,12 +134,14 @@ class InntektsmeldingRepository(
         }
 
     fun lagreInntektsmeldingSkjema(
+        inntektsmeldingId: UUID,
         inntektsmeldingSkjema: SkjemaInntektsmelding,
         mottatt: LocalDateTime,
     ): Long =
         Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::lagreInntektsmeldingSkjema) {
             transaction(db) {
                 InntektsmeldingEntitet.insert {
+                    it[this.inntektsmeldingId] = inntektsmeldingId
                     it[this.forespoerselId] = inntektsmeldingSkjema.forespoerselId.toString()
                     it[skjema] = inntektsmeldingSkjema
                     it[innsendt] = mottatt
@@ -167,6 +169,7 @@ class InntektsmeldingRepository(
                         InntektsmeldingEntitet.id eq innsendingId
                     },
                 ) {
+                    // TODO fjern etter overgangsfase
                     it[inntektsmeldingId] = inntektsmelding.id
                     it[dokument] = inntektsmelding.convert()
                     it[avsenderNavn] = inntektsmelding.avsender.navn

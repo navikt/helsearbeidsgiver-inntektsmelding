@@ -151,7 +151,7 @@ class InntektsmeldingRepository(
             }
         }
 
-    fun hentNyesteBerikedeInntektsmeldigId(forespoerselId: UUID): UUID? =
+    fun hentNyesteBerikedeInntektsmeldingId(forespoerselId: UUID): UUID? =
         transaction(db) {
             hentNyesteImQuery(forespoerselId)
                 .firstOrNull()

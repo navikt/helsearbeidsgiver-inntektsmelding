@@ -67,7 +67,7 @@ class InntektsmeldingRepositoryTest :
             record.getOrNull(InntektsmeldingEntitet.skjema) shouldBe skjema
             record.getOrNull(InntektsmeldingEntitet.dokument) shouldBe inntektsmelding.convert()
 
-            inntektsmeldingRepo.hentNyesteBerikedeInntektsmeldigId(skjema.forespoerselId) shouldBe inntektsmelding.id
+            inntektsmeldingRepo.hentNyesteBerikedeInntektsmeldingId(skjema.forespoerselId) shouldBe inntektsmelding.id
         }
 
         test("skal lagre hvert innsendte skjema, men hente nyeste berikede inntektsmelding") {
@@ -86,10 +86,10 @@ class InntektsmeldingRepositoryTest :
             inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, mottatt.plusHours(6))
 
             inntektsmeldingRepo.oppdaterMedBeriketDokument(inntektsmelding.copy(id = inntektsmeldingId1))
-            inntektsmeldingRepo.hentNyesteBerikedeInntektsmeldigId(skjema.forespoerselId) shouldBe inntektsmeldingId1
+            inntektsmeldingRepo.hentNyesteBerikedeInntektsmeldingId(skjema.forespoerselId) shouldBe inntektsmeldingId1
 
             inntektsmeldingRepo.oppdaterMedBeriketDokument(inntektsmelding.copy(id = inntektsmeldingId2))
-            inntektsmeldingRepo.hentNyesteBerikedeInntektsmeldigId(skjema.forespoerselId) shouldBe inntektsmeldingId2
+            inntektsmeldingRepo.hentNyesteBerikedeInntektsmeldingId(skjema.forespoerselId) shouldBe inntektsmeldingId2
         }
 
         test("skal returnere im med gammelt inntekt-format ok") {

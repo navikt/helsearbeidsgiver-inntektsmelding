@@ -37,7 +37,7 @@ class TestRepo(
             InntektsmeldingEntitet
                 .selectAll()
                 .where {
-                    InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()
+                    InntektsmeldingEntitet.forespoerselId eq forespoerselId
                 }.firstOrNull()
         }
 }
@@ -108,7 +108,7 @@ class InntektsmeldingRepositoryTest :
                 InntektsmeldingEntitet
                     .selectAll()
                     .where {
-                        (InntektsmeldingEntitet.forespoerselId eq skjema.forespoerselId.toString()) and
+                        (InntektsmeldingEntitet.forespoerselId eq skjema.forespoerselId) and
                             (InntektsmeldingEntitet.dokument eq inntektsmelding.convert())
                     }.single()
             }
@@ -336,7 +336,7 @@ class InntektsmeldingRepositoryTest :
 
                 transaction(db) {
                     InntektsmeldingEntitet.insert {
-                        it[this.forespoerselId] = forespoerselId.toString()
+                        it[this.forespoerselId] = forespoerselId
                         it[dokument] = inntektsmelding.convert()
                         it[innsendt] = mottatt
                     }

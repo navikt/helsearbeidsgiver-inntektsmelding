@@ -9,12 +9,14 @@ import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.json.jsonb
 
 object InntektsmeldingEntitet : Table("inntektsmelding") {
-    val id =
-        long("id").autoIncrement(
-            idSeqName = "inntektsmelding_id_seq",
-        )
     val inntektsmeldingId = uuid("inntektsmelding_id").nullable()
-    val forespoerselId = varchar(name = "forespoersel_id", length = 40)
+    val forespoerselId = uuid("forespoersel_id")
+    val skjema =
+        jsonb<SkjemaInntektsmelding>(
+            name = "skjema",
+            jsonConfig = jsonConfig,
+            kSerializer = SkjemaInntektsmelding.serializer(),
+        ).nullable()
     val dokument =
         jsonb<InntektsmeldingGammeltFormat>(
             name = "dokument",
@@ -27,15 +29,7 @@ object InntektsmeldingEntitet : Table("inntektsmelding") {
             jsonConfig = jsonConfig,
             kSerializer = EksternInntektsmelding.serializer(),
         ).nullable()
-    val skjema =
-        jsonb<SkjemaInntektsmelding>(
-            name = "skjema",
-            jsonConfig = jsonConfig,
-            kSerializer = SkjemaInntektsmelding.serializer(),
-        ).nullable()
-    val innsendt = datetime("innsendt")
     val avsenderNavn = text("avsender_navn").nullable()
-    val journalpostId = varchar("journalpostid", 30).nullable()
-
-    override val primaryKey = PrimaryKey(id, name = "id")
+    val journalpostId = text("journalpost_id").nullable()
+    val innsendt = datetime("innsendt")
 }

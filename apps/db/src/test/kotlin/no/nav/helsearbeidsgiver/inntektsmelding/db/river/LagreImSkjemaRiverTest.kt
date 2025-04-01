@@ -5,8 +5,10 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
+import io.mockk.Runs
 import io.mockk.clearAllMocks
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
@@ -67,11 +69,10 @@ class LagreImSkjemaRiverTest :
                     "hvis ikke duplikat av siste inntektsmeldingskjema" to inntektsmeldingSkjemaMedEndredeEgenmeldinger,
                 ),
             ) { eksisterendeInntektsmeldingskjema ->
-                val innsendingId = 1L
                 val innkommendeMelding = innkommendeMelding()
 
                 every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns eksisterendeInntektsmeldingskjema
-                every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any(), any()) } returns innsendingId
+                every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any(), any()) } just Runs
 
                 testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -88,7 +89,6 @@ class LagreImSkjemaRiverTest :
                                 Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.skjema.toJson(SkjemaInntektsmelding.serializer()),
                                 Key.MOTTATT to innkommendeMelding.mottatt.toJson(),
                                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
-                                Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
                             ).toJson(),
                     )
 
@@ -104,12 +104,10 @@ class LagreImSkjemaRiverTest :
         }
 
         test("duplikat lagres ikke, men svarer OK") {
-            val innsendingId = 1L
-            val innsendingIdVedDuplikat = -1L
             val innkommendeMelding = innkommendeMelding()
 
             every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns innkommendeMelding.skjema
-            every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any(), any()) } returns innsendingId
+            every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any(), any()) } just Runs
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -126,7 +124,6 @@ class LagreImSkjemaRiverTest :
                             Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.skjema.toJson(SkjemaInntektsmelding.serializer()),
                             Key.MOTTATT to innkommendeMelding.mottatt.toJson(),
                             Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
-                            Key.INNSENDING_ID to innsendingIdVedDuplikat.toJson(Long.serializer()),
                         ).toJson(),
                 )
 
@@ -210,7 +207,6 @@ private fun innkommendeMelding(): LagreImSkjemaMelding {
         inntektsmeldingId = inntektsmeldingId,
         skjema = skjema,
         mottatt = mottatt,
-        innsending = null,
     )
 }
 

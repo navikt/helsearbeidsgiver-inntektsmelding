@@ -88,7 +88,6 @@ class BerikInntektsmeldingServiceTest :
 
                 val data = it.lesData()
                 Key.INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), data) shouldNotBe null
-                Key.INNSENDING_ID.lesOrNull(Long.serializer(), data) shouldBe Mock.INNSENDING_ID
             }
 
             testRapid.sendJson(Mock.steg3(kontekstId))
@@ -101,7 +100,6 @@ class BerikInntektsmeldingServiceTest :
                 val data = it.lesData()
                 Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data) shouldBe Mock.skjema.forespoerselId
                 Key.INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), data) shouldNotBe null
-                Key.INNSENDING_ID.lesOrNull(Long.serializer(), data) shouldBe Mock.INNSENDING_ID
             }
         }
 
@@ -130,8 +128,6 @@ class BerikInntektsmeldingServiceTest :
     })
 
 private object Mock {
-    const val INNSENDING_ID = 1L
-
     val skjema = mockSkjemaInntektsmelding()
 
     private val forespoersel = mockForespoersel()
@@ -166,7 +162,6 @@ private object Mock {
                     Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
                     Key.INNTEKTSMELDING_ID to UUID.randomUUID().toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
-                    Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
                     Key.MOTTATT to 13.november.kl(15, 10, 0, 0).toJson(),
                 ).toJson(),
         )

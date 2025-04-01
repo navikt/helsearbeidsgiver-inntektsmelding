@@ -130,17 +130,16 @@ class InntektsmeldingRepository(
         inntektsmeldingId: UUID,
         inntektsmeldingSkjema: SkjemaInntektsmelding,
         mottatt: LocalDateTime,
-    ): Long =
-        Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::lagreInntektsmeldingSkjema) {
-            transaction(db) {
-                InntektsmeldingEntitet.insert {
-                    it[this.inntektsmeldingId] = inntektsmeldingId
-                    it[this.forespoerselId] = inntektsmeldingSkjema.forespoerselId.toString()
-                    it[skjema] = inntektsmeldingSkjema
-                    it[innsendt] = mottatt
-                } get InntektsmeldingEntitet.id
-            }
+    ) {
+        transaction(db) {
+            InntektsmeldingEntitet.insert {
+                it[this.inntektsmeldingId] = inntektsmeldingId
+                it[this.forespoerselId] = inntektsmeldingSkjema.forespoerselId.toString()
+                it[skjema] = inntektsmeldingSkjema
+                it[innsendt] = mottatt
+            } get InntektsmeldingEntitet.id
         }
+    }
 
     fun hentNyesteInntektsmeldingSkjema(forespoerselId: UUID): SkjemaInntektsmelding? =
         Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::hentNyesteInntektsmeldingSkjema) {

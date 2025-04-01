@@ -10,14 +10,12 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -43,7 +41,6 @@ data class Steg1(
 data class Steg2(
     val inntektsmeldingId: UUID,
     val erDuplikat: Boolean,
-    val innsendingId: Long?,
 )
 
 class InnsendingService(
@@ -72,7 +69,6 @@ class InnsendingService(
         Steg2(
             inntektsmeldingId = Key.INNTEKTSMELDING_ID.les(UuidSerializer, melding),
             erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
-            innsendingId = Key.INNSENDING_ID.lesOrNull(Long.serializer(), melding),
         )
 
     override fun utfoerSteg0(
@@ -139,10 +135,8 @@ class InnsendingService(
                             Key.FORESPOERSEL_SVAR to steg1.forespoersel.toJson(Forespoersel.serializer()),
                             Key.INNTEKTSMELDING_ID to steg2.inntektsmeldingId.toJson(),
                             Key.SKJEMA_INNTEKTSMELDING to steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
-                            Key.INNSENDING_ID to steg2.innsendingId?.toJson(Long.serializer()),
                             Key.MOTTATT to steg0.mottatt.toJson(),
-                        ).mapValuesNotNull { it }
-                            .toJson(),
+                        ).toJson(),
                 )
 
             MdcUtils.withLogFields(

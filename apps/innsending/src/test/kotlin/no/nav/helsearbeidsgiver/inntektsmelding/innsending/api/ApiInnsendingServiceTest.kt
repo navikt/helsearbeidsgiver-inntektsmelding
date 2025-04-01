@@ -81,7 +81,6 @@ class ApiInnsendingServiceTest :
 
                 val data = it[Key.DATA]?.toMap().orEmpty()
                 Key.SKJEMA_INNTEKTSMELDING.lesOrNull(SkjemaInntektsmelding.serializer(), data) shouldBe innsending.skjema
-                Key.INNSENDING_ID.lesOrNull(Long.serializer(), data) shouldBe Mock.INNSENDING_ID
             }
 
             verify {
@@ -160,8 +159,6 @@ class ApiInnsendingServiceTest :
     })
 
 private object Mock {
-    const val INNSENDING_ID = 1L
-
     val innsending = mockInnsending()
     val mottatt = 15.august.kl(12, 0, 0, 0)
 
@@ -184,10 +181,9 @@ private object Mock {
     fun steg2(kontekstId: UUID): Map<Key, JsonElement> =
         steg1(kontekstId).plusData(
             mapOf(
-                Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
-                Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
                 Key.SKJEMA_INNTEKTSMELDING to innsending.skjema.toJson(SkjemaInntektsmelding.serializer()),
-                Key.INNSENDING to innsending.toJson(Innsending.serializer()),
+                Key.INNTEKTSMELDING_ID to innsending.innsendingId.toJson(),
+                Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
             ),
         )
 }

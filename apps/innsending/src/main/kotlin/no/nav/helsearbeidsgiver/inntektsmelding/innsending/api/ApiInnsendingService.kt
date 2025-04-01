@@ -38,8 +38,8 @@ data class Steg1(
 )
 
 data class Steg2(
+    val inntektsmeldingId: UUID,
     val erDuplikat: Boolean,
-    val innsendingId: Long,
 )
 
 class ApiInnsendingService(
@@ -65,8 +65,8 @@ class ApiInnsendingService(
 
     override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 =
         Steg2(
+            inntektsmeldingId = Key.INNTEKTSMELDING_ID.les(UuidSerializer, melding),
             erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
-            innsendingId = Key.INNSENDING_ID.les(Long.serializer(), melding),
         )
 
     override fun utfoerSteg0(
@@ -103,9 +103,10 @@ class ApiInnsendingService(
                 Key.DATA to
                     data
                         .plus(
-                            Key.SKJEMA_INNTEKTSMELDING to
-                                steg0.innsending.skjema
-                                    .toJson(SkjemaInntektsmelding.serializer()),
+                            mapOf(
+                                Key.INNTEKTSMELDING_ID to steg0.innsending.innsendingId.toJson(),
+                                Key.SKJEMA_INNTEKTSMELDING to steg0.innsending.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                            ),
                         ).toJson(),
             ).also { loggBehovPublisert(BehovType.LAGRE_IM_SKJEMA, it) }
     }
@@ -133,9 +134,9 @@ class ApiInnsendingService(
                     Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
-                            Key.SKJEMA_INNTEKTSMELDING to steg0.innsending.skjema.toJson(SkjemaInntektsmelding.serializer()), // fjern
                             Key.FORESPOERSEL_SVAR to steg1.forespoersel.toJson(Forespoersel.serializer()),
-                            Key.INNSENDING_ID to steg2.innsendingId.toJson(Long.serializer()),
+                            Key.INNTEKTSMELDING_ID to steg2.inntektsmeldingId.toJson(),
+                            Key.SKJEMA_INNTEKTSMELDING to steg0.innsending.skjema.toJson(SkjemaInntektsmelding.serializer()), // fjern
                             Key.MOTTATT to steg0.mottatt.toJson(),
                             Key.INNSENDING to steg0.innsending.toJson(Innsending.serializer()),
                         ).toJson(),

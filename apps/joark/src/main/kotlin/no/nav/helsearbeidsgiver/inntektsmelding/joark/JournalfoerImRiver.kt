@@ -16,7 +16,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -77,12 +76,10 @@ class JournalfoerImRiver(
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-            Key.INNSENDING_ID to json[Key.DATA]?.toMap()?.get(Key.INNSENDING_ID),
-        ).mapValuesNotNull { it }
-            .also {
-                logger.info("Publiserte melding med event '${EventName.INNTEKTSMELDING_JOURNALFOERT}' og journalpost-ID '$journalpostId'.")
-                sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
-            }
+        ).also {
+            logger.info("Publiserte melding med event '${EventName.INNTEKTSMELDING_JOURNALFOERT}' og journalpost-ID '$journalpostId'.")
+            sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
+        }
     }
 
     override fun JournalfoerImMelding.haandterFeil(

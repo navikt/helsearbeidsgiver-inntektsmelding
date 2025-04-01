@@ -25,9 +25,9 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.test.json.plusData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
+import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.Mock.toMap
@@ -51,8 +51,7 @@ class JournalfoerImRiverTest :
 
         context("oppretter journalpost og publiserer melding for å lagre journalpost-ID") {
             test("forespurt inntektsmelding") {
-                val journalpostId = UUID.randomUUID().toString()
-                val innsendingId = 1L
+                val journalpostId = randomDigitString(6)
 
                 val innkommendeMelding = Mock.innkommendeMelding(EventName.INNTEKTSMELDING_MOTTATT, Mock.inntektsmelding)
 
@@ -60,13 +59,7 @@ class JournalfoerImRiverTest :
                     mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
                 } returns Mock.opprettOgFerdigstillResponse(journalpostId)
 
-                testRapid.sendJson(
-                    innkommendeMelding
-                        .toMap()
-                        .plusData(
-                            Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
-                        ),
-                )
+                testRapid.sendJson(innkommendeMelding.toMap())
 
                 testRapid.inspektør.size shouldBeExactly 1
 
@@ -76,7 +69,6 @@ class JournalfoerImRiverTest :
                         Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                         Key.JOURNALPOST_ID to journalpostId.toJson(),
                         Key.INNTEKTSMELDING to Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                        Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
                     )
 
                 coVerifySequence {
@@ -101,7 +93,7 @@ class JournalfoerImRiverTest :
             }
 
             test("selvbestemt inntektsmelding") {
-                val journalpostId = UUID.randomUUID().toString()
+                val journalpostId = randomDigitString(8)
 
                 val innkommendeMelding = Mock.innkommendeMelding(EventName.SELVBESTEMT_IM_LAGRET, Mock.inntektsmelding)
 

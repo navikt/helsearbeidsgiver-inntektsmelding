@@ -103,7 +103,6 @@ class InnsendingServiceTest :
                 val data = it[Key.DATA]?.toMap().orEmpty()
                 Key.ARBEIDSGIVER_FNR.lesOrNull(Fnr.serializer(), data) shouldBe Mock.avsender.fnr
                 Key.SKJEMA_INNTEKTSMELDING.lesOrNull(SkjemaInntektsmelding.serializer(), data) shouldBe nyttSkjema
-                Key.INNSENDING_ID.lesOrNull(Long.serializer(), data) shouldBe Mock.INNSENDING_ID
             }
 
             verify {
@@ -173,8 +172,6 @@ class InnsendingServiceTest :
     })
 
 private object Mock {
-    const val INNSENDING_ID = 1L
-
     val avsender =
         Person(
             fnr = Fnr.genererGyldig(),
@@ -206,7 +203,6 @@ private object Mock {
             mapOf(
                 Key.INNTEKTSMELDING_ID to UUID.randomUUID().toJson(),
                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
-                Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
             ),
         )
 }

@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -10,7 +9,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
@@ -27,8 +25,6 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.time.LocalDateTime
 import java.util.UUID
 
-private const val INNSENDING_ID_VED_DUPLIKAT = -1L
-
 data class LagreImSkjemaMelding(
     val eventName: EventName,
     val behovType: BehovType,
@@ -37,7 +33,6 @@ data class LagreImSkjemaMelding(
     val forespoersel: Forespoersel,
     val inntektsmeldingId: UUID,
     val skjema: SkjemaInntektsmelding,
-    val innsending: Innsending?, // TODO: Ikke i bruk enda
     val mottatt: LocalDateTime,
 )
 
@@ -61,7 +56,6 @@ class LagreImSkjemaRiver(
                 inntektsmeldingId = Key.INNTEKTSMELDING_ID.les(UuidSerializer, data),
                 skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), data),
                 mottatt = Key.MOTTATT.les(LocalDateTimeSerializer, data),
-                innsending = Key.INNSENDING.lesOrNull(Innsending.serializer(), data),
             )
         }
 
@@ -72,26 +66,20 @@ class LagreImSkjemaRiver(
 
         val erDuplikat = sisteImSkjema?.erDuplikatAv(skjema, forespoersel) ?: false
 
-        // TODO: bruk innsendingId fra innsending og lagre den, nå bare videresender vi innsendingId
-        val innsendingId =
-            if (erDuplikat) {
-                sikkerLogger.warn("Fant duplikat av inntektsmeldingskjema.")
-                INNSENDING_ID_VED_DUPLIKAT
-            } else {
-                repository.lagreInntektsmeldingSkjema(inntektsmeldingId, skjema, mottatt).also {
-                    sikkerLogger.info("Lagret inntektsmeldingskjema.")
-                }
-            }
+        if (erDuplikat) {
+            sikkerLogger.warn("Fant duplikat av inntektsmeldingskjema.")
+        } else {
+            repository.lagreInntektsmeldingSkjema(inntektsmeldingId, skjema, mottatt)
+            sikkerLogger.info("Lagret inntektsmeldingskjema.")
+        }
+
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 data
                     .plus(
-                        mapOf(
-                            Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer()),
-                            Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
-                        ),
+                        Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer()),
                     ).toJson(),
         )
     }

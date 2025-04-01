@@ -281,7 +281,7 @@ class PdfDokumentTest {
     fun `med en begrunnelse blir teksten lagt til`() {
         endringAarsaker.map { listOf(it) }.map { it.tilIm() }.forEach { im ->
             im.inntekt?.endringAarsaker?.forEach { endring ->
-                pdfTekstFraIm(im) shouldContain "Endringsårsak\n${endring.beskrivelse()}"
+                pdfTekstFraIm(im) shouldContain "Endringsårsak${System.lineSeparator()}${endring.beskrivelse()}"
             }
         }
     }

@@ -25,9 +25,6 @@ enum class Key : IKey {
     FORESPOERSEL_MAP,
     FORESPOERSEL_SVAR,
     INNSENDING,
-
-    // TODO fjern etter overgangsperiode
-    INNSENDING_ID,
     INNTEKT,
     INNTEKTSDATO,
     INNTEKTSMELDING,

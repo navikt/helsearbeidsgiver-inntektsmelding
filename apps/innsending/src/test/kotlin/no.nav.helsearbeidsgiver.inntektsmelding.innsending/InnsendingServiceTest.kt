@@ -204,6 +204,7 @@ private object Mock {
     fun steg2(kontekstId: UUID): Map<Key, JsonElement> =
         steg1(kontekstId).plusData(
             mapOf(
+                Key.INNTEKTSMELDING_ID to UUID.randomUUID().toJson(),
                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
                 Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
             ),

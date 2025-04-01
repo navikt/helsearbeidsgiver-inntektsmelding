@@ -27,7 +27,6 @@ data class LagreImMelding(
     val kontekstId: UUID,
     val data: Map<Key, JsonElement>,
     val inntektsmelding: Inntektsmelding,
-    val innsendingId: Long,
 )
 
 class LagreImRiver(
@@ -48,14 +47,13 @@ class LagreImRiver(
                 kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
-                innsendingId = Key.INNSENDING_ID.les(Long.serializer(), data),
             )
         }
 
     override fun LagreImMelding.bestemNoekkel(): KafkaKey = KafkaKey(inntektsmelding.type.id)
 
     override fun LagreImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        imRepo.oppdaterMedBeriketDokument(innsendingId, inntektsmelding)
+        imRepo.oppdaterMedBeriketDokument(inntektsmelding)
         sikkerLogger.info("Lagret inntektsmelding.")
 
         return mapOf(

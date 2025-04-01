@@ -44,8 +44,8 @@ class KvitteringIT : EndToEndTest() {
                 ),
         )
 
-        val innsendingId = imRepository.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, mottatt)
-        imRepository.oppdaterMedBeriketDokument(innsendingId, inntektsmelding)
+        imRepository.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, mottatt)
+        imRepository.oppdaterMedBeriketDokument(inntektsmelding)
 
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),

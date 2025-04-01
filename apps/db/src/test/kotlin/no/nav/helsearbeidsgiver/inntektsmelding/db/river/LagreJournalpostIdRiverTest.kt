@@ -12,7 +12,6 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -28,7 +27,6 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.Mock.INNSENDING_ID
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -49,10 +47,10 @@ class LagreJournalpostIdRiverTest :
 
         context("journalpost-ID lagres i databasen") {
             test("forespurt IM") {
-                every { mockImRepo.oppdaterJournalpostId(any(), any()) } just Runs
-                every { mockImRepo.hentNyesteBerikedeInnsendingId(any()) } returns INNSENDING_ID
-
                 val innkommendeMelding = Mock.innkommendeMelding()
+
+                every { mockImRepo.oppdaterJournalpostId(any(), any()) } just Runs
+                every { mockImRepo.hentNyesteBerikedeInntektsmeldingId(any()) } returns innkommendeMelding.inntektsmelding.id
 
                 testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -67,8 +65,8 @@ class LagreJournalpostIdRiverTest :
                     )
 
                 verifySequence {
-                    mockImRepo.oppdaterJournalpostId(INNSENDING_ID, innkommendeMelding.journalpostId)
-                    mockImRepo.hentNyesteBerikedeInnsendingId(innkommendeMelding.inntektsmelding.type.id)
+                    mockImRepo.oppdaterJournalpostId(innkommendeMelding.inntektsmelding.id, innkommendeMelding.journalpostId)
+                    mockImRepo.hentNyesteBerikedeInntektsmeldingId(innkommendeMelding.inntektsmelding.type.id)
                 }
                 verify(exactly = 0) {
                     mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
@@ -88,11 +86,7 @@ class LagreJournalpostIdRiverTest :
                         ),
                     )
 
-                testRapid.sendJson(
-                    innkommendeMelding
-                        .toMap()
-                        .minus(Key.INNSENDING_ID),
-                )
+                testRapid.sendJson(innkommendeMelding.toMap())
 
                 testRapid.inspektør.size shouldBeExactly 1
 
@@ -115,7 +109,7 @@ class LagreJournalpostIdRiverTest :
 
         test("journalpost-ID lagres i databasen, men blir ikke sendt videre fordi IM ikke er nyeste innsending") {
             every { mockImRepo.oppdaterJournalpostId(any(), any()) } just Runs
-            every { mockImRepo.hentNyesteBerikedeInnsendingId(any()) } returns INNSENDING_ID + 1L
+            every { mockImRepo.hentNyesteBerikedeInntektsmeldingId(any()) } returns UUID.randomUUID()
 
             val innkommendeMelding = Mock.innkommendeMelding()
 
@@ -124,8 +118,8 @@ class LagreJournalpostIdRiverTest :
             testRapid.inspektør.size shouldBeExactly 0
 
             verifySequence {
-                mockImRepo.oppdaterJournalpostId(INNSENDING_ID, innkommendeMelding.journalpostId)
-                mockImRepo.hentNyesteBerikedeInnsendingId(innkommendeMelding.inntektsmelding.type.id)
+                mockImRepo.oppdaterJournalpostId(innkommendeMelding.inntektsmelding.id, innkommendeMelding.journalpostId)
+                mockImRepo.hentNyesteBerikedeInntektsmeldingId(innkommendeMelding.inntektsmelding.type.id)
             }
             verify(exactly = 0) {
                 mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
@@ -220,15 +214,12 @@ class LagreJournalpostIdRiverTest :
     })
 
 private object Mock {
-    const val INNSENDING_ID = 1L
-
     fun innkommendeMelding(inntektsmelding: Inntektsmelding = mockInntektsmeldingV1()): LagreJournalpostIdMelding =
         LagreJournalpostIdMelding(
             eventName = EventName.INNTEKTSMELDING_JOURNALFOERT,
             kontekstId = UUID.randomUUID(),
             inntektsmelding = inntektsmelding,
             journalpostId = randomDigitString(10),
-            innsendingId = INNSENDING_ID,
         )
 
     fun LagreJournalpostIdMelding.toMap(): Map<Key, JsonElement> =
@@ -237,7 +228,6 @@ private object Mock {
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-            Key.INNSENDING_ID to INNSENDING_ID.toJson(Long.serializer()),
         )
 
     val fail = mockFail("I er et steinras og du skal falla med meg.", EventName.INNTEKTSMELDING_MOTTATT)

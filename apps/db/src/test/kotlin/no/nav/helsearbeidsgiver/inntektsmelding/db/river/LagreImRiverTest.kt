@@ -34,8 +34,6 @@ class LagreImRiverTest :
         val testRapid = TestRapid()
         val mockImRepo = mockk<InntektsmeldingRepository>()
 
-        val innsendingId = 1L
-
         LagreImRiver(mockImRepo).connect(testRapid)
 
         beforeTest {
@@ -44,11 +42,9 @@ class LagreImRiverTest :
         }
 
         test("inntektsmelding lagres") {
-            every { mockImRepo.oppdaterMedBeriketDokument(any(), any()) } just Runs
+            every { mockImRepo.oppdaterMedBeriketDokument(any()) } just Runs
 
-            val nyInntektsmelding = mockInntektsmeldingV1()
-
-            val innkommendeMelding = innkommendeMelding(innsendingId, nyInntektsmelding)
+            val innkommendeMelding = innkommendeMelding()
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -62,21 +58,20 @@ class LagreImRiverTest :
                         mapOf(
                             Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
                             Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
-                            Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
                         ).toJson(),
                 )
 
             verifySequence {
-                mockImRepo.oppdaterMedBeriketDokument(innsendingId, nyInntektsmelding)
+                mockImRepo.oppdaterMedBeriketDokument(innkommendeMelding.inntektsmelding)
             }
         }
 
         test("håndterer at repo feiler") {
             every {
-                mockImRepo.oppdaterMedBeriketDokument(any(), any())
+                mockImRepo.oppdaterMedBeriketDokument(any())
             } throws RuntimeException("thank you, next")
 
-            val innkommendeMelding = innkommendeMelding(innsendingId)
+            val innkommendeMelding = innkommendeMelding()
 
             val forventetFail =
                 Fail(
@@ -92,7 +87,7 @@ class LagreImRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             verifySequence {
-                mockImRepo.oppdaterMedBeriketDokument(any(), any())
+                mockImRepo.oppdaterMedBeriketDokument(any())
             }
         }
 
@@ -105,7 +100,7 @@ class LagreImRiverTest :
                 ),
             ) { uoensketKeyMedVerdi ->
                 testRapid.sendJson(
-                    innkommendeMelding(innsendingId)
+                    innkommendeMelding()
                         .toMap()
                         .plus(uoensketKeyMedVerdi),
                 )
@@ -113,28 +108,26 @@ class LagreImRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 verify(exactly = 0) {
-                    mockImRepo.oppdaterMedBeriketDokument(any(), any())
+                    mockImRepo.oppdaterMedBeriketDokument(any())
                 }
             }
         }
     })
 
-private fun innkommendeMelding(
-    innsendingId: Long,
-    inntektsmelding: Inntektsmelding = mockInntektsmeldingV1(),
-): LagreImMelding =
-    LagreImMelding(
+private fun innkommendeMelding(): LagreImMelding {
+    val inntektsmelding = mockInntektsmeldingV1()
+
+    return LagreImMelding(
         eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
         behovType = BehovType.LAGRE_IM,
         kontekstId = UUID.randomUUID(),
         data =
             mapOf(
                 Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                Key.INNSENDING_ID to innsendingId.toJson(Long.serializer()),
             ),
         inntektsmelding = inntektsmelding,
-        innsendingId = innsendingId,
     )
+}
 
 private fun LagreImMelding.toMap(): Map<Key, JsonElement> =
     mapOf(

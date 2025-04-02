@@ -40,7 +40,7 @@ class InntektsmeldingRepository(
                         InntektsmeldingEntitet.eksternInntektsmelding,
                         InntektsmeldingEntitet.innsendt,
                         InntektsmeldingEntitet.avsenderNavn,
-                    ).where { InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString() }
+                    ).where { InntektsmeldingEntitet.forespoerselId eq forespoerselId }
                     .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
                     .limit(1)
                     .map {
@@ -119,7 +119,7 @@ class InntektsmeldingRepository(
     ) {
         transaction(db) {
             InntektsmeldingEntitet.insert {
-                it[this.forespoerselId] = forespoerselId.toString()
+                it[this.forespoerselId] = forespoerselId
                 it[eksternInntektsmelding] = eksternIm
                 it[innsendt] = eksternIm.tidspunkt
             }
@@ -134,10 +134,10 @@ class InntektsmeldingRepository(
         transaction(db) {
             InntektsmeldingEntitet.insert {
                 it[this.inntektsmeldingId] = inntektsmeldingId
-                it[this.forespoerselId] = inntektsmeldingSkjema.forespoerselId.toString()
+                it[this.forespoerselId] = inntektsmeldingSkjema.forespoerselId
                 it[skjema] = inntektsmeldingSkjema
                 it[innsendt] = mottatt
-            } get InntektsmeldingEntitet.id
+            }
         }
     }
 
@@ -195,13 +195,13 @@ private class InntektsmeldingResult(
 private fun hentNyesteImQuery(forespoerselId: UUID): Query =
     InntektsmeldingEntitet
         .selectAll()
-        .where { (InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()) and InntektsmeldingEntitet.dokument.isNotNull() }
+        .where { (InntektsmeldingEntitet.forespoerselId eq forespoerselId) and InntektsmeldingEntitet.dokument.isNotNull() }
         .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
         .limit(1)
 
 private fun hentNyesteImSkjemaQuery(forespoerselId: UUID): Query =
     InntektsmeldingEntitet
         .selectAll()
-        .where { InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString() }
+        .where { InntektsmeldingEntitet.forespoerselId eq forespoerselId }
         .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
         .limit(1)

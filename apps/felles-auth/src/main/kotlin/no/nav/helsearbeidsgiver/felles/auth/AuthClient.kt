@@ -23,10 +23,7 @@ class AuthClient {
     ): () -> String =
         {
             runBlocking {
-                sikkerLogger.info("Forsøker å hente token for '$target' fra '${identityProvider.verdi}' og endepunkt '$tokenEndpoint'.")
-                val tokenResponse = token(identityProvider, target)
-                sikkerLogger.info("Hentet token som utløper om ${tokenResponse.expiresInSeconds} sekunder.")
-                tokenResponse.accessToken
+                token(identityProvider, target).accessToken
             }
         }
 

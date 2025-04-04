@@ -15,7 +15,7 @@ metadata:
     team: helsearbeidsgiver
   {{#if texasEnabled}}
   annotations:
-    texas.nais.io/enabled: {{ texasEnabled }}
+    texas.nais.io/enabled: "{{ texasEnabled }}"
   {{/if}}
 spec:
   image: {{ image }}

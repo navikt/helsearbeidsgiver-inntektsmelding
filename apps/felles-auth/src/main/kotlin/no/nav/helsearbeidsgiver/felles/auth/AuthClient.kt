@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.felles.auth
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.request.forms.submitForm
-import io.ktor.client.statement.HttpResponse
 import io.ktor.http.parameters
 import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.felles.utils.fromEnv
@@ -46,7 +45,7 @@ class AuthClient {
                         },
                 ).body()
         } catch (e: ResponseException) {
-            onError(e.response)
+            e.logAndRethrow()
         }
 
     internal suspend fun exchange(
@@ -66,7 +65,7 @@ class AuthClient {
                         },
                 ).body()
         } catch (e: ResponseException) {
-            onError(e.response)
+            e.logAndRethrow()
         }
 
     internal suspend fun introspect(
@@ -83,11 +82,11 @@ class AuthClient {
                     },
             ).body()
 
-    private suspend fun onError(response: HttpResponse): Nothing {
+    private suspend fun ResponseException.logAndRethrow(): Nothing {
         val error = response.body<ErrorResponse>()
         val msg = "Klarte ikke hente token. Feilet med status '${response.status}' og feilmelding '${error.errorDescription}'."
 
         sikkerLogger.error(msg)
-        throw RuntimeException(msg)
+        throw this
     }
 }

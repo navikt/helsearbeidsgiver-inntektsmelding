@@ -51,7 +51,7 @@ subprojects {
             }
         }
 
-        if (!project.erFellesModul() && !project.erFellesDatabaseModul()) {
+        if (!project.erFellesModul() && !project.erFellesAuthModul() && !project.erFellesDatabaseModul()) {
             named<Jar>("jar") {
                 archiveBaseName.set("app")
 
@@ -251,6 +251,8 @@ fun Task.validateMainClassFound(mainClass: String) {
 fun Project.mainClass(): String = "$group.${name.replace("-", "")}.AppKt"
 
 fun Project.erFellesModul(): Boolean = name == "felles"
+
+fun Project.erFellesAuthModul(): Boolean = name == "felles-auth"
 
 fun Project.erFellesDatabaseModul(): Boolean = name == "felles-db-exposed"
 

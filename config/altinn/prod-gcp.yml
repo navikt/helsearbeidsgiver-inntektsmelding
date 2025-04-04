@@ -1,6 +1,7 @@
 kafkaPool: nav-prod
 azure:
   enabled: true
+texasEnabled: true
 apps:
   - name: arbeidsgiver-altinn-tilganger
     namespace: fager

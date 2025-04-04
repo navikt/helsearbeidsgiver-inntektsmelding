@@ -1,7 +1,7 @@
 kafkaPool: nav-dev
 azure:
   enabled: true
-ingress: https://helsearbeidsgiver-im-aareg.intern.dev.nav.no
+texasEnabled: true
 env:
 - name: AAREG_URL
   value: "https://aareg-services.dev-fss-pub.nais.io/api/v1/arbeidstaker/arbeidsforhold?sporingsinformasjon=false&historikk=false"

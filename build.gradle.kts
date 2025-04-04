@@ -51,7 +51,7 @@ subprojects {
             }
         }
 
-        if (!project.erFellesModul() && !project.erFellesDatabaseModul()) {
+        if (!project.erFellesModul() && !project.erFellesAuthModul() && !project.erFellesDatabaseModul()) {
             named<Jar>("jar") {
                 archiveBaseName.set("app")
 
@@ -99,7 +99,6 @@ subprojects {
     val kotlinCoroutinesVersion: String by project
     val kotlinSerializationVersion: String by project
     val mockkVersion: String by project
-    val tokenProviderVersion: String by project
     val utilsVersion: String by project
 
     dependencies {
@@ -109,7 +108,6 @@ subprojects {
         }
 
         implementation("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion")
-        implementation("no.nav.helsearbeidsgiver:tokenprovider:$tokenProviderVersion")
         implementation("no.nav.helsearbeidsgiver:utils:$utilsVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
@@ -170,6 +168,7 @@ fun getBuildableProjects(): List<String> {
     val hasCommonChanges =
         changedFiles.any {
             it.startsWith("apps/felles/src/main/") ||
+                it.startsWith("apps/felles-auth/src/main/") ||
                 it in
                 listOf(
                     "Dockerfile",
@@ -251,6 +250,8 @@ fun Task.validateMainClassFound(mainClass: String) {
 fun Project.mainClass(): String = "$group.${name.replace("-", "")}.AppKt"
 
 fun Project.erFellesModul(): Boolean = name == "felles"
+
+fun Project.erFellesAuthModul(): Boolean = name == "felles-auth"
 
 fun Project.erFellesDatabaseModul(): Boolean = name == "felles-db-exposed"
 

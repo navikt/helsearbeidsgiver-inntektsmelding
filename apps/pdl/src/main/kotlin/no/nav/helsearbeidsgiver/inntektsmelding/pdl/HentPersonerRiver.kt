@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -10,7 +11,6 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
@@ -109,12 +109,11 @@ class HentPersonerRiver(
         )
 
     private fun hentPersoner(fnrListe: Set<Fnr>): List<Person> =
-        Metrics.pdlRequest
-            .recordTime(pdlClient::personBolk) {
-                pdlClient.personBolk(
-                    fnrListe.map(Fnr::verdi),
-                )
-            }.orEmpty()
+        runBlocking {
+            pdlClient.personBolk(
+                fnrListe.map(Fnr::verdi),
+            )
+        }.orEmpty()
             .mapNotNull { person ->
                 person.ident?.let { fnr ->
                     Person(

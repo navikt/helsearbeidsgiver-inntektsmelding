@@ -21,7 +21,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggle
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
@@ -31,16 +30,7 @@ class FjernPaaminnelseRiverTest :
         val testRapid = TestRapid()
         val mockagNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
 
-        val mockPaaminnelseToggle =
-            PaaminnelseToggle(
-                oppgavePaaminnelseAktivert = true,
-                tidMellomOppgaveopprettelseOgPaaminnelse = "P28D",
-            )
-
-        FjernPaaminnelseRiver(
-            agNotifikasjonKlient = mockagNotifikasjonKlient,
-            paaminnelseToggle = mockPaaminnelseToggle,
-        ).connect(testRapid)
+        FjernPaaminnelseRiver(mockagNotifikasjonKlient).connect(testRapid)
 
         beforeTest {
             testRapid.reset()

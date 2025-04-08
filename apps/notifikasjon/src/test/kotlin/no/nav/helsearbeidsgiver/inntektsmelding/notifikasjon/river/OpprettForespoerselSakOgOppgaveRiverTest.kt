@@ -28,7 +28,6 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggle
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakLevetid
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -38,15 +37,10 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
 
         val testRapid = TestRapid()
         val mockAgNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
-        val mockPaaminnelseToggle =
-            PaaminnelseToggle(
-                oppgavePaaminnelseAktivert = true,
-                tidMellomOppgaveopprettelseOgPaaminnelse = "P28D",
-            )
 
         OpprettForespoerselSakOgOppgaveRiver(
             lenkeBaseUrl = "en-slags-url",
-            paaminnelseToggle = mockPaaminnelseToggle,
+            tidMellomOppgaveOpprettelseOgPaaminnelse = "P28D",
             agNotifikasjonKlient = mockAgNotifikasjonKlient,
         ).connect(testRapid)
 

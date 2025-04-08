@@ -1,7 +1,7 @@
 kafkaPool: nav-dev
 azure:
   enabled: true
-ingress: https://helsearbeidsgiver-im-joark.intern.dev.nav.no
+texasEnabled: true
 env:
 - name: DOKARKIV_SCOPE
   value: "api://dev-fss.teamdokumenthandtering.dokarkiv-q1/.default"

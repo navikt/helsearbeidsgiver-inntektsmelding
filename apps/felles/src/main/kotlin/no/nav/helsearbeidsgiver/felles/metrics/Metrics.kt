@@ -32,8 +32,6 @@ object Metrics {
 
     val inntektRequest = requestMetric("Inntekt")
 
-    val pdlRequest = requestMetric("PDL")
-
     val forespoerslerBesvartFraSpleis = counterMetric("forespoersler besvart fra Spleis")
 
     object Expose {

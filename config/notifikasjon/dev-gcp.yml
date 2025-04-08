@@ -1,6 +1,7 @@
 kafkaPool: nav-dev
 azure:
   enabled: true
+texasEnabled: true
 apps:
   - name: notifikasjon-produsent-api
     namespace: fager

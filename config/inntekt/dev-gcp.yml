@@ -1,7 +1,7 @@
 kafkaPool: nav-dev
 azure:
   enabled: true
-ingress: https://helsearbeidsgiver-im-inntekt.intern.dev.nav.no
+texasEnabled: true
 env:
 - name: INNTEKT_URL
   value: "https://team-inntekt-proxy.dev-fss-pub.nais.io/proxy/inntektskomponenten-q2/rs"

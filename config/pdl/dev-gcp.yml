@@ -1,7 +1,7 @@
 kafkaPool: nav-dev
 azure:
   enabled: true
-ingress: https://helsearbeidsgiver-im-pdl.intern.dev.nav.no
+texasEnabled: true
 env:
 - name: PDL_URL
   value: "https://pdl-api.dev-fss-pub.nais.io/graphql"

@@ -177,7 +177,6 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
     orgnr: Orgnr,
     orgNavn: String,
     skalHaPaaminnelse: Boolean,
-    paaminnelseAktivert: Boolean,
     tidMellomOppgaveopprettelseOgPaaminnelse: String,
     sykmeldingsPerioder: List<Periode>,
 ): String =
@@ -194,7 +193,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
                 varslingInnhold = NotifikasjonTekst.oppgaveInnhold(orgnr, orgNavn, sykmeldingsPerioder),
                 tidspunkt = null,
                 paaminnelse =
-                    if (skalHaPaaminnelse && paaminnelseAktivert) {
+                    if (skalHaPaaminnelse) {
                         Paaminnelse(
                             tittel = NotifikasjonTekst.PAAMINNELSE_TITTEL,
                             innhold = NotifikasjonTekst.paaminnelseInnhold(orgnr, orgNavn, sykmeldingsPerioder),

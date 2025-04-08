@@ -16,7 +16,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggle
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.opprettOppgave
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.opprettSak
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -37,7 +36,7 @@ data class OpprettForespoerselSakOgOppgaveMelding(
 
 class OpprettForespoerselSakOgOppgaveRiver(
     private val lenkeBaseUrl: String,
-    private val paaminnelseToggle: PaaminnelseToggle,
+    private val tidMellomOppgaveOpprettelseOgPaaminnelse: String,
     private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
 ) : ObjectRiver<OpprettForespoerselSakOgOppgaveMelding>() {
     private val logger = logger()
@@ -81,8 +80,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
                 orgnr = forespoersel.orgnr,
                 orgNavn = orgNavn,
                 skalHaPaaminnelse = skalHaPaaminnelse,
-                paaminnelseAktivert = paaminnelseToggle.oppgavePaaminnelseAktivert,
-                tidMellomOppgaveopprettelseOgPaaminnelse = paaminnelseToggle.tidMellomOppgaveopprettelseOgPaaminnelse,
+                tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveOpprettelseOgPaaminnelse,
                 sykmeldingsPerioder = forespoersel.sykmeldingsperioder,
             )
 

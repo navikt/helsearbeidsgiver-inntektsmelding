@@ -12,7 +12,5 @@ env:
     value: "api://dev-gcp.fager.notifikasjon-produsent-api/.default"
   - name: LINK_URL
     value: "https://arbeidsgiver.intern.dev.nav.no"
-  - name: OPPGAVEPAAMINNELSER_AKTIVERT
-    value: "true"
   - name: TID_MELLOM_OPPGAVEOPPRETTELSE_OG_PAAMINNELSE
     value: "PT10M"

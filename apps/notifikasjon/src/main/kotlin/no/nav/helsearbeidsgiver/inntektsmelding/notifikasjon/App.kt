@@ -20,7 +20,7 @@ fun main() {
     RapidApplication
         .create(System.getenv())
         .createNotifikasjonService()
-        .createNotifikasjonRivers(Env.linkUrl, Env.paaminnelseToggle, buildClient())
+        .createNotifikasjonRivers(Env.linkUrl, Env.tidMellomOppgaveOpprettelseOgPaaminnelse, buildClient())
         .start()
 }
 
@@ -38,14 +38,14 @@ fun RapidsConnection.createNotifikasjonService(): RapidsConnection =
 
 fun RapidsConnection.createNotifikasjonRivers(
     linkUrl: String,
-    paaminnelseToggle: PaaminnelseToggle,
+    tidMellomOppgaveOpprettelseOgPaaminnelse: String,
     agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
 ): RapidsConnection =
     also {
         logger.info("Starter ${OpprettForespoerselSakOgOppgaveRiver::class.simpleName}...")
         OpprettForespoerselSakOgOppgaveRiver(
             lenkeBaseUrl = linkUrl,
-            paaminnelseToggle = paaminnelseToggle,
+            tidMellomOppgaveOpprettelseOgPaaminnelse = tidMellomOppgaveOpprettelseOgPaaminnelse,
             agNotifikasjonKlient = agNotifikasjonKlient,
         ).connect(this)
 
@@ -59,14 +59,9 @@ fun RapidsConnection.createNotifikasjonRivers(
         UtgaattForespoerselRiver(linkUrl, agNotifikasjonKlient).connect(this)
 
         logger.info("Starter ${FjernPaaminnelseRiver::class.simpleName}...")
-        FjernPaaminnelseRiver(
-            agNotifikasjonKlient = agNotifikasjonKlient,
-            paaminnelseToggle = paaminnelseToggle,
-        ).connect(this)
+        FjernPaaminnelseRiver(agNotifikasjonKlient).connect(this)
         logger.info("Starter ${EndrePaaminnelseRiver::class.simpleName}...")
-        EndrePaaminnelseRiver(
-            agNotifikasjonKlient = agNotifikasjonKlient,
-        ).connect(this)
+        EndrePaaminnelseRiver(agNotifikasjonKlient).connect(this)
     }
 
 private fun buildClient(): ArbeidsgiverNotifikasjonKlient {

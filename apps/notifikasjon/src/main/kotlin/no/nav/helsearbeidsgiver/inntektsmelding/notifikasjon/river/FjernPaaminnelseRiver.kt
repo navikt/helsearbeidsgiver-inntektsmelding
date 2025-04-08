@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.PaaminnelseToggle
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -28,7 +27,6 @@ data class FjernPaaminnelseMelding(
 
 class FjernPaaminnelseRiver(
     val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
-    private val paaminnelseToggle: PaaminnelseToggle,
 ) : ObjectRiver<FjernPaaminnelseMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -47,9 +45,7 @@ class FjernPaaminnelseRiver(
     override fun FjernPaaminnelseMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun FjernPaaminnelseMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
-        if (paaminnelseToggle.oppgavePaaminnelseAktivert) {
-            slettOppgavePaaminnelser(forespoerselId = forespoerselId)
-        }
+        slettOppgavePaaminnelser(forespoerselId = forespoerselId)
         return null
     }
 

@@ -12,7 +12,5 @@ env:
     value: "api://prod-gcp.fager.notifikasjon-produsent-api/.default"
   - name: LINK_URL
     value: "https://arbeidsgiver.nav.no"
-  - name: OPPGAVEPAAMINNELSER_AKTIVERT
-    value: "true"
   - name: TID_MELLOM_OPPGAVEOPPRETTELSE_OG_PAAMINNELSE
     value: "P28D"

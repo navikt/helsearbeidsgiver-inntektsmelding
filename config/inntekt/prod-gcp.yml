@@ -1,7 +1,5 @@
 kafkaPool: nav-prod
-azure:
-  enabled: true
-texasEnabled: true
+entraIdEnabled: true
 env:
 - name: INNTEKT_URL
   value: "https://team-inntekt-proxy.prod-fss-pub.nais.io/proxy/inntektskomponenten/rs"

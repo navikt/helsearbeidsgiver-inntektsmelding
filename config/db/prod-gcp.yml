@@ -1,6 +1,4 @@
 kafkaPool: nav-prod
-azure:
-  enabled: true
 database:
   name: inntektsmelding
   tier: db-custom-1-3840

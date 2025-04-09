@@ -13,9 +13,9 @@ metadata:
   namespace: helsearbeidsgiver
   labels:
     team: helsearbeidsgiver
-  {{#if texasEnabled}}
+  {{#if entraIdEnabled}}
   annotations:
-    texas.nais.io/enabled: "{{ texasEnabled }}"
+    texas.nais.io/enabled: "{{ entraIdEnabled }}"
   {{/if}}
 spec:
   image: {{ image }}
@@ -56,10 +56,10 @@ spec:
   kafka:
     pool: {{ kafkaPool }}
   {{/if}}
-  {{#if azure}}
+  {{#if entraIdEnabled}}
   azure:
     application:
-      enabled: {{ azure.enabled }}
+      enabled: {{ entraIdEnabled }}
   {{/if}}
   {{#if valkeyAccess}}
   valkey:
@@ -70,9 +70,6 @@ spec:
   gcp:
     sqlInstances:
       - type: POSTGRES_14
-        {{#if database.cascadingDelete}}
-        cascadingDelete: {{ database.cascadingDelete }}
-        {{/if}}
         tier: {{ database.tier }}
         databases:
           - name: {{ database.name }}
@@ -110,15 +107,6 @@ spec:
     enabled: true
     sidecar:
       enabled: true
-  {{/if}}
-  {{#if maskinporten}}
-  maskinporten:
-    enabled: true
-    scopes:
-      consumes:
-        {{#each maskinporten.consumes as |consume| }}
-        - name: "{{ consume }}"
-        {{/each}}
   {{/if}}
   accessPolicy:
     outbound:

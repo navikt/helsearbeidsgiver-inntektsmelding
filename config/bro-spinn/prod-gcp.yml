@@ -1,7 +1,5 @@
 kafkaPool: nav-prod
-azure:
-  enabled: true
-texasEnabled: true
+entraIdEnabled: true
 env:
   - name: SPINN_SCOPE
     value: "api://prod-gcp.helsearbeidsgiver.spinosaurus/.default"

@@ -1,7 +1,5 @@
 kafkaPool: nav-dev
-azure:
-  enabled: true
-texasEnabled: true
+entraIdEnabled: true
 replicasMin: 2
 replicasMax: 2
 apps:

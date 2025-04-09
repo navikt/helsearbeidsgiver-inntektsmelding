@@ -8,7 +8,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.felles.utils.fromEnv
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-/** Krever `texasEnabled: true` i konfig. */
+/** Krever `entraIdEnabled: true` i konfig. */
 class AuthClient {
     private val sikkerLogger = sikkerLogger()
     private val httpClient = createHttpClient()

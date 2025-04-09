@@ -1,6 +1,4 @@
 kafkaPool: nav-prod
-azure:
-  enabled: true
 database:
   name: im-error-recovery
   tier: db-custom-1-3840

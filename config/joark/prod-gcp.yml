@@ -1,7 +1,5 @@
 kafkaPool: nav-prod
-azure:
-  enabled: true
-texasEnabled: true
+entraIdEnabled: true
 env:
 - name: DOKARKIV_SCOPE
   value: "api://prod-fss.teamdokumenthandtering.dokarkiv/.default"

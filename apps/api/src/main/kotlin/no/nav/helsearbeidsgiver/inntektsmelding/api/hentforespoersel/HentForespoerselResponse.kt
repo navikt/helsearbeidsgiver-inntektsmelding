@@ -4,7 +4,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoersel
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.ForespurtData
@@ -26,11 +25,8 @@ data class HentForespoerselResponse(
     val bruttoinntekt: Double?,
     val tidligereinntekter: List<InntektPerMaaned>,
     val forespurtData: ForespurtData?,
-    val opprettetUpresisIkkeBruk: LocalDate,
     val erBesvart: Boolean,
     val feilReport: FeilReport? = null,
-    val success: JsonElement? = null,
-    val failure: JsonElement? = null,
 )
 
 @Deprecated("fjern når det ikke lenger brukes i frontend")

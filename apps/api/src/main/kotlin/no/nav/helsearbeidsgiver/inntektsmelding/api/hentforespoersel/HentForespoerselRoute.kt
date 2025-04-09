@@ -94,42 +94,35 @@ fun Route.hentForespoersel(
     }
 }
 
-private fun HentForespoerselResultat.toResponse(): HentForespoerselResponse {
-    val response =
-        HentForespoerselResponse(
-            navn = sykmeldtNavn,
-            innsenderNavn = avsenderNavn,
-            orgNavn = orgNavn,
-            identitetsnummer = forespoersel.fnr.verdi,
-            orgnrUnderenhet = forespoersel.orgnr.verdi,
-            fravaersperioder = forespoersel.sykmeldingsperioder,
-            egenmeldingsperioder = forespoersel.egenmeldingsperioder,
-            bestemmendeFravaersdag = forespoersel.forslagBestemmendeFravaersdag(),
-            eksternBestemmendeFravaersdag = forespoersel.eksternBestemmendeFravaersdag(),
-            bruttoinntekt = inntekt?.gjennomsnitt(),
-            tidligereinntekter = inntekt?.maanedOversikt.orEmpty(),
-            forespurtData = forespoersel.forespurtData,
-            opprettetUpresisIkkeBruk = forespoersel.opprettetUpresisIkkeBruk,
-            erBesvart = forespoersel.erBesvart,
-            feilReport =
-                if (feil.isEmpty()) {
-                    null
-                } else {
-                    FeilReport(
-                        feil =
-                            feil
-                                .map {
-                                    Feilmelding(
-                                        melding = it.value,
-                                        status = null,
-                                        datafelt = it.key,
-                                    )
-                                }.toMutableList(),
-                    )
-                },
-        )
-
-    return response.copy(
-        success = response.toJson(HentForespoerselResponse.serializer()),
+private fun HentForespoerselResultat.toResponse(): HentForespoerselResponse =
+    HentForespoerselResponse(
+        navn = sykmeldtNavn,
+        innsenderNavn = avsenderNavn,
+        orgNavn = orgNavn,
+        identitetsnummer = forespoersel.fnr.verdi,
+        orgnrUnderenhet = forespoersel.orgnr.verdi,
+        fravaersperioder = forespoersel.sykmeldingsperioder,
+        egenmeldingsperioder = forespoersel.egenmeldingsperioder,
+        bestemmendeFravaersdag = forespoersel.forslagBestemmendeFravaersdag(),
+        eksternBestemmendeFravaersdag = forespoersel.eksternBestemmendeFravaersdag(),
+        bruttoinntekt = inntekt?.gjennomsnitt(),
+        tidligereinntekter = inntekt?.maanedOversikt.orEmpty(),
+        forespurtData = forespoersel.forespurtData,
+        erBesvart = forespoersel.erBesvart,
+        feilReport =
+            if (feil.isEmpty()) {
+                null
+            } else {
+                FeilReport(
+                    feil =
+                        feil
+                            .map {
+                                Feilmelding(
+                                    melding = it.value,
+                                    status = null,
+                                    datafelt = it.key,
+                                )
+                            }.toMutableList(),
+                )
+            },
     )
-}

@@ -240,24 +240,7 @@ private object Mock {
             "bruttoinntekt": ${inntekt.gjennomsnitt()},
             "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
             "forespurtData": ${forespoersel.forespurtData.hardcodedJson()},
-            "opprettetUpresisIkkeBruk": "${forespoersel.opprettetUpresisIkkeBruk}",
-            "erBesvart": ${forespoersel.erBesvart},
-            "success": {
-                "navn": "Ola Normann",
-                "orgNavn": "Norge AS",
-                "innsenderNavn": "Arbeidsgiver",
-                "identitetsnummer": "${forespoersel.fnr}",
-                "orgnrUnderenhet": "${forespoersel.orgnr}",
-                "fravaersperioder": [${forespoersel.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
-                "egenmeldingsperioder": [${forespoersel.egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
-                "bestemmendeFravaersdag": "${forespoersel.forslagBestemmendeFravaersdag()}",
-                "eksternBestemmendeFravaersdag": ${forespoersel.eksternBestemmendeFravaersdag().jsonStrOrNull()},
-                "bruttoinntekt": ${inntekt.gjennomsnitt()},
-                "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
-                "forespurtData": ${forespoersel.forespurtData.hardcodedJson()},
-                "opprettetUpresisIkkeBruk": "${forespoersel.opprettetUpresisIkkeBruk}",
-                "erBesvart": ${forespoersel.erBesvart}
-            }
+            "erBesvart": ${forespoersel.erBesvart}
         }
         """.removeJsonWhitespace()
 
@@ -276,24 +259,7 @@ private object Mock {
             "bruttoinntekt": ${inntekt.gjennomsnitt()},
             "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
             "forespurtData": ${mockForespurtDataMedForrigeInntekt().hardcodedJson()},
-            "opprettetUpresisIkkeBruk": "${forespoersel.opprettetUpresisIkkeBruk}",
-            "erBesvart": ${forespoersel.erBesvart},
-            "success": {
-                "navn": "Ola Normann",
-                "orgNavn": "Norge AS",
-                "innsenderNavn": "Arbeidsgiver",
-                "identitetsnummer": "${forespoersel.fnr}",
-                "orgnrUnderenhet": "${forespoersel.orgnr}",
-                "fravaersperioder": [${forespoersel.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
-                "egenmeldingsperioder": [${forespoersel.egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
-                "bestemmendeFravaersdag": "${forespoersel.forslagBestemmendeFravaersdag()}",
-                "eksternBestemmendeFravaersdag": ${forespoersel.eksternBestemmendeFravaersdag().jsonStrOrNull()},
-                "bruttoinntekt": ${inntekt.gjennomsnitt()},
-                "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
-                "forespurtData": ${mockForespurtDataMedForrigeInntekt().hardcodedJson()},
-                "opprettetUpresisIkkeBruk": "${forespoersel.opprettetUpresisIkkeBruk}",
-                "erBesvart": ${forespoersel.erBesvart}
-            }
+            "erBesvart": ${forespoersel.erBesvart}
         }
         """.removeJsonWhitespace()
 }

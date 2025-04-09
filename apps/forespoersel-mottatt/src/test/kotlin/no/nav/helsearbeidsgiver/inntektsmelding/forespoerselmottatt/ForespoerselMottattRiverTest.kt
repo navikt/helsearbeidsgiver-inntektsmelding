@@ -91,6 +91,5 @@ object Mock {
             bestemmendeFravaersdager = mapOf(orgnr to 1.januar),
             forespurtData = mockForespurtData(),
             erBesvart = false,
-            opprettetUpresisIkkeBruk = 17.januar,
         )
 }

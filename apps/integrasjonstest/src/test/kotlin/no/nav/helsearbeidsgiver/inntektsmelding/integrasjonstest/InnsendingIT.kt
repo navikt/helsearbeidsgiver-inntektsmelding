@@ -207,7 +207,6 @@ class InnsendingIT : EndToEndTest() {
                 bestemmendeFravaersdager = mapOf(orgnr to 15.juli),
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
-                opprettetUpresisIkkeBruk = 17.juli,
             )
 
         val forespoerselSvar =
@@ -221,7 +220,6 @@ class InnsendingIT : EndToEndTest() {
                 bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager,
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
-                opprettetUpresisIkkeBruk = forespoersel.opprettetUpresisIkkeBruk,
             )
     }
 }

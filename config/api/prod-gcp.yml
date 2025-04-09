@@ -1,7 +1,5 @@
 kafkaPool: nav-prod
 idportenEnabled: true
-azure:
-  enabled: true
 valkeyAccess: read
 ingress: https://helsearbeidsgiver-im-api.intern.nav.no
 inboundApps:

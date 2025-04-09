@@ -1,6 +1,4 @@
 kafkaPool: nav-prod
-azure:
-  enabled: true
 env:
 - name: ENHETSREGISTERET_URL
   value: "https://data.brreg.no/enhetsregisteret/api/underenheter"

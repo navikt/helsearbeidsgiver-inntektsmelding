@@ -1,7 +1,5 @@
 kafkaPool: nav-prod
-azure:
-  enabled: true
-texasEnabled: true
+entraIdEnabled: true
 env:
 - name: AAREG_URL
   value: "https://aareg-services.prod-fss-pub.nais.io/api/v1/arbeidstaker/arbeidsforhold?sporingsinformasjon=false&historikk=false"

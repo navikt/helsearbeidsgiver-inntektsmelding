@@ -1,7 +1,4 @@
 kafkaPool: nav-dev
-azure:
-  enabled: true
-ingress: https://helsearbeidsgiver-im-brreg.intern.dev.nav.no
 env:
 - name: ENHETSREGISTERET_URL
   value: "http://localhost"

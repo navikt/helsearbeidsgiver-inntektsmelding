@@ -166,11 +166,10 @@ class ConvertTest :
             val dato = LocalDate.of(2024, 1, 1)
             val nyInntekt =
                 Inntekt(
-                    belop,
-                    dato,
-                    listOf(Naturalytelse(Naturalytelse.Kode.BEDRIFTSBARNEHAGEPLASS, belop, dato)),
-                    Feilregistrert,
-                    listOf(Feilregistrert),
+                    beloep = belop,
+                    inntektsdato = dato,
+                    naturalytelser = listOf(Naturalytelse(Naturalytelse.Kode.BEDRIFTSBARNEHAGEPLASS, belop, dato)),
+                    endringAarsaker = listOf(Feilregistrert),
                 )
             val gammelInntekt = nyInntekt.convert()
             gammelInntekt.beregnetInntekt shouldBe belop

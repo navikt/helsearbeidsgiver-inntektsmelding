@@ -84,9 +84,9 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
                     "beloep": 1000.10,
                     "inntektsdato": "2024-02-12",
                     "naturalytelser": [],
-                    "endringAarsak": {
-                        "aarsak": "Bonus"
-                    }
+                    "endringAarsaker": [
+                        {"aarsak": "Bonus"}
+                    ]
                 },
                 "refusjon": null
             }

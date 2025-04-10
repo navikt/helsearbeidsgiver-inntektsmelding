@@ -48,7 +48,6 @@ fun InntektsmeldingGammeltFormat.convertInntekt(): Inntekt? =
                         sykefravaersperioder = fraværsperioder,
                     ),
             naturalytelser = naturalytelser?.map { it.convert() }.orEmpty(),
-            endringAarsak = inntekt.endringÅrsak?.convert(),
             endringAarsaker = listOfNotNull(inntekt.endringÅrsak?.convert()),
         )
     }

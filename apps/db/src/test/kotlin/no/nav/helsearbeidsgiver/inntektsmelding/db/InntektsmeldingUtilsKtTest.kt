@@ -116,7 +116,7 @@ private val nyInntekt =
         beloep = 7707.7,
         inntektsdato = 30.november,
         naturalytelser = emptyList(),
-        endringAarsak = Bonus,
+        endringAarsaker = listOf(Bonus),
     )
 
 private val nyRefusjon =

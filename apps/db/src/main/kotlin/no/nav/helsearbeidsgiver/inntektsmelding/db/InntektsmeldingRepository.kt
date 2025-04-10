@@ -5,7 +5,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsm
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.LagretInntektsmelding
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
-import no.nav.helsearbeidsgiver.felles.utils.konverterEndringAarsakTilListe
 import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.InntektsmeldingGammeltFormat
 import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.convert
 import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.convertAgp
@@ -58,7 +57,7 @@ class InntektsmeldingRepository(
                         result.skjema != null ->
                             LagretInntektsmelding.Skjema(
                                 avsenderNavn = result.avsenderNavn ?: result.inntektsmeldingGammeltFormat?.innsenderNavn,
-                                skjema = result.skjema.konverterEndringAarsakTilListe(),
+                                skjema = result.skjema,
                                 mottatt = result.mottatt,
                             )
 

@@ -492,7 +492,7 @@ private object Mock {
                                 sluttdato = 22.mars,
                             ),
                         ),
-                    endringAarsak = Ferietrekk,
+                    endringAarsaker = listOf(Ferietrekk),
                 ),
             refusjon =
                 Refusjon(

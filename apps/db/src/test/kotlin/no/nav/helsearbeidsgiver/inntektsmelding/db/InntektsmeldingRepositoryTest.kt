@@ -305,7 +305,7 @@ class InntektsmeldingRepositoryTest :
                 lagret shouldBe
                     LagretInntektsmelding.Skjema(
                         avsenderNavn = null,
-                        skjema = skjema,
+                        skjema = skjemaUtenEndringsAarsaker,
                         mottatt = mottatt,
                     )
             }

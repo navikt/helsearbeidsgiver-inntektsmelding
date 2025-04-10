@@ -3,9 +3,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 import io.ktor.server.application.Application
 import io.ktor.server.auth.authentication
 import no.nav.security.token.support.core.context.TokenValidationContext
-import no.nav.security.token.support.v2.IssuerConfig
-import no.nav.security.token.support.v2.TokenSupportConfig
-import no.nav.security.token.support.v2.tokenValidationSupport
+import no.nav.security.token.support.v3.IssuerConfig
+import no.nav.security.token.support.v3.TokenSupportConfig
+import no.nav.security.token.support.v3.tokenValidationSupport
 
 object Auth {
     const val ISSUER = "idporten-issuer"

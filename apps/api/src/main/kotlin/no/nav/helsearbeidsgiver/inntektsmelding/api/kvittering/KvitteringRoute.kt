@@ -3,7 +3,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import kotlinx.serialization.Serializable

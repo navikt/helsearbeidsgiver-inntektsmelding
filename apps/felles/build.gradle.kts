@@ -1,7 +1,7 @@
 val hagDomeneInntektsmeldingVersion: String by project
 val kotestVersion: String by project
 val lettuceVersion: String by project
-val micrometerPrometheusVersion: String by project
+val micrometerVersion: String by project
 val mockkVersion: String by project
 val prometheusVersion: String by project
 val rapidsAndRiversTestVersion: String by project
@@ -18,7 +18,7 @@ dependencies {
     api("org.slf4j:slf4j-api:$slf4jVersion")
 
     implementation("io.lettuce:lettuce-core:$lettuceVersion")
-    implementation("io.micrometer:micrometer-registry-prometheus:$micrometerPrometheusVersion")
+    implementation("io.micrometer:micrometer-core:$micrometerVersion")
     implementation("io.prometheus:simpleclient_common:$prometheusVersion")
 
     testFixturesApi("com.github.navikt.tbd-libs:rapids-and-rivers-test:$rapidsAndRiversTestVersion")

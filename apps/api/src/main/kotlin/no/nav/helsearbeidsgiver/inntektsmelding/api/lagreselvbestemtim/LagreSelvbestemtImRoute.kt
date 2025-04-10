@@ -1,12 +1,10 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.lagreselvbestemtim
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.call
 import io.ktor.server.request.receiveText
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.post
-import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
@@ -93,7 +91,7 @@ fun Route.lagreSelvbestemtImRoute(
     }
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.lesRequestOrNull(): SkjemaInntektsmeldingSelvbestemt? =
+private suspend fun RoutingContext.lesRequestOrNull(): SkjemaInntektsmeldingSelvbestemt? =
     call
         .receiveText()
         .runCatching {
@@ -112,7 +110,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.lesRequestOrNull(): S
             null
         }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(result: Result<ResultJson>) {
+private suspend fun RoutingContext.sendResponse(result: Result<ResultJson>) {
     result
         .onSuccess { resultJson ->
             val selvbestemtId = resultJson.success?.fromJson(UuidSerializer)

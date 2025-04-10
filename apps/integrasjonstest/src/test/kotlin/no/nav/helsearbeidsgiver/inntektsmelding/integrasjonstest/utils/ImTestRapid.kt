@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import kotlinx.serialization.json.JsonObject
@@ -42,6 +43,7 @@ class ImTestRapid : RapidsConnection() {
         notifyMessage(
             message = message,
             context = this,
+            metadata = MessageMetadata("test.message", -1, -1, null, emptyMap()),
             metrics = SimpleMeterRegistry(),
         )
     }

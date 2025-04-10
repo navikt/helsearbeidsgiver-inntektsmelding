@@ -19,7 +19,6 @@ kotlin {
 allprojects {
     repositories {
         val githubPassword: String by project
-        // mavenLocal()
         mavenCentral()
         maven {
             setUrl("https://maven.pkg.github.com/navikt/*")

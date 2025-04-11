@@ -60,8 +60,8 @@ fun Inntekt.convert(): InntektGammeltFormat =
     InntektGammeltFormat(
         bekreftet = true,
         beregnetInntekt = beloep,
-        endringÅrsak = endringAarsak?.convert(),
-        manueltKorrigert = endringAarsak != null || endringAarsaker?.isNotEmpty() == true,
+        endringÅrsak = endringAarsaker.getOrNull(0)?.convert(),
+        manueltKorrigert = endringAarsaker.isNotEmpty(),
     )
 
 fun Refusjon.convert(): RefusjonGammeltFormat =

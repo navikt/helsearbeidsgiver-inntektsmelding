@@ -296,9 +296,7 @@ class InntektsmeldingRepositoryTest :
                 val skjema = mockSkjemaInntektsmelding()
                 val mottatt = 9.desember.atStartOfDay()
 
-                val skjemaUtenEndringsAarsaker = skjema.copy(inntekt = skjema.inntekt?.copy(endringAarsaker = emptyList()))
-
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjemaUtenEndringsAarsaker, mottatt)
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, mottatt)
 
                 val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(skjema.forespoerselId)
 

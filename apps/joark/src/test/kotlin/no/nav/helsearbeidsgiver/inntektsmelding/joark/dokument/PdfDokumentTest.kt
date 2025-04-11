@@ -258,7 +258,6 @@ class PdfDokumentTest {
                     inntekt =
                         im.inntekt.shouldNotBeNull().copy(
                             beloep = 123.0,
-                            endringAarsak = it.value,
                             endringAarsaker = listOf(it.value),
                         ),
                 ),
@@ -270,7 +269,6 @@ class PdfDokumentTest {
                 inntekt =
                     im.inntekt.shouldNotBeNull().copy(
                         beloep = 123.0,
-                        endringAarsak = null,
                         endringAarsaker = emptyList(),
                     ),
             ),
@@ -308,7 +306,6 @@ class PdfDokumentTest {
                 im.inntekt.shouldNotBeNull().copy(
                     beloep = 123.0,
                     endringAarsaker = this,
-                    endringAarsak = null,
                 ),
         )
 

@@ -53,7 +53,7 @@ class SelvbestemtImRepoTest :
                                             sluttdato = 3.oktober,
                                         ),
                                     ),
-                                endringAarsak = null,
+                                endringAarsaker = emptyList(),
                             ),
                     )
 

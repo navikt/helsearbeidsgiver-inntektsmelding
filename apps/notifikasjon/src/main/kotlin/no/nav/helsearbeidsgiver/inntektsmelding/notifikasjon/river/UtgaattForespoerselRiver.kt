@@ -52,7 +52,7 @@ class UtgaattForespoerselRiver(
                 )
             } else {
                 // Forespørsler som ble forkastet for lenge siden matcher her dersom noen prøver å hente dem
-                val eventName = Key.EVENT_NAME.krev(EventName.TRENGER_REQUESTED, EventName.serializer(), fail.utloesendeMelding)
+                val eventName = Key.EVENT_NAME.les(EventName.serializer(), fail.utloesendeMelding)
                 val behovType = Key.BEHOV.les(BehovType.serializer(), fail.utloesendeMelding)
 
                 if (

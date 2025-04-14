@@ -5,7 +5,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.lettuce.core.RedisClient
 import io.lettuce.core.RedisURI
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
@@ -264,7 +263,6 @@ abstract class EndToEndTest : ContainerTest() {
                 JsonMessage(
                     originalMessage = it,
                     problems = MessageProblems(it),
-                    metrics = SimpleMeterRegistry(),
                     randomIdGenerator = null,
                 )
             }.toJson()

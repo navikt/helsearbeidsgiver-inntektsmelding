@@ -2,11 +2,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIdListe
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.call
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.post
-import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.Tekst.TEKNISK_FEIL_FORBIGAAENDE
@@ -78,7 +76,7 @@ fun Route.hentForespoerselIdListe(
     }
 }
 
-suspend fun PipelineContext<Unit, ApplicationCall>.hentForespoersler(
+suspend fun RoutingContext.hentForespoersler(
     request: HentForespoerslerRequest,
     hentForespoerslerProducer: HentForespoerslerProducer,
     redisPoller: RedisPoller,

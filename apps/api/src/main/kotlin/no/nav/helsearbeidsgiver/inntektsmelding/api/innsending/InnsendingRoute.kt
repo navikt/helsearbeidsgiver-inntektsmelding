@@ -2,12 +2,10 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.call
 import io.ktor.server.request.receiveText
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.post
-import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Tekst
@@ -94,7 +92,7 @@ fun Route.innsending(
     }
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.lesRequestOrNull(): SkjemaInntektsmelding? =
+private suspend fun RoutingContext.lesRequestOrNull(): SkjemaInntektsmelding? =
     call
         .receiveText()
         .runCatching {

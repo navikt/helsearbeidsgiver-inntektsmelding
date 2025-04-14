@@ -1,11 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.hentselvbestemtim
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.call
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.get
-import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
@@ -84,7 +82,7 @@ fun Route.hentSelvbestemtImRoute(
     }
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.sendOkResponse(inntektsmelding: Inntektsmelding) {
+private suspend fun RoutingContext.sendOkResponse(inntektsmelding: Inntektsmelding) {
     "Selvbestemt inntektsmelding hentet OK.".also {
         logger.info(it)
         sikkerLogger.info("$it\n$inntektsmelding")
@@ -96,7 +94,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendOkResponse(inntek
     respondOk(response, ResultJson.serializer())
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.sendErrorResponse(feilmelding: String) {
+private suspend fun RoutingContext.sendErrorResponse(feilmelding: String) {
     "Klarte ikke hente inntektsmelding pga. feil.".also {
         logger.error(it)
         sikkerLogger.error("$it Feilmelding: '$feilmelding'")
@@ -108,7 +106,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendErrorResponse(fei
     respondInternalServerError(response, ResultJson.serializer())
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.sendRedisErrorResponse(
+private suspend fun RoutingContext.sendRedisErrorResponse(
     selvbestemtId: UUID,
     error: Throwable,
 ) {

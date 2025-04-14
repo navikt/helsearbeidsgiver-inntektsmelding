@@ -24,4 +24,16 @@ fun RapidsConnection.createMarkerForespoerselBesvart(priProducer: PriProducer): 
     also {
         logger.info("Starter ${MarkerForespoerselBesvartRiver::class.simpleName}...")
         MarkerForespoerselBesvartRiver(priProducer).connect(this)
+
+        logger.info("Starter ${ForespoerselMottattRiver::class.simpleName}...")
+        ForespoerselMottattRiver().connect(this)
+
+        logger.info("Starter ${ForespoerselBesvartRiver::class.simpleName}...")
+        ForespoerselBesvartRiver().connect(this)
+
+        logger.info("Starter ${ForespoerselKastetTilInfotrygdRiver::class.simpleName}...")
+        ForespoerselKastetTilInfotrygdRiver().connect(this)
+
+        logger.info("Starter ${ForespoerselForkastetRiver::class.simpleName}...")
+        ForespoerselForkastetRiver().connect(this)
     }

@@ -42,11 +42,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDbRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjonRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.createFeilLytter
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselforkastet.createForespoerselForkastetRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselinfotrygd.createForespoerselKastetTilInfotrygdRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createMarkerForespoerselBesvart
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottattRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebroRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselListeSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
@@ -224,10 +220,6 @@ abstract class EndToEndTest : ContainerTest() {
             createBrregRiver(brregClient, false)
             createDbRivers(imRepository, selvbestemtImRepo)
             createDistribusjonRiver(mockk(relaxed = true))
-            createForespoerselBesvartRiver()
-            createForespoerselMottattRiver()
-            createForespoerselForkastetRiver()
-            createForespoerselKastetTilInfotrygdRiver()
             createHelsebroRivers(priProducer)
             createHentEksternImRiver(spinnKlient)
             createHentInntektRiver(inntektClient)

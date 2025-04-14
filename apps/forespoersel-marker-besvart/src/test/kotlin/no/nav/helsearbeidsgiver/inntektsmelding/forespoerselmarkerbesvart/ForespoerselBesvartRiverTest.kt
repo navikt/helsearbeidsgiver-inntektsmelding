@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart
+package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec

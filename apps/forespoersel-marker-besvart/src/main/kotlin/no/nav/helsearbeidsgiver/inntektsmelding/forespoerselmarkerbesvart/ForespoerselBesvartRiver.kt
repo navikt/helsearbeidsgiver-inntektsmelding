@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart
+package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart
 
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName

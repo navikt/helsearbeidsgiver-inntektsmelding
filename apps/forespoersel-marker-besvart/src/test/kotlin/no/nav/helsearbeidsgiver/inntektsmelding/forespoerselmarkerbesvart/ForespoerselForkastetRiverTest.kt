@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselinfotrygd
+package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
@@ -16,28 +16,28 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class ForespoerselKastetTilInfotrygdRiverTest :
+class ForespoerselForkastetRiverTest :
     FunSpec({
         val testRapid = TestRapid()
 
-        ForespoerselKastetTilInfotrygdRiver().connect(testRapid)
+        ForespoerselForkastetRiver().connect(testRapid)
 
         beforeEach {
             testRapid.reset()
             clearAllMocks()
         }
 
-        test("Ved notis om forespørsel kastet til Infotrygd publiseres event om forespørsel kastet til Infotrygd") {
+        test("Ved notis om forkastet forespørsel publiseres event om forkastet forespørsel") {
             val forespoerselId = UUID.randomUUID()
             val forventetPublisert =
                 mapOf(
-                    Key.EVENT_NAME to EventName.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(),
+                    Key.EVENT_NAME to EventName.FORESPOERSEL_FORKASTET.toJson(),
                     Key.KONTEKST_ID to UUID.randomUUID().toJson(),
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 )
 
             testRapid.sendJson(
-                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(Pri.NotisType.serializer()),
+                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FORKASTET.toJson(Pri.NotisType.serializer()),
                 Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             )
 

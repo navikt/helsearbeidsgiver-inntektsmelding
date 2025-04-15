@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt
+package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart
 
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
@@ -21,7 +21,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-data class Melding(
+data class MottattMelding(
     val notisType: Pri.NotisType,
     val kontekstId: UUID,
     val forespoerselId: UUID,
@@ -30,12 +30,12 @@ data class Melding(
 )
 
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */
-class ForespoerselMottattRiver : PriObjectRiver<Melding>() {
+class ForespoerselMottattRiver : PriObjectRiver<MottattMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun les(json: Map<Pri.Key, JsonElement>): Melding =
-        Melding(
+    override fun les(json: Map<Pri.Key, JsonElement>): MottattMelding =
+        MottattMelding(
             notisType = Pri.Key.NOTIS.krev(Pri.NotisType.FORESPØRSEL_MOTTATT, Pri.NotisType.serializer(), json),
             kontekstId = UUID.randomUUID(),
             forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, json),
@@ -43,9 +43,9 @@ class ForespoerselMottattRiver : PriObjectRiver<Melding>() {
             skalHaPaaminnelse = Pri.Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), json),
         )
 
-    override fun Melding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
+    override fun MottattMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
-    override fun Melding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
+    override fun MottattMelding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok melding på pri-topic om ${Pri.NotisType.FORESPØRSEL_MOTTATT}.")
         sikkerLogger.info("Mottok melding på pri-topic:\n${json.toPretty()}")
 
@@ -61,7 +61,7 @@ class ForespoerselMottattRiver : PriObjectRiver<Melding>() {
         )
     }
 
-    override fun Melding.haandterFeil(
+    override fun MottattMelding.haandterFeil(
         json: Map<Pri.Key, JsonElement>,
         error: Throwable,
     ): Map<Key, JsonElement>? {
@@ -73,7 +73,7 @@ class ForespoerselMottattRiver : PriObjectRiver<Melding>() {
         return null
     }
 
-    override fun Melding.loggfelt(): Map<String, String> =
+    override fun MottattMelding.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this@ForespoerselMottattRiver),
             Log.priNotis(notisType),

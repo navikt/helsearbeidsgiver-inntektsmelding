@@ -19,7 +19,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-data class Melding(
+data class MarkerBesvartMelding(
     val eventName: EventName,
     val kontekstId: UUID,
     val forespoerselId: UUID,
@@ -27,26 +27,26 @@ data class Melding(
 
 class MarkerForespoerselBesvartRiver(
     private val priProducer: PriProducer,
-) : ObjectRiver<Melding>() {
+) : ObjectRiver<MarkerBesvartMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun les(json: Map<Key, JsonElement>): Melding? =
+    override fun les(json: Map<Key, JsonElement>): MarkerBesvartMelding? =
         if (setOf(Key.BEHOV, Key.FAIL).any(json::containsKey)) {
             null
         } else {
             val data = json[Key.DATA]?.toMap().orEmpty()
 
-            Melding(
+            MarkerBesvartMelding(
                 eventName = Key.EVENT_NAME.krev(EventName.INNTEKTSMELDING_MOTTATT, EventName.serializer(), json),
                 kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
             )
         }
 
-    override fun Melding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
+    override fun MarkerBesvartMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
-    override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
+    override fun MarkerBesvartMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         logger.info("Mottok melding om ${EventName.INNTEKTSMELDING_MOTTATT}.")
         sikkerLogger.info("Mottok melding:\n${json.toPretty()}.")
 
@@ -63,7 +63,7 @@ class MarkerForespoerselBesvartRiver(
         return null
     }
 
-    override fun Melding.haandterFeil(
+    override fun MarkerBesvartMelding.haandterFeil(
         json: Map<Key, JsonElement>,
         error: Throwable,
     ): Map<Key, JsonElement>? {
@@ -75,7 +75,7 @@ class MarkerForespoerselBesvartRiver(
         return null
     }
 
-    override fun Melding.loggfelt(): Map<String, String> =
+    override fun MarkerBesvartMelding.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this@MarkerForespoerselBesvartRiver),
             Log.event(eventName),

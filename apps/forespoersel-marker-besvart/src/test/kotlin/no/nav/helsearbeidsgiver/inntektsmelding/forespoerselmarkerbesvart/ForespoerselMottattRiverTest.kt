@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt
+package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
@@ -61,8 +61,8 @@ class ForespoerselMottattRiverTest :
         }
     })
 
-private fun mockInnkommendeMelding(): Melding =
-    Melding(
+private fun mockInnkommendeMelding(): MottattMelding =
+    MottattMelding(
         notisType = Pri.NotisType.FORESPØRSEL_MOTTATT,
         kontekstId = UUID.randomUUID(),
         forespoerselId = UUID.randomUUID(),
@@ -70,7 +70,7 @@ private fun mockInnkommendeMelding(): Melding =
         skalHaPaaminnelse = true,
     )
 
-private fun Melding.toMap(): Map<Pri.Key, JsonElement> =
+private fun MottattMelding.toMap(): Map<Pri.Key, JsonElement> =
     mapOf(
         Pri.Key.NOTIS to notisType.toJson(Pri.NotisType.serializer()),
         Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),

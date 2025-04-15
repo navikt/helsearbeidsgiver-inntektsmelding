@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselforkastet
+package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart
 
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -17,55 +17,53 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-data class ForkastetMelding(
+data class KastetTilInfotrygdMelding(
     val notisType: Pri.NotisType,
     val kontekstId: UUID,
     val forespoerselId: UUID,
 )
 
-/** Tar imot notifikasjon om at en forespørsel om arbeidsgiveropplysninger er forkastet. */
-class ForespoerselForkastetRiver : PriObjectRiver<ForkastetMelding>() {
+/** Tar imot notis om at en forespørsel om arbeidsgiveropplysninger er kastet til Infotrygd. */
+class ForespoerselKastetTilInfotrygdRiver : PriObjectRiver<KastetTilInfotrygdMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun les(json: Map<Pri.Key, JsonElement>): ForkastetMelding =
-        ForkastetMelding(
-            notisType = Pri.Key.NOTIS.krev(Pri.NotisType.FORESPOERSEL_FORKASTET, Pri.NotisType.serializer(), json),
+    override fun les(json: Map<Pri.Key, JsonElement>): KastetTilInfotrygdMelding =
+        KastetTilInfotrygdMelding(
+            notisType = Pri.Key.NOTIS.krev(Pri.NotisType.FORESPOERSEL_KASTET_TIL_INFOTRYGD, Pri.NotisType.serializer(), json),
             kontekstId = UUID.randomUUID(),
             forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, json),
         )
 
-    override fun ForkastetMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
+    override fun KastetTilInfotrygdMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
-    override fun ForkastetMelding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
-        logger.info("Mottok melding på pri-topic om ${Pri.NotisType.FORESPOERSEL_FORKASTET}.")
+    override fun KastetTilInfotrygdMelding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
+        logger.info("Mottok melding på pri-topic om ${Pri.NotisType.FORESPOERSEL_KASTET_TIL_INFOTRYGD}.")
         sikkerLogger.info("Mottok melding på pri-topic:\n${json.toPretty()}")
 
-        // lag ny metrikk for forespørsler forkastet fra spleis
-        // Metrics.forespoerslerBesvartFraSpleis.inc()
-
         return mapOf(
-            Key.EVENT_NAME to EventName.FORESPOERSEL_FORKASTET.toJson(),
+            Key.EVENT_NAME to EventName.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(),
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
     }
 
-    override fun ForkastetMelding.haandterFeil(
+    override fun KastetTilInfotrygdMelding.haandterFeil(
         json: Map<Pri.Key, JsonElement>,
         error: Throwable,
     ): Map<Key, JsonElement>? {
-        "Klarte ikke videresende beskjed om forkastet forespørsel. Arbeidsgiver kan ha åpen sak og oppgave.".also {
-            logger.error("$it Se sikker logg for mer info.")
-            sikkerLogger.error(it, error)
-        }
+        "Klarte ikke videresende beskjed om forespørsel kastet til Infotrygd. Arbeidsgiver kan motta påminnelse selv om de har sendt inn IM gjennom Altinn."
+            .also {
+                logger.error("$it Se sikker logg for mer info.")
+                sikkerLogger.error(it, error)
+            }
 
         return null
     }
 
-    override fun ForkastetMelding.loggfelt(): Map<String, String> =
+    override fun KastetTilInfotrygdMelding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this@ForespoerselForkastetRiver),
+            Log.klasse(this@ForespoerselKastetTilInfotrygdRiver),
             Log.priNotis(notisType),
             Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),

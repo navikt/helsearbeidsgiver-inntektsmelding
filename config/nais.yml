@@ -43,6 +43,9 @@ spec:
   secureLogs:
     enabled: true
   observability:
+    logging:
+      destinations:
+        - id: loki
     autoInstrumentation:
       enabled: true
       runtime: java

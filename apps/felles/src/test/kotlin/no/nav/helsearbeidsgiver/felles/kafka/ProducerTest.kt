@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic
+package no.nav.helsearbeidsgiver.felles.kafka
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.booleans.shouldBeTrue
@@ -9,18 +9,19 @@ import io.mockk.mockk
 import io.mockk.verifySequence
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.test.kafka.mockRecordMetadata
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.errors.TimeoutException
 
-class PriProducerTest :
+class ProducerTest :
     FunSpec({
         val mockProducer = mockk<KafkaProducer<String, JsonElement>>()
 
-        val priProducer =
-            PriProducer(
+        val producer =
+            Producer(
                 producer = mockProducer,
             )
 
@@ -39,7 +40,7 @@ class PriProducerTest :
                         Pri.Key.FORESPOERSEL_ID to "8800664422".toJson(),
                     ).toJson()
 
-                val result = priProducer.send(expectedMessageJson)
+                val result = producer.send(expectedMessageJson)
 
                 result.isSuccess.shouldBeTrue()
                 result.getOrNull() shouldBe expectedMessageJson
@@ -62,7 +63,7 @@ class PriProducerTest :
                         Pri.Key.FORESPOERSEL_ID to "5577991133".toJson(),
                     ).toJson()
 
-                val result = priProducer.send(expectedMessageJson)
+                val result = producer.send(expectedMessageJson)
 
                 result.isFailure.shouldBeTrue()
                 result.getOrNull() shouldBe null
@@ -83,7 +84,7 @@ class PriProducerTest :
                     )
 
                 val result =
-                    priProducer.send(
+                    producer.send(
                         *expectedMessage.toList().toTypedArray(),
                     )
 
@@ -109,7 +110,7 @@ class PriProducerTest :
                     )
 
                 val result =
-                    priProducer.send(
+                    producer.send(
                         *expectedMessage.toList().toTypedArray(),
                     )
 
@@ -120,8 +121,6 @@ class PriProducerTest :
             }
         }
     })
-
-private fun mockRecordMetadata(): RecordMetadata = RecordMetadata(null, 0, 0, 0, 0, 0)
 
 private fun Map<Pri.Key, JsonElement>.toJson(): JsonElement =
     toJson(

@@ -12,8 +12,8 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
+import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -21,13 +21,13 @@ import java.util.UUID
 class TrengerForespoerselRiverTest :
     FunSpec({
         val testRapid = TestRapid()
-        val mockPriProducer = mockk<PriProducer>()
+        val mockProducer = mockk<Producer>()
 
-        TrengerForespoerselRiver(mockPriProducer).connect(testRapid)
+        TrengerForespoerselRiver(mockProducer).connect(testRapid)
 
         test("Ved behov om forespørsel på rapid-topic publiseres behov om forespørsel på pri-topic") {
             // Må bare returnere en Result med gyldig JSON
-            every { mockPriProducer.send(*anyVararg<Pair<Pri.Key, JsonElement>>()) } returns Result.success(JsonNull)
+            every { mockProducer.send(*anyVararg<Pair<Pri.Key, JsonElement>>()) } returns Result.success(JsonNull)
 
             val expectedEvent = EventName.INNTEKT_REQUESTED
             val expectedKontekstId = UUID.randomUUID()
@@ -48,7 +48,7 @@ class TrengerForespoerselRiverTest :
             testRapid.inspektør.size shouldBeExactly 0
 
             verifySequence {
-                mockPriProducer.send(
+                mockProducer.send(
                     Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
                     Pri.Key.BOOMERANG to

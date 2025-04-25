@@ -12,8 +12,8 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
+import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -22,13 +22,13 @@ import java.util.UUID
 class VedtaksperiodeIdForespoerselRiverTest :
     FunSpec({
         val testRapid = TestRapid()
-        val mockPriProducer = mockk<PriProducer>()
+        val mockProducer = mockk<Producer>()
 
-        HentForespoerslerForVedtaksperiodeIdListeRiver(mockPriProducer).connect(testRapid)
+        HentForespoerslerForVedtaksperiodeIdListeRiver(mockProducer).connect(testRapid)
 
         test("Ved behov om forespørsler på rapid-topic publiseres behov om forespørsler på pri-topic") {
             // Må bare returnere en Result med gyldig JSON
-            every { mockPriProducer.send(*anyVararg<Pair<Pri.Key, JsonElement>>()) } returns Result.success(JsonNull)
+            every { mockProducer.send(*anyVararg<Pair<Pri.Key, JsonElement>>()) } returns Result.success(JsonNull)
 
             val expectedEvent = EventName.FORESPOERSLER_REQUESTED
             val expectedKontekstId = UUID.randomUUID()
@@ -47,7 +47,7 @@ class VedtaksperiodeIdForespoerselRiverTest :
             testRapid.inspektør.size shouldBeExactly 0
 
             verifySequence {
-                mockPriProducer.send(
+                mockProducer.send(
                     Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
                     Pri.Key.VEDTAKSPERIODE_ID_LISTE to expectedVedtaksperiodeIdListe.toJson(UuidSerializer),
                     Pri.Key.BOOMERANG to

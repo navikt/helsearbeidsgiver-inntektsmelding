@@ -2,7 +2,7 @@ package no.nav.helsearbeidsgiver.felles.utils
 
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
 import java.util.UUID
 
 object Log {

@@ -2,7 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "im-forespoersel-marker-besvart".logger()
@@ -10,20 +10,20 @@ private val logger = "im-forespoersel-marker-besvart".logger()
 fun main() {
     logger.info("Up, up and away!")
 
-    val priProducer = PriProducer()
+    val producer = Producer()
 
     RapidApplication
         .create(System.getenv())
-        .createMarkerForespoerselBesvart(priProducer)
+        .createMarkerForespoerselBesvart(producer)
         .start()
 
     logger.info("Bye bye, baby, bye bye!")
 }
 
-fun RapidsConnection.createMarkerForespoerselBesvart(priProducer: PriProducer): RapidsConnection =
+fun RapidsConnection.createMarkerForespoerselBesvart(producer: Producer): RapidsConnection =
     also {
         logger.info("Starter ${MarkerForespoerselBesvartRiver::class.simpleName}...")
-        MarkerForespoerselBesvartRiver(priProducer).connect(this)
+        MarkerForespoerselBesvartRiver(producer).connect(this)
 
         logger.info("Starter ${ForespoerselMottattRiver::class.simpleName}...")
         ForespoerselMottattRiver().connect(this)

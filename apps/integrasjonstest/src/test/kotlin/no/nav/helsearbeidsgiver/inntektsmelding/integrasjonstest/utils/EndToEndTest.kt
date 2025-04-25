@@ -23,8 +23,8 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.db.exposed.Database
 import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
+import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
@@ -164,7 +164,7 @@ abstract class EndToEndTest : ContainerTest() {
 
     val altinnClient = mockk<Altinn3M2MClient>()
     val pdlKlient = mockk<PdlClient>()
-    val priProducer = mockk<PriProducer>()
+    val producer = mockk<Producer>()
     val spinnKlient = mockk<SpinnKlient>()
 
     val aaregClient = mockk<AaregClient>(relaxed = true)
@@ -189,7 +189,7 @@ abstract class EndToEndTest : ContainerTest() {
             }
         }
 
-        priProducer.apply {
+        producer.apply {
             // Må bare returnere en Result med gyldig JSON
             val emptyResult = Result.success(JsonObject(emptyMap()))
             every { send(any<JsonElement>()) } returns emptyResult
@@ -220,11 +220,11 @@ abstract class EndToEndTest : ContainerTest() {
             createBrregRiver(brregClient, false)
             createDbRivers(imRepository, selvbestemtImRepo)
             createDistribusjonRiver(mockk(relaxed = true))
-            createHelsebroRivers(priProducer)
+            createHelsebroRivers(producer)
             createHentEksternImRiver(spinnKlient)
             createHentInntektRiver(inntektClient)
             createJournalfoerImRiver(dokarkivClient)
-            createMarkerForespoerselBesvart(priProducer)
+            createMarkerForespoerselBesvart(producer)
             createNotifikasjonRivers("notifikasjonLink", "P28D", agNotifikasjonKlient)
             createPdlRiver(pdlKlient)
             createFeilLytter(bakgrunnsjobbRepository)
@@ -274,7 +274,7 @@ abstract class EndToEndTest : ContainerTest() {
         var boomerang: JsonElement? = null
 
         every {
-            priProducer.send(
+            producer.send(
                 *varargAll { (key, value) ->
                     if (key == Pri.Key.BOOMERANG) {
                         boomerang = value
@@ -313,7 +313,7 @@ abstract class EndToEndTest : ContainerTest() {
         var boomerang: JsonElement? = null
 
         every {
-            priProducer.send(
+            producer.send(
                 *varargAll { (key, value) ->
                     if (key == Pri.Key.BOOMERANG) {
                         boomerang = value

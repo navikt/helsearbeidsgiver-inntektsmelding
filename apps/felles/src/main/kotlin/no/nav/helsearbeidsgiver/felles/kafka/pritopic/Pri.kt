@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic
+package no.nav.helsearbeidsgiver.felles.kafka.pritopic
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.MapSerializer

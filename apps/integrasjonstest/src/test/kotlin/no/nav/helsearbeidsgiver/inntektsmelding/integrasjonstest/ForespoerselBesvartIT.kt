@@ -10,7 +10,7 @@ import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer

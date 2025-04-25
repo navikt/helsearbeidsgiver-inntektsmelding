@@ -7,9 +7,9 @@ import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.json.toPretty
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
+import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -26,7 +26,7 @@ data class MarkerBesvartMelding(
 )
 
 class MarkerForespoerselBesvartRiver(
-    private val priProducer: PriProducer,
+    private val producer: Producer,
 ) : ObjectRiver<MarkerBesvartMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -51,10 +51,14 @@ class MarkerForespoerselBesvartRiver(
         sikkerLogger.info("Mottok melding:\n${json.toPretty()}.")
 
         val publisert =
-            priProducer
+            producer
                 .send(
-                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
-                    Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    key = forespoerselId,
+                    message =
+                        mapOf(
+                            Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
+                            Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                        ),
                 ).getOrThrow()
 
         logger.info("Publiserte melding på pri-topic om ${Pri.NotisType.FORESPOERSEL_BESVART_SIMBA}.")

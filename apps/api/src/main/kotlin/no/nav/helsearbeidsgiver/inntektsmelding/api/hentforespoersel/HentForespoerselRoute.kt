@@ -1,12 +1,15 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoersel
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import kotlinx.serialization.builtins.serializer
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.HentForespoerselResultat
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
@@ -27,14 +30,14 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 fun Route.hentForespoersel(
-    rapid: RapidsConnection,
+    producer: Producer,
     tilgangskontroll: Tilgangskontroll,
     redisConnection: RedisConnection,
 ) {
-    val hentForespoerselProducer = HentForespoerselProducer(rapid)
     val redisPoller = RedisStore(redisConnection, RedisPrefix.HentForespoersel).let(::RedisPoller)
 
     post(Routes.HENT_FORESPOERSEL) {
@@ -50,7 +53,7 @@ fun Route.hentForespoersel(
 
                     val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
 
-                    hentForespoerselProducer.publish(kontekstId, request, arbeidsgiverFnr)
+                    producer.sendRequestEvent(kontekstId, request, arbeidsgiverFnr)
 
                     val resultatJson = redisPoller.hent(kontekstId)
 
@@ -91,6 +94,26 @@ fun Route.hentForespoersel(
             }
         }
     }
+}
+
+private fun Producer.sendRequestEvent(
+    kontekstId: UUID,
+    request: HentForespoerselRequest,
+    arbeidsgiverFnr: Fnr,
+) {
+    send(
+        key = request.uuid,
+        message =
+            mapOf(
+                Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+                Key.KONTEKST_ID to kontekstId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to request.uuid.toJson(),
+                        Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
+                    ).toJson(),
+            ),
+    )
 }
 
 private fun HentForespoerselResultat.toResponse(): HentForespoerselResponse =

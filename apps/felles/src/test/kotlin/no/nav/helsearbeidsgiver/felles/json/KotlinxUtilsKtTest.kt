@@ -14,7 +14,7 @@ import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
 class KotlinxUtilsKtTest :

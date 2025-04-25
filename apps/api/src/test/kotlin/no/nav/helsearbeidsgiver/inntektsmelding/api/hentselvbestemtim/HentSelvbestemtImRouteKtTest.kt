@@ -1,11 +1,14 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.hentselvbestemtim
 
+import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldBeEmpty
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
@@ -31,6 +34,8 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.AvsenderSystem
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
@@ -79,6 +84,42 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
 
             response.status shouldBe HttpStatusCode.OK
             actualJson shouldBe Mock.successResponseJson(expectedInntektsmelding)
+
+            val pathId = pathMedId.substringAfterLast("/").let(UUID::fromString)
+
+            verifySequence {
+                mockProducer.send(
+                    key = pathId,
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it.minus(Key.KONTEKST_ID) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.SELVBESTEMT_ID to pathId.toJson(),
+                                        ).toJson(),
+                                )
+                        },
+                )
+                mockProducer.send(
+                    key = mockPid,
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it.minus(Key.KONTEKST_ID) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.TILGANG_ORG_REQUESTED.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.FNR to mockPid.toJson(),
+                                            Key.ORGNR_UNDERENHET to expectedInntektsmelding.avsender.orgnr.toJson(),
+                                        ).toJson(),
+                                )
+                        },
+                )
+            }
         }
 
     @Test

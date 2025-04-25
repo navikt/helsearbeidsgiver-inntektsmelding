@@ -8,10 +8,10 @@ import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
+import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -30,7 +30,7 @@ data class TrengerForespoerselMelding(
 )
 
 class TrengerForespoerselRiver(
-    private val priProducer: PriProducer,
+    private val producer: Producer,
 ) : ObjectRiver<TrengerForespoerselMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -53,16 +53,20 @@ class TrengerForespoerselRiver(
     override fun TrengerForespoerselMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
     override fun TrengerForespoerselMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
-        priProducer
+        producer
             .send(
-                Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Pri.Key.BOOMERANG to
+                key = forespoerselId,
+                message =
                     mapOf(
-                        Key.EVENT_NAME to eventName.toJson(),
-                        Key.KONTEKST_ID to kontekstId.toJson(),
-                        Key.DATA to data.toJson(),
-                    ).toJson(),
+                        Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
+                        Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                        Pri.Key.BOOMERANG to
+                            mapOf(
+                                Key.EVENT_NAME to eventName.toJson(),
+                                Key.KONTEKST_ID to kontekstId.toJson(),
+                                Key.DATA to data.toJson(),
+                            ).toJson(),
+                    ),
             ).onSuccess {
                 logger.info("Publiserte melding på pri-topic om ${Pri.BehovType.TRENGER_FORESPØRSEL}.")
                 sikkerLogger.info("Publiserte melding på pri-topic:\n${it.toPretty()}")

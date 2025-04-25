@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.inntektselvbestemt
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -8,8 +7,12 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.Inntekt
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -28,11 +31,10 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
 fun Route.inntektSelvbestemtRoute(
-    rapid: RapidsConnection,
+    producer: Producer,
     tilgangskontroll: Tilgangskontroll,
     redisConnection: RedisConnection,
 ) {
-    val inntektSelvbestemtProducer = InntektSelvbestemtProducer(rapid)
     val redisPoller = RedisStore(redisConnection, RedisPrefix.InntektSelvbestemt).let(::RedisPoller)
 
     post(Routes.INNTEKT_SELVBESTEMT) {
@@ -40,7 +42,7 @@ fun Route.inntektSelvbestemtRoute(
 
         val request = call.receive<InntektSelvbestemtRequest>()
 
-        tilgangskontroll.validerTilgangTilOrg(call.request, request.orgnr.verdi)
+        tilgangskontroll.validerTilgangTilOrg(call.request, request.orgnr)
 
         "Henter oppdatert inntekt for selvbestemt inntektsmelding".let {
             logger.info(it)
@@ -48,7 +50,7 @@ fun Route.inntektSelvbestemtRoute(
         }
 
         try {
-            inntektSelvbestemtProducer.publish(kontekstId, request)
+            producer.sendRequestEvent(kontekstId, request)
 
             val resultatJson = redisPoller.hent(kontekstId)
             sikkerLogger.info("Fikk inntektsresultat for selvbestemt inntektsmelding:\n$resultatJson")
@@ -74,4 +76,24 @@ fun Route.inntektSelvbestemtRoute(
             respondInternalServerError(RedisTimeoutResponse(), RedisTimeoutResponse.serializer())
         }
     }
+}
+
+private fun Producer.sendRequestEvent(
+    kontekstId: UUID,
+    request: InntektSelvbestemtRequest,
+) {
+    send(
+        key = request.sykmeldtFnr,
+        message =
+            mapOf(
+                Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
+                Key.KONTEKST_ID to kontekstId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.FNR to request.sykmeldtFnr.toJson(),
+                        Key.ORGNR_UNDERENHET to request.orgnr.toJson(),
+                        Key.INNTEKTSDATO to request.inntektsdato.toJson(),
+                    ).toJson(),
+            ),
+    )
 }

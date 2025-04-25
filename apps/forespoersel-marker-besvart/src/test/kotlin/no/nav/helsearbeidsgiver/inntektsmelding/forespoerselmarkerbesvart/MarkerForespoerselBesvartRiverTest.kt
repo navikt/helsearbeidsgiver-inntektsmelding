@@ -15,9 +15,9 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
+import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -26,9 +26,9 @@ import java.util.UUID
 class MarkerForespoerselBesvartRiverTest :
     FunSpec({
         val testRapid = TestRapid()
-        val mockPriProducer = mockk<PriProducer>()
+        val mockProducer = mockk<Producer>()
 
-        MarkerForespoerselBesvartRiver(mockPriProducer).connect(testRapid)
+        MarkerForespoerselBesvartRiver(mockProducer).connect(testRapid)
 
         beforeTest {
             testRapid.reset()
@@ -37,7 +37,7 @@ class MarkerForespoerselBesvartRiverTest :
 
         test("Ved event om mottatt inntektsmelding på rapid-topic publiseres notis om å markere forespørsel som besvart på pri-topic") {
             // Må bare returnere en Result med gyldig JSON
-            every { mockPriProducer.send(*anyVararg<Pair<Pri.Key, JsonElement>>()) } returns Result.success(JsonNull)
+            every { mockProducer.send(any(), any<Map<Pri.Key, JsonElement>>()) } returns Result.success(JsonNull)
 
             val expectedForespoerselId = UUID.randomUUID()
 
@@ -53,9 +53,13 @@ class MarkerForespoerselBesvartRiverTest :
             testRapid.inspektør.size shouldBeExactly 0
 
             verifySequence {
-                mockPriProducer.send(
-                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
-                    Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
+                mockProducer.send(
+                    key = expectedForespoerselId,
+                    message =
+                        mapOf(
+                            Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
+                            Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
+                        ),
                 )
             }
         }
@@ -77,7 +81,7 @@ class MarkerForespoerselBesvartRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 verify(exactly = 0) {
-                    mockPriProducer.send(*anyVararg<Pair<Pri.Key, JsonElement>>())
+                    mockProducer.send(any(), any<Map<Pri.Key, JsonElement>>())
                 }
             }
         }

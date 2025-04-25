@@ -2,7 +2,6 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import kotlinx.serialization.Serializable
@@ -13,10 +12,14 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.KvitteringResultat
 import no.nav.helsearbeidsgiver.felles.domene.LagretInntektsmelding
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
@@ -39,16 +42,16 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondNotFound
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.OffsetDateTimeSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import java.time.OffsetDateTime
 import java.util.UUID
 
 fun Route.kvittering(
-    rapid: RapidsConnection,
+    producer: Producer,
     tilgangskontroll: Tilgangskontroll,
     redisConnection: RedisConnection,
 ) {
-    val kvitteringProducer = KvitteringProducer(rapid)
     val redisPoller = RedisStore(redisConnection, RedisPrefix.Kvittering).let(::RedisPoller)
 
     get(Routes.KVITTERING) {
@@ -71,7 +74,7 @@ fun Route.kvittering(
                 try {
                     tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
 
-                    kvitteringProducer.publish(kontekstId, forespoerselId)
+                    producer.sendRequestEvent(kontekstId, forespoerselId)
                     val resultatJson = redisPoller.hent(kontekstId)
 
                     val resultat = resultatJson.success?.fromJson(KvitteringResultat.serializer())
@@ -130,6 +133,24 @@ private data class KvitteringResponse(
         val avsenderSystem: String,
         val referanse: String,
         val mottatt: OffsetDateTime,
+    )
+}
+
+private fun Producer.sendRequestEvent(
+    kontekstId: UUID,
+    forespoerselId: UUID,
+) {
+    send(
+        key = forespoerselId,
+        message =
+            mapOf(
+                Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
+                Key.KONTEKST_ID to kontekstId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    ).toJson(),
+            ),
     )
 }
 

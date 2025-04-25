@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receiveText
 import io.ktor.server.routing.Route
@@ -8,7 +7,11 @@ import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.post
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
@@ -27,16 +30,17 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.time.LocalDateTime
 import java.util.UUID
 
 fun Route.innsending(
-    rapid: RapidsConnection,
+    producer: Producer,
     tilgangskontroll: Tilgangskontroll,
     redisConnection: RedisConnection,
 ) {
-    val producer = InnsendingProducer(rapid)
     val redisPoller = RedisStore(redisConnection, RedisPrefix.Innsending).let(::RedisPoller)
 
     post(Routes.INNSENDING) {
@@ -68,7 +72,7 @@ fun Route.innsending(
 
                     val avsenderFnr = call.request.lesFnrFraAuthToken()
 
-                    producer.publish(kontekstId, avsenderFnr, skjema, mottatt)
+                    producer.sendRequestEvent(kontekstId, avsenderFnr, skjema, mottatt)
 
                     val resultat = runCatching { redisPoller.hent(kontekstId) }
 
@@ -110,3 +114,25 @@ private suspend fun RoutingContext.lesRequestOrNull(): SkjemaInntektsmelding? =
             }
             null
         }
+
+private fun Producer.sendRequestEvent(
+    kontekstId: UUID,
+    arbeidsgiverFnr: Fnr,
+    skjema: SkjemaInntektsmelding,
+    mottatt: LocalDateTime,
+) {
+    send(
+        key = skjema.forespoerselId,
+        message =
+            mapOf(
+                Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+                Key.KONTEKST_ID to kontekstId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
+                        Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
+                        Key.MOTTATT to mottatt.toJson(),
+                    ).toJson(),
+            ),
+    )
+}

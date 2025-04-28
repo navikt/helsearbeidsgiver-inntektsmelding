@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helsearbeidsgiver.felles.kafka.Producer
+import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "helsearbeidsgiver-im-helsebro".logger()
@@ -10,7 +11,7 @@ private val logger = "helsearbeidsgiver-im-helsebro".logger()
 fun main() {
     logger.info("im-helsebro er oppe og kjører!")
 
-    val producer = Producer()
+    val producer = Producer(Pri.TOPIC)
 
     RapidApplication
         .create(System.getenv())

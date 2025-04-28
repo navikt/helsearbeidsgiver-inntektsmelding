@@ -53,8 +53,12 @@ class MarkerForespoerselBesvartRiver(
         val publisert =
             producer
                 .send(
-                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
-                    Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    key = forespoerselId,
+                    message =
+                        mapOf(
+                            Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
+                            Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                        ),
                 ).getOrThrow()
 
         logger.info("Publiserte melding på pri-topic om ${Pri.NotisType.FORESPOERSEL_BESVART_SIMBA}.")

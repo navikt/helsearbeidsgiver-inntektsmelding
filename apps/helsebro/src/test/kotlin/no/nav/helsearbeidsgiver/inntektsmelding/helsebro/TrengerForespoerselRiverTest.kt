@@ -27,7 +27,7 @@ class TrengerForespoerselRiverTest :
 
         test("Ved behov om forespørsel på rapid-topic publiseres behov om forespørsel på pri-topic") {
             // Må bare returnere en Result med gyldig JSON
-            every { mockProducer.send(*anyVararg<Pair<Pri.Key, JsonElement>>()) } returns Result.success(JsonNull)
+            every { mockProducer.send(any(), any<Map<Pri.Key, JsonElement>>()) } returns Result.success(JsonNull)
 
             val expectedEvent = EventName.INNTEKT_REQUESTED
             val expectedKontekstId = UUID.randomUUID()
@@ -49,18 +49,22 @@ class TrengerForespoerselRiverTest :
 
             verifySequence {
                 mockProducer.send(
-                    Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
-                    Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
-                    Pri.Key.BOOMERANG to
+                    key = expectedForespoerselId,
+                    message =
                         mapOf(
-                            Key.EVENT_NAME to expectedEvent.toJson(),
-                            Key.KONTEKST_ID to expectedKontekstId.toJson(),
-                            Key.DATA to
+                            Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
+                            Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
+                            Pri.Key.BOOMERANG to
                                 mapOf(
-                                    Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
-                                    Key.JOURNALPOST_ID to journalpostId.toJson(),
+                                    Key.EVENT_NAME to expectedEvent.toJson(),
+                                    Key.KONTEKST_ID to expectedKontekstId.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
+                                            Key.JOURNALPOST_ID to journalpostId.toJson(),
+                                        ).toJson(),
                                 ).toJson(),
-                        ).toJson(),
+                        ),
                 )
             }
         }

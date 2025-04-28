@@ -55,14 +55,18 @@ class TrengerForespoerselRiver(
     override fun TrengerForespoerselMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         producer
             .send(
-                Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Pri.Key.BOOMERANG to
+                key = forespoerselId,
+                message =
                     mapOf(
-                        Key.EVENT_NAME to eventName.toJson(),
-                        Key.KONTEKST_ID to kontekstId.toJson(),
-                        Key.DATA to data.toJson(),
-                    ).toJson(),
+                        Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
+                        Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                        Pri.Key.BOOMERANG to
+                            mapOf(
+                                Key.EVENT_NAME to eventName.toJson(),
+                                Key.KONTEKST_ID to kontekstId.toJson(),
+                                Key.DATA to data.toJson(),
+                            ).toJson(),
+                    ),
             ).onSuccess {
                 logger.info("Publiserte melding på pri-topic om ${Pri.BehovType.TRENGER_FORESPØRSEL}.")
                 sikkerLogger.info("Publiserte melding på pri-topic:\n${it.toPretty()}")

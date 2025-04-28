@@ -9,6 +9,7 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
@@ -42,7 +43,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDbRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjonRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.createFeilLytter
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createMarkerForespoerselBesvart
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createForespoerselEventSwitch
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebroRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselListeSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
@@ -110,7 +111,7 @@ abstract class EndToEndTest : ContainerTest() {
     private val inntektsmeldingDatabase by lazy {
         println("Database jdbcUrl for im-db: ${postgresContainerOne.jdbcUrl}")
 
-        return@lazy withRetries(
+        withRetries(
             feilmelding = "Klarte ikke sette opp inntektsmeldingDatabase.",
         ) {
             postgresContainerOne
@@ -127,7 +128,7 @@ abstract class EndToEndTest : ContainerTest() {
     private val bakgrunnsjobbDatabase by lazy {
         println("Database jdbcUrl for im-feil-behandler: ${postgresContainerTwo.jdbcUrl}")
 
-        return@lazy withRetries(
+        withRetries(
             feilmelding = "Klarte ikke sette opp feilbehandlerdatabase.",
         ) {
             postgresContainerTwo
@@ -142,7 +143,7 @@ abstract class EndToEndTest : ContainerTest() {
 
     // Vent på rediscontainer
     val redisConnection by lazy {
-        return@lazy withRetries(
+        withRetries(
             feilmelding = "Klarte ikke koble til Redis.",
         ) {
             // Hijacker RedisClient her pga. vanskeligheter med å sette opp RedisContainer med SSL og autentisering
@@ -192,8 +193,7 @@ abstract class EndToEndTest : ContainerTest() {
         producer.apply {
             // Må bare returnere en Result med gyldig JSON
             val emptyResult = Result.success(JsonObject(emptyMap()))
-            every { send(any<JsonElement>()) } returns emptyResult
-            every { send(*anyVararg<Pair<Pri.Key, JsonElement>>()) } returns emptyResult
+            every { send(any(), any<Map<Pri.Key, JsonElement>>()) } returns emptyResult
         }
     }
 
@@ -224,7 +224,7 @@ abstract class EndToEndTest : ContainerTest() {
             createHentEksternImRiver(spinnKlient)
             createHentInntektRiver(inntektClient)
             createJournalfoerImRiver(dokarkivClient)
-            createMarkerForespoerselBesvart(producer)
+            createForespoerselEventSwitch(producer)
             createNotifikasjonRivers("notifikasjonLink", "P28D", agNotifikasjonKlient)
             createPdlRiver(pdlKlient)
             createFeilLytter(bakgrunnsjobbRepository)
@@ -271,72 +271,69 @@ abstract class EndToEndTest : ContainerTest() {
         forespoerselId: UUID,
         forespoerselSvar: ForespoerselFraBro?,
     ) {
-        var boomerang: JsonElement? = null
+        val messageSlot = slot<Map<Pri.Key, JsonElement>>()
 
         every {
             producer.send(
-                *varargAll { (key, value) ->
-                    if (key == Pri.Key.BOOMERANG) {
-                        boomerang = value
-                    }
-
-                    val erKorrektBehov = runCatching { value.fromJson(Pri.BehovType.serializer()) }.getOrNull() == Pri.BehovType.TRENGER_FORESPØRSEL
-
-                    (key == Pri.Key.BEHOV && erKorrektBehov) ||
-                        key in setOf(Pri.Key.FORESPOERSEL_ID, Pri.Key.BOOMERANG)
-                },
+                key = any(),
+                message = capture(messageSlot),
             )
         } answers {
-            publish(
-                Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LOESNING to
-                    ForespoerselSvar(
-                        forespoerselId = forespoerselId,
-                        resultat = forespoerselSvar,
-                        feil =
-                            if (forespoerselSvar == null) {
-                                ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET
-                            } else {
-                                null
-                            },
-                        boomerang = boomerang.shouldNotBeNull(),
-                    ).toJson(ForespoerselSvar.serializer()),
-            )
+            val message = messageSlot.captured
+            val behov = message[Pri.Key.BEHOV]?.runCatching { fromJson(Pri.BehovType.serializer()) }?.getOrNull()
 
-            boomerang = null
+            if (behov == Pri.BehovType.TRENGER_FORESPØRSEL &&
+                !message.containsKey(Pri.Key.LOESNING) &&
+                message.containsKey(Pri.Key.FORESPOERSEL_ID) &&
+                message.containsKey(Pri.Key.BOOMERANG)
+            ) {
+                publish(
+                    Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
+                    Pri.Key.LOESNING to
+                        ForespoerselSvar(
+                            forespoerselId = forespoerselId,
+                            resultat = forespoerselSvar,
+                            feil =
+                                if (forespoerselSvar == null) {
+                                    ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET
+                                } else {
+                                    null
+                                },
+                            boomerang = message[Pri.Key.BOOMERANG].shouldNotBeNull(),
+                        ).toJson(ForespoerselSvar.serializer()),
+                )
+            }
 
             Result.success(JsonObject(emptyMap()))
         }
     }
 
     fun mockForespoerselSvarFraHelsebro(forespoerselListeSvar: List<ForespoerselFraBro>) {
-        var boomerang: JsonElement? = null
+        val messageSlot = slot<Map<Pri.Key, JsonElement>>()
 
         every {
             producer.send(
-                *varargAll { (key, value) ->
-                    if (key == Pri.Key.BOOMERANG) {
-                        boomerang = value
-                    }
-
-                    val erKorrektBehov =
-                        runCatching { value.fromJson(Pri.BehovType.serializer()) }.getOrNull() == Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE
-
-                    (key == Pri.Key.BEHOV && erKorrektBehov) ||
-                        key in setOf(Pri.Key.VEDTAKSPERIODE_ID_LISTE, Pri.Key.BOOMERANG)
-                },
+                key = any(),
+                message = capture(messageSlot),
             )
         } answers {
-            publish(
-                Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LOESNING to
-                    ForespoerselListeSvar(
-                        resultat = forespoerselListeSvar,
-                        boomerang = boomerang.shouldNotBeNull(),
-                    ).toJson(ForespoerselListeSvar.serializer()),
-            )
+            val message = messageSlot.captured
+            val behov = message[Pri.Key.BEHOV]?.runCatching { fromJson(Pri.BehovType.serializer()) }?.getOrNull()
 
-            boomerang = null
+            if (behov == Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE &&
+                !message.containsKey(Pri.Key.LOESNING) &&
+                message.containsKey(Pri.Key.VEDTAKSPERIODE_ID_LISTE) &&
+                message.containsKey(Pri.Key.BOOMERANG)
+            ) {
+                publish(
+                    Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
+                    Pri.Key.LOESNING to
+                        ForespoerselListeSvar(
+                            resultat = forespoerselListeSvar,
+                            boomerang = message[Pri.Key.BOOMERANG].shouldNotBeNull(),
+                        ).toJson(ForespoerselListeSvar.serializer()),
+                )
+            }
 
             Result.success(JsonObject(emptyMap()))
         }

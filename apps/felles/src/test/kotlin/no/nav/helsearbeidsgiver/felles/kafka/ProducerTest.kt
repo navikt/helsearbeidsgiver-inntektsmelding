@@ -33,7 +33,7 @@ class ProducerTest :
             clearAllMocks()
         }
 
-        context("send<UUID, vararg Pair<Key, JsonElement>>") {
+        context("send<UUID, Map<Key, JsonElement>>") {
 
             test("gir suksessobjekt ved sendt melding til kafka stream") {
                 every { mockKafkaProducer.send(any()).get() } returns mockRecordMetadata()
@@ -80,7 +80,7 @@ class ProducerTest :
             }
         }
 
-        context("send<Fnr, vararg Pair<Pri.Key, JsonElement>>") {
+        context("send<Fnr, Map<Key, JsonElement>>") {
 
             test("gir suksessobjekt ved sendt melding til kafka stream") {
                 every { mockKafkaProducer.send(any()).get() } returns mockRecordMetadata()
@@ -125,7 +125,7 @@ class ProducerTest :
             }
         }
 
-        context("send<UUID, vararg Pair<Pri.Key, JsonElement>>") {
+        context("send<UUID, Map<Pri.Key, JsonElement>>") {
 
             test("gir suksessobjekt ved sendt melding til kafka stream") {
                 every { mockKafkaProducer.send(any()).get() } returns mockRecordMetadata()

@@ -71,7 +71,7 @@ fun main() {
         addShutdownHook {
             redisConnection.close()
         }
-    }.start()
+    }.start(wait = true)
 }
 
 fun Application.apiModule(

@@ -10,6 +10,7 @@ import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringSerializer
 import java.util.Properties
+import org.apache.kafka.common.serialization.Serializer as KafkaSerializer
 
 internal fun createProducer(): KafkaProducer<String, JsonElement> =
     KafkaProducer(
@@ -45,7 +46,7 @@ private class Env {
     val credstorePassword = "KAFKA_CREDSTORE_PASSWORD".fromEnv()
 }
 
-private class Serializer : org.apache.kafka.common.serialization.Serializer<JsonElement> {
+private class Serializer : KafkaSerializer<JsonElement> {
     override fun serialize(
         topic: String,
         data: JsonElement,

@@ -259,6 +259,7 @@ class PdfDokumentTest {
         pdfTekstFraIm(agpErNull) shouldNotContain pdfAgpRelevantTekst
         pdfTekstFraIm(agpHarTomPeriodeListe) shouldNotContain pdfAgpRelevantTekst
         pdfTekstFraIm(agptHarTomPeriodeListeMedBegrunnelse) shouldNotContain pdfAgpRelevantTekst
+        pdfTekstFraIm(agptHarTomPeriodeListeMedBegrunnelse) shouldContain "Ingen arbeidsgiverperiode"
         pdfTekstFraIm(agptHarTomPeriodeListeMedBegrunnelse) shouldContain RedusertLoennIAgp.Begrunnelse.FerieEllerAvspasering.tilTekst()
     }
 
@@ -334,8 +335,8 @@ class PdfDokumentTest {
         title: String,
         im: Inntektsmelding,
     ) {
-//        val file = File(System.getProperty("user.home"), "/Desktop/pdf/$title.pdf")
-        val file = File.createTempFile(title, ".pdf")
+        val file = File(System.getProperty("user.home"), "/Desktop/pdf/$title.pdf")
+//        val file = File.createTempFile(title, ".pdf")
         val writer = FileOutputStream(file)
         writer.write(PdfDokument(im).export())
         println("Lagde PDF $title med filnavn ${file.toPath()}")

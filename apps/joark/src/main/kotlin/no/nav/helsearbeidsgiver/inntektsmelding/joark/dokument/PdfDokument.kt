@@ -285,9 +285,12 @@ class PdfDokument(
 
         addSection("Refusjon")
 
-        if (arbeidsgiverperioder.isNotEmpty()) {
+        if (arbeidsgiverperioder.isEmpty()) {
+            addLabel("Ingen arbeidsgiverperiode")
+        } else {
             addLabel("Betaler arbeidsgiver full lønn til arbeidstaker i arbeidsgiverperioden?", (redusertLoennIAgp == null).tilNorskFormat())
         }
+
         if (redusertLoennIAgp != null) {
             // Redusert lønn i AGP - to ekstra spørsmål
             addLabel("Begrunnelse", redusertLoennIAgp.begrunnelse.tilTekst())

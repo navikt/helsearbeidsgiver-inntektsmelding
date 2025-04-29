@@ -19,7 +19,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class VedtaksperiodeIdForespoerselRiverTest :
+class HentForespoerslerForVedtaksperiodeIdListeRiverTest :
     FunSpec({
         val testRapid = TestRapid()
         val mockProducer = mockk<Producer>()
@@ -28,7 +28,7 @@ class VedtaksperiodeIdForespoerselRiverTest :
 
         test("Ved behov om forespørsler på rapid-topic publiseres behov om forespørsler på pri-topic") {
             // Må bare returnere en Result med gyldig JSON
-            every { mockProducer.send(*anyVararg<Pair<Pri.Key, JsonElement>>()) } returns Result.success(JsonNull)
+            every { mockProducer.send(any(), any<Map<Pri.Key, JsonElement>>()) } returns Result.success(JsonNull)
 
             val expectedEvent = EventName.FORESPOERSLER_REQUESTED
             val expectedKontekstId = UUID.randomUUID()
@@ -48,17 +48,21 @@ class VedtaksperiodeIdForespoerselRiverTest :
 
             verifySequence {
                 mockProducer.send(
-                    Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
-                    Pri.Key.VEDTAKSPERIODE_ID_LISTE to expectedVedtaksperiodeIdListe.toJson(UuidSerializer),
-                    Pri.Key.BOOMERANG to
+                    key = any(),
+                    message =
                         mapOf(
-                            Key.EVENT_NAME to expectedEvent.toJson(),
-                            Key.KONTEKST_ID to expectedKontekstId.toJson(),
-                            Key.DATA to
+                            Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
+                            Pri.Key.VEDTAKSPERIODE_ID_LISTE to expectedVedtaksperiodeIdListe.toJson(UuidSerializer),
+                            Pri.Key.BOOMERANG to
                                 mapOf(
-                                    Key.VEDTAKSPERIODE_ID_LISTE to expectedVedtaksperiodeIdListe.toJson(UuidSerializer),
+                                    Key.EVENT_NAME to expectedEvent.toJson(),
+                                    Key.KONTEKST_ID to expectedKontekstId.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.VEDTAKSPERIODE_ID_LISTE to expectedVedtaksperiodeIdListe.toJson(UuidSerializer),
+                                        ).toJson(),
                                 ).toJson(),
-                        ).toJson(),
+                        ),
                 )
             }
         }

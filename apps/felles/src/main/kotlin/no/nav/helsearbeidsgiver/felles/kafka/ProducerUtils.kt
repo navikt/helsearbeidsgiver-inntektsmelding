@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.felles.kafka
 
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.felles.utils.fromEnv
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -11,15 +12,16 @@ import org.apache.kafka.common.serialization.StringSerializer
 import java.util.Properties
 import org.apache.kafka.common.serialization.Serializer as KafkaSerializer
 
-internal fun createProducer(env: Producer.Env): KafkaProducer<String, JsonElement> =
+internal fun createProducer(): KafkaProducer<String, JsonElement> =
     KafkaProducer(
-        kafkaProperties(env),
+        kafkaProperties(),
         StringSerializer(),
         Serializer(),
     )
 
-private fun kafkaProperties(env: Producer.Env): Properties =
-    Properties().apply {
+private fun kafkaProperties(): Properties {
+    val env = Env()
+    return Properties().apply {
         putAll(
             mapOf(
                 CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to env.brokers,
@@ -35,6 +37,14 @@ private fun kafkaProperties(env: Producer.Env): Properties =
             ),
         )
     }
+}
+
+private class Env {
+    val brokers = "KAFKA_BROKERS".fromEnv()
+    val keystorePath = "KAFKA_KEYSTORE_PATH".fromEnv()
+    val truststorePath = "KAFKA_TRUSTSTORE_PATH".fromEnv()
+    val credstorePassword = "KAFKA_CREDSTORE_PASSWORD".fromEnv()
+}
 
 private class Serializer : KafkaSerializer<JsonElement> {
     override fun serialize(

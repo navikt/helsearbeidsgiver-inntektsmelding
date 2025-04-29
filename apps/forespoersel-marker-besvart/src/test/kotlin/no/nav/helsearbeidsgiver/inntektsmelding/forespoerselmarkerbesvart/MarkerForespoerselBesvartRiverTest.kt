@@ -37,7 +37,7 @@ class MarkerForespoerselBesvartRiverTest :
 
         test("Ved event om mottatt inntektsmelding på rapid-topic publiseres notis om å markere forespørsel som besvart på pri-topic") {
             // Må bare returnere en Result med gyldig JSON
-            every { mockProducer.send(*anyVararg<Pair<Pri.Key, JsonElement>>()) } returns Result.success(JsonNull)
+            every { mockProducer.send(any(), any<Map<Pri.Key, JsonElement>>()) } returns Result.success(JsonNull)
 
             val expectedForespoerselId = UUID.randomUUID()
 
@@ -54,8 +54,12 @@ class MarkerForespoerselBesvartRiverTest :
 
             verifySequence {
                 mockProducer.send(
-                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
-                    Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
+                    key = expectedForespoerselId,
+                    message =
+                        mapOf(
+                            Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
+                            Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
+                        ),
                 )
             }
         }
@@ -77,7 +81,7 @@ class MarkerForespoerselBesvartRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 verify(exactly = 0) {
-                    mockProducer.send(*anyVararg<Pair<Pri.Key, JsonElement>>())
+                    mockProducer.send(any(), any<Map<Pri.Key, JsonElement>>())
                 }
             }
         }

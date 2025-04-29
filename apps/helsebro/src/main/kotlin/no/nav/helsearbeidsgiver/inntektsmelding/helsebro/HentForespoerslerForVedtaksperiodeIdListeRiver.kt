@@ -57,14 +57,18 @@ class HentForespoerslerForVedtaksperiodeIdListeRiver(
     override fun HentForespoerslerForVedtaksperiodeIdListeMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         producer
             .send(
-                Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
-                Pri.Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIdListe.toJson(UuidSerializer),
-                Pri.Key.BOOMERANG to
+                key = UUID.randomUUID(),
+                message =
                     mapOf(
-                        Key.EVENT_NAME to eventName.toJson(),
-                        Key.KONTEKST_ID to kontekstId.toJson(),
-                        Key.DATA to data.toJson(),
-                    ).toJson(),
+                        Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
+                        Pri.Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIdListe.toJson(UuidSerializer),
+                        Pri.Key.BOOMERANG to
+                            mapOf(
+                                Key.EVENT_NAME to eventName.toJson(),
+                                Key.KONTEKST_ID to kontekstId.toJson(),
+                                Key.DATA to data.toJson(),
+                            ).toJson(),
+                    ),
             ).onSuccess {
                 logger.info("Publiserte melding på pri-topic om ${Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE}.")
                 sikkerLogger.info("Publiserte melding på pri-topic:\n${it.toPretty()}")

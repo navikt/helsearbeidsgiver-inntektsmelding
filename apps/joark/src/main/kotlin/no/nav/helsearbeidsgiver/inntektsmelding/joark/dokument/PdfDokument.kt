@@ -294,7 +294,6 @@ class PdfDokument(
             addLabel("Utbetalt under arbeidsgiverperiode", redusertLoennIAgp.beloep.tilNorskFormat() + " kr")
         }
 
-
         addLabel("Betaler arbeidsgiver lønn under hele eller deler av sykefraværet?", (refusjon != null).tilNorskFormat())
         if (refusjon != null) {
             // Ja - tre ekstra spørsmål

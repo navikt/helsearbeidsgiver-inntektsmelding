@@ -237,6 +237,46 @@ class ConvertTest :
             gammelRefusjon.refusjonOpphører shouldBe dato2
             gammelRefusjon.refusjonPrMnd shouldBe belop
         }
+
+        test("konverter refusjon på gammelt format fjerner sluttdato og erstatter den med en endring med beløp 0 og startDato lik sluttDatoen") {
+            val belop1 = 123.45
+            val sluttDato = LocalDate.of(2023, 2, 28)
+            val gammelRefusjon =
+                RefusjonGammeltFormat(
+                    utbetalerHeleEllerDeler = true,
+                    refusjonPrMnd = belop1,
+                    refusjonOpphører = sluttDato,
+                    refusjonEndringer = emptyList(),
+                )
+            val refusjon = gammelRefusjon.convert()
+            refusjon?.endringer[0]?.beloep shouldBe 0.0
+            refusjon?.endringer[0]?.startdato shouldBe sluttDato
+            refusjon?.sluttdato shouldBe null
+        }
+
+        test("konverter refusjon på gammelt format med endringsliste fjerner duplikater") {
+            val belop1 = 123.45
+            val sluttDato = LocalDate.of(2023, 2, 28)
+            val endretDato = sluttDato.minusDays(7)
+            val gammelRefusjon =
+                RefusjonGammeltFormat(
+                    utbetalerHeleEllerDeler = true,
+                    refusjonPrMnd = belop1,
+                    refusjonOpphører = sluttDato,
+                    refusjonEndringer =
+                        listOf(
+                            RefusjonEndringGammeltFormat(10.0, endretDato),
+                            RefusjonEndringGammeltFormat(0.0, sluttDato),
+                        ),
+                )
+            val refusjon = gammelRefusjon.convert()
+            refusjon?.endringer?.size shouldBe 2
+            refusjon?.sluttdato shouldBe null
+            refusjon?.endringer[0]?.beloep shouldBe 10.0
+            refusjon?.endringer[0]?.startdato shouldBe endretDato
+            refusjon?.endringer[1]?.beloep shouldBe 0.0
+            refusjon?.endringer[1]?.startdato shouldBe sluttDato
+        }
     })
 
 private fun lagPeriode(): List<Periode> {

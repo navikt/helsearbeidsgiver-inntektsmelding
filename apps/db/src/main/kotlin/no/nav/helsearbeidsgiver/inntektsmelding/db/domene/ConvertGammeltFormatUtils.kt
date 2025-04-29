@@ -52,17 +52,28 @@ fun InntektsmeldingGammeltFormat.convertInntekt(): Inntekt? =
         )
     }
 
-fun RefusjonGammeltFormat.convert(): Refusjon? =
+fun RefusjonGammeltFormat.convert(): Refusjon? {
     // (refusjonPrMnd == null) bør ikke skje, men deprecated nullable-kode åpner for ugyldige data.
     if (!utbetalerHeleEllerDeler || refusjonPrMnd == null) {
-        null
+        return null
     } else {
-        Refusjon(
-            beloepPerMaaned = refusjonPrMnd,
-            endringer = refusjonEndringer?.mapNotNull { it.convert() }.orEmpty(),
-            sluttdato = refusjonOpphører,
-        )
+        val refusjon =
+            Refusjon(
+                beloepPerMaaned = refusjonPrMnd,
+                endringer = refusjonEndringer?.mapNotNull { it.convert() }.orEmpty(),
+                sluttdato = null,
+            )
+        if (refusjonOpphører != null) {
+            // konverterer refusjonOpphører-dato til en endring med beløp 0 og startdato lik refusjonOpphører.
+            // Dette er kun for å vise *skikkelig gamle* data, om noe endres og sendes inn på nytt havner det på riktig format.
+            // Kan fjernes når vi ikke lengre har inntektsmeldinger i basen med skjema = null
+            val slutt = RefusjonEndring(0.0, refusjonOpphører)
+            val e = refusjon.endringer.filterNot { it == slutt }.plus(slutt) // fjern evt duplikater
+            return refusjon.copy(endringer = e)
+        }
+        return refusjon
     }
+}
 
 fun BegrunnelseIngenEllerRedusertUtbetalingKodeGammeltFormat.convert(): RedusertLoennIAgp.Begrunnelse = RedusertLoennIAgp.Begrunnelse.valueOf(name)
 

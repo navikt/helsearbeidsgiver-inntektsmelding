@@ -54,7 +54,7 @@ object Routes {
 }
 
 fun main() {
-    val producer = Producer("helsearbeidsgiver.rapid")
+    val producer = Producer(Env.kafkaTopic)
     val redisConnection =
         RedisConnection(
             host = Env.Redis.host,

@@ -1,0 +1,29 @@
+name: Slett gamle pakker
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: "Hvilken app sine pakker som skal slettes"
+        required: true
+        type: choice
+        options:
+          - im-akkumulator
+          - im-syk
+          - im-egenmelding
+          - im-kontroll
+      antall:
+        description: "Antall pakker som skal slettes"
+        required: false
+        type: number
+        default: 1
+
+jobs:
+  slett:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/delete-package-versions@v5
+        with:
+          package-type: container
+          package-name: ${{ inputs.app }}
+          num-old-versions-to-delete: ${{ inputs.antall }}

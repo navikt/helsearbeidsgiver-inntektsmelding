@@ -7,7 +7,7 @@ interface IKey
 
 @Serializable(KeySerializer::class)
 enum class Key : IKey {
-    // Predefinerte fra rapids-and-rivers biblioteket
+    // Predefinerte fra rapids-and-rivers-biblioteket
     EVENT_NAME,
     BEHOV,
 

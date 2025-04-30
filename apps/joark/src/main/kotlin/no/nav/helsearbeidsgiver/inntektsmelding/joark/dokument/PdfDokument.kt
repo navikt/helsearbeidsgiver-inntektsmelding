@@ -285,13 +285,16 @@ class PdfDokument(
 
         addSection("Refusjon")
 
-        if (arbeidsgiverperioder.isNotEmpty()) {
+        if (arbeidsgiverperioder.isEmpty()) {
+            addLabel("Ingen arbeidsgiverperiode")
+        } else {
             addLabel("Betaler arbeidsgiver full lønn til arbeidstaker i arbeidsgiverperioden?", (redusertLoennIAgp == null).tilNorskFormat())
-            if (redusertLoennIAgp != null) {
-                // Redusert lønn i AGP - to ekstra spørsmål
-                addLabel("Begrunnelse", redusertLoennIAgp.begrunnelse.tilTekst())
-                addLabel("Utbetalt under arbeidsgiverperiode", redusertLoennIAgp.beloep.tilNorskFormat() + " kr")
-            }
+        }
+
+        if (redusertLoennIAgp != null) {
+            // Redusert lønn i AGP - to ekstra spørsmål
+            addLabel("Begrunnelse", redusertLoennIAgp.begrunnelse.tilTekst())
+            addLabel("Utbetalt under arbeidsgiverperiode", redusertLoennIAgp.beloep.tilNorskFormat() + " kr")
         }
 
         addLabel("Betaler arbeidsgiver lønn under hele eller deler av sykefraværet?", (refusjon != null).tilNorskFormat())

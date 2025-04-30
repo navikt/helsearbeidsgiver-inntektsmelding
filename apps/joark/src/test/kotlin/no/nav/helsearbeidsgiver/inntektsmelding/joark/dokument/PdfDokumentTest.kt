@@ -231,7 +231,7 @@ class PdfDokumentTest {
         val medAgp = im
         val agpErNull = im.copy(agp = null)
         val agpHarTomPeriodeListe = im.copy(agp = Arbeidsgiverperiode(emptyList(), emptyList(), null))
-        val agptHarTomPeriodeListeMedBegrunnelse =
+        val agpHarTomPeriodeListeMedBegrunnelse =
             im.copy(
                 agp =
                     Arbeidsgiverperiode(
@@ -248,7 +248,7 @@ class PdfDokumentTest {
             "med_arbeidsgiverperiode" to medAgp,
             "med_arbeidsgiverperiode_lik_null" to agpErNull,
             "med_ingen_arbeidsgiver_perioder" to agpHarTomPeriodeListe,
-            "med_ingen_arbeidsgiver_perioder_og_begrunnelse" to agptHarTomPeriodeListeMedBegrunnelse,
+            "med_ingen_arbeidsgiver_perioder_og_begrunnelse" to agpHarTomPeriodeListeMedBegrunnelse,
         ).forEach { (filNavn, im) ->
             writePDF(filNavn, im)
         }
@@ -258,9 +258,9 @@ class PdfDokumentTest {
         pdfTekstFraIm(medAgp) shouldContain pdfAgpRelevantTekst
         pdfTekstFraIm(agpErNull) shouldNotContain pdfAgpRelevantTekst
         pdfTekstFraIm(agpHarTomPeriodeListe) shouldNotContain pdfAgpRelevantTekst
-        pdfTekstFraIm(agptHarTomPeriodeListeMedBegrunnelse) shouldNotContain pdfAgpRelevantTekst
-        pdfTekstFraIm(agptHarTomPeriodeListeMedBegrunnelse) shouldContain "Ingen arbeidsgiverperiode"
-        pdfTekstFraIm(agptHarTomPeriodeListeMedBegrunnelse) shouldContain RedusertLoennIAgp.Begrunnelse.FerieEllerAvspasering.tilTekst()
+        pdfTekstFraIm(agpHarTomPeriodeListeMedBegrunnelse) shouldNotContain pdfAgpRelevantTekst
+        pdfTekstFraIm(agpHarTomPeriodeListeMedBegrunnelse) shouldContain "Ingen arbeidsgiverperiode"
+        pdfTekstFraIm(agpHarTomPeriodeListeMedBegrunnelse) shouldContain RedusertLoennIAgp.Begrunnelse.FerieEllerAvspasering.tilTekst()
     }
 
     @Test

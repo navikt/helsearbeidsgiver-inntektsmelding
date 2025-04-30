@@ -55,7 +55,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         val tidligereInntektsmelding = mockInntektsmeldingV1()
 
         imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, 10.desember.atStartOfDay())
-        imRepository.oppdaterMedBeriketDokument(tidligereInntektsmelding)
+        imRepository.oppdaterMedInntektsmelding(tidligereInntektsmelding)
 
         coEvery {
             dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
@@ -154,7 +154,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         val tidligereInntektsmelding = mockInntektsmeldingV1()
 
         imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, 10.desember.atStartOfDay())
-        imRepository.oppdaterMedBeriketDokument(tidligereInntektsmelding)
+        imRepository.oppdaterMedInntektsmelding(tidligereInntektsmelding)
 
         coEvery {
             dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())

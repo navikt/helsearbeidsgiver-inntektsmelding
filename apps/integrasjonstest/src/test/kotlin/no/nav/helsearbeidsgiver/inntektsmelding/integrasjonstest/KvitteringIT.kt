@@ -45,7 +45,7 @@ class KvitteringIT : EndToEndTest() {
         )
 
         imRepository.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, mottatt)
-        imRepository.oppdaterMedBeriketDokument(inntektsmelding)
+        imRepository.oppdaterMedInntektsmelding(inntektsmelding)
 
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),

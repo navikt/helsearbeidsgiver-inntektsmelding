@@ -58,13 +58,14 @@ class InntektsmeldingRepositoryTest :
             val inntektsmelding = mockInntektsmeldingV1().copy(mottatt = mottatt.toOffsetDateTimeOslo())
 
             inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, mottatt)
-            inntektsmeldingRepo.oppdaterMedBeriketDokument(inntektsmelding)
+            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding)
 
             val record = testRepo.hentRecordFraInntektsmelding(skjema.forespoerselId).shouldNotBeNull()
 
             record.getOrNull(InntektsmeldingEntitet.journalpostId) shouldBe null
             record.getOrNull(InntektsmeldingEntitet.eksternInntektsmelding) shouldBe null
             record.getOrNull(InntektsmeldingEntitet.skjema) shouldBe skjema
+            record.getOrNull(InntektsmeldingEntitet.inntektsmelding) shouldBe inntektsmelding
             record.getOrNull(InntektsmeldingEntitet.dokument) shouldBe inntektsmelding.convert()
 
             inntektsmeldingRepo.hentNyesteBerikedeInntektsmeldingId(skjema.forespoerselId) shouldBe inntektsmelding.id
@@ -85,10 +86,10 @@ class InntektsmeldingRepositoryTest :
             inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId2, skjema, mottatt.plusHours(3))
             inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, mottatt.plusHours(6))
 
-            inntektsmeldingRepo.oppdaterMedBeriketDokument(inntektsmelding.copy(id = inntektsmeldingId1))
+            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId1))
             inntektsmeldingRepo.hentNyesteBerikedeInntektsmeldingId(skjema.forespoerselId) shouldBe inntektsmeldingId1
 
-            inntektsmeldingRepo.oppdaterMedBeriketDokument(inntektsmelding.copy(id = inntektsmeldingId2))
+            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId2))
             inntektsmeldingRepo.hentNyesteBerikedeInntektsmeldingId(skjema.forespoerselId) shouldBe inntektsmeldingId2
         }
 
@@ -102,7 +103,7 @@ class InntektsmeldingRepositoryTest :
             val inntektsmelding = mockInntektsmeldingV1().copy(mottatt = mottatt.toOffsetDateTimeOslo())
 
             inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, mottatt)
-            inntektsmeldingRepo.oppdaterMedBeriketDokument(inntektsmelding)
+            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding)
 
             transaction {
                 InntektsmeldingEntitet
@@ -125,7 +126,7 @@ class InntektsmeldingRepositoryTest :
             val journalpost = randomDigitString(7)
 
             inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, mottatt)
-            inntektsmeldingRepo.oppdaterMedBeriketDokument(inntektsmelding)
+            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding)
             inntektsmeldingRepo.oppdaterJournalpostId(inntektsmelding.id, journalpost)
 
             val record = testRepo.hentRecordFraInntektsmelding(skjema.forespoerselId)
@@ -147,8 +148,8 @@ class InntektsmeldingRepositoryTest :
             inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId1, skjema, mottatt)
             inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId2, skjema, mottatt.plusHours(3))
 
-            inntektsmeldingRepo.oppdaterMedBeriketDokument(inntektsmelding.copy(id = inntektsmeldingId1))
-            inntektsmeldingRepo.oppdaterMedBeriketDokument(inntektsmelding.copy(id = inntektsmeldingId2))
+            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId1))
+            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId2))
 
             // Skal kun oppdatere den andre av de to inntektsmeldingene
             inntektsmeldingRepo.oppdaterJournalpostId(inntektsmeldingId2, journalpostId)
@@ -166,9 +167,11 @@ class InntektsmeldingRepositoryTest :
             InntektsmeldingEntitet.apply {
                 resultat[0][innsendt] shouldBeLessThan resultat[1][innsendt]
 
+                resultat[0][this.inntektsmelding].shouldNotBeNull()
                 resultat[0][dokument].shouldNotBeNull()
                 resultat[0][this.journalpostId].shouldBeNull()
 
+                resultat[1][this.inntektsmelding].shouldNotBeNull()
                 resultat[1][dokument].shouldNotBeNull()
                 resultat[1][this.journalpostId] shouldBe journalpostId
             }
@@ -186,8 +189,8 @@ class InntektsmeldingRepositoryTest :
             inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId1, skjema, mottatt)
             inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId2, skjema, mottatt.plusHours(3))
 
-            inntektsmeldingRepo.oppdaterMedBeriketDokument(inntektsmelding.copy(id = inntektsmeldingId1))
-            inntektsmeldingRepo.oppdaterMedBeriketDokument(inntektsmelding.copy(id = inntektsmeldingId2))
+            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId1))
+            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId2))
 
             inntektsmeldingRepo.oppdaterJournalpostId(inntektsmeldingId2, gammelJournalpostId)
 
@@ -204,9 +207,11 @@ class InntektsmeldingRepositoryTest :
             InntektsmeldingEntitet.apply {
                 resultatFoerNyJournalpostId[0][innsendt] shouldBeLessThan resultatFoerNyJournalpostId[1][innsendt]
 
+                resultatFoerNyJournalpostId[0][this.inntektsmelding].shouldNotBeNull()
                 resultatFoerNyJournalpostId[0][dokument].shouldNotBeNull()
                 resultatFoerNyJournalpostId[0][journalpostId].shouldBeNull()
 
+                resultatFoerNyJournalpostId[1][this.inntektsmelding].shouldNotBeNull()
                 resultatFoerNyJournalpostId[1][dokument].shouldNotBeNull()
                 resultatFoerNyJournalpostId[1][journalpostId] shouldBe gammelJournalpostId
             }
@@ -227,9 +232,11 @@ class InntektsmeldingRepositoryTest :
             InntektsmeldingEntitet.apply {
                 resultsEtterNyJournalpostId[0][innsendt] shouldBeLessThan resultsEtterNyJournalpostId[1][innsendt]
 
+                resultsEtterNyJournalpostId[0][this.inntektsmelding].shouldNotBeNull()
                 resultsEtterNyJournalpostId[0][dokument].shouldNotBeNull()
                 resultsEtterNyJournalpostId[0][journalpostId].shouldBeNull()
 
+                resultsEtterNyJournalpostId[1][this.inntektsmelding].shouldNotBeNull()
                 resultsEtterNyJournalpostId[1][dokument].shouldNotBeNull()
                 resultsEtterNyJournalpostId[1][journalpostId] shouldBe nyJournalpostId
             }
@@ -242,7 +249,7 @@ class InntektsmeldingRepositoryTest :
             val journalpostId = "jp-slem-fryser"
 
             inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, mottatt)
-            inntektsmeldingRepo.oppdaterMedBeriketDokument(inntektsmelding)
+            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding)
 
             inntektsmeldingRepo.lagreEksternInntektsmelding(skjema.forespoerselId, mockEksternInntektsmelding().copy(tidspunkt = mottatt.plusHours(1)))
 
@@ -261,6 +268,7 @@ class InntektsmeldingRepositoryTest :
             InntektsmeldingEntitet.apply {
                 resultat[0][innsendt] shouldBeLessThan resultat[1][innsendt]
 
+                resultat[0][this.inntektsmelding].shouldNotBeNull()
                 resultat[0][dokument].shouldNotBeNull()
                 resultat[0][this.journalpostId] shouldBe journalpostId
 
@@ -315,7 +323,7 @@ class InntektsmeldingRepositoryTest :
                 val inntektsmelding = mockInntektsmeldingV1().copy(inntekt = null, mottatt = mottatt.toOffsetDateTimeOslo())
 
                 inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, mottatt)
-                inntektsmeldingRepo.oppdaterMedBeriketDokument(inntektsmelding)
+                inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding)
 
                 val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(skjema.forespoerselId)
 
@@ -335,6 +343,7 @@ class InntektsmeldingRepositoryTest :
                 transaction(db) {
                     InntektsmeldingEntitet.insert {
                         it[this.forespoerselId] = forespoerselId
+                        it[this.inntektsmelding] = inntektsmelding
                         it[dokument] = inntektsmelding.convert()
                         it[innsendt] = mottatt
                     }

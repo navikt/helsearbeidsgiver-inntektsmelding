@@ -42,7 +42,7 @@ class LagreImRiverTest :
         }
 
         test("inntektsmelding lagres") {
-            every { mockImRepo.oppdaterMedBeriketDokument(any()) } just Runs
+            every { mockImRepo.oppdaterMedInntektsmelding(any()) } just Runs
 
             val innkommendeMelding = innkommendeMelding()
 
@@ -62,13 +62,13 @@ class LagreImRiverTest :
                 )
 
             verifySequence {
-                mockImRepo.oppdaterMedBeriketDokument(innkommendeMelding.inntektsmelding)
+                mockImRepo.oppdaterMedInntektsmelding(innkommendeMelding.inntektsmelding)
             }
         }
 
         test("håndterer at repo feiler") {
             every {
-                mockImRepo.oppdaterMedBeriketDokument(any())
+                mockImRepo.oppdaterMedInntektsmelding(any())
             } throws RuntimeException("thank you, next")
 
             val innkommendeMelding = innkommendeMelding()
@@ -87,7 +87,7 @@ class LagreImRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             verifySequence {
-                mockImRepo.oppdaterMedBeriketDokument(any())
+                mockImRepo.oppdaterMedInntektsmelding(any())
             }
         }
 
@@ -108,7 +108,7 @@ class LagreImRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 verify(exactly = 0) {
-                    mockImRepo.oppdaterMedBeriketDokument(any())
+                    mockImRepo.oppdaterMedInntektsmelding(any())
                 }
             }
         }

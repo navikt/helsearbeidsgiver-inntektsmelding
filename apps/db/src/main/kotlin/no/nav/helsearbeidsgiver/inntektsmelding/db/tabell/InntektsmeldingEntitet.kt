@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.tabell
 
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.InntektsmeldingGammeltFormat
@@ -16,6 +17,12 @@ object InntektsmeldingEntitet : Table("inntektsmelding") {
             name = "skjema",
             jsonConfig = jsonConfig,
             kSerializer = SkjemaInntektsmelding.serializer(),
+        ).nullable()
+    val inntektsmelding =
+        jsonb<Inntektsmelding>(
+            name = "inntektsmelding",
+            jsonConfig = jsonConfig,
+            kSerializer = Inntektsmelding.serializer(),
         ).nullable()
     val dokument =
         jsonb<InntektsmeldingGammeltFormat>(

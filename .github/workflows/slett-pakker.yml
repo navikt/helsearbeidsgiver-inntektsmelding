@@ -25,5 +25,5 @@ jobs:
       - uses: actions/delete-package-versions@v5
         with:
           package-type: container
-          package-name: ${{ inputs.app }}
+          package-name: navikt/helsearbeidsgiver-inntektsmelding/${{ inputs.app }}
           num-old-versions-to-delete: ${{ inputs.antall }}

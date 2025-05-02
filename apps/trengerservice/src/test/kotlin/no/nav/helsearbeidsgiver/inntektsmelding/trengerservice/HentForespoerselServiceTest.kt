@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
@@ -92,10 +93,47 @@ class HentForespoerselServiceTest :
                 )
             }
         }
+
+        test("henter forespørsel, men tåler feil for annen data til preutfylling av skjema") {
+            val kontekstId = UUID.randomUUID()
+
+            testRapid.sendJson(Mock.steg0(kontekstId))
+            testRapid.sendJson(Mock.steg1(kontekstId))
+            testRapid.sendJson(Mock.failBehov(kontekstId, BehovType.HENT_VIRKSOMHET_NAVN))
+            testRapid.sendJson(Mock.failBehov(kontekstId, BehovType.HENT_PERSONER))
+            testRapid.sendJson(Mock.failBehov(kontekstId, BehovType.HENT_INNTEKT))
+
+            testRapid.inspektør.size shouldBeExactly 4
+
+            verify {
+                mockRedis.store.lesAlleFeil(kontekstId)
+                mockRedis.store.skrivFeil(kontekstId, any(), any())
+                mockRedis.store.skrivMellomlagring(kontekstId, any(), any())
+                mockRedis.store.skrivResultat(
+                    kontekstId,
+                    ResultJson(
+                        success =
+                            Mock.resultat
+                                .copy(
+                                    sykmeldtNavn = "Ukjent navn",
+                                    avsenderNavn = "Ukjent navn",
+                                    orgNavn = "Ukjent virksomhet",
+                                    inntekt = null,
+                                    feil =
+                                        mapOf(
+                                            Key.VIRKSOMHETER to "Vi klarte ikke å hente navn på virksomhet.",
+                                            Key.PERSONER to "Vi klarte ikke å hente navn på personer.",
+                                            Key.INNTEKT to
+                                                "Vi har problemer med å hente inntektsopplysninger. Du kan legge inn beregnet månedsinntekt manuelt, eller prøv igjen senere.",
+                                        ),
+                                ).toJson(HentForespoerselResultat.serializer()),
+                    ),
+                )
+            }
+        }
     })
 
 private object Mock {
-    val forespoerselId: UUID = UUID.randomUUID()
     private val sykmeldt =
         Person(
             fnr = Fnr.genererGyldig(),
@@ -106,11 +144,15 @@ private object Mock {
             fnr = Fnr.genererGyldig(),
             navn = "Kaptein Sabeltann",
         )
+    private val orgNavn = "Den Sorte Dame"
+
+    val forespoerselId: UUID = UUID.randomUUID()
+
     val resultat =
         HentForespoerselResultat(
             sykmeldtNavn = sykmeldt.navn,
             avsenderNavn = avsender.navn,
-            orgNavn = "Den Sorte Dame",
+            orgNavn = orgNavn,
             inntekt =
                 Inntekt(
                     maanedOversikt =
@@ -154,7 +196,7 @@ private object Mock {
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.VIRKSOMHETER to mapOf(resultat.forespoersel.orgnr to resultat.orgNavn).toJson(orgMapSerializer),
+                    Key.VIRKSOMHETER to mapOf(resultat.forespoersel.orgnr to orgNavn).toJson(orgMapSerializer),
                     Key.PERSONER to
                         mapOf(
                             sykmeldt.fnr to sykmeldt,
@@ -163,4 +205,19 @@ private object Mock {
                     Key.INNTEKT to resultat.inntekt.shouldNotBeNull().toJson(Inntekt.serializer()),
                 ).toJson(),
         )
+
+    fun failBehov(
+        kontekstId: UUID,
+        behovType: BehovType,
+    ): Map<Key, JsonElement> =
+        Fail(
+            feilmelding = "Feil for '$behovType'.",
+            kontekstId = kontekstId,
+            utloesendeMelding =
+                mapOf(
+                    Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+                    Key.BEHOV to behovType.toJson(),
+                    Key.KONTEKST_ID to kontekstId.toJson(),
+                ),
+        ).tilMelding()
 }

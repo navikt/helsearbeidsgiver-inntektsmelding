@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoersel
 
+import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
@@ -57,39 +58,64 @@ class HentForespoerselRouteKtTest : ApiTest() {
     @Test
     fun `skal returnere resultat og status CREATED`() =
         testApi {
-            val expectedJson = Mock.responseJson()
-
             coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
-                    Mock.resultatOkJson,
+                    Mock.resultat.tilSuksessJson(),
                 )
 
-            val response = post(PATH, Mock.request, HentForespoerselRequest.serializer())
+            val response = post(PATH, HentForespoerselRequest(UUID.randomUUID()), HentForespoerselRequest.serializer())
 
-            val actualJson = response.bodyAsText()
-
-            assertEquals(HttpStatusCode.Created, response.status)
-            assertEquals(expectedJson, actualJson)
+            response.status shouldBe HttpStatusCode.Created
+            response.bodyAsText() shouldBe Mock.resultat.tilResponseJson()
         }
 
     @Test
     fun `skal returnere resultat og status CREATED med forespørsel bare inntekt`() =
         testApi {
-            val expectedJson = Mock.responseBareInntektJson()
+            val resultatMedForrigeInntekt =
+                Mock.resultat
+                    .copy(
+                        forespoersel =
+                            Mock.forespoersel.copy(
+                                forespurtData = mockForespurtDataMedForrigeInntekt(),
+                            ),
+                    )
 
             coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
-                    Mock.resultatOkMedForrigeInntektJson,
+                    resultatMedForrigeInntekt.tilSuksessJson(),
                 )
 
-            val response = post(PATH, Mock.request, HentForespoerselRequest.serializer())
+            val response = post(PATH, HentForespoerselRequest(UUID.randomUUID()), HentForespoerselRequest.serializer())
 
-            val actualJson = response.bodyAsText()
+            response.status shouldBe HttpStatusCode.Created
+            response.bodyAsText() shouldBe resultatMedForrigeInntekt.tilResponseJson()
+        }
 
-            assertEquals(HttpStatusCode.Created, response.status)
-            assertEquals(expectedJson, actualJson)
+    @Test
+    fun `skal returnere resultat og status CREATED med 'null' for verdier som ikke ble hentet`() =
+        testApi {
+            val resultatMedNullVerdier =
+                Mock.resultat
+                    .copy(
+                        sykmeldtNavn = null,
+                        avsenderNavn = null,
+                        orgNavn = null,
+                        inntekt = null,
+                    )
+
+            coEvery { mockRedisConnection.get(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    resultatMedNullVerdier.tilSuksessJson(),
+                )
+
+            val response = post(PATH, HentForespoerselRequest(UUID.randomUUID()), HentForespoerselRequest.serializer())
+
+            response.status shouldBe HttpStatusCode.Created
+            response.bodyAsText() shouldBe resultatMedNullVerdier.tilResponseJson()
         }
 
     @Test
@@ -97,7 +123,7 @@ class HentForespoerselRouteKtTest : ApiTest() {
         testApi {
             coEvery { mockRedisConnection.get(any()) } returns harTilgangResultat andThenThrows RedisPollerTimeoutException(UUID.randomUUID())
 
-            val response = post(PATH, Mock.request, HentForespoerselRequest.serializer())
+            val response = post(PATH, HentForespoerselRequest(UUID.randomUUID()), HentForespoerselRequest.serializer())
 
             assertEquals(HttpStatusCode.InternalServerError, response.status)
         }
@@ -132,7 +158,7 @@ class HentForespoerselRouteKtTest : ApiTest() {
         testApi {
             coEvery { mockRedisConnection.get(any()) } returns ikkeTilgangResultat
 
-            val response = post(PATH, Mock.request, HentForespoerselRequest.serializer())
+            val response = post(PATH, HentForespoerselRequest(UUID.randomUUID()), HentForespoerselRequest.serializer())
             assertEquals(HttpStatusCode.Forbidden, response.status)
         }
 
@@ -145,35 +171,13 @@ class HentForespoerselRouteKtTest : ApiTest() {
                 ).toJson()
                     .toString()
 
-            val response = post(PATH, Mock.request, HentForespoerselRequest.serializer())
+            val response = post(PATH, HentForespoerselRequest(UUID.randomUUID()), HentForespoerselRequest.serializer())
             assertEquals(HttpStatusCode.Forbidden, response.status)
         }
 }
 
 private object Mock {
     private val orgnr = Orgnr.genererGyldig()
-
-    val request = HentForespoerselRequest(UUID.randomUUID())
-
-    private val forespoersel =
-        Forespoersel(
-            orgnr = orgnr,
-            fnr = Fnr.genererGyldig(),
-            sykmeldingsperioder =
-                listOf(
-                    1.april til 20.april,
-                    25.april til 30.april,
-                ),
-            egenmeldingsperioder =
-                listOf(
-                    29.mars til 29.mars,
-                    31.mars til 31.mars,
-                ),
-            bestemmendeFravaersdager = mapOf(orgnr to 25.april),
-            forespurtData = mockForespurtData(),
-            erBesvart = false,
-            vedtaksperiodeId = UUID.randomUUID(),
-        )
 
     private val inntekt =
         Inntekt(
@@ -193,75 +197,61 @@ private object Mock {
             ),
         )
 
-    val resultatOkJson =
-        ResultJson(
-            success =
-                HentForespoerselResultat(
-                    sykmeldtNavn = "Ola Normann",
-                    avsenderNavn = "Arbeidsgiver",
-                    orgNavn = "Norge AS",
-                    inntekt = inntekt,
-                    forespoersel = forespoersel,
-                    feil = emptyMap(),
-                ).toJson(HentForespoerselResultat.serializer()),
-        ).toJson()
-            .toString()
+    val forespoersel =
+        Forespoersel(
+            orgnr = orgnr,
+            fnr = Fnr.genererGyldig(),
+            vedtaksperiodeId = UUID.randomUUID(),
+            sykmeldingsperioder =
+                listOf(
+                    1.april til 20.april,
+                    25.april til 30.april,
+                ),
+            egenmeldingsperioder =
+                listOf(
+                    29.mars til 29.mars,
+                    31.mars til 31.mars,
+                ),
+            bestemmendeFravaersdager = mapOf(orgnr to 25.april),
+            forespurtData = mockForespurtData(),
+            erBesvart = false,
+        )
 
-    val resultatOkMedForrigeInntektJson =
-        ResultJson(
-            success =
-                HentForespoerselResultat(
-                    sykmeldtNavn = "Ola Normann",
-                    avsenderNavn = "Arbeidsgiver",
-                    orgNavn = "Norge AS",
-                    inntekt = inntekt,
-                    forespoersel =
-                        forespoersel.copy(
-                            forespurtData = mockForespurtDataMedForrigeInntekt(),
-                        ),
-                    feil = emptyMap(),
-                ).toJson(HentForespoerselResultat.serializer()),
-        ).toJson()
-            .toString()
-
-    fun responseJson(): String =
-        """
-        {
-            "navn": "Ola Normann",
-            "orgNavn": "Norge AS",
-            "innsenderNavn": "Arbeidsgiver",
-            "identitetsnummer": "${forespoersel.fnr}",
-            "orgnrUnderenhet": "${forespoersel.orgnr}",
-            "fravaersperioder": [${forespoersel.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
-            "egenmeldingsperioder": [${forespoersel.egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
-            "bestemmendeFravaersdag": "${forespoersel.forslagBestemmendeFravaersdag()}",
-            "eksternBestemmendeFravaersdag": ${forespoersel.eksternBestemmendeFravaersdag().jsonStrOrNull()},
-            "bruttoinntekt": ${inntekt.gjennomsnitt()},
-            "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
-            "forespurtData": ${forespoersel.forespurtData.hardcodedJson()},
-            "erBesvart": ${forespoersel.erBesvart}
-        }
-        """.removeJsonWhitespace()
-
-    fun responseBareInntektJson(): String =
-        """
-        {
-            "navn": "Ola Normann",
-            "orgNavn": "Norge AS",
-            "innsenderNavn": "Arbeidsgiver",
-            "identitetsnummer": "${forespoersel.fnr}",
-            "orgnrUnderenhet": "${forespoersel.orgnr}",
-            "fravaersperioder": [${forespoersel.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
-            "egenmeldingsperioder": [${forespoersel.egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
-            "bestemmendeFravaersdag": "${forespoersel.forslagBestemmendeFravaersdag()}",
-            "eksternBestemmendeFravaersdag": ${forespoersel.eksternBestemmendeFravaersdag().jsonStrOrNull()},
-            "bruttoinntekt": ${inntekt.gjennomsnitt()},
-            "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
-            "forespurtData": ${mockForespurtDataMedForrigeInntekt().hardcodedJson()},
-            "erBesvart": ${forespoersel.erBesvart}
-        }
-        """.removeJsonWhitespace()
+    val resultat =
+        HentForespoerselResultat(
+            sykmeldtNavn = "Ola Normann",
+            avsenderNavn = "Arbeidsgiver",
+            orgNavn = "Norge AS",
+            inntekt = inntekt,
+            forespoersel = forespoersel,
+            feil = emptyMap(),
+        )
 }
+
+private fun HentForespoerselResultat.tilSuksessJson() =
+    ResultJson(
+        success = toJson(HentForespoerselResultat.serializer()),
+    ).toJson()
+        .toString()
+
+fun HentForespoerselResultat.tilResponseJson(): String =
+    """
+    {
+        "navn": ${sykmeldtNavn.jsonStrOrNull()},
+        "orgNavn": ${orgNavn.jsonStrOrNull()},
+        "innsenderNavn": ${avsenderNavn.jsonStrOrNull()},
+        "identitetsnummer": "${forespoersel.fnr}",
+        "orgnrUnderenhet": "${forespoersel.orgnr}",
+        "fravaersperioder": [${forespoersel.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
+        "egenmeldingsperioder": [${forespoersel.egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
+        "bestemmendeFravaersdag": "${forespoersel.forslagBestemmendeFravaersdag()}",
+        "eksternBestemmendeFravaersdag": ${forespoersel.eksternBestemmendeFravaersdag().jsonStrOrNull()},
+        "bruttoinntekt": ${inntekt?.gjennomsnitt()},
+        "tidligereinntekter": [${inntekt?.maanedOversikt.orEmpty().joinToString(transform = InntektPerMaaned::hardcodedJson)}],
+        "forespurtData": ${forespoersel.forespurtData.hardcodedJson()},
+        "erBesvart": ${forespoersel.erBesvart}
+    }
+    """.removeJsonWhitespace()
 
 private fun InntektPerMaaned.hardcodedJson(): String =
     """

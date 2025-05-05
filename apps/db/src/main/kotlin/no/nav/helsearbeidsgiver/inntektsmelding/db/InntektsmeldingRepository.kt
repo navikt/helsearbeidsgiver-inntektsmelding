@@ -156,7 +156,7 @@ class InntektsmeldingRepository(
                 ?.getOrNull(InntektsmeldingEntitet.inntektsmeldingId)
         }
 
-    fun oppdaterMedBeriketDokument(inntektsmelding: Inntektsmelding) {
+    fun oppdaterMedInntektsmelding(inntektsmelding: Inntektsmelding) {
         val antallOppdatert =
             transaction(db) {
                 InntektsmeldingEntitet.update(
@@ -164,6 +164,7 @@ class InntektsmeldingRepository(
                         InntektsmeldingEntitet.inntektsmeldingId eq inntektsmelding.id
                     },
                 ) {
+                    it[this.inntektsmelding] = inntektsmelding
                     it[dokument] = inntektsmelding.convert()
                     it[avsenderNavn] = inntektsmelding.avsender.navn
                 }

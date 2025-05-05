@@ -21,9 +21,11 @@ on:
 jobs:
   slett:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - uses: actions/delete-package-versions@v5
         with:
           package-type: container
-          package-name: ${{ inputs.app }}
+          package-name: helsearbeidsgiver-inntektsmelding/${{ inputs.app }}
           num-old-versions-to-delete: ${{ inputs.antall }}

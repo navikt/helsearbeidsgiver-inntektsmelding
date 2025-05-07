@@ -1,7 +1,14 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering
 
+import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.maps.shouldContainKey
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
+import io.mockk.verify
+import io.mockk.verifySequence
+import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.KvitteringResultat
 import no.nav.helsearbeidsgiver.felles.domene.LagretInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
@@ -25,6 +32,10 @@ class KvitteringRouteKtTest : ApiTest() {
         testApi {
             val response = get("$PATH?uuid=")
             assertEquals(HttpStatusCode.BadRequest, response.status)
+
+            verify(exactly = 0) {
+                mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
+            }
         }
 
     @Test
@@ -32,11 +43,17 @@ class KvitteringRouteKtTest : ApiTest() {
         testApi {
             val response = get("$PATH?uuid=ikke-en-uuid")
             assertEquals(HttpStatusCode.BadRequest, response.status)
+
+            verify(exactly = 0) {
+                mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
+            }
         }
 
     @Test
     fun `skal godta gyldig uuid`() =
         testApi {
+            val forespoerselId = UUID.randomUUID()
+
             coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
@@ -46,9 +63,43 @@ class KvitteringRouteKtTest : ApiTest() {
                         .toString(),
                 )
 
-            val response = get(PATH + "?uuid=" + UUID.randomUUID())
+            val response = get(PATH + "?uuid=" + forespoerselId)
 
             assertEquals(HttpStatusCode.OK, response.status)
+
+            verifySequence {
+                mockProducer.send(
+                    key = mockPid,
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it.minus(Key.KONTEKST_ID) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.TILGANG_FORESPOERSEL_REQUESTED.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.FNR to mockPid.toJson(),
+                                            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                                        ).toJson(),
+                                )
+                        },
+                )
+                mockProducer.send(
+                    key = forespoerselId,
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it.minus(Key.KONTEKST_ID) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                                        ).toJson(),
+                                )
+                        },
+                )
+            }
         }
 }
 

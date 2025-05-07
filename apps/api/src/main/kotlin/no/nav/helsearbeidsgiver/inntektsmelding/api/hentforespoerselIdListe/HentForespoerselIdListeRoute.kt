@@ -1,16 +1,19 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIdListe
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.post
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst.TEKNISK_FEIL_FORBIGAAENDE
 import no.nav.helsearbeidsgiver.felles.Tekst.UGYLDIG_REQUEST
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.VedtaksperiodeIdForespoerselIdPar
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
@@ -31,16 +34,16 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerE
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
 const val MAKS_ANTALL_VEDTAKSPERIODE_IDER = 100
 
 fun Route.hentForespoerselIdListe(
-    rapid: RapidsConnection,
+    producer: Producer,
     tilgangskontroll: Tilgangskontroll,
     redisConnection: RedisConnection,
 ) {
-    val hentForespoerslerProducer = HentForespoerslerProducer(rapid)
     val redisPoller = RedisStore(redisConnection, RedisPrefix.HentForespoerslerForVedtaksperiodeIdListe).let(::RedisPoller)
 
     post(Routes.HENT_FORESPOERSEL_ID_LISTE) {
@@ -55,7 +58,7 @@ fun Route.hentForespoerselIdListe(
                     respondBadRequest(UGYLDIG_REQUEST, String.serializer())
                 } else {
                     try {
-                        hentForespoersler(request, hentForespoerslerProducer, redisPoller, tilgangskontroll)
+                        hentForespoersler(producer, tilgangskontroll, redisPoller, request)
                     } catch (_: ManglerAltinnRettigheterException) {
                         respondForbidden("Mangler rettigheter for organisasjon.", String.serializer())
                     } catch (e: RedisPollerTimeoutException) {
@@ -76,17 +79,17 @@ fun Route.hentForespoerselIdListe(
     }
 }
 
-suspend fun RoutingContext.hentForespoersler(
-    request: HentForespoerslerRequest,
-    hentForespoerslerProducer: HentForespoerslerProducer,
-    redisPoller: RedisPoller,
+private suspend fun RoutingContext.hentForespoersler(
+    producer: Producer,
     tilgangskontroll: Tilgangskontroll,
+    redisPoller: RedisPoller,
+    request: HentForespoerslerRequest,
 ) {
     loggInfoSikkerOgUsikker("Henter forespørsler for liste med vedtaksperiode-IDer: ${request.vedtaksperiodeIdListe}")
 
     val kontekstId = UUID.randomUUID()
 
-    hentForespoerslerProducer.publish(kontekstId, request)
+    producer.sendRequestEvent(kontekstId, request)
 
     val resultatJson = redisPoller.hent(kontekstId)
 
@@ -111,7 +114,7 @@ suspend fun RoutingContext.hentForespoersler(
                 }
 
                 else -> {
-                    orgnrSet.firstOrNull()?.also { orgnr -> tilgangskontroll.validerTilgangTilOrg(call.request, orgnr.verdi) }
+                    orgnrSet.firstOrNull()?.also { orgnr -> tilgangskontroll.validerTilgangTilOrg(call.request, orgnr) }
 
                     val respons =
                         resultat.map { (id, forespoersel) ->
@@ -130,6 +133,24 @@ suspend fun RoutingContext.hentForespoersler(
             }
         }
     }
+}
+
+private fun Producer.sendRequestEvent(
+    kontekstId: UUID,
+    request: HentForespoerslerRequest,
+) {
+    send(
+        key = UUID.randomUUID(),
+        message =
+            mapOf(
+                Key.EVENT_NAME to EventName.FORESPOERSLER_REQUESTED.toJson(),
+                Key.KONTEKST_ID to kontekstId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.VEDTAKSPERIODE_ID_LISTE to request.vedtaksperiodeIdListe.toJson(UuidSerializer),
+                    ).toJson(),
+            ),
+    )
 }
 
 private fun loggInfoSikkerOgUsikker(loggMelding: String) {

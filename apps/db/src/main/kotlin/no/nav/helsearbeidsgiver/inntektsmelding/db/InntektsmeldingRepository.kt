@@ -182,6 +182,26 @@ class InntektsmeldingRepository(
             }
         }
     }
+
+    fun oppdaterSomProsessert(inntektsmeldingId: UUID) {
+        val antallOppdatert =
+            transaction(db) {
+                InntektsmeldingEntitet.update(
+                    where = {
+                        InntektsmeldingEntitet.inntektsmeldingId eq inntektsmeldingId
+                    },
+                ) {
+                    it[prosessert] = LocalDateTime.now()
+                }
+            }
+
+        if (antallOppdatert != 1) {
+            "Oppdaterte uventet antall ($antallOppdatert) rader under markering av inntektsmelding som prosessert.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
+        }
+    }
 }
 
 private class InntektsmeldingResult(

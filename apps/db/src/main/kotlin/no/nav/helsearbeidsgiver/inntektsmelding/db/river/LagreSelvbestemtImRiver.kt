@@ -111,6 +111,7 @@ class LagreSelvbestemtImRiver(
             Log.event(eventName),
             Log.behov(behovType),
             Log.kontekstId(kontekstId),
+            Log.inntektsmeldingId(selvbestemtInntektsmelding.id),
             Log.selvbestemtId(selvbestemtInntektsmelding.type.id),
         )
 }

@@ -16,6 +16,8 @@ object Log {
 
     fun kontekstId(value: UUID) = "hag_kontekst_id" to value.toString()
 
+    fun inntektsmeldingId(value: UUID) = "hag_inntektsmelding_id" to value.toString()
+
     fun forespoerselId(value: UUID) = "hag_forespoersel_id" to value.toString()
 
     fun selvbestemtId(value: UUID) = "hag_selvbestemt_id" to value.toString()

@@ -104,6 +104,7 @@ class LagreJournalpostIdRiver(
             Log.klasse(this@LagreJournalpostIdRiver),
             Log.event(eventName),
             Log.kontekstId(kontekstId),
+            Log.inntektsmeldingId(inntektsmelding.id),
             when (inntektsmelding.type) {
                 is Inntektsmelding.Type.Forespurt, is Inntektsmelding.Type.ForespurtEkstern -> Log.forespoerselId(inntektsmelding.type.id)
                 is Inntektsmelding.Type.Selvbestemt -> Log.selvbestemtId(inntektsmelding.type.id)

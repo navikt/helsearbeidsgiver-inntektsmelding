@@ -39,4 +39,5 @@ object InntektsmeldingEntitet : Table("inntektsmelding") {
     val avsenderNavn = text("avsender_navn").nullable()
     val journalpostId = text("journalpost_id").nullable()
     val innsendt = datetime("innsendt")
+    val prosessert = datetime("prosessert").nullable()
 }

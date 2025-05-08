@@ -94,6 +94,7 @@ class LagreImRiver(
             Log.event(eventName),
             Log.behov(behovType),
             Log.kontekstId(kontekstId),
+            Log.inntektsmeldingId(inntektsmelding.id),
             Log.forespoerselId(inntektsmelding.type.id),
         )
 }

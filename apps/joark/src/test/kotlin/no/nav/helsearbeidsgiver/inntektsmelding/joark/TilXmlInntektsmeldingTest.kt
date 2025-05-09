@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
+import no.nav.helsearbeidsgiver.utils.test.date.november
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -44,6 +45,7 @@ class TilXmlInntektsmeldingTest {
         )
         Assertions.assertNotNull(skjema.refusjon.refusjonsbeloepPrMnd)
         Assertions.assertEquals(4, skjema.refusjon.endringIRefusjonListe.size)
+        Assertions.assertEquals(30.november, skjema.refusjon.refusjonsopphoersdato)
         Assertions.assertEquals(2, skjema.opphoerAvNaturalytelseListe.size)
         Assertions.assertNotNull(skjema.avsendersystem.innsendingstidspunkt)
         Assertions.assertNotNull(skjema.arbeidsforhold.beregnetInntekt.aarsakVedEndring)

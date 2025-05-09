@@ -231,10 +231,21 @@ class ConvertTest :
             val belop = 123.45
             val dato1 = LocalDate.of(2023, 2, 2)
             val dato2 = LocalDate.of(2023, 2, 2)
-            val refusjon = Refusjon(belop, listOf(RefusjonEndring(belop, dato1)), dato2)
+            val refusjon =
+                Refusjon(
+                    belop,
+                    listOf(
+                        RefusjonEndring(belop, dato1),
+                        RefusjonEndring(0.0, dato2),
+                    ),
+                )
             val gammelRefusjon = refusjon.convert()
-            gammelRefusjon.refusjonEndringer shouldBe listOf(RefusjonEndringGammeltFormat(belop, dato1))
-            gammelRefusjon.refusjonOpphører shouldBe dato2
+            gammelRefusjon.refusjonEndringer shouldBe
+                listOf(
+                    RefusjonEndringGammeltFormat(belop, dato1),
+                    RefusjonEndringGammeltFormat(0.0, dato2),
+                )
+            gammelRefusjon.refusjonOpphører shouldBe null
             gammelRefusjon.refusjonPrMnd shouldBe belop
         }
 
@@ -251,7 +262,6 @@ class ConvertTest :
             val refusjon = gammelRefusjon.convert()
             refusjon?.endringer[0]?.beloep shouldBe 0.0
             refusjon?.endringer[0]?.startdato shouldBe sluttDato
-            refusjon?.sluttdato shouldBe null
         }
 
         test("konverter refusjon på gammelt format med endringsliste fjerner duplikater") {
@@ -271,7 +281,6 @@ class ConvertTest :
                 )
             val refusjon = gammelRefusjon.convert()
             refusjon?.endringer?.size shouldBe 2
-            refusjon?.sluttdato shouldBe null
             refusjon?.endringer[0]?.beloep shouldBe 10.0
             refusjon?.endringer[0]?.startdato shouldBe endretDato
             refusjon?.endringer[1]?.beloep shouldBe 0.0

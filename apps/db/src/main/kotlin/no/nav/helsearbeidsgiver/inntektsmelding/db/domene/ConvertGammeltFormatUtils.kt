@@ -61,7 +61,6 @@ fun RefusjonGammeltFormat.convert(): Refusjon? {
             Refusjon(
                 beloepPerMaaned = refusjonPrMnd,
                 endringer = refusjonEndringer?.mapNotNull { it.convert() }.orEmpty(),
-                sluttdato = null,
             )
         if (refusjonOpphører != null) {
             // konverterer refusjonOpphører-dato til en endring med beløp 0 og startdato lik refusjonOpphører.

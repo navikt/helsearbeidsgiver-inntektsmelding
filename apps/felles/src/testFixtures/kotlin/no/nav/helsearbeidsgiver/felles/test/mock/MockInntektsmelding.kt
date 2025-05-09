@@ -177,7 +177,6 @@ fun mockRefusjon(): Refusjon =
                     startdato = 30.november,
                 ),
             ),
-        sluttdato = null,
     )
 
 fun mockEksternInntektsmelding(): EksternInntektsmelding =

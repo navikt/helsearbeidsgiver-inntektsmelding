@@ -1,0 +1,120 @@
+package no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt
+
+import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.maps.shouldContainKey
+import io.kotest.matchers.shouldBe
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
+import io.mockk.clearAllMocks
+import io.mockk.coEvery
+import io.mockk.verifySequence
+import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.Inntekt
+import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
+import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.test.date.april
+import no.nav.helsearbeidsgiver.utils.test.date.februar
+import no.nav.helsearbeidsgiver.utils.test.date.januar
+import no.nav.helsearbeidsgiver.utils.test.date.mars
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import java.util.UUID
+
+class InntektRouteKtTest : ApiTest() {
+    private val path = Routes.PREFIX + Routes.INNTEKT
+
+    @BeforeEach
+    fun setup() {
+        clearAllMocks()
+    }
+
+    @Test
+    fun `henter inntekt`() =
+        testApi {
+            val request =
+                InntektRequest(
+                    forespoerselId = UUID.randomUUID(),
+                    skjaeringstidspunkt = 17.april(2024),
+                )
+            val inntekt =
+                Inntekt(
+                    maanedOversikt =
+                        listOf(
+                            InntektPerMaaned(
+                                maaned = mars(2024),
+                                inntekt = 33330.0,
+                            ),
+                            InntektPerMaaned(
+                                maaned = februar(2024),
+                                inntekt = 22220.0,
+                            ),
+                            InntektPerMaaned(
+                                maaned = januar(2024),
+                                inntekt = 11110.0,
+                            ),
+                        ),
+                )
+            val forvertentResponse =
+                InntektResponse(
+                    bruttoinntekt = inntekt.gjennomsnitt(),
+                    tidligereInntekter = inntekt.maanedOversikt,
+                )
+
+            coEvery { mockRedisConnection.get(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    ResultJson(
+                        success = inntekt.toJson(Inntekt.serializer()),
+                    ).toJson()
+                        .toString(),
+                )
+
+            val response = post(path, request, InntektRequest.serializer())
+
+            response.status shouldBe HttpStatusCode.OK
+            response.bodyAsText() shouldBe forvertentResponse.toJsonStr(InntektResponse.serializer())
+
+            verifySequence {
+                mockProducer.send(
+                    key = mockPid,
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it.minus(Key.KONTEKST_ID) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.TILGANG_FORESPOERSEL_REQUESTED.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.FNR to mockPid.toJson(),
+                                            Key.FORESPOERSEL_ID to request.forespoerselId.toJson(),
+                                        ).toJson(),
+                                )
+                        },
+                )
+                mockProducer.send(
+                    key = request.forespoerselId,
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it.minus(Key.KONTEKST_ID) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.FORESPOERSEL_ID to request.forespoerselId.toJson(),
+                                            Key.INNTEKTSDATO to request.skjaeringstidspunkt.toJson(),
+                                        ).toJson(),
+                                )
+                        },
+                )
+            }
+        }
+}

@@ -1,10 +1,16 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr
 
+import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import io.mockk.verifySequence
+import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.AktiveArbeidsgivere
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -31,6 +37,8 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
     @Test
     fun `skal godta og returnere liste med organisasjoner`() =
         testApi {
+            val arbeidstakerFnr = Fnr.genererGyldig()
+
             coEvery { mockRedisConnection.get(any()) } returns
                 ResultJson(
                     success = Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE.parseJson(),
@@ -38,13 +46,32 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
                     .toString()
 
             val requestBody = """
-            {"identitetsnummer":"${Fnr.genererGyldig()}"}
-        """
+                {"identitetsnummer":"$arbeidstakerFnr"}
+            """
 
             val response = post(path, requestBody.fromJson(AktiveOrgnrRequest.serializer()), AktiveOrgnrRequest.serializer())
 
             assertEquals(HttpStatusCode.Created, response.status)
             assertEquals(Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE, response.bodyAsText())
+
+            verifySequence {
+                mockProducer.send(
+                    key = arbeidstakerFnr,
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it.minus(Key.KONTEKST_ID) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.FNR to arbeidstakerFnr.toJson(),
+                                            Key.ARBEIDSGIVER_FNR to mockPid.toJson(),
+                                        ).toJson(),
+                                )
+                        },
+                )
+            }
         }
 
     @Test

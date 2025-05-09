@@ -1,15 +1,23 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.lagreselvbestemtim
 
+import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import io.mockk.verify
+import io.mockk.verifySequence
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.test.json.minusData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -39,6 +47,7 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
     fun `skal godta og returnere id ved gyldig innsending`() =
         testApi {
             val selvbestemtId = UUID.randomUUID()
+            val skjema = mockSkjemaInntektsmeldingSelvbestemt()
 
             coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
@@ -46,12 +55,48 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
                     Mock.successResult(selvbestemtId),
                 )
 
-            val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
+            val response = post(path, skjema, SkjemaInntektsmeldingSelvbestemt.serializer())
 
             val actualJson = response.bodyAsText()
 
             response.status shouldBe HttpStatusCode.OK
             actualJson shouldBe Mock.successResponseJson(selvbestemtId)
+
+            verifySequence {
+                mockProducer.send(
+                    key = mockPid,
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it.minus(Key.KONTEKST_ID) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.TILGANG_ORG_REQUESTED.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.FNR to mockPid.toJson(),
+                                            Key.ORGNR_UNDERENHET to skjema.avsender.orgnr.toJson(),
+                                        ).toJson(),
+                                )
+                        },
+                )
+                mockProducer.send(
+                    key = skjema.sykmeldtFnr,
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it[Key.DATA]?.toMap()?.shouldContainKey(Key.MOTTATT)
+                            it.minus(Key.KONTEKST_ID).minusData(Key.MOTTATT) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.ARBEIDSGIVER_FNR to mockPid.toJson(),
+                                            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+                                        ).toJson(),
+                                )
+                        },
+                )
+            }
         }
 
     @Test
@@ -114,6 +159,10 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
 
             response.status shouldBe HttpStatusCode.BadRequest
             actualJson shouldBe Mock.failureResponseJson(expectedFeilmelding)
+
+            verify(exactly = 0) {
+                mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
+            }
         }
 
     @Test
@@ -150,6 +199,10 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
 
             response.status shouldBe HttpStatusCode.BadRequest
             actualJson shouldBe expectedFailureResponseJson
+
+            verify(exactly = 0) {
+                mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
+            }
         }
 
     @Test
@@ -163,6 +216,10 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
 
             response.status shouldBe HttpStatusCode.InternalServerError
             actualJson shouldBe "\"Error 500: no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException\""
+
+            verify(exactly = 0) {
+                mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
+            }
         }
 
     @Test

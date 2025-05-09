@@ -3,6 +3,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 import no.nav.helsearbeidsgiver.felles.utils.fromEnv
 
 object Env {
+    val kafkaTopic = "KAFKA_RAPID_TOPIC".fromEnv()
+
     object Auth {
         val discoveryUrl = "IDPORTEN_WELL_KNOWN_URL".fromEnv()
         val acceptedAudience = "IDPORTEN_AUDIENCE".fromEnv().let(::listOf)

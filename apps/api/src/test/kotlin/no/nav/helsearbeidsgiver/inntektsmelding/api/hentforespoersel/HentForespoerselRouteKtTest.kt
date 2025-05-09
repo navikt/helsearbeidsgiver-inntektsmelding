@@ -1,14 +1,20 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoersel
 
+import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.maps.shouldContainKey
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import io.mockk.verify
+import io.mockk.verifySequence
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ForespurtData
 import no.nav.helsearbeidsgiver.felles.domene.ForrigeInntekt
@@ -71,6 +77,41 @@ class HentForespoerselRouteKtTest : ApiTest() {
 
             assertEquals(HttpStatusCode.Created, response.status)
             assertEquals(expectedJson, actualJson)
+
+            verifySequence {
+                mockProducer.send(
+                    key = mockPid,
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it.minus(Key.KONTEKST_ID) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.TILGANG_FORESPOERSEL_REQUESTED.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.FNR to mockPid.toJson(),
+                                            Key.FORESPOERSEL_ID to Mock.request.uuid.toJson(),
+                                        ).toJson(),
+                                )
+                        },
+                )
+                mockProducer.send(
+                    key = Mock.request.uuid,
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it.minus(Key.KONTEKST_ID) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.FORESPOERSEL_ID to Mock.request.uuid.toJson(),
+                                            Key.ARBEIDSGIVER_FNR to mockPid.toJson(),
+                                        ).toJson(),
+                                )
+                        },
+                )
+            }
         }
 
     @Test
@@ -125,6 +166,10 @@ class HentForespoerselRouteKtTest : ApiTest() {
             val feilmelding = result.failure!!.fromJson(String.serializer())
 
             assertEquals("Mangler forespørsel-ID for å hente forespørsel.", feilmelding)
+
+            verify(exactly = 0) {
+                mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
+            }
         }
 
     @Test
@@ -134,6 +179,10 @@ class HentForespoerselRouteKtTest : ApiTest() {
 
             val response = post(PATH, Mock.request, HentForespoerselRequest.serializer())
             assertEquals(HttpStatusCode.Forbidden, response.status)
+
+            verify(exactly = 0) {
+                mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
+            }
         }
 
     @Test
@@ -147,6 +196,10 @@ class HentForespoerselRouteKtTest : ApiTest() {
 
             val response = post(PATH, Mock.request, HentForespoerselRequest.serializer())
             assertEquals(HttpStatusCode.Forbidden, response.status)
+
+            verify(exactly = 0) {
+                mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
+            }
         }
 }
 

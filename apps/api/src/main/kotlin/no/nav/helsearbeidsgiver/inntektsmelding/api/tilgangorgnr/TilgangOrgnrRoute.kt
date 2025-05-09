@@ -19,7 +19,7 @@ fun Route.tilgangOrgnrRoute(tilgangskontroll: Tilgangskontroll) {
             if (orgnr.isNullOrEmpty() || !Orgnr.erGyldig(orgnr)) {
                 call.respond(HttpStatusCode.BadRequest, "Ugyldig orgnr")
             } else {
-                tilgangskontroll.validerTilgangTilOrg(call.request, orgnr)
+                tilgangskontroll.validerTilgangTilOrg(call.request, Orgnr(orgnr))
                 call.respond(HttpStatusCode.OK)
             }
         } catch (_: ManglerAltinnRettigheterException) {

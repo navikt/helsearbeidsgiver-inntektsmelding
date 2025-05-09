@@ -33,7 +33,6 @@ import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAaregRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
-import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice.createBerikInntektsmeldingService
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createHentEksternImRiver
@@ -156,8 +155,6 @@ abstract class EndToEndTest : ContainerTest() {
 
     val messages get() = imTestRapid.messages
 
-    val tilgangProducer by lazy { TilgangProducer(imTestRapid) }
-
     val imRepository by lazy { InntektsmeldingRepository(inntektsmeldingDatabase.db) }
     val selvbestemtImRepo by lazy { SelvbestemtImRepo(inntektsmeldingDatabase.db) }
 
@@ -188,12 +185,6 @@ abstract class EndToEndTest : ContainerTest() {
                     navn = "Bedrift A/S",
                 )
             }
-        }
-
-        producer.apply {
-            // Må bare returnere en Result med gyldig JSON
-            val emptyResult = Result.success(JsonObject(emptyMap()))
-            every { send(any(), any<Map<Pri.Key, JsonElement>>()) } returns emptyResult
         }
     }
 

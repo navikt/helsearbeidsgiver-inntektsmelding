@@ -12,14 +12,14 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 fun MessageContext.publish(
-    key: Fnr,
-    vararg messageFields: Pair<Key, JsonElement>,
-): JsonElement = publish(key.verdi, messageFields.toMap())
-
-fun MessageContext.publish(
     key: UUID,
     vararg messageFields: Pair<Key, JsonElement>,
 ): JsonElement = publish(key.toString(), messageFields.toMap())
+
+fun MessageContext.publish(
+    key: Fnr,
+    vararg messageFields: Pair<Key, JsonElement>,
+): JsonElement = publish(key.verdi, messageFields.toMap())
 
 internal fun MessageContext.publish(
     key: String,

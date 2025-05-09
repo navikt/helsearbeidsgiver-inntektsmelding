@@ -1,11 +1,11 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
+import io.ktor.server.engine.addShutdownHook
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -15,11 +15,9 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import kotlinx.serialization.builtins.serializer
-import no.nav.helse.rapids_rivers.RapidApplication
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr.aktiveOrgnrRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoersel.hentForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIdListe.hentForespoerselIdListe
@@ -56,7 +54,7 @@ object Routes {
 }
 
 fun main() {
-    val rapid = RapidApplication.create(System.getenv())
+    val producer = Producer(Env.kafkaTopic)
     val redisConnection =
         RedisConnection(
             host = Env.Redis.host,
@@ -68,22 +66,21 @@ fun main() {
     embeddedServer(
         factory = Netty,
         port = 8080,
-        module = { apiModule(rapid, redisConnection) },
-    ).start(wait = true)
-
-    rapid
-        .registerShutdownLifecycle {
+        module = { apiModule(producer, redisConnection) },
+    ).apply {
+        addShutdownHook {
             redisConnection.close()
-        }.start()
+        }
+    }.start(wait = true)
 }
 
 fun Application.apiModule(
-    rapid: RapidsConnection,
+    producer: Producer,
     redisConnection: RedisConnection,
 ) {
     val tilgangskontroll =
         Tilgangskontroll(
-            TilgangProducer(rapid),
+            producer,
             LocalCache(60.minutes, 1000),
             redisConnection,
         )
@@ -117,15 +114,15 @@ fun Application.apiModule(
 
         authenticate {
             route(Routes.PREFIX) {
-                hentForespoersel(rapid, tilgangskontroll, redisConnection)
-                hentForespoerselIdListe(rapid, tilgangskontroll, redisConnection)
-                inntektRoute(rapid, tilgangskontroll, redisConnection)
-                inntektSelvbestemtRoute(rapid, tilgangskontroll, redisConnection)
-                innsending(rapid, tilgangskontroll, redisConnection)
-                kvittering(rapid, tilgangskontroll, redisConnection)
-                lagreSelvbestemtImRoute(rapid, tilgangskontroll, redisConnection)
-                hentSelvbestemtImRoute(rapid, tilgangskontroll, redisConnection)
-                aktiveOrgnrRoute(rapid, redisConnection)
+                hentForespoersel(producer, tilgangskontroll, redisConnection)
+                hentForespoerselIdListe(producer, tilgangskontroll, redisConnection)
+                inntektRoute(producer, tilgangskontroll, redisConnection)
+                inntektSelvbestemtRoute(producer, tilgangskontroll, redisConnection)
+                innsending(producer, tilgangskontroll, redisConnection)
+                kvittering(producer, tilgangskontroll, redisConnection)
+                lagreSelvbestemtImRoute(producer, tilgangskontroll, redisConnection)
+                hentSelvbestemtImRoute(producer, tilgangskontroll, redisConnection)
+                aktiveOrgnrRoute(producer, redisConnection)
                 tilgangOrgnrRoute(tilgangskontroll)
             }
         }

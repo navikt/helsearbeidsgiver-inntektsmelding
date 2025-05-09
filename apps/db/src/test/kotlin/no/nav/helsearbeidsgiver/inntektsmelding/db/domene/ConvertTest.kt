@@ -231,11 +231,60 @@ class ConvertTest :
             val belop = 123.45
             val dato1 = LocalDate.of(2023, 2, 2)
             val dato2 = LocalDate.of(2023, 2, 2)
-            val refusjon = Refusjon(belop, listOf(RefusjonEndring(belop, dato1)), dato2)
+            val refusjon =
+                Refusjon(
+                    belop,
+                    listOf(
+                        RefusjonEndring(belop, dato1),
+                        RefusjonEndring(0.0, dato2),
+                    ),
+                )
             val gammelRefusjon = refusjon.convert()
-            gammelRefusjon.refusjonEndringer shouldBe listOf(RefusjonEndringGammeltFormat(belop, dato1))
-            gammelRefusjon.refusjonOpphører shouldBe dato2
+            gammelRefusjon.refusjonEndringer shouldBe
+                listOf(
+                    RefusjonEndringGammeltFormat(belop, dato1),
+                    RefusjonEndringGammeltFormat(0.0, dato2),
+                )
+            gammelRefusjon.refusjonOpphører shouldBe null
             gammelRefusjon.refusjonPrMnd shouldBe belop
+        }
+
+        test("konverter refusjon på gammelt format fjerner sluttdato og erstatter den med en endring med beløp 0 og startDato lik sluttDatoen") {
+            val belop1 = 123.45
+            val sluttDato = LocalDate.of(2023, 2, 28)
+            val gammelRefusjon =
+                RefusjonGammeltFormat(
+                    utbetalerHeleEllerDeler = true,
+                    refusjonPrMnd = belop1,
+                    refusjonOpphører = sluttDato,
+                    refusjonEndringer = emptyList(),
+                )
+            val refusjon = gammelRefusjon.convert()
+            refusjon?.endringer[0]?.beloep shouldBe 0.0
+            refusjon?.endringer[0]?.startdato shouldBe sluttDato
+        }
+
+        test("konverter refusjon på gammelt format med endringsliste fjerner duplikater") {
+            val belop1 = 123.45
+            val sluttDato = LocalDate.of(2023, 2, 28)
+            val endretDato = sluttDato.minusDays(7)
+            val gammelRefusjon =
+                RefusjonGammeltFormat(
+                    utbetalerHeleEllerDeler = true,
+                    refusjonPrMnd = belop1,
+                    refusjonOpphører = sluttDato,
+                    refusjonEndringer =
+                        listOf(
+                            RefusjonEndringGammeltFormat(10.0, endretDato),
+                            RefusjonEndringGammeltFormat(0.0, sluttDato),
+                        ),
+                )
+            val refusjon = gammelRefusjon.convert()
+            refusjon?.endringer?.size shouldBe 2
+            refusjon?.endringer[0]?.beloep shouldBe 10.0
+            refusjon?.endringer[0]?.startdato shouldBe endretDato
+            refusjon?.endringer[1]?.beloep shouldBe 0.0
+            refusjon?.endringer[1]?.startdato shouldBe sluttDato
         }
     })
 

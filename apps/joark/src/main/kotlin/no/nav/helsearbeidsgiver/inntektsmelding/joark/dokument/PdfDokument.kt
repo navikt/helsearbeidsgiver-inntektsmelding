@@ -301,12 +301,12 @@ class PdfDokument(
         if (refusjon != null) {
             // Ja - tre ekstra spørsmål
             addLabel("Refusjonsbeløp pr måned", refusjon.beloepPerMaaned.tilNorskFormat() + " kr/måned")
-
-            val sluttdato = refusjon.sluttdato
-            addLabel("Opphører refusjonskravet i perioden", (sluttdato != null).tilNorskFormat())
-            if (sluttdato != null) {
-                addLabel("Siste dag dere krever refusjon for", sluttdato.tilNorskFormat())
-            }
+// TODO: er det nødvendig å gi sluttdato som egen tekst i pdf, eller holder det at det er med som endring og beløp 0?
+//            val sluttdato = refusjon.sluttdato
+//            addLabel("Opphører refusjonskravet i perioden", (sluttdato != null).tilNorskFormat())
+//            if (sluttdato != null) {
+//                addLabel("Siste dag dere krever refusjon for", sluttdato.tilNorskFormat())
+//            }
 
             addLabel("Endringer i refusjon i perioden", refusjon.endringer.isNotEmpty().tilNorskFormat())
             refusjon.endringer.forEach {

@@ -68,7 +68,6 @@ fun Refusjon.convert(): RefusjonGammeltFormat =
     RefusjonGammeltFormat(
         utbetalerHeleEllerDeler = true,
         refusjonPrMnd = beloepPerMaaned,
-        refusjonOpphører = sluttdato,
         refusjonEndringer = endringer.map { it.convert() },
     )
 

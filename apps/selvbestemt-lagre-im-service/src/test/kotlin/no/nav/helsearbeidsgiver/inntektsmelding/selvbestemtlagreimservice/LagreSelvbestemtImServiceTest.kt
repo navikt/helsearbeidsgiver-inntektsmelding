@@ -507,8 +507,11 @@ private object Mock {
                                 beloep = 1000.0,
                                 startdato = 20.mars,
                             ),
+                            RefusjonEndring(
+                                beloep = 0.0,
+                                startdato = 30.mars,
+                            ),
                         ),
-                    sluttdato = 30.mars,
                 ),
             vedtaksperiodeId = null,
         )

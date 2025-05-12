@@ -6,4 +6,4 @@ env:
 - name: INNTEKT_SCOPE
   value: "api://dev-fss.team-inntekt.ikomp-q2/.default"
 externalHosts:
-  - team-inntekt-proxy.dev-fss-pub.nais.io
+  - ikomp-q2.dev-fss-pub.nais.io

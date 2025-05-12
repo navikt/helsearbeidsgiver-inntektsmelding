@@ -85,8 +85,6 @@ private fun Inntektsmelding.tilArbeidsforhold(): Arbeidsforhold =
 private fun Refusjon?.map(): RefusjonXml =
     RefusjonXml().also {
         it.refusjonsbeloepPrMnd = this?.beloepPerMaaned?.toBigDecimal()
-        // TODO: er det nødvendig å ha opphørsdato satt i XML, i tillegg til en endring med beløp 0.0 ???
-        it.refusjonsopphoersdato = this?.endringer?.filter { e -> e.beloep == 0.0 }?.maxOfOrNull { it.startdato }
         it.endringIRefusjonListe = this?.endringer?.map(RefusjonEndring::map)
     }
 

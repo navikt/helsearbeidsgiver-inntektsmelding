@@ -69,6 +69,7 @@ fun main() {
         module = { apiModule(producer, redisConnection) },
     ).apply {
         addShutdownHook {
+            producer.close()
             redisConnection.close()
         }
     }.start(wait = true)

@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.felles.kafka
 
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.JournalfoertInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
@@ -31,6 +32,19 @@ class Producer(
         key: UUID,
         message: Map<Pri.Key, JsonElement>,
     ): Result<JsonElement> = send(key.toString(), message.toJson())
+
+    /** Brukes til distribusjon. */
+    fun send(inntektsmelding: JournalfoertInntektsmelding): Result<JsonElement> =
+        send(
+            key =
+                inntektsmelding.inntektsmelding.type.id
+                    .toString(),
+            message = inntektsmelding.toJson(JournalfoertInntektsmelding.serializer()),
+        )
+
+    fun close() {
+        producer.close()
+    }
 
     private fun send(
         key: String,

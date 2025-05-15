@@ -210,7 +210,7 @@ abstract class EndToEndTest : ContainerTest() {
             createAltinn(altinnClient)
             createBrregRiver(brregClient, false)
             createDbRivers(imRepository, selvbestemtImRepo)
-            createDistribusjonRiver(mockk(relaxed = true))
+            createDistribusjonRiver(producer)
             createHelsebroRivers(producer)
             createHentEksternImRiver(spinnKlient)
             createHentInntektRiver(inntektClient)

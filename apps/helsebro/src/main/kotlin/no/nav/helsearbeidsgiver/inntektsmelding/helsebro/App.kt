@@ -4,6 +4,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "helsearbeidsgiver-im-helsebro".logger()
@@ -16,7 +17,9 @@ fun main() {
     RapidApplication
         .create(System.getenv())
         .createHelsebroRivers(producer)
-        .start()
+        .registerShutdownLifecycle {
+            producer.close()
+        }.start()
 
     logger.info("Nå dør jeg :(")
 }

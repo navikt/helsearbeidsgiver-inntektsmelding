@@ -10,20 +10,16 @@ import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toPretty
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import org.apache.kafka.clients.producer.KafkaProducer
-import org.apache.kafka.clients.producer.ProducerRecord
 import java.util.UUID
-
-const val TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN = "helsearbeidsgiver.inntektsmelding"
 
 data class Melding(
     val eventName: EventName,
@@ -33,7 +29,7 @@ data class Melding(
 )
 
 class DistribusjonRiver(
-    private val kafkaProducer: KafkaProducer<String, String>,
+    private val producer: Producer,
 ) : ObjectRiver<Melding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -58,7 +54,12 @@ class DistribusjonRiver(
             sikkerLogger.info("$it Innkommende melding:\n${json.toPretty()}")
         }
 
-        distribuerInntektsmelding(journalpostId, inntektsmelding)
+        producer.send(
+            JournalfoertInntektsmelding(
+                journalpostId = journalpostId,
+                inntektsmelding = inntektsmelding,
+            ),
+        )
 
         "Distribuerte IM med journalpost-ID '$journalpostId'.".also {
             logger.info(it)
@@ -100,25 +101,4 @@ class DistribusjonRiver(
                 is Inntektsmelding.Type.Selvbestemt -> Log.selvbestemtId(inntektsmelding.type.id)
             },
         )
-
-    private fun distribuerInntektsmelding(
-        journalpostId: String,
-        inntektsmelding: Inntektsmelding,
-    ) {
-        val journalfoertInntektsmelding =
-            JournalfoertInntektsmelding(
-                journalpostId = journalpostId,
-                inntektsmelding = inntektsmelding,
-            )
-
-        val record =
-            ProducerRecord(
-                TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
-                journalfoertInntektsmelding.inntektsmelding.type.id
-                    .toString(),
-                journalfoertInntektsmelding.toJsonStr(JournalfoertInntektsmelding.serializer()),
-            )
-
-        kafkaProducer.send(record)
-    }
 }

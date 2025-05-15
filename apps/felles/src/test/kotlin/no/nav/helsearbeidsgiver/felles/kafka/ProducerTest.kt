@@ -9,10 +9,12 @@ import io.mockk.mockk
 import io.mockk.verifySequence
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.JournalfoertInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.kafka.mockRecordMetadata
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -162,6 +164,51 @@ class ProducerTest :
                     )
 
                 val result = producer.send(UUID.randomUUID(), expectedMessage)
+
+                result.isFailure.shouldBeTrue()
+                result.getOrNull() shouldBe null
+
+                verifySequence { mockKafkaProducer.send(any()) }
+            }
+        }
+
+        context("send<JournalfoertInntektsmelding>") {
+
+            test("gir suksessobjekt ved sendt melding til kafka stream") {
+                every { mockKafkaProducer.send(any()).get() } returns mockRecordMetadata()
+
+                val inntektsmelding =
+                    JournalfoertInntektsmelding(
+                        journalpostId = randomDigitString(12),
+                        inntektsmelding = mockInntektsmeldingV1(),
+                    )
+
+                val result = producer.send(inntektsmelding)
+
+                result.isSuccess.shouldBeTrue()
+                result.getOrNull() shouldBe inntektsmelding.toJson(JournalfoertInntektsmelding.serializer())
+
+                val expected =
+                    ProducerRecord(
+                        TEST_TOPIC,
+                        inntektsmelding.inntektsmelding.type.id
+                            .toString(),
+                        inntektsmelding.toJson(JournalfoertInntektsmelding.serializer()),
+                    )
+
+                verifySequence { mockKafkaProducer.send(expected) }
+            }
+
+            test("gir feilobjekt ved feilet sending til kafka stream") {
+                every { mockKafkaProducer.send(any()) } throws TimeoutException("too slow bro")
+
+                val inntektsmelding =
+                    JournalfoertInntektsmelding(
+                        journalpostId = randomDigitString(11),
+                        inntektsmelding = mockInntektsmeldingV1(),
+                    )
+
+                val result = producer.send(inntektsmelding)
 
                 result.isFailure.shouldBeTrue()
                 result.getOrNull() shouldBe null

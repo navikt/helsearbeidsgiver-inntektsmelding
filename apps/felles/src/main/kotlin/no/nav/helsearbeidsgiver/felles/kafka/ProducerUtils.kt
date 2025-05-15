@@ -33,6 +33,7 @@ private fun kafkaProperties(): Properties {
                 SslConfigs.SSL_KEYSTORE_TYPE_CONFIG to "PKCS12",
                 SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to env.keystorePath,
                 SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to env.credstorePassword,
+                ProducerConfig.MAX_BLOCK_MS_CONFIG to "15000",
                 ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION to "1",
             ),
         )

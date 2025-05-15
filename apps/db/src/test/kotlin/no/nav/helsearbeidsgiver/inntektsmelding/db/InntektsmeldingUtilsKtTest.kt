@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RefusjonEndring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
@@ -122,6 +123,5 @@ private val nyInntekt =
 private val nyRefusjon =
     Refusjon(
         beloepPerMaaned = 4021.1,
-        endringer = emptyList(),
-        sluttdato = 31.desember,
+        endringer = listOf(RefusjonEndring(beloep = 0.0, startdato = 31.desember)),
     )

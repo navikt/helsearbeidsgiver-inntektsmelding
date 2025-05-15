@@ -302,12 +302,6 @@ class PdfDokument(
             // Ja - tre ekstra spørsmål
             addLabel("Refusjonsbeløp pr måned", refusjon.beloepPerMaaned.tilNorskFormat() + " kr/måned")
 
-            val sluttdato = refusjon.sluttdato
-            addLabel("Opphører refusjonskravet i perioden", (sluttdato != null).tilNorskFormat())
-            if (sluttdato != null) {
-                addLabel("Siste dag dere krever refusjon for", sluttdato.tilNorskFormat())
-            }
-
             addLabel("Endringer i refusjon i perioden", refusjon.endringer.isNotEmpty().tilNorskFormat())
             refusjon.endringer.forEach {
                 addLabel("Beløp", it.beloep.tilNorskFormat(), kolonneEn, linefeed = false)

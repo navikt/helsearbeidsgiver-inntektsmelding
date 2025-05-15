@@ -85,7 +85,6 @@ private fun Inntektsmelding.tilArbeidsforhold(): Arbeidsforhold =
 private fun Refusjon?.map(): RefusjonXml =
     RefusjonXml().also {
         it.refusjonsbeloepPrMnd = this?.beloepPerMaaned?.toBigDecimal()
-        it.refusjonsopphoersdato = this?.sluttdato
         it.endringIRefusjonListe = this?.endringer?.map(RefusjonEndring::map)
     }
 

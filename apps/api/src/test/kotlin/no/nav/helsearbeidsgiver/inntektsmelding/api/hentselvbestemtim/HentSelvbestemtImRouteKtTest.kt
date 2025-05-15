@@ -47,7 +47,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hardcodedJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.jsonStrOrNull
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import org.junit.jupiter.api.BeforeEach
@@ -396,8 +395,7 @@ private fun Refusjon.hardcodedJson(): String =
     """
     {
         "beloepPerMaaned": $beloepPerMaaned,
-        "endringer": [${endringer.joinToString(transform = RefusjonEndring::hardcodedJson)}],
-        "sluttdato": ${sluttdato.jsonStrOrNull()}
+        "endringer": [${endringer.joinToString(transform = RefusjonEndring::hardcodedJson)}]
     }
     """
 

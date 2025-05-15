@@ -112,8 +112,10 @@ class DistribusjonRiver(
             )
 
         val record =
-            ProducerRecord<String, String>(
+            ProducerRecord(
                 TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
+                journalfoertInntektsmelding.inntektsmelding.type.id
+                    .toString(),
                 journalfoertInntektsmelding.toJsonStr(JournalfoertInntektsmelding.serializer()),
             )
 

@@ -5,13 +5,14 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
+import io.mockk.Runs
 import io.mockk.clearAllMocks
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.JournalfoertInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -59,7 +60,7 @@ class DistribusjonRiverTest :
                         ),
                 ),
             ) { innkommendeMelding ->
-                every { mockProducer.send(any()) } returns Result.success(JsonNull)
+                every { mockProducer.send(any()) } just Runs
 
                 testRapid.sendJson(innkommendeMelding.toMap())
 

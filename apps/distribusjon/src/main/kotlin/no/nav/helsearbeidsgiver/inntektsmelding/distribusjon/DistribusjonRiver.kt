@@ -60,7 +60,7 @@ class DistribusjonRiver(
                     journalpostId = journalpostId,
                     inntektsmelding = inntektsmelding,
                 ),
-            ).getOrThrow()
+            )
 
         "Distribuerte IM med journalpost-ID '$journalpostId'.".also {
             logger.info(it)

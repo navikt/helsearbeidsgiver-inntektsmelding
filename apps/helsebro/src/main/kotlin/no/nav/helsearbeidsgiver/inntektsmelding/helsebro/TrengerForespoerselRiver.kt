@@ -16,7 +16,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
@@ -67,13 +66,12 @@ class TrengerForespoerselRiver(
                                 Key.DATA to data.toJson(),
                             ).toJson(),
                     ),
-            ).onSuccess {
-                logger.info("Publiserte melding på pri-topic om ${Pri.BehovType.TRENGER_FORESPØRSEL}.")
-                sikkerLogger.info("Publiserte melding på pri-topic:\n${it.toPretty()}")
-            }.onFailure {
-                logger.warn("Klarte ikke publiserte melding på pri-topic om ${Pri.BehovType.TRENGER_FORESPØRSEL}.")
-                sikkerLogger.warn("Klarte ikke publiserte melding på pri-topic om ${Pri.BehovType.TRENGER_FORESPØRSEL}.")
-            }
+            )
+
+        "Publiserte melding på pri-topic om ${Pri.BehovType.TRENGER_FORESPØRSEL}.".also {
+            logger.info(it)
+            sikkerLogger.info(it)
+        }
 
         return null
     }

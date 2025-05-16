@@ -9,11 +9,9 @@ import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import io.mockk.every
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.aareg.Ansettelsesperiode
 import no.nav.helsearbeidsgiver.aareg.Arbeidsgiver
 import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
@@ -76,7 +74,6 @@ class LagreSelvbestemtIT : EndToEndTest() {
                 aarsakInnsending = AarsakInnsending.Ny,
             )
 
-        every { producer.send(any()) } returns Result.success(JsonNull)
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Mock.virksomhet)
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforhold
@@ -198,7 +195,6 @@ class LagreSelvbestemtIT : EndToEndTest() {
     fun `endret inntektsmelding lagres og prosesseres, men uten opprettelse av sak`() {
         val kontekstId: UUID = UUID.randomUUID()
 
-        every { producer.send(any()) } returns Result.success(JsonNull)
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Mock.virksomhet)
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforhold

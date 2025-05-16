@@ -20,27 +20,34 @@ class Producer(
     fun send(
         key: UUID,
         message: Map<Key, JsonElement>,
-    ): Result<JsonElement> = send(key.toString(), message.toJson())
+    ) {
+        send(key.toString(), message.toJson())
+    }
 
     fun send(
         key: Fnr,
         message: Map<Key, JsonElement>,
-    ): Result<JsonElement> = send(key.verdi, message.toJson())
+    ) {
+        send(key.verdi, message.toJson())
+    }
 
     @JvmName("sendWithMessagePriKey")
     fun send(
         key: UUID,
         message: Map<Pri.Key, JsonElement>,
-    ): Result<JsonElement> = send(key.toString(), message.toJson())
+    ) {
+        send(key.toString(), message.toJson())
+    }
 
     /** Brukes til distribusjon. */
-    fun send(inntektsmelding: JournalfoertInntektsmelding): Result<JsonElement> =
+    fun send(inntektsmelding: JournalfoertInntektsmelding) {
         send(
             key =
                 inntektsmelding.inntektsmelding.type.id
                     .toString(),
             message = inntektsmelding.toJson(JournalfoertInntektsmelding.serializer()),
         )
+    }
 
     fun close() {
         producer.close()
@@ -49,11 +56,12 @@ class Producer(
     private fun send(
         key: String,
         message: JsonElement,
-    ): Result<JsonElement> =
-        ProducerRecord(topic, key, message)
-            .runCatching {
-                producer.send(this).get()
-            }.map { message }
+    ) {
+        producer
+            .send(
+                ProducerRecord(topic, key, message),
+            ).get()
+    }
 }
 
 private fun Map<Pri.Key, JsonElement>.toJson(): JsonElement =

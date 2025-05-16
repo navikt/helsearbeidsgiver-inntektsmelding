@@ -3,11 +3,12 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
+import io.mockk.Runs
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -28,7 +29,7 @@ class HentForespoerslerForVedtaksperiodeIdListeRiverTest :
 
         test("Ved behov om forespørsler på rapid-topic publiseres behov om forespørsler på pri-topic") {
             // Må bare returnere en Result med gyldig JSON
-            every { mockProducer.send(any(), any<Map<Pri.Key, JsonElement>>()) } returns Result.success(JsonNull)
+            every { mockProducer.send(any(), any<Map<Pri.Key, JsonElement>>()) } just Runs
 
             val expectedEvent = EventName.FORESPOERSLER_REQUESTED
             val expectedKontekstId = UUID.randomUUID()

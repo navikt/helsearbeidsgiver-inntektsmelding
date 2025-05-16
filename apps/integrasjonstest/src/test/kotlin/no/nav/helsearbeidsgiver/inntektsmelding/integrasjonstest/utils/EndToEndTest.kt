@@ -13,7 +13,6 @@ import io.mockk.slot
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 import no.nav.hag.utils.bakgrunnsjobb.PostgresBakgrunnsjobbRepository
 import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.altinn.Altinn3M2MClient
@@ -162,9 +161,9 @@ abstract class EndToEndTest : ContainerTest() {
 
     val altinnClient = mockk<Altinn3M2MClient>()
     val pdlKlient = mockk<PdlClient>()
-    val producer = mockk<Producer>()
     val spinnKlient = mockk<SpinnKlient>()
 
+    val producer = mockk<Producer>(relaxed = true)
     val aaregClient = mockk<AaregClient>(relaxed = true)
     val agNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
     val brregClient = mockk<BrregClient>(relaxed = true)
@@ -294,8 +293,6 @@ abstract class EndToEndTest : ContainerTest() {
                         ).toJson(ForespoerselSvar.serializer()),
                 )
             }
-
-            Result.success(JsonObject(emptyMap()))
         }
     }
 
@@ -325,8 +322,6 @@ abstract class EndToEndTest : ContainerTest() {
                         ).toJson(ForespoerselListeSvar.serializer()),
                 )
             }
-
-            Result.success(JsonObject(emptyMap()))
         }
     }
 

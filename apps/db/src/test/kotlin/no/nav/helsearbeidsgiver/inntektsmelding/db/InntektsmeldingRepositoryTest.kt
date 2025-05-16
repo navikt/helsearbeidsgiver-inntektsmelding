@@ -5,6 +5,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.ranges.shouldBeIn
 import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.db.exposed.test.FunSpecWithDb
@@ -19,6 +20,7 @@ import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.felles.utils.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.convert
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
+import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import org.jetbrains.exposed.sql.Database
@@ -27,6 +29,7 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.LocalDateTime
 import java.util.UUID
 
 class TestRepo(
@@ -385,6 +388,45 @@ class InntektsmeldingRepositoryTest :
                 val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(UUID.randomUUID())
 
                 lagret.shouldBeNull()
+            }
+        }
+
+        context(InntektsmeldingRepository::oppdaterSomProsessert.name) {
+            test("skal oppdatere im som prosessert") {
+                val skjema = mockSkjemaInntektsmelding()
+                val mottatt = 26.april.atStartOfDay()
+                val inntektsmeldingId1 = UUID.randomUUID()
+                val inntektsmeldingId2 = UUID.randomUUID()
+
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId1, skjema, mottatt)
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId2, mockSkjemaInntektsmelding(), mottatt.plusHours(4))
+
+                inntektsmeldingRepo.oppdaterSomProsessert(inntektsmeldingId1)
+
+                val resultat =
+                    transaction(db) {
+                        InntektsmeldingEntitet
+                            .selectAll()
+                            .orderBy(InntektsmeldingEntitet.innsendt)
+                            .toList()
+                    }
+
+                resultat shouldHaveSize 2
+
+                val prosessertVindu =
+                    LocalDateTime.now().let {
+                        it.minusMinutes(1)..it.plusMinutes(1)
+                    }
+
+                InntektsmeldingEntitet.apply {
+                    resultat[0][innsendt] shouldBeLessThan resultat[1][innsendt]
+
+                    resultat[0][this.skjema] shouldBe skjema
+                    resultat[0][prosessert].shouldNotBeNull().shouldBeIn(prosessertVindu)
+
+                    resultat[1][this.skjema].shouldNotBeNull()
+                    resultat[1][prosessert].shouldBeNull()
+                }
             }
         }
     })

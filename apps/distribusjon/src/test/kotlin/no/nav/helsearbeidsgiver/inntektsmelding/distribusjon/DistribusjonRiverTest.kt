@@ -11,6 +11,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.JournalfoertInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -18,6 +19,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
@@ -26,19 +28,15 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
-import org.apache.kafka.clients.producer.KafkaProducer
-import org.apache.kafka.clients.producer.ProducerRecord
 import java.util.UUID
-import java.util.concurrent.CompletableFuture
 
 class DistribusjonRiverTest :
     FunSpec({
 
         val testRapid = TestRapid()
-        val mockKafkaProducer = mockk<KafkaProducer<String, String>>()
+        val mockProducer = mockk<Producer>()
 
-        DistribusjonRiver(mockKafkaProducer).connect(testRapid)
+        DistribusjonRiver(mockProducer).connect(testRapid)
 
         beforeTest {
             testRapid.reset()
@@ -61,7 +59,7 @@ class DistribusjonRiverTest :
                         ),
                 ),
             ) { innkommendeMelding ->
-                every { mockKafkaProducer.send(any()) } returns CompletableFuture()
+                every { mockProducer.send(any()) } returns Result.success(JsonNull)
 
                 testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -75,25 +73,19 @@ class DistribusjonRiverTest :
                         Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
                     )
 
-                val forventetRecord =
-                    ProducerRecord(
-                        TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
-                        innkommendeMelding.inntektsmelding.type.id
-                            .toString(),
+                verifySequence {
+                    mockProducer.send(
                         JournalfoertInntektsmelding(
                             journalpostId = innkommendeMelding.journalpostId,
                             inntektsmelding = innkommendeMelding.inntektsmelding,
-                        ).toJsonStr(JournalfoertInntektsmelding.serializer()),
+                        ),
                     )
-
-                verifySequence {
-                    mockKafkaProducer.send(forventetRecord)
                 }
             }
         }
 
         test("håndterer når producer feiler") {
-            every { mockKafkaProducer.send(any()) } throws RuntimeException("feil og feil, fru blom")
+            every { mockProducer.send(any()) } throws RuntimeException("feil og feil, fru blom")
 
             val innkommendeMelding = Mock.innkommendeMelding()
 
@@ -113,7 +105,7 @@ class DistribusjonRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             verifySequence {
-                mockKafkaProducer.send(any())
+                mockProducer.send(any())
             }
         }
 
@@ -136,7 +128,7 @@ class DistribusjonRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 verify(exactly = 0) {
-                    mockKafkaProducer.send(any())
+                    mockProducer.send(any())
                 }
             }
         }

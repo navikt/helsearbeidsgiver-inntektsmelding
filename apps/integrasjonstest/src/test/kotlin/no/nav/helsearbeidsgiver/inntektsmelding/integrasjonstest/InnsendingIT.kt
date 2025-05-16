@@ -7,8 +7,10 @@ import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonNull
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
@@ -53,6 +55,8 @@ class InnsendingIT : EndToEndTest() {
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar = Mock.forespoerselSvar,
         )
+
+        every { producer.send(any()) } returns Result.success(JsonNull)
 
         coEvery {
             dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())

@@ -54,12 +54,13 @@ class DistribusjonRiver(
             sikkerLogger.info("$it Innkommende melding:\n${json.toPretty()}")
         }
 
-        producer.send(
-            JournalfoertInntektsmelding(
-                journalpostId = journalpostId,
-                inntektsmelding = inntektsmelding,
-            ),
-        )
+        producer
+            .send(
+                JournalfoertInntektsmelding(
+                    journalpostId = journalpostId,
+                    inntektsmelding = inntektsmelding,
+                ),
+            ).getOrThrow()
 
         "Distribuerte IM med journalpost-ID '$journalpostId'.".also {
             logger.info(it)

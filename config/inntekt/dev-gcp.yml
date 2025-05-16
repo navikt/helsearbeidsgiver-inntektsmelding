@@ -2,8 +2,8 @@ kafkaPool: nav-dev
 entraIdEnabled: true
 env:
 - name: INNTEKT_URL
-  value: "https://team-inntekt-proxy.dev-fss-pub.nais.io/proxy/inntektskomponenten-q2/rs"
+  value: "https://ikomp-q2.dev-fss-pub.nais.io/rs"
 - name: INNTEKT_SCOPE
-  value: "api://dev-fss.team-inntekt.inntektskomponenten/.default"
+  value: "api://dev-fss.team-inntekt.ikomp-q2/.default"
 externalHosts:
-  - team-inntekt-proxy.dev-fss-pub.nais.io
+  - ikomp-q2.dev-fss-pub.nais.io

@@ -1,13 +1,16 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.lagreselvbestemtim
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.ktor.server.request.receiveText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.post
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -31,18 +34,19 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.time.LocalDateTime
 import java.util.UUID
 
 fun Route.lagreSelvbestemtImRoute(
-    rapid: RapidsConnection,
+    producer: Producer,
     tilgangskontroll: Tilgangskontroll,
     redisConnection: RedisConnection,
 ) {
-    val producer = LagreSelvbestemtImProducer(rapid)
     val redisPoller = RedisStore(redisConnection, RedisPrefix.LagreSelvbestemtIm).let(::RedisPoller)
 
     post(Routes.SELVBESTEMT_INNTEKTSMELDING) {
@@ -73,11 +77,11 @@ fun Route.lagreSelvbestemtImRoute(
                 }
 
                 else -> {
-                    tilgangskontroll.validerTilgangTilOrg(call.request, skjema.avsender.orgnr.verdi)
+                    tilgangskontroll.validerTilgangTilOrg(call.request, skjema.avsender.orgnr)
 
                     val avsenderFnr = call.request.lesFnrFraAuthToken()
 
-                    producer.publish(kontekstId, avsenderFnr, skjema, mottatt)
+                    producer.sendRequestEvent(kontekstId, avsenderFnr, skjema, mottatt)
 
                     val resultat =
                         runCatching {
@@ -109,6 +113,28 @@ private suspend fun RoutingContext.lesRequestOrNull(): SkjemaInntektsmeldingSelv
             }
             null
         }
+
+private fun Producer.sendRequestEvent(
+    kontekstId: UUID,
+    avsenderFnr: Fnr,
+    skjema: SkjemaInntektsmeldingSelvbestemt,
+    mottatt: LocalDateTime,
+) {
+    send(
+        key = skjema.sykmeldtFnr,
+        message =
+            mapOf(
+                Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
+                Key.KONTEKST_ID to kontekstId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
+                        Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+                        Key.MOTTATT to mottatt.toJson(),
+                    ).toJson(),
+            ),
+    )
+}
 
 private suspend fun RoutingContext.sendResponse(result: Result<ResultJson>) {
     result

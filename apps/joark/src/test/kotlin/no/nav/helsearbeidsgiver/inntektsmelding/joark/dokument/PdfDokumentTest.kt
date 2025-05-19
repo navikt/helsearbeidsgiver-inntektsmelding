@@ -79,8 +79,10 @@ class PdfDokumentTest {
                 refusjon =
                     Refusjon(
                         beloepPerMaaned = 25000.0,
-                        endringer = emptyList(),
-                        sluttdato = dag.plusDays(3),
+                        endringer =
+                            listOf(
+                                RefusjonEndring(beloep = 0.0, startdato = dag.plusDays(3)),
+                            ),
                     ),
             ),
         )
@@ -99,7 +101,6 @@ class PdfDokumentTest {
                     Refusjon(
                         beloepPerMaaned = 25000.0,
                         endringer = emptyList(),
-                        sluttdato = null,
                     ),
             ),
         )
@@ -123,7 +124,6 @@ class PdfDokumentTest {
                                 RefusjonEndring(150.0, dag.minusDays(5)),
                                 RefusjonEndring(160.0, dag.minusDays(6)),
                             ),
-                        sluttdato = null,
                     ),
             ),
         )

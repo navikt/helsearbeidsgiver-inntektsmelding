@@ -2,19 +2,28 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.auth
 
 import io.ktor.server.request.ApplicationRequest
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Tilgang
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 class Tilgangskontroll(
-    private val tilgangProducer: TilgangProducer,
+    private val producer: Producer,
     private val cache: LocalCache<Tilgang>,
     redisConnection: RedisConnection,
 ) {
@@ -26,16 +35,26 @@ class Tilgangskontroll(
         forespoerselId: UUID,
     ) {
         validerTilgang(redisPollerForespoersel, request, forespoerselId.toString()) { kontekstId, fnr ->
-            tilgangProducer.publishForespoerselId(kontekstId, fnr, forespoerselId)
+            producer.send(
+                EventName.TILGANG_FORESPOERSEL_REQUESTED,
+                kontekstId,
+                fnr,
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            )
         }
     }
 
     fun validerTilgangTilOrg(
         request: ApplicationRequest,
-        orgnr: String,
+        orgnr: Orgnr,
     ) {
-        validerTilgang(redisPollerOrg, request, orgnr) { kontekstId, fnr ->
-            tilgangProducer.publishOrgnr(kontekstId, fnr, orgnr)
+        validerTilgang(redisPollerOrg, request, orgnr.verdi) { kontekstId, fnr ->
+            producer.send(
+                EventName.TILGANG_ORG_REQUESTED,
+                kontekstId,
+                fnr,
+                Key.ORGNR_UNDERENHET to orgnr.toJson(),
+            )
         }
     }
 
@@ -69,5 +88,32 @@ class Tilgangskontroll(
             logger.warn("Kall for ID '$cacheKeyPostfix' har ikke tilgang.")
             throw ManglerAltinnRettigheterException()
         }
+    }
+}
+
+private fun Producer.send(
+    eventName: EventName,
+    kontekstId: UUID,
+    fnr: Fnr,
+    dataField: Pair<Key, JsonElement>,
+) {
+    MdcUtils.withLogFields(
+        Log.klasse(this),
+        Log.event(eventName),
+        Log.kontekstId(kontekstId),
+    ) {
+        send(
+            key = fnr,
+            message =
+                mapOf(
+                    Key.EVENT_NAME to eventName.toJson(),
+                    Key.KONTEKST_ID to kontekstId.toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.FNR to fnr.toJson(),
+                            dataField,
+                        ).toJson(),
+                ),
+        )
     }
 }

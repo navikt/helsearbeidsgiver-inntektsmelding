@@ -18,6 +18,7 @@ import kotlinx.serialization.KSerializer
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.domene.Tilgang
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.inntektsmelding.api.apiModule
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
@@ -34,12 +35,13 @@ val ikkeTilgangResultat =
     ).toJson().toString()
 
 abstract class ApiTest : MockAuthToken() {
+    val mockProducer = mockk<Producer>(relaxed = true)
     val mockRedisConnection = mockk<RedisConnection>()
 
     fun testApi(block: suspend TestClient.() -> Unit): Unit =
         testApplication {
             application {
-                apiModule(mockk(relaxed = true), mockRedisConnection)
+                apiModule(mockProducer, mockRedisConnection)
             }
 
             val testClient = TestClient(this, ::mockAuthToken)

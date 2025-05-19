@@ -5,8 +5,10 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
+import io.mockk.Runs
 import io.mockk.clearAllMocks
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
@@ -18,6 +20,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
@@ -26,101 +29,64 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
-import org.apache.kafka.clients.producer.KafkaProducer
-import org.apache.kafka.clients.producer.ProducerRecord
 import java.util.UUID
-import java.util.concurrent.CompletableFuture
 
 class DistribusjonRiverTest :
     FunSpec({
 
         val testRapid = TestRapid()
-        val mockKafkaProducer = mockk<KafkaProducer<String, String>>()
+        val mockProducer = mockk<Producer>()
 
-        DistribusjonRiver(mockKafkaProducer).connect(testRapid)
+        DistribusjonRiver(mockProducer).connect(testRapid)
 
         beforeTest {
             testRapid.reset()
             clearAllMocks()
         }
 
-        test("distribuerer inntektsmelding på kafka topic") {
-            every { mockKafkaProducer.send(any()) } returns CompletableFuture()
-
-            val innkommendeMelding = Mock.innkommendeMelding()
-
-            testRapid.sendJson(innkommendeMelding.toMap())
-
-            testRapid.inspektør.size shouldBeExactly 1
-
-            testRapid.firstMessage().toMap() shouldContainExactly
+        context("distribuerer inntektsmelding på kafka topic") {
+            withData(
                 mapOf(
-                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_DISTRIBUERT.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
-                    Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
-                    Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                )
-
-            val forventetRecord =
-                ProducerRecord<String, String>(
-                    TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
-                    JournalfoertInntektsmelding(
-                        journalpostId = innkommendeMelding.journalpostId,
-                        inntektsmelding = innkommendeMelding.inntektsmelding,
-                    ).toJsonStr(JournalfoertInntektsmelding.serializer()),
-                )
-
-            verifySequence {
-                mockKafkaProducer.send(forventetRecord)
-            }
-        }
-
-        test("distribuerer selvbestemt inntektsmelding på kafka topic") {
-            every { mockKafkaProducer.send(any()) } returns CompletableFuture()
-
-            val selvbestemtInntektsmelding =
-                mockInntektsmeldingV1().copy(
-                    type =
-                        Inntektsmelding.Type.Selvbestemt(
-                            id = UUID.randomUUID(),
+                    "forespurt" to Mock.innkommendeMelding(),
+                    "selvbestemt" to
+                        Mock.innkommendeMelding().copy(
+                            inntektsmelding =
+                                mockInntektsmeldingV1().copy(
+                                    type =
+                                        Inntektsmelding.Type.Selvbestemt(
+                                            id = UUID.randomUUID(),
+                                        ),
+                                ),
                         ),
-                )
+                ),
+            ) { innkommendeMelding ->
+                every { mockProducer.send(any()) } just Runs
 
-            val innkommendeMelding = Mock.innkommendeMelding()
+                testRapid.sendJson(innkommendeMelding.toMap())
 
-            testRapid.sendJson(
-                innkommendeMelding
-                    .toMap()
-                    .plus(Key.INNTEKTSMELDING to selvbestemtInntektsmelding.toJson(Inntektsmelding.serializer())),
-            )
+                testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.inspektør.size shouldBeExactly 1
+                testRapid.firstMessage().toMap() shouldContainExactly
+                    mapOf(
+                        Key.EVENT_NAME to EventName.INNTEKTSMELDING_DISTRIBUERT.toJson(),
+                        Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
+                        Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
+                        Key.INNTEKTSMELDING to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                    )
 
-            testRapid.firstMessage().toMap() shouldContainExactly
-                mapOf(
-                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_DISTRIBUERT.toJson(),
-                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
-                    Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
-                    Key.INNTEKTSMELDING to selvbestemtInntektsmelding.toJson(Inntektsmelding.serializer()),
-                )
-
-            val forventetRecord =
-                ProducerRecord<String, String>(
-                    TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
-                    JournalfoertInntektsmelding(
-                        journalpostId = innkommendeMelding.journalpostId,
-                        inntektsmelding = selvbestemtInntektsmelding,
-                    ).toJsonStr(JournalfoertInntektsmelding.serializer()),
-                )
-
-            verifySequence {
-                mockKafkaProducer.send(forventetRecord)
+                verifySequence {
+                    mockProducer.send(
+                        JournalfoertInntektsmelding(
+                            journalpostId = innkommendeMelding.journalpostId,
+                            inntektsmelding = innkommendeMelding.inntektsmelding,
+                        ),
+                    )
+                }
             }
         }
 
         test("håndterer når producer feiler") {
-            every { mockKafkaProducer.send(any()) } throws RuntimeException("feil og feil, fru blom")
+            every { mockProducer.send(any()) } throws RuntimeException("feil og feil, fru blom")
 
             val innkommendeMelding = Mock.innkommendeMelding()
 
@@ -140,7 +106,7 @@ class DistribusjonRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             verifySequence {
-                mockKafkaProducer.send(any())
+                mockProducer.send(any())
             }
         }
 
@@ -163,7 +129,7 @@ class DistribusjonRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 verify(exactly = 0) {
-                    mockKafkaProducer.send(any())
+                    mockProducer.send(any())
                 }
             }
         }

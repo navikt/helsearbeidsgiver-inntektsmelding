@@ -17,7 +17,6 @@ import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
@@ -69,13 +68,12 @@ class HentForespoerslerForVedtaksperiodeIdListeRiver(
                                 Key.DATA to data.toJson(),
                             ).toJson(),
                     ),
-            ).onSuccess {
-                logger.info("Publiserte melding på pri-topic om ${Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE}.")
-                sikkerLogger.info("Publiserte melding på pri-topic:\n${it.toPretty()}")
-            }.onFailure {
-                logger.warn("Klarte ikke publiserte melding på pri-topic om ${Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE}.")
-                sikkerLogger.warn("Klarte ikke publiserte melding på pri-topic om ${Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE}.")
-            }
+            )
+
+        "Publiserte melding på pri-topic om ${Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE}.".also {
+            logger.info(it)
+            sikkerLogger.info(it)
+        }
 
         return null
     }

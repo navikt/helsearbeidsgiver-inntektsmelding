@@ -50,19 +50,20 @@ class MarkerForespoerselBesvartRiver(
         logger.info("Mottok melding om ${EventName.INNTEKTSMELDING_MOTTATT}.")
         sikkerLogger.info("Mottok melding:\n${json.toPretty()}.")
 
-        val publisert =
-            producer
-                .send(
-                    key = forespoerselId,
-                    message =
-                        mapOf(
-                            Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
-                            Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                        ),
-                ).getOrThrow()
+        producer
+            .send(
+                key = forespoerselId,
+                message =
+                    mapOf(
+                        Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
+                        Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    ),
+            )
 
-        logger.info("Publiserte melding på pri-topic om ${Pri.NotisType.FORESPOERSEL_BESVART_SIMBA}.")
-        sikkerLogger.info("Publiserte melding på pri-topic:\n${publisert.toPretty()}")
+        "Publiserte melding på pri-topic om ${Pri.NotisType.FORESPOERSEL_BESVART_SIMBA}.".also {
+            logger.info(it)
+            sikkerLogger.info(it)
+        }
 
         return null
     }

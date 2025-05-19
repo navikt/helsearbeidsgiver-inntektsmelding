@@ -1,11 +1,18 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.inntektselvbestemt
 
+import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import io.mockk.verify
+import io.mockk.verifySequence
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.Inntekt
 import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
@@ -55,6 +62,42 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
 
             response.status shouldBe HttpStatusCode.OK
             actualJson shouldBe Mock.successResponseJson(expectedInntekt)
+
+            verifySequence {
+                mockProducer.send(
+                    key = mockPid,
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it.minus(Key.KONTEKST_ID) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.TILGANG_ORG_REQUESTED.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.FNR to mockPid.toJson(),
+                                            Key.ORGNR_UNDERENHET to Mock.request.orgnr.toJson(),
+                                        ).toJson(),
+                                )
+                        },
+                )
+                mockProducer.send(
+                    key = Mock.request.sykmeldtFnr,
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it.minus(Key.KONTEKST_ID) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.FNR to Mock.request.sykmeldtFnr.toJson(),
+                                            Key.ORGNR_UNDERENHET to Mock.request.orgnr.toJson(),
+                                            Key.INNTEKTSDATO to Mock.request.inntektsdato.toJson(),
+                                        ).toJson(),
+                                )
+                        },
+                )
+            }
         }
 
     @Test
@@ -68,6 +111,10 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
 
             response.status shouldBe HttpStatusCode.InternalServerError
             actualJson shouldBe "\"Error 500: no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException\""
+
+            verify(exactly = 0) {
+                mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
+            }
         }
 
     @Test

@@ -13,7 +13,6 @@ import io.mockk.slot
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 import no.nav.hag.utils.bakgrunnsjobb.PostgresBakgrunnsjobbRepository
 import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.altinn.Altinn3M2MClient
@@ -33,7 +32,6 @@ import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAaregRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
-import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice.createBerikInntektsmeldingService
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createHentEksternImRiver
@@ -156,8 +154,6 @@ abstract class EndToEndTest : ContainerTest() {
 
     val messages get() = imTestRapid.messages
 
-    val tilgangProducer by lazy { TilgangProducer(imTestRapid) }
-
     val imRepository by lazy { InntektsmeldingRepository(inntektsmeldingDatabase.db) }
     val selvbestemtImRepo by lazy { SelvbestemtImRepo(inntektsmeldingDatabase.db) }
 
@@ -165,9 +161,9 @@ abstract class EndToEndTest : ContainerTest() {
 
     val altinnClient = mockk<Altinn3M2MClient>()
     val pdlKlient = mockk<PdlClient>()
-    val producer = mockk<Producer>()
     val spinnKlient = mockk<SpinnKlient>()
 
+    val producer = mockk<Producer>(relaxed = true)
     val aaregClient = mockk<AaregClient>(relaxed = true)
     val agNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
     val brregClient = mockk<BrregClient>(relaxed = true)
@@ -188,12 +184,6 @@ abstract class EndToEndTest : ContainerTest() {
                     navn = "Bedrift A/S",
                 )
             }
-        }
-
-        producer.apply {
-            // Må bare returnere en Result med gyldig JSON
-            val emptyResult = Result.success(JsonObject(emptyMap()))
-            every { send(any(), any<Map<Pri.Key, JsonElement>>()) } returns emptyResult
         }
     }
 
@@ -219,7 +209,7 @@ abstract class EndToEndTest : ContainerTest() {
             createAltinn(altinnClient)
             createBrregRiver(brregClient, false)
             createDbRivers(imRepository, selvbestemtImRepo)
-            createDistribusjonRiver(mockk(relaxed = true))
+            createDistribusjonRiver(producer)
             createHelsebroRivers(producer)
             createHentEksternImRiver(spinnKlient)
             createHentInntektRiver(inntektClient)
@@ -303,8 +293,6 @@ abstract class EndToEndTest : ContainerTest() {
                         ).toJson(ForespoerselSvar.serializer()),
                 )
             }
-
-            Result.success(JsonObject(emptyMap()))
         }
     }
 
@@ -334,8 +322,6 @@ abstract class EndToEndTest : ContainerTest() {
                         ).toJson(ForespoerselListeSvar.serializer()),
                 )
             }
-
-            Result.success(JsonObject(emptyMap()))
         }
     }
 

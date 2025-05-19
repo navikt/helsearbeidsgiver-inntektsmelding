@@ -43,8 +43,7 @@ class TilXmlInntektsmeldingTest {
             skjema.sykepengerIArbeidsgiverperioden.begrunnelseForReduksjonEllerIkkeUtbetalt,
         )
         Assertions.assertNotNull(skjema.refusjon.refusjonsbeloepPrMnd)
-        Assertions.assertNotNull(skjema.refusjon.refusjonsopphoersdato)
-        Assertions.assertEquals(3, skjema.refusjon.endringIRefusjonListe.size)
+        Assertions.assertEquals(4, skjema.refusjon.endringIRefusjonListe.size)
         Assertions.assertEquals(2, skjema.opphoerAvNaturalytelseListe.size)
         Assertions.assertNotNull(skjema.avsendersystem.innsendingstidspunkt)
         Assertions.assertNotNull(skjema.arbeidsforhold.beregnetInntekt.aarsakVedEndring)

@@ -1,14 +1,17 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import kotlinx.serialization.builtins.serializer
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.AktiveArbeidsgivere
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -22,13 +25,13 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerE
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondNotFound
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 fun Route.aktiveOrgnrRoute(
-    connection: RapidsConnection,
+    producer: Producer,
     redisConnection: RedisConnection,
 ) {
-    val aktiveOrgnrProducer = AktiveOrgnrProducer(connection)
     val redisPoller = RedisStore(redisConnection, RedisPrefix.AktiveOrgnr).let(::RedisPoller)
 
     post(Routes.AKTIVEORGNR) {
@@ -38,7 +41,7 @@ fun Route.aktiveOrgnrRoute(
             val request = call.receive<AktiveOrgnrRequest>()
             val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
 
-            aktiveOrgnrProducer.publish(kontekstId, arbeidsgiverFnr = arbeidsgiverFnr, arbeidstagerFnr = request.identitetsnummer)
+            producer.sendRequestEvent(kontekstId, arbeidsgiverFnr = arbeidsgiverFnr, arbeidstakerFnr = request.identitetsnummer)
 
             val resultatJson = redisPoller.hent(kontekstId)
 
@@ -62,6 +65,26 @@ fun Route.aktiveOrgnrRoute(
             respondInternalServerError(Tekst.TEKNISK_FEIL_FORBIGAAENDE, String.serializer())
         }
     }
+}
+
+private fun Producer.sendRequestEvent(
+    kontekstId: UUID,
+    arbeidsgiverFnr: Fnr,
+    arbeidstakerFnr: Fnr,
+) {
+    send(
+        key = arbeidstakerFnr,
+        message =
+            mapOf(
+                Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
+                Key.KONTEKST_ID to kontekstId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.FNR to arbeidstakerFnr.toJson(),
+                        Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
+                    ).toJson(),
+            ),
+    )
 }
 
 private fun AktiveArbeidsgivere.toResponse(): AktiveOrgnrResponse =

@@ -1,14 +1,19 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIdListe
 
+import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import io.mockk.verifySequence
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -40,6 +45,7 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
     fun `gir OK med forespørsel-IDer`() =
         testApi {
             val mockResultat = Mock.mockResultat()
+            val vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)
 
             coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
@@ -50,7 +56,7 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
             val response =
                 post(
                     path,
-                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe),
                     HentForespoerslerRequest.serializer(),
                 )
 
@@ -58,6 +64,40 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
 
             response.status shouldBe HttpStatusCode.OK
             actualJson shouldBe Mock.successResponseJson()
+
+            verifySequence {
+                mockProducer.send(
+                    key = any<UUID>(),
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it.minus(Key.KONTEKST_ID) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.FORESPOERSLER_REQUESTED.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIdListe.toJson(UuidSerializer),
+                                        ).toJson(),
+                                )
+                        },
+                )
+                mockProducer.send(
+                    key = mockPid,
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it.minus(Key.KONTEKST_ID) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.TILGANG_ORG_REQUESTED.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.FNR to mockPid.toJson(),
+                                            Key.ORGNR_UNDERENHET to Mock.orgnr.toJson(),
+                                        ).toJson(),
+                                )
+                        },
+                )
+            }
         }
 
     @Test

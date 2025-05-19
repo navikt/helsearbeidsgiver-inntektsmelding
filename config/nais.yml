@@ -42,10 +42,10 @@ spec:
     path: /isready
   secureLogs:
     enabled: true
-  observability:
-    logging:
-      destinations:
-        - id: loki
+    observability:
+      logging:
+        destinations:
+          - id: secure_logs
     autoInstrumentation:
       enabled: true
       runtime: java

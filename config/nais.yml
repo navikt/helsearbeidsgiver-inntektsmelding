@@ -45,7 +45,7 @@ spec:
   observability:
     logging:
       destinations:
-        - id: secure_logs
+        - id: loki, secure_logs
     autoInstrumentation:
       enabled: true
       runtime: java

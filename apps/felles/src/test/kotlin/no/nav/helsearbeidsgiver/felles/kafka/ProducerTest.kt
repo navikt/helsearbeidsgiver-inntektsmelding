@@ -1,8 +1,7 @@
 package no.nav.helsearbeidsgiver.felles.kafka
 
+import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.booleans.shouldBeTrue
-import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -37,7 +36,7 @@ class ProducerTest :
 
         context("send<UUID, Map<Key, JsonElement>>") {
 
-            test("gir suksessobjekt ved sendt melding til kafka stream") {
+            test("sender melding til kafka stream") {
                 every { mockKafkaProducer.send(any()).get() } returns mockRecordMetadata()
 
                 val expectedKey = UUID.randomUUID()
@@ -47,10 +46,7 @@ class ProducerTest :
                         Key.FORESPOERSEL_ID to expectedKey.toJson(),
                     )
 
-                val result = producer.send(expectedKey, expectedMessage)
-
-                result.isSuccess.shouldBeTrue()
-                result.getOrNull() shouldBe expectedMessage.toJson()
+                producer.send(expectedKey, expectedMessage)
 
                 val expected =
                     ProducerRecord(
@@ -62,7 +58,7 @@ class ProducerTest :
                 verifySequence { mockKafkaProducer.send(expected) }
             }
 
-            test("gir feilobjekt ved feilet sending til kafka stream") {
+            test("kaster exception når sending til kafka stream feiler") {
                 val forespoerselId = UUID.randomUUID()
 
                 every { mockKafkaProducer.send(any()) } throws TimeoutException("too slow bro")
@@ -73,10 +69,9 @@ class ProducerTest :
                         Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     )
 
-                val result = producer.send(forespoerselId, expectedMessage)
-
-                result.isFailure.shouldBeTrue()
-                result.getOrNull() shouldBe null
+                shouldThrowExactly<TimeoutException> {
+                    producer.send(forespoerselId, expectedMessage)
+                }
 
                 verifySequence { mockKafkaProducer.send(any()) }
             }
@@ -84,7 +79,7 @@ class ProducerTest :
 
         context("send<Fnr, Map<Key, JsonElement>>") {
 
-            test("gir suksessobjekt ved sendt melding til kafka stream") {
+            test("sender melding til kafka stream") {
                 every { mockKafkaProducer.send(any()).get() } returns mockRecordMetadata()
 
                 val expectedKey = Fnr.genererGyldig()
@@ -94,10 +89,7 @@ class ProducerTest :
                         Key.SAK_ID to randomDigitString(7).toJson(),
                     )
 
-                val result = producer.send(expectedKey, expectedMessage)
-
-                result.isSuccess.shouldBeTrue()
-                result.getOrNull() shouldBe expectedMessage.toJson()
+                producer.send(expectedKey, expectedMessage)
 
                 val expected =
                     ProducerRecord(
@@ -109,7 +101,7 @@ class ProducerTest :
                 verifySequence { mockKafkaProducer.send(expected) }
             }
 
-            test("gir feilobjekt ved feilet sending til kafka stream") {
+            test("kaster exception når sending til kafka stream feiler") {
                 every { mockKafkaProducer.send(any()) } throws TimeoutException("too slow bro")
 
                 val expectedMessage =
@@ -118,10 +110,9 @@ class ProducerTest :
                         Key.SAK_ID to randomDigitString(11).toJson(),
                     )
 
-                val result = producer.send(Fnr.genererGyldig(), expectedMessage)
-
-                result.isFailure.shouldBeTrue()
-                result.getOrNull() shouldBe null
+                shouldThrowExactly<TimeoutException> {
+                    producer.send(Fnr.genererGyldig(), expectedMessage)
+                }
 
                 verifySequence { mockKafkaProducer.send(any()) }
             }
@@ -129,7 +120,7 @@ class ProducerTest :
 
         context("send<UUID, Map<Pri.Key, JsonElement>>") {
 
-            test("gir suksessobjekt ved sendt melding til kafka stream") {
+            test("sender melding til kafka stream") {
                 every { mockKafkaProducer.send(any()).get() } returns mockRecordMetadata()
 
                 val expectedKey = UUID.randomUUID()
@@ -139,10 +130,7 @@ class ProducerTest :
                         Pri.Key.BOOMERANG to "\uD83E\uDE83".toJson(),
                     )
 
-                val result = producer.send(expectedKey, expectedMessage)
-
-                result.isSuccess.shouldBeTrue()
-                result.getOrNull() shouldBe expectedMessage.toJson()
+                producer.send(expectedKey, expectedMessage)
 
                 val expected =
                     ProducerRecord(
@@ -154,7 +142,7 @@ class ProducerTest :
                 verifySequence { mockKafkaProducer.send(expected) }
             }
 
-            test("gir feilobjekt ved feilet sending til kafka stream") {
+            test("kaster exception når sending til kafka stream feiler") {
                 every { mockKafkaProducer.send(any()) } throws TimeoutException("too slow bro")
 
                 val expectedMessage =
@@ -163,10 +151,9 @@ class ProducerTest :
                         Pri.Key.BOOMERANG to "\uD83E\uDE83".toJson(),
                     )
 
-                val result = producer.send(UUID.randomUUID(), expectedMessage)
-
-                result.isFailure.shouldBeTrue()
-                result.getOrNull() shouldBe null
+                shouldThrowExactly<TimeoutException> {
+                    producer.send(UUID.randomUUID(), expectedMessage)
+                }
 
                 verifySequence { mockKafkaProducer.send(any()) }
             }
@@ -174,7 +161,7 @@ class ProducerTest :
 
         context("send<JournalfoertInntektsmelding>") {
 
-            test("gir suksessobjekt ved sendt melding til kafka stream") {
+            test("sender melding til kafka stream") {
                 every { mockKafkaProducer.send(any()).get() } returns mockRecordMetadata()
 
                 val inntektsmelding =
@@ -183,10 +170,7 @@ class ProducerTest :
                         inntektsmelding = mockInntektsmeldingV1(),
                     )
 
-                val result = producer.send(inntektsmelding)
-
-                result.isSuccess.shouldBeTrue()
-                result.getOrNull() shouldBe inntektsmelding.toJson(JournalfoertInntektsmelding.serializer())
+                producer.send(inntektsmelding)
 
                 val expected =
                     ProducerRecord(
@@ -199,7 +183,7 @@ class ProducerTest :
                 verifySequence { mockKafkaProducer.send(expected) }
             }
 
-            test("gir feilobjekt ved feilet sending til kafka stream") {
+            test("kaster exception når sending til kafka stream feiler") {
                 every { mockKafkaProducer.send(any()) } throws TimeoutException("too slow bro")
 
                 val inntektsmelding =
@@ -208,10 +192,9 @@ class ProducerTest :
                         inntektsmelding = mockInntektsmeldingV1(),
                     )
 
-                val result = producer.send(inntektsmelding)
-
-                result.isFailure.shouldBeTrue()
-                result.getOrNull() shouldBe null
+                shouldThrowExactly<TimeoutException> {
+                    producer.send(inntektsmelding)
+                }
 
                 verifySequence { mockKafkaProducer.send(any()) }
             }

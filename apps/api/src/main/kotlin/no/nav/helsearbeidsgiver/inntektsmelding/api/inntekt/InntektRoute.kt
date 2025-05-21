@@ -59,6 +59,11 @@ fun Route.inntektRoute(
             if (resultat != null) {
                 val response =
                     InntektResponse(
+                        gjennomsnitt = resultat.gjennomsnitt(),
+                        historikk =
+                            resultat.maanedOversikt.associate { inntektPerMaaned ->
+                                inntektPerMaaned.maaned to inntektPerMaaned.inntekt
+                            },
                         bruttoinntekt = resultat.gjennomsnitt(),
                         tidligereInntekter = resultat.maanedOversikt,
                     ).toJson(InntektResponse.serializer().nullable)

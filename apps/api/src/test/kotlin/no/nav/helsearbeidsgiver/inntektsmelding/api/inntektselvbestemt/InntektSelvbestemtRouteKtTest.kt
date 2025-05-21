@@ -35,6 +35,7 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.YearMonth
 import java.util.UUID
 
 private const val PATH = Routes.PREFIX + Routes.INNTEKT_SELVBESTEMT
@@ -230,11 +231,15 @@ private object Mock {
 private fun Inntekt.hardcodedJson(): String =
     """
     {
+        "gjennomsnitt": ${gjennomsnitt()},
+        "historikk": {${maanedOversikt.map { it.maaned to it.inntekt }.joinToString(transform = Pair<YearMonth, Double?>::hardcodedJson)}},
         "bruttoinntekt": ${gjennomsnitt()},
         "tidligereInntekter": [${maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}]
 
     }
     """.removeJsonWhitespace()
+
+private fun Pair<YearMonth, Double?>.hardcodedJson(): String = "\"$first\": $second"
 
 private fun InntektPerMaaned.hardcodedJson(): String =
     """

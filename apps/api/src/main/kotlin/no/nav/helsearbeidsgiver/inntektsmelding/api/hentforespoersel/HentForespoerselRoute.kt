@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.utils.gjennomsnitt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -118,33 +119,41 @@ private fun Producer.sendRequestEvent(
 
 private fun HentForespoerselResultat.toResponse(): HentForespoerselResponse =
     HentForespoerselResponse(
+        sykmeldt =
+            Sykmeldt(
+                fnr = forespoersel.fnr,
+                navn = sykmeldtNavn,
+            ),
+        avsender =
+            Avsender(
+                orgnr = forespoersel.orgnr,
+                orgNavn = orgNavn,
+                navn = avsenderNavn,
+            ),
+        egenmeldingsperioder = forespoersel.egenmeldingsperioder,
+        sykmeldingsperioder = forespoersel.sykmeldingsperioder,
+        bestemmendeFravaersdag = forespoersel.forslagBestemmendeFravaersdag(),
+        eksternInntektsdato = forespoersel.eksternBestemmendeFravaersdag(),
+        inntekt =
+            inntekt?.let {
+                Inntekt(
+                    gjennomsnitt = it.gjennomsnitt(),
+                    historikk =
+                        it.maanedOversikt.associate { inntektPerMaaned ->
+                            inntektPerMaaned.maaned to inntektPerMaaned.inntekt
+                        },
+                )
+            },
+        forespurtData = forespoersel.forespurtData,
+        erBesvart = forespoersel.erBesvart,
+        // utdaterte felt
         navn = sykmeldtNavn,
         innsenderNavn = avsenderNavn,
         orgNavn = orgNavn,
         identitetsnummer = forespoersel.fnr.verdi,
         orgnrUnderenhet = forespoersel.orgnr.verdi,
         fravaersperioder = forespoersel.sykmeldingsperioder,
-        egenmeldingsperioder = forespoersel.egenmeldingsperioder,
-        bestemmendeFravaersdag = forespoersel.forslagBestemmendeFravaersdag(),
         eksternBestemmendeFravaersdag = forespoersel.eksternBestemmendeFravaersdag(),
         bruttoinntekt = inntekt?.gjennomsnitt(),
         tidligereinntekter = inntekt?.maanedOversikt.orEmpty(),
-        forespurtData = forespoersel.forespurtData,
-        erBesvart = forespoersel.erBesvart,
-        feilReport =
-            if (feil.isEmpty()) {
-                null
-            } else {
-                FeilReport(
-                    feil =
-                        feil
-                            .map {
-                                Feilmelding(
-                                    melding = it.value,
-                                    status = null,
-                                    datafelt = it.key,
-                                )
-                            }.toMutableList(),
-                )
-            },
     )

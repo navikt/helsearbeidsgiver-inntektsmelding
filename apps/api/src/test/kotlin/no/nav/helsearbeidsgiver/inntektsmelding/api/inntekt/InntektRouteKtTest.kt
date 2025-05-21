@@ -62,8 +62,13 @@ class InntektRouteKtTest : ApiTest() {
                             ),
                         ),
                 )
-            val forvertentResponse =
+            val forventetResponse =
                 InntektResponse(
+                    gjennomsnitt = inntekt.gjennomsnitt(),
+                    historikk =
+                        inntekt.maanedOversikt.associate {
+                            it.maaned to it.inntekt
+                        },
                     bruttoinntekt = inntekt.gjennomsnitt(),
                     tidligereInntekter = inntekt.maanedOversikt,
                 )
@@ -80,7 +85,7 @@ class InntektRouteKtTest : ApiTest() {
             val response = post(path, request, InntektRequest.serializer())
 
             response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe forvertentResponse.toJsonStr(InntektResponse.serializer())
+            response.bodyAsText() shouldBe forventetResponse.toJsonStr(InntektResponse.serializer())
 
             verifySequence {
                 mockProducer.send(

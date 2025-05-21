@@ -28,6 +28,7 @@ import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedForrigeInntekt
+import no.nav.helsearbeidsgiver.felles.utils.gjennomsnitt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
@@ -51,6 +52,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.YearMonth
 import java.util.UUID
 
 private const val PATH = Routes.PREFIX + Routes.HENT_FORESPOERSEL
@@ -234,21 +236,10 @@ private object Mock {
     private val orgnr = Orgnr.genererGyldig()
 
     private val inntekt =
-        Inntekt(
-            listOf(
-                InntektPerMaaned(
-                    maaned = februar(2022),
-                    inntekt = 2.0,
-                ),
-                InntektPerMaaned(
-                    maaned = januar(2022),
-                    inntekt = 1.0,
-                ),
-                InntektPerMaaned(
-                    maaned = desember(2022),
-                    inntekt = 3.0,
-                ),
-            ),
+        mapOf(
+            februar(2022) to 2.0,
+            januar(2022) to 1.0,
+            desember(2022) to 3.0,
         )
 
     val forespoersel =
@@ -276,7 +267,10 @@ private object Mock {
             sykmeldtNavn = "Ola Normann",
             avsenderNavn = "Arbeidsgiver",
             orgNavn = "Norge AS",
-            inntekt = inntekt,
+            inntekt =
+                Inntekt(
+                    maanedOversikt = inntekt.map { InntektPerMaaned(it.key, it.value) },
+                ),
             forespoersel = forespoersel,
             feil = emptyMap(),
         )
@@ -291,21 +285,44 @@ private fun HentForespoerselResultat.tilSuksessJson() =
 fun HentForespoerselResultat.tilResponseJson(): String =
     """
     {
+        "sykmeldt": {
+            "fnr": "${forespoersel.fnr}",
+            "navn": ${sykmeldtNavn.jsonStrOrNull()}
+        },
+        "avsender": {
+            "orgnr": "${forespoersel.orgnr}",
+            "orgNavn": ${orgNavn.jsonStrOrNull()},
+            "navn": ${avsenderNavn.jsonStrOrNull()}
+        },
+        "egenmeldingsperioder": [${forespoersel.egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
+        "sykmeldingsperioder": [${forespoersel.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
+        "bestemmendeFravaersdag": "${forespoersel.forslagBestemmendeFravaersdag()}",
+        "eksternInntektsdato": ${forespoersel.eksternBestemmendeFravaersdag().jsonStrOrNull()},
+        "inntekt": ${inntekt?.maanedOversikt?.associate { it.maaned to it.inntekt }?.hardcodedJson()},
+        "forespurtData": ${forespoersel.forespurtData.hardcodedJson()},
+        "erBesvart": ${forespoersel.erBesvart},
         "navn": ${sykmeldtNavn.jsonStrOrNull()},
         "orgNavn": ${orgNavn.jsonStrOrNull()},
         "innsenderNavn": ${avsenderNavn.jsonStrOrNull()},
         "identitetsnummer": "${forespoersel.fnr}",
         "orgnrUnderenhet": "${forespoersel.orgnr}",
         "fravaersperioder": [${forespoersel.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
-        "egenmeldingsperioder": [${forespoersel.egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
-        "bestemmendeFravaersdag": "${forespoersel.forslagBestemmendeFravaersdag()}",
         "eksternBestemmendeFravaersdag": ${forespoersel.eksternBestemmendeFravaersdag().jsonStrOrNull()},
         "bruttoinntekt": ${inntekt?.gjennomsnitt()},
-        "tidligereinntekter": [${inntekt?.maanedOversikt.orEmpty().joinToString(transform = InntektPerMaaned::hardcodedJson)}],
-        "forespurtData": ${forespoersel.forespurtData.hardcodedJson()},
-        "erBesvart": ${forespoersel.erBesvart}
+        "tidligereinntekter": [${inntekt?.maanedOversikt.orEmpty().joinToString(transform = InntektPerMaaned::hardcodedJson)}]
+
     }
     """.removeJsonWhitespace()
+
+private fun Map<YearMonth, Double?>.hardcodedJson(): String =
+    """
+    {
+        "gjennomsnitt": ${gjennomsnitt()},
+        "historikk": {${toList().joinToString(transform = Pair<YearMonth, Double?>::hardcodedJson)}}
+    }
+    """
+
+private fun Pair<YearMonth, Double?>.hardcodedJson(): String = "\"$first\": $second"
 
 private fun InntektPerMaaned.hardcodedJson(): String =
     """

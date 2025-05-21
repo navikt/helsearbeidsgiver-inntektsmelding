@@ -13,9 +13,9 @@ import java.time.LocalDate
 
 @Serializable
 data class HentForespoerselResponse(
-    val navn: String,
-    val orgNavn: String,
-    val innsenderNavn: String,
+    val navn: String?,
+    val orgNavn: String?,
+    val innsenderNavn: String?,
     val identitetsnummer: String,
     val orgnrUnderenhet: String,
     val fravaersperioder: List<Periode>,

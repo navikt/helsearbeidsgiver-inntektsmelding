@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender
@@ -11,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.json.toPretty
-import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
@@ -69,7 +69,7 @@ class JournalfoerImRiver(
             sikkerLogger.info("$it Innkommende melding:\n${json.toPretty()}")
         }
 
-        val journalpostId = opprettOgFerdigstillJournalpost(kontekstId, inntektsmelding)
+        val journalpostId = opprettOgFerdigstillJournalpost(inntektsmelding)
 
         return mapOf(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
@@ -110,17 +110,14 @@ class JournalfoerImRiver(
             },
         )
 
-    private fun opprettOgFerdigstillJournalpost(
-        kontekstId: UUID,
-        inntektsmelding: Inntektsmelding,
-    ): String {
+    private fun opprettOgFerdigstillJournalpost(inntektsmelding: Inntektsmelding): String {
         "Prøver å opprette og ferdigstille journalpost.".also {
             logger.info(it)
             sikkerLogger.info("$it Gjelder IM:\n$inntektsmelding")
         }
 
         val response =
-            Metrics.dokArkivRequest.recordTime(dokArkivClient::opprettOgFerdigstillJournalpost) {
+            runBlocking {
                 dokArkivClient.opprettOgFerdigstillJournalpost(
                     tittel = "Inntektsmelding",
                     gjelderPerson = GjelderPerson(inntektsmelding.sykmeldt.fnr.verdi),
@@ -130,9 +127,9 @@ class JournalfoerImRiver(
                             navn = inntektsmelding.avsender.orgNavn,
                         ),
                     datoMottatt = LocalDate.now(),
-                    dokumenter = tilDokumenter(kontekstId, inntektsmelding),
-                    eksternReferanseId = "ARI-$kontekstId",
-                    callId = "callId_$kontekstId",
+                    dokumenter = tilDokumenter(inntektsmelding),
+                    eksternReferanseId = "ARI-${inntektsmelding.id}",
+                    callId = "callId_${inntektsmelding.id}",
                 )
             }
 

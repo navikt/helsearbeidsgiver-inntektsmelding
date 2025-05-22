@@ -59,7 +59,9 @@ fun Route.kvittering(
 
         val forespoerselId =
             call.parameters["uuid"]
-                ?.let(::fjernLedendeSlash)
+                .let {
+                    it ?: call.parameters["forespoerselId"]
+                }?.let(::fjernLedendeSlash)
                 ?.runCatching(UUID::fromString)
                 ?.getOrNull()
 

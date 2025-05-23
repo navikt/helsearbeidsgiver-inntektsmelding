@@ -17,4 +17,5 @@ object SelvbestemtInntektsmeldingEntitet : Table("selvbestemt_inntektsmelding") 
         )
     val journalpostId = text("journalpost_id").nullable()
     val opprettet = datetime("opprettet")
+    val prosessert = datetime("prosessert").nullable()
 }

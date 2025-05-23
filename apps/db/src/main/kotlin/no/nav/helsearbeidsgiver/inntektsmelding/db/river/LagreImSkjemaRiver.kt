@@ -107,6 +107,7 @@ class LagreImSkjemaRiver(
             Log.event(eventName),
             Log.behov(behovType),
             Log.kontekstId(kontekstId),
+            Log.inntektsmeldingId(inntektsmeldingId),
             Log.forespoerselId(skjema.forespoerselId),
         )
 }

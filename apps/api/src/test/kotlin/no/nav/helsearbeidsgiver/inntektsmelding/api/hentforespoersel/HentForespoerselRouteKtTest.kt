@@ -188,7 +188,7 @@ class HentForespoerselRouteKtTest : ApiTest() {
         }
 
     @Test
-    fun `gir Forbidden-ikke hvis mangler tilgang`() =
+    fun `gir Forbidden-feil hvis mangler tilgang`() =
         testApi {
             coEvery { mockRedisConnection.get(any()) } returns ikkeTilgangResultat
 

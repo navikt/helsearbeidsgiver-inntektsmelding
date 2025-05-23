@@ -51,7 +51,7 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
 
             val response = post(path, requestBody.fromJson(AktiveOrgnrRequest.serializer()), AktiveOrgnrRequest.serializer())
 
-            assertEquals(HttpStatusCode.Created, response.status)
+            assertEquals(HttpStatusCode.OK, response.status)
             assertEquals(Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE, response.bodyAsText())
 
             verifySequence {

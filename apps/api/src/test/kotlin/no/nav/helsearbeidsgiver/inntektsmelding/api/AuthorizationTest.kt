@@ -20,12 +20,14 @@ class AuthorizationTest : ApiTest() {
     fun `stopp uautoriserte kall mot API`() =
         testApi {
             listOf(
-                Routes.HENT_FORESPOERSEL to ::postUtenAuth,
+                Routes.HENT_FORESPOERSEL_GAMMEL to ::postUtenAuth,
+                Routes.HENT_FORESPOERSEL to ::getUtenAuth,
                 Routes.INNTEKT to ::postUtenAuth,
                 Routes.INNTEKT_SELVBESTEMT to ::postUtenAuth,
                 Routes.INNSENDING to ::postUtenAuth,
                 Routes.SELVBESTEMT_INNTEKTSMELDING to ::postUtenAuth,
                 Routes.SELVBESTEMT_INNTEKTSMELDING + "/0" to ::getUtenAuth,
+                Routes.KVITTERING_GAMMEL to ::getUtenAuth,
                 Routes.KVITTERING to ::getUtenAuth,
                 Routes.AKTIVEORGNR to ::postUtenAuth,
                 Routes.HENT_FORESPOERSEL_ID_LISTE to ::postUtenAuth,

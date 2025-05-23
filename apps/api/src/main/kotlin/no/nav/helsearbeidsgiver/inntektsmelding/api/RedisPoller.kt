@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 import kotlinx.coroutines.delay
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
 private const val MAX_RETRIES = 10
@@ -14,16 +13,11 @@ private val WAIT_MILLIS = List(MAX_RETRIES) { 100L * (1 + it) }
 class RedisPoller(
     private val redisStore: RedisStore,
 ) {
-    private val sikkerLogger = sikkerLogger()
-
     suspend fun hent(key: UUID): ResultJson {
         repeat(MAX_RETRIES) {
-            sikkerLogger.debug("Polling redis: $it time(s) for key $key")
-
             val result = redisStore.lesResultat(key)
 
             if (result != null) {
-                sikkerLogger.info("Hentet verdi for: '$key' = $result")
                 return result
             } else {
                 delay(WAIT_MILLIS.getOrNull(it) ?: WAIT_MILLIS_DEFAULT)
@@ -35,5 +29,5 @@ class RedisPoller(
 }
 
 class RedisPollerTimeoutException(
-    uuid: UUID,
-) : Exception("Brukte for lang tid på å svare ($uuid).")
+    key: UUID,
+) : Exception("Brukte for lang tid på å svare ($key).")

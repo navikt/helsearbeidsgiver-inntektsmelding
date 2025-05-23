@@ -6,6 +6,7 @@ import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
+import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import java.util.UUID
 
@@ -46,7 +47,7 @@ data class RedisTimeoutResponse(
     val inntektsmeldingTypeId: UUID? = null,
 ) {
     @EncodeDefault
-    val error = "Brukte for lang tid mot redis."
+    val error = Tekst.REDIS_TIMEOUT_FEILMELDING
 }
 
 @Serializable

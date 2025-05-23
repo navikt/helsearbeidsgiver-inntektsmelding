@@ -62,5 +62,5 @@ fun RapidsConnection.createDbRivers(
         LagreSelvbestemtImRiver(selvbestemtImRepo).connect(this)
 
         logger.info("Starter ${OppdaterImSomProsessertRiver::class.simpleName}...")
-        OppdaterImSomProsessertRiver(imRepo).connect(this)
+        OppdaterImSomProsessertRiver(imRepo, selvbestemtImRepo).connect(this)
     }

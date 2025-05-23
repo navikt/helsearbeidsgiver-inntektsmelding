@@ -3,9 +3,13 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.ranges.shouldBeIn
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlinx.coroutines.delay
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
@@ -20,7 +24,9 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.time.Duration.Companion.seconds
 
 class SelvbestemtImRepoTest :
     FunSpecWithDb(listOf(SelvbestemtInntektsmeldingEntitet), { db ->
@@ -291,6 +297,44 @@ class SelvbestemtImRepoTest :
             test("krasjer ikke ved ingen matchende rader") {
                 shouldNotThrowAny {
                     selvbestemtImRepo.oppdaterJournalpostId(UUID.randomUUID(), randomDigitString(7))
+                }
+            }
+        }
+
+        context(InntektsmeldingRepository::oppdaterSomProsessert.name) {
+            test("skal oppdatere im som prosessert") {
+                val inntektsmelding = mockInntektsmeldingV1().copy(type = Inntektsmelding.Type.Selvbestemt(UUID.randomUUID()))
+                val inntektsmeldingIkkeProsessert = mockInntektsmeldingV1().copy(type = Inntektsmelding.Type.Selvbestemt(UUID.randomUUID()))
+
+                selvbestemtImRepo.lagreIm(inntektsmelding)
+                delay(1.seconds)
+                selvbestemtImRepo.lagreIm(inntektsmeldingIkkeProsessert)
+
+                selvbestemtImRepo.oppdaterSomProsessert(inntektsmelding.id)
+
+                val resultat =
+                    transaction(db) {
+                        SelvbestemtInntektsmeldingEntitet
+                            .selectAll()
+                            .orderBy(SelvbestemtInntektsmeldingEntitet.opprettet)
+                            .toList()
+                    }
+
+                resultat shouldHaveSize 2
+
+                val prosessertVindu =
+                    LocalDateTime.now().let {
+                        it.minusMinutes(1)..it.plusMinutes(1)
+                    }
+
+                SelvbestemtInntektsmeldingEntitet.apply {
+                    resultat[0][opprettet] shouldBeLessThan resultat[1][opprettet]
+
+                    resultat[0][this.inntektsmelding] shouldBe inntektsmelding
+                    resultat[0][prosessert].shouldNotBeNull().shouldBeIn(prosessertVindu)
+
+                    resultat[1][this.inntektsmelding].shouldNotBeNull()
+                    resultat[1][prosessert].shouldBeNull()
                 }
             }
         }

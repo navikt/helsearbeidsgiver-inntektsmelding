@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
+import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -24,6 +25,7 @@ data class OppdaterImSomProsessertMelding(
 
 class OppdaterImSomProsessertRiver(
     private val imRepo: InntektsmeldingRepository,
+    private val selvbestemtImRepo: SelvbestemtImRepo,
 ) : ObjectRiver<OppdaterImSomProsessertMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -42,7 +44,12 @@ class OppdaterImSomProsessertRiver(
     override fun OppdaterImSomProsessertMelding.bestemNoekkel(): KafkaKey = KafkaKey(inntektsmelding.type.id)
 
     override fun OppdaterImSomProsessertMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
-        imRepo.oppdaterSomProsessert(inntektsmelding.id)
+        when (inntektsmelding.type) {
+            is Inntektsmelding.Type.Forespurt, is Inntektsmelding.Type.ForespurtEkstern ->
+                imRepo.oppdaterSomProsessert(inntektsmelding.id)
+            is Inntektsmelding.Type.Selvbestemt ->
+                selvbestemtImRepo.oppdaterSomProsessert(inntektsmelding.id)
+        }
 
         return null
     }
@@ -70,6 +77,9 @@ class OppdaterImSomProsessertRiver(
             Log.event(eventName),
             Log.kontekstId(kontekstId),
             Log.inntektsmeldingId(inntektsmelding.id),
-            Log.forespoerselId(inntektsmelding.type.id),
+            when (inntektsmelding.type) {
+                is Inntektsmelding.Type.Forespurt, is Inntektsmelding.Type.ForespurtEkstern -> Log.forespoerselId(inntektsmelding.type.id)
+                is Inntektsmelding.Type.Selvbestemt -> Log.selvbestemtId(inntektsmelding.type.id)
+            },
         )
 }

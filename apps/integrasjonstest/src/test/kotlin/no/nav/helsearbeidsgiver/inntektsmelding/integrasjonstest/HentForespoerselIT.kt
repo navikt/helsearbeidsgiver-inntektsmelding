@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
-import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -14,9 +14,13 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
+import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
+import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.mai
+import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.junit.jupiter.api.Test
@@ -29,11 +33,41 @@ class HentForespoerselIT : EndToEndTest() {
     fun `forespørsel hentes`() {
         val kontekstId: UUID = UUID.randomUUID()
         val forespoerselId: UUID = UUID.randomUUID()
+        val sykmeldtFnr = Fnr.genererGyldig()
+        val avsenderFnr = Fnr.genererGyldig()
 
         mockForespoerselSvarFraHelsebro(
             forespoerselId = forespoerselId,
-            forespoerselSvar = mockForespoerselSvarSuksess().copy(forespoerselId = forespoerselId),
+            forespoerselSvar =
+                mockForespoerselSvarSuksess().copy(
+                    forespoerselId = forespoerselId,
+                    fnr = sykmeldtFnr,
+                ),
         )
+
+        coEvery { pdlKlient.personBolk(any()) } returns
+            listOf(
+                FullPerson(
+                    navn =
+                        PersonNavn(
+                            fornavn = "Siri",
+                            mellomnavn = null,
+                            etternavn = "Sykmeldt",
+                        ),
+                    foedselsdato = 5.mai,
+                    ident = sykmeldtFnr.verdi,
+                ),
+                FullPerson(
+                    navn =
+                        PersonNavn(
+                            fornavn = "Berit",
+                            mellomnavn = null,
+                            etternavn = "Bedrift",
+                        ),
+                    foedselsdato = 12.mars,
+                    ident = avsenderFnr.verdi,
+                ),
+            )
 
         publish(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
@@ -41,7 +75,7 @@ class HentForespoerselIT : EndToEndTest() {
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer),
-                    Key.ARBEIDSGIVER_FNR to Fnr.genererGyldig().toJson(),
+                    Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
                 ).toJson(),
         )
 
@@ -93,7 +127,6 @@ class HentForespoerselIT : EndToEndTest() {
             orgNavn.shouldNotBeNull()
             inntekt.shouldNotBeNull()
             forespoersel.shouldNotBeNull()
-            feil.shouldBeEmpty()
         }
     }
 

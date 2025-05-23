@@ -27,6 +27,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerE
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
@@ -47,7 +48,7 @@ fun Route.hentSelvbestemtImRoute(
                 ?.getOrNull()
 
         if (selvbestemtId == null) {
-            "Ugyldig parameter: '${call.parameters["selvbestemtId"]}'".let {
+            "Ugyldig parameter: '${call.parameters["selvbestemtId"]}'.".let {
                 logger.error(it)
                 sikkerLogger.error(it)
                 respondBadRequest(it, String.serializer())
@@ -55,8 +56,8 @@ fun Route.hentSelvbestemtImRoute(
         } else {
             MdcUtils.withLogFields(
                 Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID),
-                Log.selvbestemtId(selvbestemtId),
                 Log.kontekstId(kontekstId),
+                Log.selvbestemtId(selvbestemtId),
             ) {
                 producer.sendRequestEvent(kontekstId, selvbestemtId)
 
@@ -103,15 +104,14 @@ private fun Producer.sendRequestEvent(
 }
 
 private suspend fun RoutingContext.sendOkResponse(inntektsmelding: Inntektsmelding) {
+    val response = HentSelvbestemtImResponseSuccess(inntektsmelding).toJson(HentSelvbestemtImResponseSuccess.serializer())
+
     "Selvbestemt inntektsmelding hentet OK.".also {
         logger.info(it)
-        sikkerLogger.info("$it\n$inntektsmelding")
+        sikkerLogger.info("$it\n${response.toPretty()}")
     }
-    val response =
-        ResultJson(
-            success = HentSelvbestemtImResponseSuccess(inntektsmelding).toJson(HentSelvbestemtImResponseSuccess.serializer()),
-        )
-    respondOk(response, ResultJson.serializer())
+
+    respondOk(ResultJson(success = response), ResultJson.serializer())
 }
 
 private suspend fun RoutingContext.sendErrorResponse(feilmelding: String) {

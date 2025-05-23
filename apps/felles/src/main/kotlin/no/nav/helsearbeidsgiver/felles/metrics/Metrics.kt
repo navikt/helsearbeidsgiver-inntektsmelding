@@ -28,8 +28,6 @@ object Metrics {
 
     val brregRequest = requestMetric("Brreg")
 
-    val dokArkivRequest = requestMetric("DokArkiv")
-
     val inntektRequest = requestMetric("Inntekt")
 
     val forespoerslerBesvartFraSpleis = counterMetric("forespoersler besvart fra Spleis")

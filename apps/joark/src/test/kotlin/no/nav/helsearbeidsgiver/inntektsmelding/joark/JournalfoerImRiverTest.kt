@@ -12,7 +12,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.DokumentVariant
@@ -50,16 +49,20 @@ class JournalfoerImRiverTest :
         }
 
         context("oppretter journalpost og publiserer melding for å lagre journalpost-ID") {
-            test("forespurt inntektsmelding") {
+            withData(
+                mapOf(
+                    "forespurt inntektsmelding" to Pair(EventName.INNTEKTSMELDING_MOTTATT, Key.INNTEKTSMELDING),
+                    "selvbestemt inntektsmelding" to Pair(EventName.SELVBESTEMT_IM_LAGRET, Key.SELVBESTEMT_INNTEKTSMELDING),
+                ),
+            ) { (innkommendeEvent, inntektsmeldingKey) ->
                 val journalpostId = randomDigitString(6)
-
-                val innkommendeMelding = Mock.innkommendeMelding(EventName.INNTEKTSMELDING_MOTTATT, Mock.inntektsmelding)
+                val innkommendeMelding = Mock.innkommendeMelding(innkommendeEvent, Mock.inntektsmelding)
 
                 coEvery {
                     mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
                 } returns Mock.opprettOgFerdigstillResponse(journalpostId)
 
-                testRapid.sendJson(innkommendeMelding.toMap())
+                testRapid.sendJson(innkommendeMelding.toMap(inntektsmeldingKey))
 
                 testRapid.inspektør.size shouldBeExactly 1
 
@@ -86,52 +89,8 @@ class JournalfoerImRiverTest :
                                 it shouldHaveSize 1
                                 it.first().dokumentVarianter.map(DokumentVariant::filtype) shouldContainExactly listOf("XML", "PDFA")
                             },
-                        eksternReferanseId = "ARI-${innkommendeMelding.kontekstId}",
-                        callId = "callId_${innkommendeMelding.kontekstId}",
-                    )
-                }
-            }
-
-            test("selvbestemt inntektsmelding") {
-                val journalpostId = randomDigitString(8)
-
-                val innkommendeMelding = Mock.innkommendeMelding(EventName.SELVBESTEMT_IM_LAGRET, Mock.inntektsmelding)
-
-                coEvery {
-                    mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
-                } returns Mock.opprettOgFerdigstillResponse(journalpostId)
-
-                testRapid.sendJson(
-                    innkommendeMelding.toMap(Key.SELVBESTEMT_INNTEKTSMELDING),
-                )
-
-                testRapid.inspektør.size shouldBeExactly 1
-
-                testRapid.firstMessage().toMap() shouldContainExactly
-                    mapOf(
-                        Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
-                        Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
-                        Key.JOURNALPOST_ID to journalpostId.toJson(),
-                        Key.INNTEKTSMELDING to Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                    )
-
-                coVerifySequence {
-                    mockDokArkivKlient.opprettOgFerdigstillJournalpost(
-                        tittel = "Inntektsmelding",
-                        gjelderPerson = GjelderPerson(Mock.inntektsmelding.sykmeldt.fnr.verdi),
-                        avsender =
-                            KlientAvsender.Organisasjon(
-                                orgnr = Mock.inntektsmelding.avsender.orgnr.verdi,
-                                navn = Mock.inntektsmelding.avsender.orgNavn,
-                            ),
-                        datoMottatt = LocalDate.now(),
-                        dokumenter =
-                            withArg {
-                                it shouldHaveSize 1
-                                it.first().dokumentVarianter.map(DokumentVariant::filtype) shouldContainExactly listOf("XML", "PDFA")
-                            },
-                        eksternReferanseId = "ARI-${innkommendeMelding.kontekstId}",
-                        callId = "callId_${innkommendeMelding.kontekstId}",
+                        eksternReferanseId = "ARI-${innkommendeMelding.inntektsmelding.id}",
+                        callId = "callId_${innkommendeMelding.inntektsmelding.id}",
                     )
                 }
             }

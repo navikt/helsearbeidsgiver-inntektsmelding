@@ -8,14 +8,10 @@ import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.PdfDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.transformToXML
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.Base64
-import java.util.UUID
 
 private val base64 = Base64.getEncoder()
 
-fun tilDokumenter(
-    uuid: UUID,
-    inntektsmelding: Inntektsmelding,
-): List<Dokument> =
+fun tilDokumenter(inntektsmelding: Inntektsmelding): List<Dokument> =
     listOf(
         Dokument(
             tittel = inntektsmelding.tilDokumentbeskrivelse(),
@@ -27,7 +23,7 @@ fun tilDokumenter(
                         filtype = "XML",
                         fysiskDokument = transformToXML(inntektsmelding).toByteArray().encode(),
                         variantFormat = "ORIGINAL",
-                        filnavn = "ari-$uuid.xml",
+                        filnavn = "ari-${inntektsmelding.id}.xml",
                     ),
 //                DokumentVariant(
 //                    filtype = "JSON",
@@ -35,13 +31,13 @@ fun tilDokumenter(
 //                        .toByteArray()
 //                        .encode(),
 //                    variantFormat = "ARKIV",
-//                    filnavn = "ari-$uuid.json"
+//                    filnavn = "ari-${inntektsmelding.id}.json"
 //                ),
                     DokumentVariant(
                         filtype = "PDFA",
                         fysiskDokument = PdfDokument(inntektsmelding).export().encode(),
                         variantFormat = "ARKIV",
-                        filnavn = "ari-$uuid.pdf",
+                        filnavn = "ari-${inntektsmelding.id}.pdf",
                     ),
                 ),
         ),

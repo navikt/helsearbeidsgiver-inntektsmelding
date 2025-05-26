@@ -25,6 +25,7 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
+import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
@@ -32,79 +33,103 @@ class OppdaterImSomProsessertRiverTest :
     FunSpec({
         val testRapid = TestRapid()
         val mockImRepo = mockk<InntektsmeldingRepository>()
+        val mockSelvbestemtImRepo = mockk<SelvbestemtImRepo>()
 
-        OppdaterImSomProsessertRiver(mockImRepo).connect(testRapid)
+        OppdaterImSomProsessertRiver(mockImRepo, mockSelvbestemtImRepo).connect(testRapid)
 
         beforeTest {
             testRapid.reset()
             clearAllMocks()
         }
 
-        test("oppdaterer inntektsmelding som prosessert") {
-            every { mockImRepo.oppdaterSomProsessert(any()) } just Runs
+        listOf(
+            "forespurt inntektsmelding" to mockInntektsmeldingV1(),
+            "selvbestemt inntektsmelding" to mockInntektsmeldingV1().copy(type = Inntektsmelding.Type.Selvbestemt(UUID.randomUUID())),
+        ).forEach { (testContext, inntektsmelding) ->
+            context(testContext) {
 
-            val innkommendeMelding = innkommendeMelding()
+                test("oppdaterer inntektsmelding som prosessert") {
+                    every { mockImRepo.oppdaterSomProsessert(any()) } just Runs
+                    every { mockSelvbestemtImRepo.oppdaterSomProsessert(any()) } just Runs
 
-            testRapid.sendJson(innkommendeMelding.toMap())
+                    val innkommendeMelding = innkommendeMelding(inntektsmelding)
 
-            testRapid.inspektør.size shouldBeExactly 0
+                    testRapid.sendJson(innkommendeMelding.toMap())
 
-            verifySequence {
-                mockImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
-            }
-        }
+                    testRapid.inspektør.size shouldBeExactly 0
 
-        test("håndterer feil") {
-            every { mockImRepo.oppdaterSomProsessert(any()) } throws NullPointerException()
+                    verifySequence {
+                        when (inntektsmelding.type) {
+                            is Inntektsmelding.Type.Forespurt, is Inntektsmelding.Type.ForespurtEkstern ->
+                                mockImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
 
-            val innkommendeMelding = innkommendeMelding()
+                            is Inntektsmelding.Type.Selvbestemt ->
+                                mockSelvbestemtImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
+                        }
+                    }
+                }
 
-            val forventetFail =
-                Fail(
-                    feilmelding = "Klarte ikke markere inntektsmelding som prosessert i database.",
-                    kontekstId = innkommendeMelding.kontekstId,
-                    utloesendeMelding = innkommendeMelding.toMap(),
-                )
+                test("håndterer feil") {
+                    every { mockImRepo.oppdaterSomProsessert(any()) } throws NullPointerException()
+                    every { mockSelvbestemtImRepo.oppdaterSomProsessert(any()) } throws NullPointerException()
 
-            testRapid.sendJson(innkommendeMelding.toMap())
+                    val innkommendeMelding = innkommendeMelding(inntektsmelding)
 
-            testRapid.inspektør.size shouldBeExactly 1
+                    val forventetFail =
+                        Fail(
+                            feilmelding = "Klarte ikke markere inntektsmelding som prosessert i database.",
+                            kontekstId = innkommendeMelding.kontekstId,
+                            utloesendeMelding = innkommendeMelding.toMap(),
+                        )
 
-            testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
+                    testRapid.sendJson(innkommendeMelding.toMap())
 
-            verifySequence {
-                mockImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
-            }
-        }
+                    testRapid.inspektør.size shouldBeExactly 1
 
-        context("ignorerer melding") {
-            withData(
-                mapOf(
-                    "melding med behov" to Pair(Key.BEHOV, BehovType.TILGANGSKONTROLL.toJson()),
-                    "melding med data" to Pair(Key.DATA, JsonObject(emptyMap())),
-                    "melding med fail" to Pair(Key.FAIL, fail.toJson(Fail.serializer())),
-                ),
-            ) { uoensketKeyMedVerdi ->
-                testRapid.sendJson(
-                    innkommendeMelding()
-                        .toMap()
-                        .plus(uoensketKeyMedVerdi),
-                )
+                    testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
-                testRapid.inspektør.size shouldBeExactly 0
+                    verifySequence {
+                        when (inntektsmelding.type) {
+                            is Inntektsmelding.Type.Forespurt, is Inntektsmelding.Type.ForespurtEkstern ->
+                                mockImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
 
-                verify(exactly = 0) {
-                    mockImRepo.oppdaterSomProsessert(any())
+                            is Inntektsmelding.Type.Selvbestemt ->
+                                mockSelvbestemtImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
+                        }
+                    }
+                }
+
+                context("ignorerer melding") {
+                    withData(
+                        mapOf(
+                            "melding med behov" to Pair(Key.BEHOV, BehovType.TILGANGSKONTROLL.toJson()),
+                            "melding med data" to Pair(Key.DATA, JsonObject(emptyMap())),
+                            "melding med fail" to Pair(Key.FAIL, fail.toJson(Fail.serializer())),
+                        ),
+                    ) { uoensketKeyMedVerdi ->
+                        testRapid.sendJson(
+                            innkommendeMelding(inntektsmelding)
+                                .toMap()
+                                .plus(uoensketKeyMedVerdi),
+                        )
+
+                        testRapid.inspektør.size shouldBeExactly 0
+
+                        verify(exactly = 0) {
+                            mockImRepo.oppdaterSomProsessert(any())
+                            mockSelvbestemtImRepo.oppdaterSomProsessert(any())
+                        }
+                    }
                 }
             }
         }
     })
 
-private fun innkommendeMelding(): OppdaterImSomProsessertMelding =
+private fun innkommendeMelding(inntektsmelding: Inntektsmelding): OppdaterImSomProsessertMelding =
     OppdaterImSomProsessertMelding(
         eventName = EventName.INNTEKTSMELDING_DISTRIBUERT,
         kontekstId = UUID.randomUUID(),
-        inntektsmelding = mockInntektsmeldingV1(),
+        inntektsmelding = inntektsmelding,
     )
 
 private fun OppdaterImSomProsessertMelding.toMap() =

@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreImSkjemaRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreJournalpostIdRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreSelvbestemtImRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.OppdaterImSomProsessertRiver
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "helsearbeidsgiver-im-db".logger()
@@ -59,4 +60,7 @@ fun RapidsConnection.createDbRivers(
 
         logger.info("Starter ${LagreSelvbestemtImRiver::class.simpleName}...")
         LagreSelvbestemtImRiver(selvbestemtImRepo).connect(this)
+
+        logger.info("Starter ${OppdaterImSomProsessertRiver::class.simpleName}...")
+        OppdaterImSomProsessertRiver(imRepo, selvbestemtImRepo).connect(this)
     }

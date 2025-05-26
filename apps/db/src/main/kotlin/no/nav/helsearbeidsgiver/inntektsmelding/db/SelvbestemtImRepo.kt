@@ -13,6 +13,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
+import java.time.LocalDateTime
 import java.util.UUID
 
 class SelvbestemtImRepo(
@@ -70,6 +71,26 @@ class SelvbestemtImRepo(
             }
         } else {
             "Oppdaterte uventet antall ($antallOppdatert) rader med journalpost-ID '$journalpostId'.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
+        }
+    }
+
+    fun oppdaterSomProsessert(inntektsmeldingId: UUID) {
+        val antallOppdatert =
+            transaction(db) {
+                SelvbestemtInntektsmeldingEntitet.update(
+                    where = {
+                        SelvbestemtInntektsmeldingEntitet.inntektsmeldingId eq inntektsmeldingId
+                    },
+                ) {
+                    it[prosessert] = LocalDateTime.now()
+                }
+            }
+
+        if (antallOppdatert != 1) {
+            "Oppdaterte uventet antall ($antallOppdatert) rader under markering av inntektsmelding som prosessert.".also {
                 logger.error(it)
                 sikkerLogger.error(it)
             }

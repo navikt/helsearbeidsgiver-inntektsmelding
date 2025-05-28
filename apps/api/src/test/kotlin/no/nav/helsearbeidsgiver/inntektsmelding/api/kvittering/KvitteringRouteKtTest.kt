@@ -28,9 +28,9 @@ private const val PATH = Routes.PREFIX + Routes.KVITTERING
 
 class KvitteringRouteKtTest : ApiTest() {
     @Test
-    fun `skal ikke godta tom uuid`() =
+    fun `gir 400-feil ved manglende forespørsel-ID`() =
         testApi {
-            val response = get("$PATH?uuid=")
+            val response = get(PATH.substringBeforeLast("/"))
             assertEquals(HttpStatusCode.BadRequest, response.status)
 
             verify(exactly = 0) {
@@ -39,9 +39,9 @@ class KvitteringRouteKtTest : ApiTest() {
         }
 
     @Test
-    fun `skal ikke godta ugyldig uuid`() =
+    fun `gir 400-feil ved ugyldig forespørsel-ID`() =
         testApi {
-            val response = get("$PATH?uuid=ikke-en-uuid")
+            val response = get(PATH.substringBeforeLast("/") + "/ugyldig-forespoersel-id")
             assertEquals(HttpStatusCode.BadRequest, response.status)
 
             verify(exactly = 0) {
@@ -50,7 +50,7 @@ class KvitteringRouteKtTest : ApiTest() {
         }
 
     @Test
-    fun `skal godta gyldig uuid`() =
+    fun `skal godta gyldig forespørsel-ID`() =
         testApi {
             val forespoerselId = UUID.randomUUID()
 
@@ -63,7 +63,7 @@ class KvitteringRouteKtTest : ApiTest() {
                         .toString(),
                 )
 
-            val response = get(PATH + "?uuid=" + forespoerselId)
+            val response = get(PATH.replaceFirst("{forespoerselId}", forespoerselId.toString()))
 
             assertEquals(HttpStatusCode.OK, response.status)
 

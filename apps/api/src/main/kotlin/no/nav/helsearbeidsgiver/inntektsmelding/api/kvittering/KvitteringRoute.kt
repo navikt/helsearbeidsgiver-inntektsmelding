@@ -54,7 +54,7 @@ fun Route.kvittering(
 ) {
     val redisPoller = RedisStore(redisConnection, RedisPrefix.Kvittering).let(::RedisPoller)
 
-    get(Routes.KVITTERING) {
+    get(Routes.KVITTERING_GAMMEL) {
         val kontekstId = UUID.randomUUID()
 
         val forespoerselId =
@@ -109,6 +109,62 @@ fun Route.kvittering(
                     logger.error("Fikk timeout for forespørselId: $forespoerselId")
                     respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
                 }
+            }
+        }
+    }
+
+    get(Routes.KVITTERING) {
+        val kontekstId = UUID.randomUUID()
+
+        val forespoerselId =
+            call.parameters["forespoerselId"]
+                ?.runCatching(UUID::fromString)
+                ?.getOrNull()
+
+        if (forespoerselId == null) {
+            "Ugyldig parameter: ${call.parameters["forespoerselId"]}".let {
+                logger.warn(it)
+                respondBadRequest(it, String.serializer())
+            }
+        } else {
+            logger.info("Henter data for forespørselId: $forespoerselId")
+            try {
+                tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
+
+                producer.sendRequestEvent(kontekstId, forespoerselId)
+                val resultatJson = redisPoller.hent(kontekstId)
+
+                val resultat = resultatJson.success?.fromJson(KvitteringResultat.serializer())
+                if (resultat != null) {
+                    sikkerLogger.info("Hentet kvittering for '$forespoerselId'.\n${resultatJson.success?.toPretty()}")
+
+                    when (val lagret = resultat.lagret) {
+                        is LagretInntektsmelding.Skjema -> {
+                            val skjemaResponse = lagResponse(resultat.forespoersel, resultat.sykmeldtNavn, resultat.orgNavn, lagret)
+                            respondOk(skjemaResponse, KvitteringResponse.serializer())
+                        }
+                        is LagretInntektsmelding.Ekstern -> {
+                            val eksternResponse = lagResponse(lagret)
+                            respondOk(eksternResponse, KvitteringResponse.serializer())
+                        }
+                        null ->
+                            respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
+                    }
+                } else {
+                    val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
+                    respondInternalServerError(feilmelding, String.serializer())
+                }
+            } catch (e: ManglerAltinnRettigheterException) {
+                respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
+            } catch (e: SerializationException) {
+                "Kunne ikke parse json-resultat for forespørselId: $forespoerselId".let {
+                    logger.error(it)
+                    sikkerLogger.error(it, e)
+                    respondInternalServerError(JsonErrorResponse(forespoerselId.toString()), JsonErrorResponse.serializer())
+                }
+            } catch (_: RedisPollerTimeoutException) {
+                logger.error("Fikk timeout for forespørselId: $forespoerselId")
+                respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
             }
         }
     }

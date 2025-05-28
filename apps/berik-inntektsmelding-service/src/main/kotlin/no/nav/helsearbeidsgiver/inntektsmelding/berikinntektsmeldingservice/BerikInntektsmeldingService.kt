@@ -221,6 +221,7 @@ class BerikInntektsmeldingService(
             Log.klasse(this@BerikInntektsmeldingService),
             Log.event(eventName),
             Log.kontekstId(kontekstId),
+            Log.inntektsmeldingId(inntektsmeldingId),
             Log.forespoerselId(skjema.forespoerselId),
         )
 

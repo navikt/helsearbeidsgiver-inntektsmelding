@@ -272,7 +272,6 @@ private object Mock {
                     maanedOversikt = inntekt.map { InntektPerMaaned(it.key, it.value) },
                 ),
             forespoersel = forespoersel,
-            feil = emptyMap(),
         )
 }
 

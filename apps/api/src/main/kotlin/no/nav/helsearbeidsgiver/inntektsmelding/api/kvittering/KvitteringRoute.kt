@@ -122,7 +122,7 @@ fun Route.kvittering(
                 ?.getOrNull()
 
         if (forespoerselId == null) {
-            "Ugyldig parameter: ${call.parameters["uuid"]}".let {
+            "Ugyldig parameter: ${call.parameters["forespoerselId"]}".let {
                 logger.warn(it)
                 respondBadRequest(it, String.serializer())
             }

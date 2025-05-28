@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.trengerservice
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -35,8 +36,6 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 private const val UNDEFINED_FELT = "{}"
-private const val UKJENT_NAVN = "Ukjent navn"
-private const val UKJENT_VIRKSOMHET = "Ukjent virksomhet"
 
 data class Steg0(
     val kontekstId: UUID,
@@ -181,11 +180,9 @@ class HentForespoerselService(
         steg2: Steg2,
     ) {
         if (steg2 is Steg2.Komplett) {
-            val sykmeldtNavn = steg2.personer[steg1.forespoersel.fnr]?.navn ?: UKJENT_NAVN
-            val avsenderNavn = steg2.personer[steg0.avsenderFnr]?.navn ?: UKJENT_NAVN
-            val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr] ?: UKJENT_VIRKSOMHET
-
-            val feil = redisStore.lesAlleFeil(steg0.kontekstId)
+            val sykmeldtNavn = steg2.personer[steg1.forespoersel.fnr]?.navn
+            val avsenderNavn = steg2.personer[steg0.avsenderFnr]?.navn
+            val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr]
 
             val resultJson =
                 ResultJson(
@@ -196,7 +193,6 @@ class HentForespoerselService(
                             orgNavn = orgNavn,
                             inntekt = steg2.inntekt,
                             forespoersel = steg1.forespoersel,
-                            feil = feil,
                         ).toJson(HentForespoerselResultat.serializer()),
                 )
 
@@ -212,40 +208,16 @@ class HentForespoerselService(
 
         val overkommeligFeil =
             when (utloesendeBehov) {
-                BehovType.HENT_VIRKSOMHET_NAVN ->
-                    Datafeil(
-                        Key.VIRKSOMHETER,
-                        "Vi klarte ikke å hente navn på virksomhet.",
-                        // Lesing av virksomhetsnavn bruker allerede defaults, så trenger bare map-struktur her
-                        emptyMap<String, String>().toJson(),
-                    )
-
-                BehovType.HENT_PERSONER ->
-                    Datafeil(
-                        Key.PERSONER,
-                        "Vi klarte ikke å hente navn på personer.",
-                        // Lesing av personer bruker allerede defaults, så trenger bare map-struktur her
-                        emptyMap<Fnr, Person>().toJson(personMapSerializer),
-                    )
-
-                BehovType.HENT_INNTEKT ->
-                    Datafeil(
-                        Key.INNTEKT,
-                        "Vi har problemer med å hente inntektsopplysninger. Du kan legge inn beregnet månedsinntekt manuelt, eller prøv igjen senere.",
-                        UNDEFINED_FELT.toJson(),
-                    )
-
-                else ->
-                    null
+                BehovType.HENT_VIRKSOMHET_NAVN -> Key.VIRKSOMHETER to JsonObject(emptyMap())
+                BehovType.HENT_PERSONER -> Key.PERSONER to JsonObject(emptyMap())
+                BehovType.HENT_INNTEKT -> Key.INNTEKT to UNDEFINED_FELT.toJson()
+                else -> null
             }
 
         if (overkommeligFeil != null) {
-            redisStore.skrivFeil(fail.kontekstId, overkommeligFeil.key, overkommeligFeil.feilmelding)
-            redisStore.skrivMellomlagring(fail.kontekstId, overkommeligFeil.key, overkommeligFeil.defaultVerdi)
+            redisStore.skrivMellomlagring(fail.kontekstId, overkommeligFeil.first, overkommeligFeil.second)
 
-            val meldingMedDefault =
-                mapOf(overkommeligFeil.key to overkommeligFeil.defaultVerdi)
-                    .plus(melding)
+            val meldingMedDefault = mapOf(overkommeligFeil).plus(melding)
 
             onData(meldingMedDefault)
         } else {
@@ -282,9 +254,3 @@ class HentForespoerselService(
         }
     }
 }
-
-private data class Datafeil(
-    val key: Key,
-    val feilmelding: String,
-    val defaultVerdi: JsonElement,
-)

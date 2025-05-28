@@ -8,6 +8,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -84,7 +85,6 @@ class HentForespoerselServiceTest :
             testRapid.inspektør.size shouldBeExactly 4
 
             verify {
-                mockRedis.store.lesAlleFeil(kontekstId)
                 mockRedis.store.skrivResultat(
                     kontekstId,
                     ResultJson(
@@ -106,26 +106,19 @@ class HentForespoerselServiceTest :
             testRapid.inspektør.size shouldBeExactly 4
 
             verify {
-                mockRedis.store.lesAlleFeil(kontekstId)
-                mockRedis.store.skrivFeil(kontekstId, any(), any())
-                mockRedis.store.skrivMellomlagring(kontekstId, any(), any())
+                mockRedis.store.skrivMellomlagring(kontekstId, Key.VIRKSOMHETER, JsonObject(emptyMap()))
+                mockRedis.store.skrivMellomlagring(kontekstId, Key.PERSONER, JsonObject(emptyMap()))
+                mockRedis.store.skrivMellomlagring(kontekstId, Key.INNTEKT, "{}".toJson())
                 mockRedis.store.skrivResultat(
                     kontekstId,
                     ResultJson(
                         success =
                             Mock.resultat
                                 .copy(
-                                    sykmeldtNavn = "Ukjent navn",
-                                    avsenderNavn = "Ukjent navn",
-                                    orgNavn = "Ukjent virksomhet",
+                                    sykmeldtNavn = null,
+                                    avsenderNavn = null,
+                                    orgNavn = null,
                                     inntekt = null,
-                                    feil =
-                                        mapOf(
-                                            Key.VIRKSOMHETER to "Vi klarte ikke å hente navn på virksomhet.",
-                                            Key.PERSONER to "Vi klarte ikke å hente navn på personer.",
-                                            Key.INNTEKT to
-                                                "Vi har problemer med å hente inntektsopplysninger. Du kan legge inn beregnet månedsinntekt manuelt, eller prøv igjen senere.",
-                                        ),
                                 ).toJson(HentForespoerselResultat.serializer()),
                     ),
                 )
@@ -166,7 +159,6 @@ private object Mock {
                 mockForespoersel().copy(
                     fnr = sykmeldt.fnr,
                 ),
-            feil = emptyMap(),
         )
 
     fun steg0(kontekstId: UUID): Map<Key, JsonElement> =
@@ -181,9 +173,7 @@ private object Mock {
         )
 
     fun steg1(kontekstId: UUID): Map<Key, JsonElement> =
-        mapOf(
-            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.KONTEKST_ID to kontekstId.toJson(),
+        steg0(kontekstId).plus(
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_SVAR to resultat.forespoersel.toJson(Forespoersel.serializer()),
@@ -191,9 +181,7 @@ private object Mock {
         )
 
     fun steg2(kontekstId: UUID): Map<Key, JsonElement> =
-        mapOf(
-            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.KONTEKST_ID to kontekstId.toJson(),
+        steg0(kontekstId).plus(
             Key.DATA to
                 mapOf(
                     Key.VIRKSOMHETER to mapOf(resultat.forespoersel.orgnr to orgNavn).toJson(orgMapSerializer),

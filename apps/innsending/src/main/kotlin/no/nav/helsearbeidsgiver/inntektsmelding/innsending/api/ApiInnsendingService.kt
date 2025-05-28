@@ -165,6 +165,7 @@ class ApiInnsendingService(
             Log.klasse(this@ApiInnsendingService),
             Log.event(eventName),
             Log.kontekstId(kontekstId),
+            Log.inntektsmeldingId(innsending.innsendingId),
             Log.forespoerselId(innsending.skjema.forespoerselId),
         )
 

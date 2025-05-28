@@ -160,7 +160,11 @@ private suspend fun hentForespoersel(
 
     val arbeidsgiverFnr = request.lesFnrFraAuthToken()
 
-    producer.sendRequestEvent(kontekstId, forespoerselId, arbeidsgiverFnr)
+    producer.sendRequestEvent(
+        kontekstId = kontekstId,
+        forespoerselId = forespoerselId,
+        arbeidsgiverFnr = arbeidsgiverFnr,
+    )
 
     val resultatJson =
         try {

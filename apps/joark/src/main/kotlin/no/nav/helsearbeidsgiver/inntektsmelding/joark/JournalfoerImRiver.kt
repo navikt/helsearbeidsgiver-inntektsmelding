@@ -5,6 +5,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender
 import no.nav.helsearbeidsgiver.dokarkiv.domene.GjelderPerson
+import no.nav.helsearbeidsgiver.dokarkiv.domene.Kanal
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -131,6 +132,7 @@ class JournalfoerImRiver(
                     dokumenter = tilDokumenter(inntektsmelding),
                     eksternReferanseId = "ARI-${inntektsmelding.id}",
                     callId = "callId_${inntektsmelding.id}",
+                    kanal = Kanal.valueOf(inntektsmelding.type.kanal().name),
                 )
             }
 

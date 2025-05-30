@@ -58,7 +58,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         imRepository.oppdaterMedInntektsmelding(tidligereInntektsmelding)
 
         coEvery {
-            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
+            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
         } returns
             OpprettOgFerdigstillResponse(
                 journalpostId = "journalpost-id-sukkerspinn",
@@ -157,7 +157,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         imRepository.oppdaterMedInntektsmelding(tidligereInntektsmelding)
 
         coEvery {
-            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
+            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
         } returns
             OpprettOgFerdigstillResponse(
                 journalpostId = "journalpost-id-granateple",

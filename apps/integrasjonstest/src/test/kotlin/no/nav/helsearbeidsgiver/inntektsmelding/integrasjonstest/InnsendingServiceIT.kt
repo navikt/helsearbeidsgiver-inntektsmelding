@@ -55,7 +55,7 @@ class InnsendingServiceIT : EndToEndTest() {
         )
 
         coEvery {
-            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
+            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
         } returns
             OpprettOgFerdigstillResponse(
                 journalpostId = "journalpost-id-sukkerspinn",

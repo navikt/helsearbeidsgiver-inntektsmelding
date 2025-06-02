@@ -11,10 +11,11 @@ import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.Inntekt
 import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.inntektMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.utils.gjennomsnitt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
@@ -45,39 +46,24 @@ class InntektRouteKtTest : ApiTest() {
                     skjaeringstidspunkt = 17.april(2024),
                 )
             val inntekt =
-                Inntekt(
-                    maanedOversikt =
-                        listOf(
-                            InntektPerMaaned(
-                                maaned = mars(2024),
-                                inntekt = 33330.0,
-                            ),
-                            InntektPerMaaned(
-                                maaned = februar(2024),
-                                inntekt = 22220.0,
-                            ),
-                            InntektPerMaaned(
-                                maaned = januar(2024),
-                                inntekt = 11110.0,
-                            ),
-                        ),
+                mapOf(
+                    mars(2024) to 33330.0,
+                    februar(2024) to 22220.0,
+                    januar(2024) to 11110.0,
                 )
             val forventetResponse =
                 InntektResponse(
                     gjennomsnitt = inntekt.gjennomsnitt(),
-                    historikk =
-                        inntekt.maanedOversikt.associate {
-                            it.maaned to it.inntekt
-                        },
+                    historikk = inntekt,
                     bruttoinntekt = inntekt.gjennomsnitt(),
-                    tidligereInntekter = inntekt.maanedOversikt,
+                    tidligereInntekter = inntekt.map { InntektPerMaaned(it.key, it.value) },
                 )
 
             coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     ResultJson(
-                        success = inntekt.toJson(Inntekt.serializer()),
+                        success = inntekt.toJson(inntektMapSerializer),
                     ).toJson()
                         .toString(),
                 )

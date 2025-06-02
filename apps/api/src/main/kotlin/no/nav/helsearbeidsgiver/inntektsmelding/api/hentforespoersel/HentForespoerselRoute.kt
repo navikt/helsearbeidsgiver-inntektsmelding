@@ -7,6 +7,7 @@ import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.HentForespoerselResultat
+import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.Producer
@@ -133,15 +134,12 @@ private fun HentForespoerselResultat.toResponse(): HentForespoerselResponse =
         egenmeldingsperioder = forespoersel.egenmeldingsperioder,
         sykmeldingsperioder = forespoersel.sykmeldingsperioder,
         bestemmendeFravaersdag = forespoersel.forslagBestemmendeFravaersdag(),
-        eksternInntektsdato = forespoersel.eksternBestemmendeFravaersdag(),
+        eksternInntektsdato = forespoersel.eksternInntektsdato(),
         inntekt =
             inntekt?.let {
                 Inntekt(
                     gjennomsnitt = it.gjennomsnitt(),
-                    historikk =
-                        it.maanedOversikt.associate { inntektPerMaaned ->
-                            inntektPerMaaned.maaned to inntektPerMaaned.inntekt
-                        },
+                    historikk = it,
                 )
             },
         forespurtData = forespoersel.forespurtData,
@@ -153,7 +151,7 @@ private fun HentForespoerselResultat.toResponse(): HentForespoerselResponse =
         identitetsnummer = forespoersel.fnr.verdi,
         orgnrUnderenhet = forespoersel.orgnr.verdi,
         fravaersperioder = forespoersel.sykmeldingsperioder,
-        eksternBestemmendeFravaersdag = forespoersel.eksternBestemmendeFravaersdag(),
+        eksternBestemmendeFravaersdag = forespoersel.eksternInntektsdato(),
         bruttoinntekt = inntekt?.gjennomsnitt(),
-        tidligereinntekter = inntekt?.maanedOversikt.orEmpty(),
+        tidligereinntekter = inntekt?.map { InntektPerMaaned(it.key, it.value) }.orEmpty(),
     )

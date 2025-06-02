@@ -5,17 +5,18 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
-import no.nav.helsearbeidsgiver.felles.domene.Inntekt
+import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
+import no.nav.helsearbeidsgiver.felles.json.inntektMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.utils.gjennomsnitt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -55,18 +56,15 @@ fun Route.inntektRoute(
             val resultatJson = redisPoller.hent(kontekstId)
             sikkerLogger.info("Fikk inntektresultat:\n$resultatJson")
 
-            val resultat = resultatJson.success?.fromJson(Inntekt.serializer())
+            val resultat = resultatJson.success?.fromJson(inntektMapSerializer)
             if (resultat != null) {
                 val response =
                     InntektResponse(
                         gjennomsnitt = resultat.gjennomsnitt(),
-                        historikk =
-                            resultat.maanedOversikt.associate { inntektPerMaaned ->
-                                inntektPerMaaned.maaned to inntektPerMaaned.inntekt
-                            },
+                        historikk = resultat,
                         bruttoinntekt = resultat.gjennomsnitt(),
-                        tidligereInntekter = resultat.maanedOversikt,
-                    ).toJson(InntektResponse.serializer().nullable)
+                        tidligereInntekter = resultat.map { InntektPerMaaned(it.key, it.value) },
+                    ).toJson(InntektResponse.serializer())
 
                 call.respond(HttpStatusCode.OK, response)
             } else {

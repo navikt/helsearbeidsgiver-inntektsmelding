@@ -1,16 +1,15 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.inntekt
 
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.Inntekt
-import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
+import no.nav.helsearbeidsgiver.felles.json.inntektMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
@@ -77,8 +76,6 @@ class HentInntektRiver(
         val inntekt =
             listOf(fom, middle, tom)
                 .associateWith { inntektPerMaaned[it] }
-                .map { (maaned, inntekt) -> InntektPerMaaned(maaned, inntekt) }
-                .let(::Inntekt)
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
@@ -86,7 +83,7 @@ class HentInntektRiver(
             Key.DATA to
                 data
                     .plus(
-                        Key.INNTEKT to inntekt.toJson(Inntekt.serializer()),
+                        Key.INNTEKT to inntekt.toJson(inntektMapSerializer),
                     ).toJson(),
         )
     }
@@ -127,7 +124,7 @@ class HentInntektRiver(
 
         sikkerLogger.info("Henter inntekt for $fnr i perioden $fom til $tom (callId: $callId).")
 
-        return Metrics.inntektRequest.recordTime(inntektKlient::hentInntektPerOrgnrOgMaaned) {
+        return runBlocking {
             inntektKlient.hentInntektPerOrgnrOgMaaned(
                 fnr = fnr.verdi,
                 fom = fom,

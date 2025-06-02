@@ -249,7 +249,7 @@ class ForespoerselTest :
             }
         }
 
-        context(Forespoersel::eksternBestemmendeFravaersdag.name) {
+        context(Forespoersel::eksternInntektsdato.name) {
             test("gir minste bestemmende fraværsdag blant andre orgnr (når eget orgnr tilstede)") {
                 val orgnr = Orgnr.genererGyldig()
 
@@ -264,7 +264,7 @@ class ForespoerselTest :
                             ),
                     )
 
-                forespoersel.eksternBestemmendeFravaersdag() shouldBe 19.september
+                forespoersel.eksternInntektsdato() shouldBe 19.september
             }
 
             test("gir minste bestemmende fraværsdag blant andre orgnr (når eget orgnr mangler)") {
@@ -278,7 +278,7 @@ class ForespoerselTest :
                             ),
                     )
 
-                forespoersel.eksternBestemmendeFravaersdag() shouldBe 12.juli
+                forespoersel.eksternInntektsdato() shouldBe 12.juli
             }
 
             test("gir 'null' dersom bestemmende fraværsdag kun er tilstede for eget orgnr") {
@@ -293,7 +293,7 @@ class ForespoerselTest :
                             ),
                     )
 
-                forespoersel.eksternBestemmendeFravaersdag().shouldBeNull()
+                forespoersel.eksternInntektsdato().shouldBeNull()
             }
 
             test("gir 'null' dersom ingen bestemmende fraværsdager er tilstede (heller ikke for eget orgnr)") {
@@ -302,7 +302,7 @@ class ForespoerselTest :
                         bestemmendeFravaersdager = emptyMap(),
                     )
 
-                forespoersel.eksternBestemmendeFravaersdag().shouldBeNull()
+                forespoersel.eksternInntektsdato().shouldBeNull()
             }
         }
     })

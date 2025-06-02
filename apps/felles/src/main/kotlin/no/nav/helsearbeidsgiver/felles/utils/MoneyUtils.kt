@@ -14,12 +14,12 @@ fun Map<YearMonth, Double?>.gjennomsnitt(): Double =
     }
 
 /** Forhindrer avrundingsfeil. */
-fun List<Double>.sumMoney(): Double =
+internal fun List<Double>.sumMoney(): Double =
     sumOf(Double::toBigDecimal)
         .toDouble()
 
 /** Forhindrer avrundingsfeil. */
-fun Double.divideMoney(divisor: Int): Double =
+internal fun Double.divideMoney(divisor: Int): Double =
     toBigDecimal()
         .divide(divisor.toBigDecimal(), 2, RoundingMode.HALF_UP)
         .toDouble()

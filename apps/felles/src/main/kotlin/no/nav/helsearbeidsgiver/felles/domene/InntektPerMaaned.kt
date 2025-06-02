@@ -8,10 +8,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer
 import java.time.YearMonth
 
 @Serializable
-data class HentForespoerselResultat(
-    val sykmeldtNavn: String?,
-    val avsenderNavn: String?,
-    val orgNavn: String?,
-    val inntekt: Map<YearMonth, Double?>?,
-    val forespoersel: Forespoersel,
+data class InntektPerMaaned(
+    val maaned: YearMonth,
+    val inntekt: Double?,
 )

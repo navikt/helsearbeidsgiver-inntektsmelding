@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
+import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -30,6 +31,12 @@ val personMapSerializer =
     MapSerializer(
         Fnr.serializer(),
         Person.serializer(),
+    )
+
+val inntektMapSerializer =
+    MapSerializer(
+        YearMonthSerializer,
+        Double.serializer().nullable,
     )
 
 fun EventName.toJson(): JsonElement = toJson(EventName.serializer())

@@ -9,9 +9,9 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.HentForespoerselResultat
-import no.nav.helsearbeidsgiver.felles.domene.Inntekt
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.inntektMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
@@ -24,7 +24,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -33,9 +32,8 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import java.time.YearMonth
 import java.util.UUID
-
-private const val UNDEFINED_FELT = "{}"
 
 data class Steg0(
     val kontekstId: UUID,
@@ -51,7 +49,7 @@ sealed class Steg2 {
     data class Komplett(
         val orgnrMedNavn: Map<Orgnr, String>,
         val personer: Map<Fnr, Person>,
-        val inntekt: Inntekt?,
+        val inntekt: Map<YearMonth, Double?>,
     ) : Steg2()
 
     data object Delvis : Steg2()
@@ -82,10 +80,7 @@ class HentForespoerselService(
     override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 {
         val orgnrMedNavn = runCatching { Key.VIRKSOMHETER.les(orgMapSerializer, melding) }
         val personer = runCatching { Key.PERSONER.les(personMapSerializer, melding) }
-        val inntekt =
-            runCatching {
-                melding[Key.INNTEKT].toString().takeIf { it != "\"$UNDEFINED_FELT\"" }?.fromJson(Inntekt.serializer())
-            }
+        val inntekt = runCatching { Key.INNTEKT.les(inntektMapSerializer, melding) }
 
         val results = listOf(orgnrMedNavn, personer, inntekt)
 
@@ -191,7 +186,7 @@ class HentForespoerselService(
                             sykmeldtNavn = sykmeldtNavn,
                             avsenderNavn = avsenderNavn,
                             orgNavn = orgNavn,
-                            inntekt = steg2.inntekt,
+                            inntekt = steg2.inntekt.ifEmpty { null },
                             forespoersel = steg1.forespoersel,
                         ).toJson(HentForespoerselResultat.serializer()),
                 )
@@ -206,18 +201,20 @@ class HentForespoerselService(
     ) {
         val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding)
 
-        val overkommeligFeil =
+        val overkommeligFeilKey =
             when (utloesendeBehov) {
-                BehovType.HENT_VIRKSOMHET_NAVN -> Key.VIRKSOMHETER to JsonObject(emptyMap())
-                BehovType.HENT_PERSONER -> Key.PERSONER to JsonObject(emptyMap())
-                BehovType.HENT_INNTEKT -> Key.INNTEKT to UNDEFINED_FELT.toJson()
+                BehovType.HENT_VIRKSOMHET_NAVN -> Key.VIRKSOMHETER
+                BehovType.HENT_PERSONER -> Key.PERSONER
+                BehovType.HENT_INNTEKT -> Key.INNTEKT
                 else -> null
             }
 
-        if (overkommeligFeil != null) {
-            redisStore.skrivMellomlagring(fail.kontekstId, overkommeligFeil.first, overkommeligFeil.second)
+        if (overkommeligFeilKey != null) {
+            val tomtMap = JsonObject(emptyMap())
 
-            val meldingMedDefault = mapOf(overkommeligFeil).plus(melding)
+            redisStore.skrivMellomlagring(fail.kontekstId, overkommeligFeilKey, tomtMap)
+
+            val meldingMedDefault = mapOf(overkommeligFeilKey to tomtMap).plus(melding)
 
             onData(meldingMedDefault)
         } else {

@@ -22,7 +22,6 @@ import no.nav.helsearbeidsgiver.felles.domene.ForrigeInntekt
 import no.nav.helsearbeidsgiver.felles.domene.ForslagInntekt
 import no.nav.helsearbeidsgiver.felles.domene.ForslagRefusjon
 import no.nav.helsearbeidsgiver.felles.domene.HentForespoerselResultat
-import no.nav.helsearbeidsgiver.felles.domene.Inntekt
 import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -235,13 +234,6 @@ class HentForespoerselRouteKtTest : ApiTest() {
 private object Mock {
     private val orgnr = Orgnr.genererGyldig()
 
-    private val inntekt =
-        mapOf(
-            februar(2022) to 2.0,
-            januar(2022) to 1.0,
-            desember(2022) to 3.0,
-        )
-
     val forespoersel =
         Forespoersel(
             orgnr = orgnr,
@@ -268,8 +260,10 @@ private object Mock {
             avsenderNavn = "Arbeidsgiver",
             orgNavn = "Norge AS",
             inntekt =
-                Inntekt(
-                    maanedOversikt = inntekt.map { InntektPerMaaned(it.key, it.value) },
+                mapOf(
+                    februar(2022) to 2.0,
+                    januar(2022) to 1.0,
+                    desember(2022) to 3.0,
                 ),
             forespoersel = forespoersel,
         )
@@ -296,8 +290,8 @@ fun HentForespoerselResultat.tilResponseJson(): String =
         "egenmeldingsperioder": [${forespoersel.egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
         "sykmeldingsperioder": [${forespoersel.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
         "bestemmendeFravaersdag": "${forespoersel.forslagBestemmendeFravaersdag()}",
-        "eksternInntektsdato": ${forespoersel.eksternBestemmendeFravaersdag().jsonStrOrNull()},
-        "inntekt": ${inntekt?.maanedOversikt?.associate { it.maaned to it.inntekt }?.hardcodedJson()},
+        "eksternInntektsdato": ${forespoersel.eksternInntektsdato().jsonStrOrNull()},
+        "inntekt": ${inntekt?.hardcodedJson()},
         "forespurtData": ${forespoersel.forespurtData.hardcodedJson()},
         "erBesvart": ${forespoersel.erBesvart},
         "navn": ${sykmeldtNavn.jsonStrOrNull()},
@@ -306,10 +300,9 @@ fun HentForespoerselResultat.tilResponseJson(): String =
         "identitetsnummer": "${forespoersel.fnr}",
         "orgnrUnderenhet": "${forespoersel.orgnr}",
         "fravaersperioder": [${forespoersel.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
-        "eksternBestemmendeFravaersdag": ${forespoersel.eksternBestemmendeFravaersdag().jsonStrOrNull()},
+        "eksternBestemmendeFravaersdag": ${forespoersel.eksternInntektsdato().jsonStrOrNull()},
         "bruttoinntekt": ${inntekt?.gjennomsnitt()},
-        "tidligereinntekter": [${inntekt?.maanedOversikt.orEmpty().joinToString(transform = InntektPerMaaned::hardcodedJson)}]
-
+        "tidligereinntekter": [${inntekt?.map { InntektPerMaaned(it.key, it.value) }.orEmpty().joinToString(transform = InntektPerMaaned::hardcodedJson)}]
     }
     """.removeJsonWhitespace()
 

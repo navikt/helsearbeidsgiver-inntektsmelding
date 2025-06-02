@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.felles
 
-import no.nav.helsearbeidsgiver.felles.domene.Inntekt
-import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
+import no.nav.helsearbeidsgiver.felles.utils.gjennomsnitt
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.YearMonth
@@ -69,17 +68,13 @@ class InntektTest {
         val inntekt = mockInntekt(*maanedInntekterPairs)
 
         val total = 2.2
-        val forventetSnitt = total / inntekt.maanedOversikt.size
+        val forventetSnitt = total / inntekt.size
 
         assertEquals(forventetSnitt, inntekt.gjennomsnitt())
     }
 }
 
-private fun mockInntekt(vararg maanedInntenkterPairs: Pair<Int, Double?>): Inntekt =
-    maanedInntenkterPairs
-        .map { (maanedNummer, inntekter) ->
-            InntektPerMaaned(
-                maaned = YearMonth.of(2018, maanedNummer),
-                inntekt = inntekter,
-            )
-        }.let(::Inntekt)
+private fun mockInntekt(vararg maanedInntenkterPairs: Pair<Int, Double?>): Map<YearMonth, Double?> =
+    maanedInntenkterPairs.associate { (maanedNummer, inntekt) ->
+        YearMonth.of(2018, maanedNummer) to inntekt
+    }

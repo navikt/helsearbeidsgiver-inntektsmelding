@@ -5,8 +5,9 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender
 import no.nav.helsearbeidsgiver.dokarkiv.domene.GjelderPerson
-import no.nav.helsearbeidsgiver.dokarkiv.domene.Kanal
+import no.nav.helsearbeidsgiver.dokarkiv.domene.Kanal as DokarkivKanal
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Kanal
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -118,6 +119,8 @@ class JournalfoerImRiver(
             sikkerLogger.info("$it Gjelder IM:\n$inntektsmelding")
         }
 
+        val dokarkivKanal = inntektsmelding.type.kanal().tilDokarkivKanal()
+
         val response =
             runBlocking {
                 dokArkivClient.opprettOgFerdigstillJournalpost(
@@ -132,7 +135,7 @@ class JournalfoerImRiver(
                     dokumenter = tilDokumenter(inntektsmelding),
                     eksternReferanseId = "ARI-${inntektsmelding.id}",
                     callId = "callId_${inntektsmelding.id}",
-                    kanal = Kanal.valueOf(inntektsmelding.type.kanal().name),
+                    kanal = dokarkivKanal,
                 )
             }
 
@@ -149,5 +152,10 @@ class JournalfoerImRiver(
         }
 
         return response.journalpostId
+    }
+
+    private fun Kanal.tilDokarkivKanal(): DokarkivKanal = when (this) {
+        Kanal.HR_SYSTEM_API -> DokarkivKanal.HR_SYSTEM_API
+        else -> DokarkivKanal.NAV_NO
     }
 }

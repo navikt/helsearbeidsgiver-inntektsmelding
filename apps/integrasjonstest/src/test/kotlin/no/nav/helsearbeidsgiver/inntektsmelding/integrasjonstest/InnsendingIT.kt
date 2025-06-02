@@ -55,7 +55,7 @@ class InnsendingIT : EndToEndTest() {
         )
 
         coEvery {
-            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
+            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
         } returns
             OpprettOgFerdigstillResponse(
                 journalpostId = Mock.JOURNALPOST_ID,

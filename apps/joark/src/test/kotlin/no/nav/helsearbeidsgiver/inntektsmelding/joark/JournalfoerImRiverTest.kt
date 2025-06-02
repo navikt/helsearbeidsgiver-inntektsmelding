@@ -101,7 +101,7 @@ class JournalfoerImRiverTest :
             }
         }
 
-        test("oppretter journalpost og publiserer melding for å lagre journalpost-ID ved eksternInntektsmelding") {
+        test("oppretter journalpost og publiserer melding for å lagre journalpost-ID ved inntektsmelding fra LPS-API") {
             val innkommendeEvent = EventName.INNTEKTSMELDING_MOTTATT
             val inntektsmelding = Mock.eksternInntektsmelding
             val inntektsmeldingKey = Key.INNTEKTSMELDING

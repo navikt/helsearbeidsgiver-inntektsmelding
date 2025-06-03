@@ -11,7 +11,6 @@ import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.inntektMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -55,8 +54,6 @@ class InntektRouteKtTest : ApiTest() {
                 InntektResponse(
                     gjennomsnitt = inntekt.gjennomsnitt(),
                     historikk = inntekt,
-                    bruttoinntekt = inntekt.gjennomsnitt(),
-                    tidligereInntekter = inntekt.map { InntektPerMaaned(it.key, it.value) },
                 )
 
             coEvery { mockRedisConnection.get(any()) } returnsMany

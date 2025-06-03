@@ -21,7 +21,6 @@ import no.nav.helsearbeidsgiver.felles.domene.ForrigeInntekt
 import no.nav.helsearbeidsgiver.felles.domene.ForslagInntekt
 import no.nav.helsearbeidsgiver.felles.domene.ForslagRefusjon
 import no.nav.helsearbeidsgiver.felles.domene.HentForespoerselResultat
-import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
@@ -279,16 +278,7 @@ fun HentForespoerselResultat.tilResponseJson(): String =
         "eksternInntektsdato": ${forespoersel.eksternInntektsdato().jsonStrOrNull()},
         "inntekt": ${inntekt?.hardcodedJson()},
         "forespurtData": ${forespoersel.forespurtData.hardcodedJson()},
-        "erBesvart": ${forespoersel.erBesvart},
-        "navn": ${sykmeldtNavn.jsonStrOrNull()},
-        "orgNavn": ${orgNavn.jsonStrOrNull()},
-        "innsenderNavn": ${avsenderNavn.jsonStrOrNull()},
-        "identitetsnummer": "${forespoersel.fnr}",
-        "orgnrUnderenhet": "${forespoersel.orgnr}",
-        "fravaersperioder": [${forespoersel.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
-        "eksternBestemmendeFravaersdag": ${forespoersel.eksternInntektsdato().jsonStrOrNull()},
-        "bruttoinntekt": ${inntekt?.gjennomsnitt()},
-        "tidligereinntekter": [${inntekt?.map { InntektPerMaaned(it.key, it.value) }.orEmpty().joinToString(transform = InntektPerMaaned::hardcodedJson)}]
+        "erBesvart": ${forespoersel.erBesvart}
     }
     """.removeJsonWhitespace()
 
@@ -301,14 +291,6 @@ private fun Map<YearMonth, Double?>.hardcodedJson(): String =
     """
 
 private fun Pair<YearMonth, Double?>.hardcodedJson(): String = "\"$first\": $second"
-
-private fun InntektPerMaaned.hardcodedJson(): String =
-    """
-    {
-        "maaned": "$maaned",
-        "inntekt": $inntekt
-    }
-    """
 
 private fun ForespurtData.hardcodedJson(): String =
     """

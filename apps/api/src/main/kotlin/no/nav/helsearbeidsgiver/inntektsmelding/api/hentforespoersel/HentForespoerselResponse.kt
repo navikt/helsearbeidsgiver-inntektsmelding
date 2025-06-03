@@ -6,7 +6,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.domene.ForespurtData
-import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -25,16 +24,6 @@ data class HentForespoerselResponse(
     val inntekt: Inntekt?,
     val forespurtData: ForespurtData,
     val erBesvart: Boolean,
-    // TODO utdaterte felt, slett etter overgangsperiode i frontend
-    val navn: String?,
-    val orgNavn: String?,
-    val innsenderNavn: String?,
-    val identitetsnummer: String,
-    val orgnrUnderenhet: String,
-    val fravaersperioder: List<Periode>,
-    val eksternBestemmendeFravaersdag: LocalDate?,
-    val bruttoinntekt: Double?,
-    val tidligereinntekter: List<InntektPerMaaned>,
 )
 
 @Serializable

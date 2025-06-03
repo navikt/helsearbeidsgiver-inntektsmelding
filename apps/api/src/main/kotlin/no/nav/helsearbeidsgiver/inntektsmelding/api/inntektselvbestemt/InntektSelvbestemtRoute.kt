@@ -9,7 +9,6 @@ import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
-import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.json.inntektMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.Producer
@@ -62,8 +61,6 @@ fun Route.inntektSelvbestemtRoute(
                     InntektSelvbestemtResponse(
                         gjennomsnitt = resultat.gjennomsnitt(),
                         historikk = resultat,
-                        bruttoinntekt = resultat.gjennomsnitt(),
-                        tidligereInntekter = resultat.map { InntektPerMaaned(it.key, it.value) },
                     ).toJson(InntektSelvbestemtResponse.serializer())
 
                 call.respond(HttpStatusCode.OK, response)

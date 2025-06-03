@@ -11,7 +11,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.HentForespoerselResultat
-import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.Producer
@@ -252,14 +251,4 @@ private fun HentForespoerselResultat.toResponse(): HentForespoerselResponse =
             },
         forespurtData = forespoersel.forespurtData,
         erBesvart = forespoersel.erBesvart,
-        // utdaterte felt
-        navn = sykmeldtNavn,
-        innsenderNavn = avsenderNavn,
-        orgNavn = orgNavn,
-        identitetsnummer = forespoersel.fnr.verdi,
-        orgnrUnderenhet = forespoersel.orgnr.verdi,
-        fravaersperioder = forespoersel.sykmeldingsperioder,
-        eksternBestemmendeFravaersdag = forespoersel.eksternInntektsdato(),
-        bruttoinntekt = inntekt?.gjennomsnitt(),
-        tidligereinntekter = inntekt?.map { InntektPerMaaned(it.key, it.value) }.orEmpty(),
     )

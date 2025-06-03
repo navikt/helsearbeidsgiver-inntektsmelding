@@ -14,7 +14,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
-import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.inntektMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -229,18 +228,8 @@ fun Map<YearMonth, Double>.successResponseJson(): String =
     """
     {
         "gjennomsnitt": ${gjennomsnitt()},
-        "historikk": {${toList().joinToString(transform = Pair<YearMonth, Double?>::hardcodedJson)}},
-        "bruttoinntekt": ${gjennomsnitt()},
-        "tidligereInntekter": [${map { InntektPerMaaned(it.key, it.value) }.joinToString(transform = InntektPerMaaned::hardcodedJson)}]
+        "historikk": {${toList().joinToString(transform = Pair<YearMonth, Double?>::hardcodedJson)}}
     }
     """.removeJsonWhitespace()
 
 private fun Pair<YearMonth, Double?>.hardcodedJson(): String = "\"$first\": $second"
-
-private fun InntektPerMaaned.hardcodedJson(): String =
-    """
-    {
-        "maaned": "$maaned",
-        "inntekt": $inntekt
-    }
-    """

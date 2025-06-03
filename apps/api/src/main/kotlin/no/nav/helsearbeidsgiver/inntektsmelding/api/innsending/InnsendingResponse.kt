@@ -12,7 +12,7 @@ import java.util.UUID
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
 data class InnsendingResponse(
-    var uuid: UUID,
+    val uuid: UUID,
 ) {
     @EncodeDefault
     val forespoerselId: UUID = uuid

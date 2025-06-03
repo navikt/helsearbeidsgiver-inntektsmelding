@@ -7,8 +7,8 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
-import no.nav.helsearbeidsgiver.felles.domene.Inntekt
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.inntektMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
@@ -25,6 +25,7 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.time.LocalDate
+import java.time.YearMonth
 import java.util.UUID
 
 data class Steg0(
@@ -38,7 +39,7 @@ data class Steg1(
 )
 
 data class Steg2(
-    val inntekt: Inntekt,
+    val inntekt: Map<YearMonth, Double?>,
 )
 
 class InntektService(
@@ -64,7 +65,7 @@ class InntektService(
 
     override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 =
         Steg2(
-            inntekt = Key.INNTEKT.les(Inntekt.serializer(), melding),
+            inntekt = Key.INNTEKT.les(inntektMapSerializer, melding),
         )
 
     override fun utfoerSteg0(
@@ -129,7 +130,7 @@ class InntektService(
     ) {
         val resultJson =
             ResultJson(
-                success = steg2.inntekt.toJson(Inntekt.serializer()),
+                success = steg2.inntekt.toJson(inntektMapSerializer),
             )
 
         redisStore.skrivResultat(steg0.kontekstId, resultJson)

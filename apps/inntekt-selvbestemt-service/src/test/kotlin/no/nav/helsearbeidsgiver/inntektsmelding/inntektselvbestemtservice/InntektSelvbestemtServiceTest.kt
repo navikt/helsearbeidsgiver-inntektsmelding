@@ -11,9 +11,8 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.Inntekt
-import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.inntektMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
@@ -64,7 +63,7 @@ class InntektSelvbestemtServiceTest :
                 mockRedisStore.skrivResultat(
                     kontekstId,
                     ResultJson(
-                        success = Mock.inntekt.toJson(Inntekt.serializer()),
+                        success = Mock.inntekt.toJson(inntektMapSerializer),
                     ),
                 )
             }
@@ -100,12 +99,10 @@ class InntektSelvbestemtServiceTest :
 
 private object Mock {
     val inntekt =
-        Inntekt(
-            listOf(
-                InntektPerMaaned(april(2019), 40000.0),
-                InntektPerMaaned(mai(2019), 42000.0),
-                InntektPerMaaned(juni(2019), 44000.0),
-            ),
+        mapOf(
+            april(2019) to 40000.0,
+            mai(2019) to 42000.0,
+            juni(2019) to 44000.0,
         )
 
     val steg0Data =
@@ -117,7 +114,7 @@ private object Mock {
 
     val steg1Data =
         steg0Data.plus(
-            Key.INNTEKT to inntekt.toJson(Inntekt.serializer()),
+            Key.INNTEKT to inntekt.toJson(inntektMapSerializer),
         )
 
     fun melding(

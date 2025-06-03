@@ -23,7 +23,7 @@ data class HentForespoerselResponse(
     val bestemmendeFravaersdag: LocalDate,
     val eksternInntektsdato: LocalDate?,
     val inntekt: Inntekt?,
-    val forespurtData: ForespurtData?,
+    val forespurtData: ForespurtData,
     val erBesvart: Boolean,
     // TODO utdaterte felt, slett etter overgangsperiode i frontend
     val navn: String?,

@@ -14,10 +14,9 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.HentForespoerselResultat
-import no.nav.helsearbeidsgiver.felles.domene.Inntekt
-import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.inntektMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
@@ -105,10 +104,12 @@ class HentForespoerselServiceTest :
 
             testRapid.inspektør.size shouldBeExactly 4
 
+            val tomtMap = JsonObject(emptyMap())
+
             verify {
-                mockRedis.store.skrivMellomlagring(kontekstId, Key.VIRKSOMHETER, JsonObject(emptyMap()))
-                mockRedis.store.skrivMellomlagring(kontekstId, Key.PERSONER, JsonObject(emptyMap()))
-                mockRedis.store.skrivMellomlagring(kontekstId, Key.INNTEKT, "{}".toJson())
+                mockRedis.store.skrivMellomlagring(kontekstId, Key.VIRKSOMHETER, tomtMap)
+                mockRedis.store.skrivMellomlagring(kontekstId, Key.PERSONER, tomtMap)
+                mockRedis.store.skrivMellomlagring(kontekstId, Key.INNTEKT, tomtMap)
                 mockRedis.store.skrivResultat(
                     kontekstId,
                     ResultJson(
@@ -147,13 +148,10 @@ private object Mock {
             avsenderNavn = avsender.navn,
             orgNavn = orgNavn,
             inntekt =
-                Inntekt(
-                    maanedOversikt =
-                        listOf(
-                            InntektPerMaaned(mai(2024), 36000.0),
-                            InntektPerMaaned(juni(2024), 37000.0),
-                            InntektPerMaaned(juli(2024), 38000.0),
-                        ),
+                mapOf(
+                    mai(2024) to 36000.0,
+                    juni(2024) to 37000.0,
+                    juli(2024) to 38000.0,
                 ),
             forespoersel =
                 mockForespoersel().copy(
@@ -190,7 +188,7 @@ private object Mock {
                             sykmeldt.fnr to sykmeldt,
                             avsender.fnr to avsender,
                         ).toJson(personMapSerializer),
-                    Key.INNTEKT to resultat.inntekt.shouldNotBeNull().toJson(Inntekt.serializer()),
+                    Key.INNTEKT to resultat.inntekt.shouldNotBeNull().toJson(inntektMapSerializer),
                 ).toJson(),
         )
 

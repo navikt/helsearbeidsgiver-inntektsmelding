@@ -14,10 +14,11 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
-import no.nav.helsearbeidsgiver.felles.domene.Inntekt
 import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.inntektMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.utils.gjennomsnitt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
@@ -62,7 +63,7 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
             val actualJson = response.bodyAsText()
 
             response.status shouldBe HttpStatusCode.OK
-            actualJson shouldBe Mock.successResponseJson(expectedInntekt)
+            actualJson shouldBe expectedInntekt.successResponseJson()
 
             verifySequence {
                 mockProducer.send(
@@ -203,19 +204,15 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
 private object Mock {
     val request = InntektSelvbestemtRequest(Fnr.genererGyldig(), Orgnr.genererGyldig(), 12.april)
     val inntekt =
-        Inntekt(
-            listOf(
-                InntektPerMaaned(april(2018), 20000.0),
-                InntektPerMaaned(mai(2018), 22000.0),
-                InntektPerMaaned(juni(2018), 24000.0),
-            ),
+        mapOf(
+            april(2018) to 20000.0,
+            mai(2018) to 22000.0,
+            juni(2018) to 24000.0,
         )
 
-    fun successResponseJson(inntekt: Inntekt): String = inntekt.hardcodedJson()
-
-    fun successResult(inntekt: Inntekt): String =
+    fun successResult(inntekt: Map<YearMonth, Double>): String =
         ResultJson(
-            success = inntekt.toJson(Inntekt.serializer()),
+            success = inntekt.toJson(inntektMapSerializer),
         ).toJson()
             .toString()
 
@@ -228,14 +225,13 @@ private object Mock {
     fun emptyResult(): String = ResultJson().toJson().toString()
 }
 
-private fun Inntekt.hardcodedJson(): String =
+fun Map<YearMonth, Double>.successResponseJson(): String =
     """
     {
         "gjennomsnitt": ${gjennomsnitt()},
-        "historikk": {${maanedOversikt.map { it.maaned to it.inntekt }.joinToString(transform = Pair<YearMonth, Double?>::hardcodedJson)}},
+        "historikk": {${toList().joinToString(transform = Pair<YearMonth, Double?>::hardcodedJson)}},
         "bruttoinntekt": ${gjennomsnitt()},
-        "tidligereInntekter": [${maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}]
-
+        "tidligereInntekter": [${map { InntektPerMaaned(it.key, it.value) }.joinToString(transform = InntektPerMaaned::hardcodedJson)}]
     }
     """.removeJsonWhitespace()
 

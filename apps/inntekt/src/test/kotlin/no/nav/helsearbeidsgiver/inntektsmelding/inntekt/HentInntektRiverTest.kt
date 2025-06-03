@@ -14,8 +14,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.Inntekt
-import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
+import no.nav.helsearbeidsgiver.felles.json.inntektMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
@@ -77,22 +76,10 @@ class HentInntektRiverTest :
                 )
 
             val forventetInntekt =
-                Inntekt(
-                    maanedOversikt =
-                        listOf(
-                            InntektPerMaaned(
-                                maaned = mai(2018),
-                                inntekt = 15_000.0,
-                            ),
-                            InntektPerMaaned(
-                                maaned = juni(2018),
-                                inntekt = 16_000.0,
-                            ),
-                            InntektPerMaaned(
-                                maaned = juli(2018),
-                                inntekt = 17_000.0,
-                            ),
-                        ),
+                mapOf(
+                    mai(2018) to 15_000.0,
+                    juni(2018) to 16_000.0,
+                    juli(2018) to 17_000.0,
                 )
 
             coEvery { mockInntektClient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any()) } returns inntektPerOrgnrOgMaaned
@@ -107,7 +94,7 @@ class HentInntektRiverTest :
                     Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.DATA to
                         innkommendeMelding.data
-                            .plus(Key.INNTEKT to forventetInntekt.toJson(Inntekt.serializer()))
+                            .plus(Key.INNTEKT to forventetInntekt.toJson(inntektMapSerializer))
                             .toJson(),
                 )
 

@@ -1,13 +1,11 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import io.kotest.matchers.maps.shouldContainExactly
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.mockk.coEvery
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.Inntekt
-import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
+import no.nav.helsearbeidsgiver.felles.json.inntektMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
@@ -71,7 +69,7 @@ class InntektSelvbestemtIT : EndToEndTest() {
                             Key.ORGNR_UNDERENHET to Mock.orgnr.toJson(),
                             Key.FNR to Mock.fnr.toJson(),
                             Key.INNTEKTSDATO to Mock.inntektsdato.toJson(),
-                            Key.INNTEKT to Mock.inntektPerMaaned.toJson(Inntekt.serializer()),
+                            Key.INNTEKT to Mock.inntektPerMaaned.toJson(inntektMapSerializer),
                         ).toJson(),
                 ),
             )
@@ -83,21 +81,16 @@ class InntektSelvbestemtIT : EndToEndTest() {
         val inntektsdato = 15.juli(2019)
         val kontekstId: UUID = UUID.randomUUID()
 
-        val inntektPerOrgnrOgMaaned =
+        val inntektPerMaaned =
             mapOf(
-                orgnr.verdi to
-                    mapOf(
-                        april(2019) to 40000.0,
-                        mai(2019) to 42000.0,
-                        juni(2019) to 44000.0,
-                    ),
+                april(2019) to 40000.0,
+                mai(2019) to 42000.0,
+                juni(2019) to 44000.0,
             )
 
-        val inntektPerMaaned =
-            Inntekt(
-                inntektPerOrgnrOgMaaned[orgnr.verdi]
-                    .shouldNotBeNull()
-                    .map { InntektPerMaaned(it.key, it.value) },
+        val inntektPerOrgnrOgMaaned =
+            mapOf(
+                orgnr.verdi to inntektPerMaaned,
             )
     }
 }

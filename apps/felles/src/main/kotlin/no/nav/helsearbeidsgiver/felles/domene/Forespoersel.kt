@@ -34,7 +34,7 @@ data class Forespoersel(
         return brukForslagEllerUtled(forslag)
     }
 
-    fun eksternBestemmendeFravaersdag(): LocalDate? =
+    fun eksternInntektsdato(): LocalDate? =
         bestemmendeFravaersdager.minus(orgnr).minOfOrNull {
             it.value
         }

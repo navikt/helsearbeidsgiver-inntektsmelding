@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.HentForespoerselResultat
+import no.nav.helsearbeidsgiver.felles.domene.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.Producer
@@ -19,6 +20,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.felles.utils.gjennomsnitt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -240,15 +242,12 @@ private fun HentForespoerselResultat.toResponse(): HentForespoerselResponse =
         egenmeldingsperioder = forespoersel.egenmeldingsperioder,
         sykmeldingsperioder = forespoersel.sykmeldingsperioder,
         bestemmendeFravaersdag = forespoersel.forslagBestemmendeFravaersdag(),
-        eksternInntektsdato = forespoersel.eksternBestemmendeFravaersdag(),
+        eksternInntektsdato = forespoersel.eksternInntektsdato(),
         inntekt =
             inntekt?.let {
                 Inntekt(
                     gjennomsnitt = it.gjennomsnitt(),
-                    historikk =
-                        it.maanedOversikt.associate { inntektPerMaaned ->
-                            inntektPerMaaned.maaned to inntektPerMaaned.inntekt
-                        },
+                    historikk = it,
                 )
             },
         forespurtData = forespoersel.forespurtData,
@@ -260,7 +259,7 @@ private fun HentForespoerselResultat.toResponse(): HentForespoerselResponse =
         identitetsnummer = forespoersel.fnr.verdi,
         orgnrUnderenhet = forespoersel.orgnr.verdi,
         fravaersperioder = forespoersel.sykmeldingsperioder,
-        eksternBestemmendeFravaersdag = forespoersel.eksternBestemmendeFravaersdag(),
+        eksternBestemmendeFravaersdag = forespoersel.eksternInntektsdato(),
         bruttoinntekt = inntekt?.gjennomsnitt(),
-        tidligereinntekter = inntekt?.maanedOversikt.orEmpty(),
+        tidligereinntekter = inntekt?.map { InntektPerMaaned(it.key, it.value) }.orEmpty(),
     )

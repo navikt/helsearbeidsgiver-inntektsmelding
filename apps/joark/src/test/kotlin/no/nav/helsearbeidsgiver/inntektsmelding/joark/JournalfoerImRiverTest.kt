@@ -16,8 +16,10 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.DokumentVariant
 import no.nav.helsearbeidsgiver.dokarkiv.domene.GjelderPerson
+import no.nav.helsearbeidsgiver.dokarkiv.domene.Kanal
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.AvsenderSystem
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -31,6 +33,8 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
 import java.util.UUID
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender as KlientAvsender
@@ -51,15 +55,15 @@ class JournalfoerImRiverTest :
         context("oppretter journalpost og publiserer melding for å lagre journalpost-ID") {
             withData(
                 mapOf(
-                    "forespurt inntektsmelding" to Pair(EventName.INNTEKTSMELDING_MOTTATT, Key.INNTEKTSMELDING),
-                    "selvbestemt inntektsmelding" to Pair(EventName.SELVBESTEMT_IM_LAGRET, Key.SELVBESTEMT_INNTEKTSMELDING),
+                    "forespurt inntektsmelding" to Triple(EventName.INNTEKTSMELDING_MOTTATT, Key.INNTEKTSMELDING, Mock.inntektsmelding),
+                    "selvbestemt inntektsmelding" to Triple(EventName.SELVBESTEMT_IM_LAGRET, Key.SELVBESTEMT_INNTEKTSMELDING, Mock.selvbestemtInntektsmelding),
                 ),
-            ) { (innkommendeEvent, inntektsmeldingKey) ->
+            ) { (innkommendeEvent, inntektsmeldingKey, inntektsmelding) ->
                 val journalpostId = randomDigitString(6)
-                val innkommendeMelding = Mock.innkommendeMelding(innkommendeEvent, Mock.inntektsmelding)
+                val innkommendeMelding = Mock.innkommendeMelding(innkommendeEvent, inntektsmelding)
 
                 coEvery {
-                    mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
+                    mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
                 } returns Mock.opprettOgFerdigstillResponse(journalpostId)
 
                 testRapid.sendJson(innkommendeMelding.toMap(inntektsmeldingKey))
@@ -71,17 +75,17 @@ class JournalfoerImRiverTest :
                         Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
                         Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                         Key.JOURNALPOST_ID to journalpostId.toJson(),
-                        Key.INNTEKTSMELDING to Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                        Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
                     )
 
                 coVerifySequence {
                     mockDokArkivKlient.opprettOgFerdigstillJournalpost(
                         tittel = "Inntektsmelding",
-                        gjelderPerson = GjelderPerson(Mock.inntektsmelding.sykmeldt.fnr.verdi),
+                        gjelderPerson = GjelderPerson(inntektsmelding.sykmeldt.fnr.verdi),
                         avsender =
                             KlientAvsender.Organisasjon(
-                                orgnr = Mock.inntektsmelding.avsender.orgnr.verdi,
-                                navn = Mock.inntektsmelding.avsender.orgNavn,
+                                orgnr = inntektsmelding.avsender.orgnr.verdi,
+                                navn = inntektsmelding.avsender.orgNavn,
                             ),
                         datoMottatt = LocalDate.now(),
                         dokumenter =
@@ -91,14 +95,60 @@ class JournalfoerImRiverTest :
                             },
                         eksternReferanseId = "ARI-${innkommendeMelding.inntektsmelding.id}",
                         callId = "callId_${innkommendeMelding.inntektsmelding.id}",
+                        kanal = Kanal.NAV_NO,
                     )
                 }
             }
         }
 
+        test("oppretter journalpost og publiserer melding for å lagre journalpost-ID ved inntektsmelding fra LPS-API") {
+            val innkommendeEvent = EventName.INNTEKTSMELDING_MOTTATT
+            val inntektsmelding = Mock.eksternInntektsmelding
+            val inntektsmeldingKey = Key.INNTEKTSMELDING
+            val journalpostId = randomDigitString(6)
+            val innkommendeMelding = Mock.innkommendeMelding(innkommendeEvent, inntektsmelding)
+
+            coEvery {
+                mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
+            } returns Mock.opprettOgFerdigstillResponse(journalpostId)
+
+            testRapid.sendJson(innkommendeMelding.toMap(inntektsmeldingKey))
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            testRapid.firstMessage().toMap() shouldContainExactly
+                mapOf(
+                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
+                    Key.JOURNALPOST_ID to journalpostId.toJson(),
+                    Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                )
+
+            coVerifySequence {
+                mockDokArkivKlient.opprettOgFerdigstillJournalpost(
+                    tittel = "Inntektsmelding",
+                    gjelderPerson = GjelderPerson(inntektsmelding.sykmeldt.fnr.verdi),
+                    avsender =
+                        KlientAvsender.Organisasjon(
+                            orgnr = inntektsmelding.avsender.orgnr.verdi,
+                            navn = inntektsmelding.avsender.orgNavn,
+                        ),
+                    datoMottatt = LocalDate.now(),
+                    dokumenter =
+                        withArg {
+                            it shouldHaveSize 1
+                            it.first().dokumentVarianter.map(DokumentVariant::filtype) shouldContainExactly listOf("XML", "PDFA")
+                        },
+                    eksternReferanseId = "ARI-${innkommendeMelding.inntektsmelding.id}",
+                    callId = "callId_${innkommendeMelding.inntektsmelding.id}",
+                    kanal = Kanal.HR_SYSTEM_API,
+                )
+            }
+        }
+
         test("håndterer klientfeil") {
             coEvery {
-                mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
+                mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
             } throws RuntimeException("dette går itj', nei!")
 
             val innkommendeMelding = Mock.innkommendeMelding(EventName.INNTEKTSMELDING_MOTTATT, Mock.inntektsmelding)
@@ -119,7 +169,7 @@ class JournalfoerImRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             coVerifySequence {
-                mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
+                mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
 
@@ -142,7 +192,7 @@ class JournalfoerImRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 coVerify(exactly = 0) {
-                    mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
+                    mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
                 }
             }
         }
@@ -150,6 +200,11 @@ class JournalfoerImRiverTest :
 
 private object Mock {
     val inntektsmelding = mockInntektsmeldingV1()
+    val selvbestemtInntektsmelding = mockInntektsmeldingV1().copy(type = Inntektsmelding.Type.Selvbestemt(UUID.randomUUID()))
+    val eksternInntektsmelding =
+        mockInntektsmeldingV1().copy(
+            type = Inntektsmelding.Type.ForespurtEkstern(UUID.randomUUID(), AvsenderSystem(Orgnr.genererGyldig(), "Slapp Tiger")),
+        )
 
     val fail = mockFail("I don't think we're in Kansas anymore.", EventName.INNTEKTSMELDING_MOTTATT)
 

@@ -11,7 +11,6 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -48,13 +47,12 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.YearMonth
 import java.util.UUID
 
-private const val PATH = Routes.PREFIX + Routes.HENT_FORESPOERSEL
+private val pathMedId = Routes.PREFIX + Routes.HENT_FORESPOERSEL.replaceFirst("{forespoerselId}", UUID.randomUUID().toString())
 
 class HentForespoerselRouteKtTest : ApiTest() {
     @BeforeEach
@@ -63,7 +61,7 @@ class HentForespoerselRouteKtTest : ApiTest() {
     }
 
     @Test
-    fun `skal returnere resultat og status CREATED`() =
+    fun `henter forespørsel`() =
         testApi {
             coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
@@ -72,9 +70,9 @@ class HentForespoerselRouteKtTest : ApiTest() {
                 )
 
             val forespoerselId = UUID.randomUUID()
-            val response = post(PATH, HentForespoerselRequest(forespoerselId), HentForespoerselRequest.serializer())
+            val response = get(pathMedId.substringBeforeLast("/") + "/$forespoerselId")
 
-            response.status shouldBe HttpStatusCode.Created
+            response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldBe Mock.resultat.tilResponseJson()
 
             verifySequence {
@@ -114,7 +112,7 @@ class HentForespoerselRouteKtTest : ApiTest() {
         }
 
     @Test
-    fun `skal returnere resultat og status CREATED med forespørsel bare inntekt`() =
+    fun `henter forespørsel med forslag til forrige inntekt`() =
         testApi {
             val resultatMedForrigeInntekt =
                 Mock.resultat
@@ -131,14 +129,14 @@ class HentForespoerselRouteKtTest : ApiTest() {
                     resultatMedForrigeInntekt.tilSuksessJson(),
                 )
 
-            val response = post(PATH, HentForespoerselRequest(UUID.randomUUID()), HentForespoerselRequest.serializer())
+            val response = get(pathMedId)
 
-            response.status shouldBe HttpStatusCode.Created
+            response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldBe resultatMedForrigeInntekt.tilResponseJson()
         }
 
     @Test
-    fun `skal returnere resultat og status CREATED med 'null' for verdier som ikke ble hentet`() =
+    fun `henter forespørsel med 'null' for verdier som ikke ble hentet`() =
         testApi {
             val resultatMedNullVerdier =
                 Mock.resultat
@@ -155,45 +153,33 @@ class HentForespoerselRouteKtTest : ApiTest() {
                     resultatMedNullVerdier.tilSuksessJson(),
                 )
 
-            val response = post(PATH, HentForespoerselRequest(UUID.randomUUID()), HentForespoerselRequest.serializer())
+            val response = get(pathMedId)
 
-            response.status shouldBe HttpStatusCode.Created
+            response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldBe resultatMedNullVerdier.tilResponseJson()
         }
 
     @Test
-    fun `skal returnere Internal server error hvis Redis timer ut`() =
+    fun `gir 500-feil hvis Redis timer ut`() =
         testApi {
             coEvery { mockRedisConnection.get(any()) } returns harTilgangResultat andThenThrows RedisPollerTimeoutException(UUID.randomUUID())
 
-            val response = post(PATH, HentForespoerselRequest(UUID.randomUUID()), HentForespoerselRequest.serializer())
+            val response = get(pathMedId)
 
             assertEquals(HttpStatusCode.InternalServerError, response.status)
         }
 
     @Test
-    fun `skal returnere 400-feil ved ugyldig request`() =
+    fun `gir 400-feil ved ugyldig forespørsel-ID`() =
         testApi {
-            val ugyldigRequest =
-                JsonObject(
-                    mapOf(
-                        HentForespoerselRequest::uuid.name to "ikke en uuid".toJson(),
-                    ),
-                )
-
-            val response = post(PATH, ugyldigRequest, JsonElement.serializer())
+            val response = get(pathMedId.substringBeforeLast("/") + "/ugyldig-forespoersel-id")
 
             assertEquals(HttpStatusCode.BadRequest, response.status)
             assertNotNull(response.bodyAsText())
 
-            val result = response.bodyAsText().fromJson(ResultJson.serializer())
+            val feilmelding = response.bodyAsText().fromJson(String.serializer())
 
-            assertNull(result.success)
-            assertNotNull(result.failure)
-
-            val feilmelding = result.failure!!.fromJson(String.serializer())
-
-            assertEquals("Mangler forespørsel-ID for å hente forespørsel.", feilmelding)
+            assertEquals("Ugyldig parameter: 'ugyldig-forespoersel-id'.", feilmelding)
 
             verify(exactly = 0) {
                 mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
@@ -201,11 +187,11 @@ class HentForespoerselRouteKtTest : ApiTest() {
         }
 
     @Test
-    fun `skal returnere Forbidden hvis feil ikke tilgang`() =
+    fun `gir Forbidden-feil hvis mangler tilgang`() =
         testApi {
             coEvery { mockRedisConnection.get(any()) } returns ikkeTilgangResultat
 
-            val response = post(PATH, HentForespoerselRequest(UUID.randomUUID()), HentForespoerselRequest.serializer())
+            val response = get(pathMedId)
             assertEquals(HttpStatusCode.Forbidden, response.status)
 
             verify(exactly = 0) {
@@ -214,7 +200,7 @@ class HentForespoerselRouteKtTest : ApiTest() {
         }
 
     @Test
-    fun `skal returnere Forbidden hvis feil i Tilgangsresultet`() =
+    fun `gir Forbidden-feil hvis problemer under henting av tilgang`() =
         testApi {
             coEvery { mockRedisConnection.get(any()) } returns
                 ResultJson(
@@ -222,7 +208,7 @@ class HentForespoerselRouteKtTest : ApiTest() {
                 ).toJson()
                     .toString()
 
-            val response = post(PATH, HentForespoerselRequest(UUID.randomUUID()), HentForespoerselRequest.serializer())
+            val response = get(pathMedId)
             assertEquals(HttpStatusCode.Forbidden, response.status)
 
             verify(exactly = 0) {
@@ -269,7 +255,7 @@ private object Mock {
         )
 }
 
-private fun HentForespoerselResultat.tilSuksessJson() =
+private fun HentForespoerselResultat.tilSuksessJson(): String =
     ResultJson(
         success = toJson(HentForespoerselResultat.serializer()),
     ).toJson()

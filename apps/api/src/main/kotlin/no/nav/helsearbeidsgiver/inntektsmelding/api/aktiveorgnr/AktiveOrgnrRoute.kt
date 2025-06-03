@@ -51,7 +51,7 @@ fun Route.aktiveOrgnrRoute(
                     respondNotFound("Fant ingen arbeidsforhold.", String.serializer())
                 } else {
                     val response = resultat.toResponse()
-                    call.respond(HttpStatusCode.Created, response.toJson(AktiveOrgnrResponse.serializer()))
+                    call.respond(HttpStatusCode.OK, response.toJson(AktiveOrgnrResponse.serializer()))
                 }
             } else {
                 val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE

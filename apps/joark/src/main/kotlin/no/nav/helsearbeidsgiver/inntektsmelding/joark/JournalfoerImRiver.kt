@@ -6,6 +6,7 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender
 import no.nav.helsearbeidsgiver.dokarkiv.domene.GjelderPerson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Kanal
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -22,6 +23,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.time.LocalDate
 import java.util.UUID
+import no.nav.helsearbeidsgiver.dokarkiv.domene.Kanal as DokarkivKanal
 
 data class JournalfoerImMelding(
     val eventName: EventName,
@@ -117,6 +119,8 @@ class JournalfoerImRiver(
             sikkerLogger.info("$it Gjelder IM:\n$inntektsmelding")
         }
 
+        val dokarkivKanal = inntektsmelding.type.kanal().tilDokarkivKanal()
+
         val response =
             runBlocking {
                 dokArkivClient.opprettOgFerdigstillJournalpost(
@@ -131,6 +135,7 @@ class JournalfoerImRiver(
                     dokumenter = tilDokumenter(inntektsmelding),
                     eksternReferanseId = "ARI-${inntektsmelding.id}",
                     callId = "callId_${inntektsmelding.id}",
+                    kanal = dokarkivKanal,
                 )
             }
 
@@ -148,4 +153,10 @@ class JournalfoerImRiver(
 
         return response.journalpostId
     }
+
+    private fun Kanal.tilDokarkivKanal(): DokarkivKanal =
+        when (this) {
+            Kanal.HR_SYSTEM_API -> DokarkivKanal.HR_SYSTEM_API
+            Kanal.NAV_NO -> DokarkivKanal.NAV_NO
+        }
 }

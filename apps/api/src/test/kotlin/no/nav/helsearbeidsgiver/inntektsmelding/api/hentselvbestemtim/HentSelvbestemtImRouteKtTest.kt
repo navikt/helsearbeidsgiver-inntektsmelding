@@ -224,10 +224,10 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
     @Test
     fun `ugyldig ID i URL gir 400-feil`() =
         testApi {
-            val response = get("${pathUtenId}ikke-en-uuid")
+            val response = get("${pathUtenId}ugyldig-selvbestemt-id")
 
             response.status shouldBe HttpStatusCode.BadRequest
-            response.bodyAsText() shouldBe "\"Ugyldig parameter: 'ikke-en-uuid'\""
+            response.bodyAsText() shouldBe "\"Ugyldig parameter: 'ugyldig-selvbestemt-id'.\""
         }
 
     @Test

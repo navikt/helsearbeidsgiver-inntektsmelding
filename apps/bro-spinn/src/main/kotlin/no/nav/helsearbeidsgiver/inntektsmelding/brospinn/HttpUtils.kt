@@ -3,10 +3,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.apache5.Apache5
-import io.ktor.client.network.sockets.ConnectTimeoutException
-import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.plugins.HttpRequestRetry
-import io.ktor.client.plugins.HttpRequestTimeoutException
+import io.ktor.client.plugins.HttpRequestRetryConfig
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
@@ -21,25 +19,19 @@ internal fun HttpClientConfig<*>.configure() {
         json(jsonConfig)
     }
 
-    install(HttpRequestRetry) {
-        maxRetries = 3
-        retryOnServerErrors(maxRetries)
-        retryOnExceptionIf { _, cause ->
-            cause.isRetryableException()
-        }
-        exponentialDelay()
-    }
+    install(HttpRequestRetry) { configureRetry() }
 
     install(HttpTimeout) {
+        connectTimeoutMillis = 3000
+        requestTimeoutMillis = 3000
         socketTimeoutMillis = 3000
     }
 }
 
-private fun Throwable.isRetryableException() =
-    when (this) {
-        is SocketTimeoutException,
-        is ConnectTimeoutException,
-        is HttpRequestTimeoutException,
-        -> true
-        else -> false
-    }
+internal fun HttpRequestRetryConfig.configureRetry() {
+    retryOnException(
+        maxRetries = 5,
+        retryOnTimeout = true,
+    )
+    exponentialDelay()
+}

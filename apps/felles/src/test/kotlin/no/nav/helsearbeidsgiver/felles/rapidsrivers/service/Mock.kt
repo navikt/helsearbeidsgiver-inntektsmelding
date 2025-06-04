@@ -1,12 +1,12 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.service
 
-import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 
 class MockServiceMedRedis(
     override val redisStore: RedisStore,
@@ -48,7 +49,7 @@ open class MockService : ServiceMed1Steg<MockService.Steg0, MockService.Steg1>()
 
     data class Steg1(
         val personer: Map<Fnr, Person>,
-        val orgNavn: Map<String, String>,
+        val orgNavn: Map<Orgnr, String>,
     )
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
@@ -60,7 +61,7 @@ open class MockService : ServiceMed1Steg<MockService.Steg0, MockService.Steg1>()
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
         Steg1(
             Key.PERSONER.les(personMapSerializer, melding),
-            Key.VIRKSOMHETER.les(MapSerializer(String.serializer(), String.serializer()), melding),
+            Key.VIRKSOMHETER.les(orgMapSerializer, melding),
         )
 
     override fun utfoerSteg1(

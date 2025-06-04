@@ -16,7 +16,7 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.utenPaakrevdAGP
 import no.nav.helsearbeidsgiver.felles.test.mock.utenPaakrevdInntekt
 import no.nav.helsearbeidsgiver.felles.test.mock.utenPaakrevdRefusjon
-import no.nav.helsearbeidsgiver.felles.utils.toOffsetDateTimeOslo
+import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.juli

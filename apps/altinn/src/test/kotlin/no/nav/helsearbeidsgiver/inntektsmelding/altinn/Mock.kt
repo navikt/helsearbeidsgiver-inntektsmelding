@@ -25,7 +25,7 @@ object Mock {
             data =
                 mapOf(
                     Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
-                    Key.ARBEIDSGIVER_FNR to fnr.toJson(),
+                    Key.ARBEIDSGIVER_FNR to fnr.toJson(Fnr.serializer()),
                 ),
             svarKafkaKey = svarKafkaKey,
             fnr = fnr,

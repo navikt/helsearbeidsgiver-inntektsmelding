@@ -84,7 +84,7 @@ fun Application.apiModule(
     val tilgangskontroll =
         Tilgangskontroll(
             producer,
-            LocalCache(LocalCache.Config(60.minutes, 1000)),
+            LocalCache(LocalCache.Config(60.minutes, 5000)),
             redisConnection,
         )
 

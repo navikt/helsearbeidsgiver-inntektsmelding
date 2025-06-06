@@ -46,7 +46,7 @@ class TilgangskontrollIT : EndToEndTest() {
     val tilgangskontroll by lazy {
         Tilgangskontroll(
             producer = Producer("test-topic", mockKafkaProducer),
-            cache = LocalCache(0.minutes, 1),
+            cache = LocalCache(LocalCache.Config(0.minutes, 1)),
             redisConnection = redisConnection,
         )
     }

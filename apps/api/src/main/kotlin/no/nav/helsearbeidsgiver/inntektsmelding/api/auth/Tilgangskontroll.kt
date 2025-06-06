@@ -69,7 +69,7 @@ class Tilgangskontroll(
 
         val tilgang =
             runBlocking {
-                cache.get("$innloggerFnr:$cacheKeyPostfix") {
+                cache.getOrPut("$innloggerFnr:$cacheKeyPostfix") {
                     logger.info("Fant ikke tilgang i cache, ber om tilgangskontroll.")
 
                     publish(kontekstId, innloggerFnr)

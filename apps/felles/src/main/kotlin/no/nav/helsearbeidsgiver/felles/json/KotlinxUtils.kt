@@ -45,10 +45,6 @@ fun BehovType.toJson(): JsonElement = toJson(BehovType.serializer())
 
 fun KafkaKey.toJson(): JsonElement = toJson(KafkaKey.serializer())
 
-fun Fnr.toJson(): JsonElement = toJson(Fnr.serializer())
-
-fun Orgnr.toJson(): JsonElement = toJson(Orgnr.serializer())
-
 fun ResultJson.toJson(): JsonElement = toJson(ResultJson.serializer())
 
 fun <T> Set<T>.toJson(elementSerializer: KSerializer<T>): JsonElement =

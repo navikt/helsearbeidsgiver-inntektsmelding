@@ -7,7 +7,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
-import no.nav.helsearbeidsgiver.felles.utils.toOffsetDateTimeOslo
+import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
 import java.time.LocalDateTime
 import java.util.UUID
 

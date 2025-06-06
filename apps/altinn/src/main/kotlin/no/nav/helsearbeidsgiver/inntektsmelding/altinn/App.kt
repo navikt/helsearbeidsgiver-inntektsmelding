@@ -32,5 +32,5 @@ private fun createAltinnClient(): Altinn3M2MClient =
         baseUrl = Env.altinnTilgangerBaseUrl,
         serviceCode = Env.serviceCode,
         getToken = AuthClient().tokenGetter(IdentityProvider.AZURE_AD, Env.altinnScope),
-        cacheConfig = CacheConfig(60.minutes, 100),
+        cacheConfig = CacheConfig(60.minutes, 5000),
     )

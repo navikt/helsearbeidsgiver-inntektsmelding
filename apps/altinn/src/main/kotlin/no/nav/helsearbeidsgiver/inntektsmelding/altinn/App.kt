@@ -3,9 +3,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helsearbeidsgiver.altinn.Altinn3M2MClient
-import no.nav.helsearbeidsgiver.altinn.CacheConfig
 import no.nav.helsearbeidsgiver.felles.auth.AuthClient
 import no.nav.helsearbeidsgiver.felles.auth.IdentityProvider
+import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.helsearbeidsgiver.utils.log.logger
 import kotlin.time.Duration.Companion.minutes
 
@@ -31,6 +31,6 @@ private fun createAltinnClient(): Altinn3M2MClient =
     Altinn3M2MClient(
         baseUrl = Env.altinnTilgangerBaseUrl,
         serviceCode = Env.serviceCode,
+        cacheConfig = LocalCache.Config(60.minutes, 100),
         getToken = AuthClient().tokenGetter(IdentityProvider.AZURE_AD, Env.altinnScope),
-        cacheConfig = CacheConfig(60.minutes, 100),
     )

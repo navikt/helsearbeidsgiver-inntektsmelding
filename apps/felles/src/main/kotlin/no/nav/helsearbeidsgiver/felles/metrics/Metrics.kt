@@ -24,8 +24,6 @@ object Metrics {
 
     val aaregRequest = requestMetric("Aareg")
 
-    val altinnRequest = requestMetric("Altinn")
-
     val brregRequest = requestMetric("Brreg")
 
     val forespoerslerBesvartFraSpleis = counterMetric("forespoersler besvart fra Spleis")

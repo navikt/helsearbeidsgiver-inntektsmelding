@@ -193,7 +193,7 @@ fun getBuildableProjects(): List<String> {
                     }
                 }
             }
-        }.minus("altinn")
+        }
 }
 
 fun getDeployMatrixVariables(includeCluster: String): Triple<Set<String>, Set<String>, List<Pair<String, String>>> {

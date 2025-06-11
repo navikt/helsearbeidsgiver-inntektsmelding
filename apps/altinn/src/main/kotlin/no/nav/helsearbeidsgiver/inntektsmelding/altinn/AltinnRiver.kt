@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.altinn.Altinn3M2MClient
@@ -10,7 +11,6 @@ import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
@@ -58,7 +58,7 @@ class AltinnRiver(
 
     override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val rettigheterForenklet =
-            Metrics.altinnRequest.recordTime(altinnClient::hentTilganger) {
+            runBlocking {
                 altinnClient.hentTilganger(fnr.verdi)
             }
 

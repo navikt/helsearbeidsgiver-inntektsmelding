@@ -3,12 +3,18 @@ package no.nav.helsearbeidsgiver.inntektsmelding.brreg
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helsearbeidsgiver.brreg.BrregClient
+import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.helsearbeidsgiver.utils.log.logger
+import kotlin.time.Duration.Companion.days
 
 private val logger = "im-brreg".logger()
 
 fun main() {
-    val brregClient = BrregClient(Env.brregUrl)
+    val brregClient =
+        BrregClient(
+            url = Env.brregUrl,
+            cacheConfig = LocalCache.Config(7.days, 10_000),
+        )
     val isDevelopmentMode = Env.brregUrl.contains("localhost")
 
     RapidApplication
@@ -22,6 +28,6 @@ fun RapidsConnection.createBrregRiver(
     isDevelopmentMode: Boolean,
 ): RapidsConnection =
     also {
-        logger.info("Starter ${HentVirksomhetNavnRiver::class.simpleName}... (isDevelopmentMode: $isDevelopmentMode)")
-        HentVirksomhetNavnRiver(brregClient, isDevelopmentMode).connect(this)
+        logger.info("Starter ${HentOrganisasjonNavnRiver::class.simpleName}... (isDevelopmentMode: $isDevelopmentMode)")
+        HentOrganisasjonNavnRiver(brregClient, isDevelopmentMode).connect(this)
     }

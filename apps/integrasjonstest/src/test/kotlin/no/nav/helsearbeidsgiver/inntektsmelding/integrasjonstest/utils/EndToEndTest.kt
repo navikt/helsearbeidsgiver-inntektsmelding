@@ -18,7 +18,6 @@ import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.altinn.Altinn3M2MClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.brreg.BrregClient
-import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.db.exposed.Database
@@ -68,6 +67,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.mai
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.intellij.lang.annotations.Language
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterAll
@@ -177,13 +177,8 @@ abstract class EndToEndTest : ContainerTest() {
 
         coEvery { pdlKlient.personBolk(any()) } returns listOf(bjarneBetjent, maxMekker)
 
-        coEvery { brregClient.hentVirksomheter(any()) } answers {
-            firstArg<List<String>>().map { orgnr ->
-                Virksomhet(
-                    organisasjonsnummer = orgnr,
-                    navn = "Bedrift A/S",
-                )
-            }
+        coEvery { brregClient.hentOrganisasjonNavn(any()) } answers {
+            firstArg<Set<Orgnr>>().associateWith { "Bedrift A/S" }
         }
     }
 

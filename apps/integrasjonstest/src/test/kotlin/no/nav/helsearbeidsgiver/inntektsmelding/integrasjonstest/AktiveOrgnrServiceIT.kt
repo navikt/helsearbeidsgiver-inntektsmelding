@@ -8,13 +8,11 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
-import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.aareg.Ansettelsesperiode
 import no.nav.helsearbeidsgiver.aareg.Arbeidsgiver
 import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
-import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -22,6 +20,7 @@ import no.nav.helsearbeidsgiver.felles.domene.AktiveArbeidsgivere
 import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
@@ -41,6 +40,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -55,12 +55,12 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
     }
 
     @Test
-    fun `Test hente aktive organisasjoner`() {
+    fun `Henter aktive organisasjoner`() {
         val kontekstId = UUID.randomUUID()
 
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforholdListe
         coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet
-        coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
+        coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Orgnr("810007842") to "ANSTENDIG PIGGSVIN BARNEHAGE")
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
 
         publish(
@@ -130,8 +130,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-                Key.VIRKSOMHETER.les(MapSerializer(String.serializer(), String.serializer()), data) shouldBe
-                    mapOf("810007842" to "ANSTENDIG PIGGSVIN BARNEHAGE")
+                Key.VIRKSOMHETER.les(orgMapSerializer, data) shouldBe mapOf(Orgnr("810007842") to "ANSTENDIG PIGGSVIN BARNEHAGE")
             }
     }
 
@@ -141,7 +140,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns emptyList()
         coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet
-        coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
+        coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Orgnr("810007842") to "ANSTENDIG PIGGSVIN BARNEHAGE")
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
 
         publish(
@@ -205,7 +204,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforholdListe
         coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet
-        coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
+        coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Orgnr("810007842") to "ANSTENDIG PIGGSVIN BARNEHAGE")
 
         coEvery { pdlKlient.personBolk(any()) } throws IllegalArgumentException("Ingen folk å finne her!")
 

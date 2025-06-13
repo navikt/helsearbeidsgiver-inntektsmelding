@@ -1,16 +1,16 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.brreg
 
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.brreg.BrregClient
-import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
@@ -23,7 +23,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
-data class HentVirksomhetMelding(
+data class HentOrganisasjonMelding(
     val eventName: EventName,
     val behovType: BehovType,
     val kontekstId: UUID,
@@ -32,20 +32,20 @@ data class HentVirksomhetMelding(
     val orgnr: Set<Orgnr>,
 )
 
-class HentVirksomhetNavnRiver(
+class HentOrganisasjonNavnRiver(
     private val brregClient: BrregClient,
     private val isPreProd: Boolean,
-) : ObjectRiver<HentVirksomhetMelding>() {
+) : ObjectRiver<HentOrganisasjonMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun les(json: Map<Key, JsonElement>): HentVirksomhetMelding? =
+    override fun les(json: Map<Key, JsonElement>): HentOrganisasjonMelding? =
         if (Key.FAIL in json) {
             null
         } else {
             val data = json[Key.DATA]?.toMap().orEmpty()
 
-            HentVirksomhetMelding(
+            HentOrganisasjonMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.HENT_VIRKSOMHET_NAVN, BehovType.serializer(), json),
                 kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
@@ -55,20 +55,20 @@ class HentVirksomhetNavnRiver(
             )
         }
 
-    override fun HentVirksomhetMelding.bestemNoekkel(): KafkaKey = svarKafkaKey
+    override fun HentOrganisasjonMelding.bestemNoekkel(): KafkaKey = svarKafkaKey
 
-    override fun HentVirksomhetMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
+    override fun HentOrganisasjonMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val orgnrMedNavn =
             if (isPreProd) {
                 brukPreprodOrg(orgnr)
             } else {
-                Metrics.brregRequest.recordTime(brregClient::hentVirksomheter) {
-                    brregClient.hentVirksomheter(orgnr.map { it.verdi })
+                runBlocking {
+                    brregClient.hentOrganisasjonNavn(orgnr)
                 }
-            }.associate { it.organisasjonsnummer to it.navn }
+            }
 
         if (orgnr.size != orgnrMedNavn.size) {
-            "Ba om ${orgnr.size} virksomhetsnavn fra Brreg og mottok ${orgnrMedNavn.size}.".also {
+            "Ba om ${orgnr.size} organisasjonsnavn fra Brreg og mottok ${orgnrMedNavn.size}.".also {
                 logger.info(it)
                 sikkerLogger.info(it)
             }
@@ -79,18 +79,18 @@ class HentVirksomhetNavnRiver(
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 data
-                    .plus(Key.VIRKSOMHETER to orgnrMedNavn.toJson())
+                    .plus(Key.VIRKSOMHETER to orgnrMedNavn.toJson(orgMapSerializer))
                     .toJson(),
         )
     }
 
-    override fun HentVirksomhetMelding.haandterFeil(
+    override fun HentOrganisasjonMelding.haandterFeil(
         json: Map<Key, JsonElement>,
         error: Throwable,
     ): Map<Key, JsonElement> {
         val fail =
             Fail(
-                feilmelding = "Klarte ikke hente virksomhet fra Brreg.",
+                feilmelding = "Klarte ikke hente organisasjon fra Brreg.",
                 kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
@@ -101,28 +101,22 @@ class HentVirksomhetNavnRiver(
         return fail.tilMelding()
     }
 
-    override fun HentVirksomhetMelding.loggfelt(): Map<String, String> =
+    override fun HentOrganisasjonMelding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this@HentVirksomhetNavnRiver),
+            Log.klasse(this@HentOrganisasjonNavnRiver),
             Log.event(eventName),
             Log.behov(behovType),
             Log.kontekstId(kontekstId),
         )
 }
 
-private fun brukPreprodOrg(orgnr: Set<Orgnr>): List<Virksomhet> {
-    val preprodOrgnr =
-        mapOf(
-            "810007702" to "ANSTENDIG PIGGSVIN BYDEL",
-            "810007842" to "ANSTENDIG PIGGSVIN BARNEHAGE",
-            "810008032" to "ANSTENDIG PIGGSVIN BRANNVESEN",
-            "810007982" to "ANSTENDIG PIGGSVIN SYKEHJEM",
-        )
-
-    return orgnr.map {
-        Virksomhet(
-            navn = preprodOrgnr.getOrDefault(it.verdi, "Ukjent arbeidsgiver"),
-            organisasjonsnummer = it.verdi,
-        )
+private fun brukPreprodOrg(orgnr: Set<Orgnr>): Map<Orgnr, String> =
+    orgnr.associateWith {
+        when (it.verdi) {
+            "810007702" -> "ANSTENDIG PIGGSVIN BYDEL"
+            "810007842" -> "ANSTENDIG PIGGSVIN BARNEHAGE"
+            "810007982" -> "ANSTENDIG PIGGSVIN SYKEHJEM"
+            "810008032" -> "ANSTENDIG PIGGSVIN BRANNVESEN"
+            else -> "UKJENT ARBEIDSGIVER"
+        }
     }
-}

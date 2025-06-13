@@ -9,14 +9,12 @@ import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.aareg.Ansettelsesperiode
 import no.nav.helsearbeidsgiver.aareg.Arbeidsgiver
 import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
-import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
@@ -28,6 +26,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
@@ -74,7 +73,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
                 aarsakInnsending = AarsakInnsending.Ny,
             )
 
-        coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Mock.virksomhet)
+        coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Mock.organisasjon)
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforhold
         coEvery { agNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns Mock.sakId
@@ -105,8 +104,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-                Key.VIRKSOMHETER.les(MapSerializer(String.serializer(), String.serializer()), data) shouldBe
-                    mapOf(Mock.virksomhet.organisasjonsnummer to Mock.virksomhet.navn)
+                Key.VIRKSOMHETER.les(orgMapSerializer, data) shouldBe mapOf(Mock.organisasjon)
             }
 
         // Data hentet
@@ -195,7 +193,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
     fun `endret inntektsmelding lagres og prosesseres, men uten opprettelse av sak`() {
         val kontekstId: UUID = UUID.randomUUID()
 
-        coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Mock.virksomhet)
+        coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Mock.organisasjon)
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforhold
         coEvery { dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any()) } returns
@@ -272,7 +270,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         selvbestemtImRepo.lagreIm(Mock.inntektsmelding)
 
-        coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Mock.virksomhet)
+        coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Mock.organisasjon)
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforhold
 
@@ -382,11 +380,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
                 )
             }
 
-        val virksomhet =
-            Virksomhet(
-                navn = "Innadvente Eiendomsmeglere",
-                organisasjonsnummer = orgnr.verdi,
-            )
+        val organisasjon = orgnr to "Innadvente Eiendomsmeglere"
 
         val personer =
             listOf(
@@ -451,7 +445,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
                 avsender =
                     Avsender(
                         orgnr = orgnr,
-                        orgNavn = virksomhet.navn,
+                        orgNavn = organisasjon.second,
                         navn = "Jan Eggum",
                         tlf = skjema.avsender.tlf,
                     ),

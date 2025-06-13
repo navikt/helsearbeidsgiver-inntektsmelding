@@ -12,7 +12,6 @@ import io.mockk.coVerifySequence
 import io.mockk.mockk
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.brreg.BrregClient
-import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -29,12 +28,12 @@ import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
-class HentVirksomhetNavnRiverTest :
+class HentOrganisasjonNavnRiverTest :
     FunSpec({
         val testRapid = TestRapid()
         val mockBrregClient = mockk<BrregClient>()
 
-        HentVirksomhetNavnRiver(mockBrregClient, false).connect(testRapid)
+        HentOrganisasjonNavnRiver(mockBrregClient, false).connect(testRapid)
 
         beforeTest {
             testRapid.reset()
@@ -49,7 +48,7 @@ class HentVirksomhetNavnRiverTest :
                     Orgnr.genererGyldig() to "Jessicas juseri",
                 )
 
-            coEvery { mockBrregClient.hentVirksomheter(any()) } returns orgnrMedNavn.map { Virksomhet(organisasjonsnummer = it.key.verdi, navn = it.value) }
+            coEvery { mockBrregClient.hentOrganisasjonNavn(any()) } returns orgnrMedNavn
 
             val innkommendeMelding = Mock.innkommendeMelding(orgnrMedNavn.keys)
 
@@ -68,7 +67,7 @@ class HentVirksomhetNavnRiverTest :
                 )
 
             coVerifySequence {
-                mockBrregClient.hentVirksomheter(orgnrMedNavn.keys.map { it.verdi })
+                mockBrregClient.hentOrganisasjonNavn(orgnrMedNavn.keys)
             }
         }
 
@@ -80,7 +79,7 @@ class HentVirksomhetNavnRiverTest :
                 )
             val orgnrUtenNavn = Orgnr.genererGyldig()
 
-            coEvery { mockBrregClient.hentVirksomheter(any()) } returns orgnrMedNavn.map { Virksomhet(organisasjonsnummer = it.key.verdi, navn = it.value) }
+            coEvery { mockBrregClient.hentOrganisasjonNavn(any()) } returns orgnrMedNavn
 
             val innkommendeMelding = Mock.innkommendeMelding(orgnrMedNavn.keys + orgnrUtenNavn)
 
@@ -99,7 +98,7 @@ class HentVirksomhetNavnRiverTest :
                 )
 
             coVerifySequence {
-                mockBrregClient.hentVirksomheter(orgnrMedNavn.keys.plus(orgnrUtenNavn).map { it.verdi })
+                mockBrregClient.hentOrganisasjonNavn(orgnrMedNavn.keys.plus(orgnrUtenNavn))
             }
         }
 
@@ -111,7 +110,7 @@ class HentVirksomhetNavnRiverTest :
                     Orgnr.genererGyldig(),
                 )
 
-            coEvery { mockBrregClient.hentVirksomheter(any()) } returns emptyList()
+            coEvery { mockBrregClient.hentOrganisasjonNavn(any()) } returns emptyMap()
 
             val innkommendeMelding = Mock.innkommendeMelding(orgnr)
 
@@ -130,18 +129,18 @@ class HentVirksomhetNavnRiverTest :
                 )
 
             coVerifySequence {
-                mockBrregClient.hentVirksomheter(orgnr.map { it.verdi })
+                mockBrregClient.hentOrganisasjonNavn(orgnr)
             }
         }
 
         test("håndterer feil") {
-            coEvery { mockBrregClient.hentVirksomheter(any()) } throws NullPointerException()
+            coEvery { mockBrregClient.hentOrganisasjonNavn(any()) } throws NullPointerException()
 
             val innkommendeMelding = Mock.innkommendeMelding(setOf(Orgnr.genererGyldig()))
 
             val forventetFail =
                 Fail(
-                    feilmelding = "Klarte ikke hente virksomhet fra Brreg.",
+                    feilmelding = "Klarte ikke hente organisasjon fra Brreg.",
                     kontekstId = innkommendeMelding.kontekstId,
                     utloesendeMelding = innkommendeMelding.toMap(),
                 )
@@ -153,7 +152,7 @@ class HentVirksomhetNavnRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             coVerifySequence {
-                mockBrregClient.hentVirksomheter(innkommendeMelding.orgnr.map { it.verdi })
+                mockBrregClient.hentOrganisasjonNavn(innkommendeMelding.orgnr)
             }
         }
 
@@ -175,17 +174,17 @@ class HentVirksomhetNavnRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 coVerify(exactly = 0) {
-                    mockBrregClient.hentVirksomheter(any())
+                    mockBrregClient.hentOrganisasjonNavn(any())
                 }
             }
         }
     })
 
 private object Mock {
-    fun innkommendeMelding(orgnr: Set<Orgnr>): HentVirksomhetMelding {
+    fun innkommendeMelding(orgnr: Set<Orgnr>): HentOrganisasjonMelding {
         val svarKafkaKey = KafkaKey(UUID.randomUUID())
 
-        return HentVirksomhetMelding(
+        return HentOrganisasjonMelding(
             eventName = EventName.TRENGER_REQUESTED,
             behovType = BehovType.HENT_VIRKSOMHET_NAVN,
             kontekstId = UUID.randomUUID(),
@@ -199,7 +198,7 @@ private object Mock {
         )
     }
 
-    fun HentVirksomhetMelding.toMap(): Map<Key, JsonElement> =
+    fun HentOrganisasjonMelding.toMap(): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to behovType.toJson(),

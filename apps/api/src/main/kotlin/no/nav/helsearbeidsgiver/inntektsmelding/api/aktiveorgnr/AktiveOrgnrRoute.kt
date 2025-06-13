@@ -41,7 +41,7 @@ fun Route.aktiveOrgnrRoute(
             val request = call.receive<AktiveOrgnrRequest>()
             val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
 
-            producer.sendRequestEvent(kontekstId, arbeidsgiverFnr = arbeidsgiverFnr, arbeidstakerFnr = request.identitetsnummer)
+            producer.sendRequestEvent(kontekstId, arbeidsgiverFnr = arbeidsgiverFnr, arbeidstakerFnr = request.sykmeldtFnr)
 
             val resultatJson = redisPoller.hent(kontekstId)
 

@@ -1,17 +1,11 @@
-@file:UseSerializers(OffsetDateTimeSerializer::class)
-
 package no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering
 
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
@@ -20,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.domene.KvitteringResultat
 import no.nav.helsearbeidsgiver.felles.domene.LagretInntektsmelding
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.Producer
-import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -33,7 +26,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JsonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.fjernLedendeSlash
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
@@ -41,10 +33,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondNotFound
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.OffsetDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
-import java.time.OffsetDateTime
 import java.util.UUID
 
 fun Route.kvittering(
@@ -53,65 +43,6 @@ fun Route.kvittering(
     redisConnection: RedisConnection,
 ) {
     val redisPoller = RedisStore(redisConnection, RedisPrefix.Kvittering).let(::RedisPoller)
-
-    get(Routes.KVITTERING_GAMMEL) {
-        val kontekstId = UUID.randomUUID()
-
-        val forespoerselId =
-            call.parameters["uuid"]
-                ?.let(::fjernLedendeSlash)
-                ?.runCatching(UUID::fromString)
-                ?.getOrNull()
-
-        if (forespoerselId == null) {
-            "Ugyldig parameter: ${call.parameters["uuid"]}".let {
-                logger.warn(it)
-                respondBadRequest(it, String.serializer())
-            }
-        } else {
-            logger.info("Henter data for forespørselId: $forespoerselId")
-            Metrics.kvitteringEndpoint.recordTime(Route::kvittering) {
-                try {
-                    tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
-
-                    producer.sendRequestEvent(kontekstId, forespoerselId)
-                    val resultatJson = redisPoller.hent(kontekstId)
-
-                    val resultat = resultatJson.success?.fromJson(KvitteringResultat.serializer())
-                    if (resultat != null) {
-                        sikkerLogger.info("Hentet kvittering for '$forespoerselId'.\n${resultatJson.success?.toPretty()}")
-
-                        when (val lagret = resultat.lagret) {
-                            is LagretInntektsmelding.Skjema -> {
-                                val skjemaResponse = lagResponse(resultat.forespoersel, resultat.sykmeldtNavn, resultat.orgNavn, lagret)
-                                respondOk(skjemaResponse, KvitteringResponse.serializer())
-                            }
-                            is LagretInntektsmelding.Ekstern -> {
-                                val eksternResponse = lagResponse(lagret)
-                                respondOk(eksternResponse, KvitteringResponse.serializer())
-                            }
-                            null ->
-                                respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
-                        }
-                    } else {
-                        val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
-                        respondInternalServerError(feilmelding, String.serializer())
-                    }
-                } catch (e: ManglerAltinnRettigheterException) {
-                    respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
-                } catch (e: SerializationException) {
-                    "Kunne ikke parse json-resultat for forespørselId: $forespoerselId".let {
-                        logger.error(it)
-                        sikkerLogger.error(it, e)
-                        respondInternalServerError(JsonErrorResponse(forespoerselId.toString()), JsonErrorResponse.serializer())
-                    }
-                } catch (_: RedisPollerTimeoutException) {
-                    logger.error("Fikk timeout for forespørselId: $forespoerselId")
-                    respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
-                }
-            }
-        }
-    }
 
     get(Routes.KVITTERING) {
         val kontekstId = UUID.randomUUID()
@@ -168,28 +99,6 @@ fun Route.kvittering(
             }
         }
     }
-}
-
-@Serializable
-private data class KvitteringResponse(
-    val kvitteringNavNo: NavNo?,
-    val kvitteringEkstern: Ekstern?,
-) {
-    @Serializable
-    data class NavNo(
-        val sykmeldt: Sykmeldt,
-        val avsender: Avsender,
-        val sykmeldingsperioder: List<Periode>,
-        val skjema: SkjemaInntektsmelding,
-        val mottatt: OffsetDateTime,
-    )
-
-    @Serializable
-    data class Ekstern(
-        val avsenderSystem: String,
-        val referanse: String,
-        val mottatt: OffsetDateTime,
-    )
 }
 
 private fun Producer.sendRequestEvent(

@@ -171,12 +171,12 @@ class InntektsmeldingRepository(
             }
 
         if (antallOppdatert == 1) {
-            "Lagret inntektsmelding for forespørsel-ID ${inntektsmelding.type.id} i database.".also {
+            "Lagret inntektsmelding.".also {
                 logger.info(it)
                 sikkerLogger.info(it)
             }
         } else {
-            "Oppdaterte uventet antall ($antallOppdatert) rader ved lagring av inntektsmelding med forespørsel-ID ${inntektsmelding.type.id}.".also {
+            "Oppdaterte uventet antall ($antallOppdatert) rader ved lagring av inntektsmelding.".also {
                 logger.error(it)
                 sikkerLogger.error(it)
             }

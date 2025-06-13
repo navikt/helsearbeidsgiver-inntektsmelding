@@ -41,7 +41,6 @@ val sikkerLogger = sikkerLogger()
 object Routes {
     const val PREFIX = "/api/v1"
 
-    const val HENT_FORESPOERSEL_GAMMEL = "/hent-forespoersel"
     const val HENT_FORESPOERSEL = "/hent-forespoersel/{forespoerselId}"
     const val HENT_FORESPOERSEL_ID_LISTE = "/hent-forespoersel-id-liste"
     const val INNTEKT = "/inntekt"
@@ -49,7 +48,6 @@ object Routes {
     const val INNSENDING = "/inntektsmelding"
     const val SELVBESTEMT_INNTEKTSMELDING = "/selvbestemt-inntektsmelding"
     const val SELVBESTEMT_INNTEKTSMELDING_MED_ID = "$SELVBESTEMT_INNTEKTSMELDING/{selvbestemtId}"
-    const val KVITTERING_GAMMEL = "/kvittering"
     const val KVITTERING = "/kvittering/{forespoerselId}"
     const val AKTIVEORGNR = "/aktiveorgnr"
     const val TILGANG_ORGNR = "/tilgangorgnr/{orgnr}"

@@ -54,7 +54,6 @@ class LagreImRiver(
 
     override fun LagreImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         imRepo.oppdaterMedInntektsmelding(inntektsmelding)
-        sikkerLogger.info("Lagret inntektsmelding.")
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),

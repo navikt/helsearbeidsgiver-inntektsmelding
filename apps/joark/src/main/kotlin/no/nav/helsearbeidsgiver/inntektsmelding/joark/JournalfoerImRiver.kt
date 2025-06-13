@@ -116,7 +116,7 @@ class JournalfoerImRiver(
     private fun opprettOgFerdigstillJournalpost(inntektsmelding: Inntektsmelding): String {
         "Prøver å opprette og ferdigstille journalpost.".also {
             logger.info(it)
-            sikkerLogger.info("$it Gjelder IM:\n$inntektsmelding")
+            sikkerLogger.info(it)
         }
 
         val dokarkivKanal = inntektsmelding.type.kanal().tilDokarkivKanal()

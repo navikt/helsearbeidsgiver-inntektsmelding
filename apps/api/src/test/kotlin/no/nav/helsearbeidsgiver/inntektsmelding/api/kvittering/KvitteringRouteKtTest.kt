@@ -28,10 +28,10 @@ private const val PATH = Routes.PREFIX + Routes.KVITTERING
 
 class KvitteringRouteKtTest : ApiTest() {
     @Test
-    fun `gir 400-feil ved manglende forespørsel-ID`() =
+    fun `gir 404-feil ved manglende forespørsel-ID`() =
         testApi {
             val response = get(PATH.substringBeforeLast("/"))
-            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertEquals(HttpStatusCode.NotFound, response.status)
 
             verify(exactly = 0) {
                 mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())

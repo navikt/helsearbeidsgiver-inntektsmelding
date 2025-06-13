@@ -10,13 +10,9 @@ import io.prometheus.client.Counter as PrometheusCounter
 import io.prometheus.client.Summary as PrometheusSummary
 
 object Metrics {
-    val hentForespoerselEndpoint = endpointMetric("hent forespoersel")
-
     val hentForespoerselIdListeEndpoint = endpointMetric("hent forespoersel ID liste")
 
     val innsendingEndpoint = endpointMetric("innsending")
-
-    val kvitteringEndpoint = endpointMetric("kvittering")
 
     val dbInntektsmelding = databaseMetric("inntektsmelding", "inntektsmelding")
 

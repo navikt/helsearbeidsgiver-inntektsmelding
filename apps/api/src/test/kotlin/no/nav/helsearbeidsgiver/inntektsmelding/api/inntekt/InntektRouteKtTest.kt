@@ -42,7 +42,7 @@ class InntektRouteKtTest : ApiTest() {
             val request =
                 InntektRequest(
                     forespoerselId = UUID.randomUUID(),
-                    skjaeringstidspunkt = 17.april(2024),
+                    inntektsdato = 17.april(2024),
                 )
             val inntekt =
                 mapOf(
@@ -98,7 +98,7 @@ class InntektRouteKtTest : ApiTest() {
                                     Key.DATA to
                                         mapOf(
                                             Key.FORESPOERSEL_ID to request.forespoerselId.toJson(),
-                                            Key.INNTEKTSDATO to request.skjaeringstidspunkt.toJson(),
+                                            Key.INNTEKTSDATO to request.inntektsdato.toJson(),
                                         ).toJson(),
                                 )
                         },

@@ -4,7 +4,7 @@ Content-Type: application/json
 
 {
   "forespoerselId": "77c9e7ed-efcc-45e5-9177-4db2d4e466c1",
-  "skjaeringstidspunkt": "2023-01-05"
+  "inntektsdato": "2023-01-05"
 }
 
 > {%

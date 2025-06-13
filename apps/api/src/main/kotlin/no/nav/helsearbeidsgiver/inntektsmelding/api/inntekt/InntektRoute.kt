@@ -90,7 +90,7 @@ private fun Producer.sendRequestEvent(
                 Key.DATA to
                     mapOf(
                         Key.FORESPOERSEL_ID to request.forespoerselId.toJson(),
-                        Key.INNTEKTSDATO to request.skjaeringstidspunkt.toJson(),
+                        Key.INNTEKTSDATO to request.inntektsdato.toJson(),
                     ).toJson(),
             ),
     )

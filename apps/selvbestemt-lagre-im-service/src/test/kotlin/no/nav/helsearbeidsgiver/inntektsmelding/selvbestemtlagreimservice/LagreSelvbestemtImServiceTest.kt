@@ -124,8 +124,12 @@ class LagreSelvbestemtImServiceTest :
 
                 val type = it.lesInntektsmelding().type
                 when (type) {
-                    is Inntektsmelding.Type.Forespurt, is Inntektsmelding.Type.ForespurtEkstern -> fail("Feil type: $type")
                     is Inntektsmelding.Type.Selvbestemt -> type.id shouldNotBe nyInntektsmelding.type.id
+
+                    else ->
+                        fail(
+                            "Feil type: $type",
+                        )
                 }
             }
 

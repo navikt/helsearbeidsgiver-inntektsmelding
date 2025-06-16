@@ -318,6 +318,24 @@ private fun Inntektsmelding.Type.hardcodedJson(): String =
             }
             """
 
+        is Inntektsmelding.Type.Fisker ->
+            """
+            {
+                "type": "Fisker",
+                "id": "$id",
+                "avsenderSystem": ${this.avsenderSystem.hardcodedJson()}
+            }
+            """
+
+        is Inntektsmelding.Type.UtenArbeidsforhold ->
+            """
+            {
+                "type": "UtenArbeidsforhold",
+                "id": "$id",
+                "avsenderSystem": ${this.avsenderSystem.hardcodedJson()}
+            }
+            """
+
         is Inntektsmelding.Type.ForespurtEkstern ->
             """
             {

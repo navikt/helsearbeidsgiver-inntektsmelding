@@ -46,7 +46,7 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
                     .toString()
 
             val requestBody = """
-                {"identitetsnummer":"$arbeidstakerFnr"}
+                {"sykmeldtFnr":"$arbeidstakerFnr"}
             """
 
             val response = post(path, requestBody.fromJson(AktiveOrgnrRequest.serializer()), AktiveOrgnrRequest.serializer())
@@ -101,11 +101,11 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
         val fnr = Fnr.genererGyldig()
         val requestBody =
             """
-            {"identitetsnummer":"$fnr"}
+            {"sykmeldtFnr":"$fnr"}
         """.removeJsonWhitespace()
 
         val requestObj = requestBody.fromJson(AktiveOrgnrRequest.serializer())
-        assertEquals(fnr, requestObj.identitetsnummer)
+        assertEquals(fnr, requestObj.sykmeldtFnr)
     }
 
     private object Mock {

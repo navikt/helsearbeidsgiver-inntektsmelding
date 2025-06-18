@@ -31,7 +31,7 @@ import java.util.UUID
 data class Steg0(
     val kontekstId: UUID,
     val forespoerselId: UUID,
-    val skjaeringstidspunkt: LocalDate,
+    val inntektsdato: LocalDate,
 )
 
 data class Steg1(
@@ -55,7 +55,7 @@ class InntektService(
         Steg0(
             kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
-            skjaeringstidspunkt = Key.INNTEKTSDATO.les(LocalDateSerializer, melding),
+            inntektsdato = Key.INNTEKTSDATO.les(LocalDateSerializer, melding),
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
@@ -110,7 +110,7 @@ class InntektService(
                                 Key.SVAR_KAFKA_KEY to KafkaKey(steg0.forespoerselId).toJson(),
                                 Key.ORGNR_UNDERENHET to steg1.forespoersel.orgnr.toJson(),
                                 Key.FNR to steg1.forespoersel.fnr.toJson(),
-                                Key.INNTEKTSDATO to steg0.skjaeringstidspunkt.toJson(),
+                                Key.INNTEKTSDATO to steg0.inntektsdato.toJson(),
                             ),
                         ).toJson(),
             ).also {

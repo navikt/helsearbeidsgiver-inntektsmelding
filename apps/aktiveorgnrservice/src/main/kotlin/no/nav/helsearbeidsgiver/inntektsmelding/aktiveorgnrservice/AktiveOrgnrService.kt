@@ -1,15 +1,15 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.AktiveArbeidsgivere
-import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
+import no.nav.helsearbeidsgiver.felles.domene.PeriodeAapen
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.ansettelsesperioderSerializer
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
@@ -22,7 +22,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
-import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -39,8 +38,8 @@ data class Steg0(
 
 sealed class Steg1 {
     data class Komplett(
-        val arbeidsforhold: List<Arbeidsforhold>,
-        val orgrettigheter: Set<String>,
+        val ansettelsesperioder: Map<Orgnr, Set<PeriodeAapen>>,
+        val orgrettigheter: Set<Orgnr>,
         val personer: Map<Fnr, Person>,
     ) : Steg1()
 
@@ -69,15 +68,15 @@ class AktiveOrgnrService(
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 {
-        val arbeidsforhold = runCatching { Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), melding) }
-        val orgrettigheter = runCatching { Key.ORG_RETTIGHETER.les(String.serializer().set(), melding) }
+        val ansettelsesperioder = runCatching { Key.ANSETTELSESPERIODER.les(ansettelsesperioderSerializer, melding) }
+        val orgrettigheter = runCatching { Key.ORG_RETTIGHETER.les(Orgnr.serializer().set(), melding) }
         val personer = runCatching { Key.PERSONER.les(personMapSerializer, melding) }
 
-        val results = listOf(arbeidsforhold, orgrettigheter, personer)
+        val results = listOf(ansettelsesperioder, orgrettigheter, personer)
 
         return if (results.all { it.isSuccess }) {
             Steg1.Komplett(
-                arbeidsforhold = arbeidsforhold.getOrThrow(),
+                ansettelsesperioder = ansettelsesperioder.getOrThrow(),
                 orgrettigheter = orgrettigheter.getOrThrow(),
                 personer = personer.getOrThrow(),
             )
@@ -114,7 +113,7 @@ class AktiveOrgnrService(
         rapid.publish(
             key = steg0.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
-            Key.BEHOV to BehovType.HENT_ARBEIDSFORHOLD.toJson(),
+            Key.BEHOV to BehovType.HENT_ANSETTELSESPERIODER.toJson(),
             Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
@@ -146,7 +145,7 @@ class AktiveOrgnrService(
         steg1: Steg1,
     ) {
         if (steg1 is Steg1.Komplett) {
-            val arbeidsgivere = trekkUtArbeidsforhold(steg1.arbeidsforhold, steg1.orgrettigheter)
+            val arbeidsgivere = steg1.ansettelsesperioder.keys.intersect(steg1.orgrettigheter)
 
             if (steg1.orgrettigheter.isEmpty()) {
                 onError(steg0.kontekstId, "Må ha orgrettigheter for å kunne hente virksomheter.")
@@ -161,7 +160,7 @@ class AktiveOrgnrService(
                     Key.DATA to
                         mapOf(
                             Key.SVAR_KAFKA_KEY to KafkaKey(steg0.sykmeldtFnr).toJson(),
-                            Key.ORGNR_UNDERENHETER to arbeidsgivere.toJson(String.serializer()),
+                            Key.ORGNR_UNDERENHETER to arbeidsgivere.toJson(Orgnr.serializer()),
                         ).toJson(),
                 )
             }
@@ -175,14 +174,14 @@ class AktiveOrgnrService(
         steg2: Steg2,
     ) {
         if (steg1 is Steg1.Komplett) {
-            val sykmeldtNavn = steg1.personer[steg0.sykmeldtFnr]?.navn.orEmpty()
-            val avsenderNavn = steg1.personer[steg0.avsenderFnr]?.navn.orEmpty()
+            val sykmeldtNavn = steg1.personer[steg0.sykmeldtFnr]?.navn
+            val avsenderNavn = steg1.personer[steg0.avsenderFnr]?.navn
 
-            val gyldigeUnderenheter =
+            val aktiveArbeidgivere =
                 steg2.virksomheter.map {
                     AktiveArbeidsgivere.Arbeidsgiver(
-                        orgnrUnderenhet = it.key.verdi,
-                        virksomhetsnavn = it.value,
+                        orgnr = it.key,
+                        orgNavn = it.value,
                     )
                 }
 
@@ -190,9 +189,9 @@ class AktiveOrgnrService(
                 ResultJson(
                     success =
                         AktiveArbeidsgivere(
-                            fulltNavn = sykmeldtNavn,
+                            sykmeldtNavn = sykmeldtNavn,
                             avsenderNavn = avsenderNavn,
-                            underenheter = gyldigeUnderenheter,
+                            arbeidsgivere = aktiveArbeidgivere,
                         ).toJson(AktiveArbeidsgivere.serializer()),
                 )
 
@@ -230,13 +229,4 @@ class AktiveOrgnrService(
             Log.event(eventName),
             Log.kontekstId(kontekstId),
         )
-
-    private fun trekkUtArbeidsforhold(
-        arbeidsforholdListe: List<Arbeidsforhold>,
-        orgrettigheter: Set<String>,
-    ): Set<String> =
-        arbeidsforholdListe
-            .mapNotNull { it.arbeidsgiver.organisasjonsnummer }
-            .filter { it in orgrettigheter }
-            .toSet()
 }

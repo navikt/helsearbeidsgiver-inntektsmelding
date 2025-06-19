@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr
 
 import kotlinx.serialization.Serializable
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 
 @Serializable
 data class AktiveOrgnrResponse(
@@ -11,6 +12,6 @@ data class AktiveOrgnrResponse(
 
 @Serializable
 data class GyldigUnderenhet(
-    val orgnrUnderenhet: String,
+    val orgnrUnderenhet: Orgnr,
     val virksomhetsnavn: String,
 )

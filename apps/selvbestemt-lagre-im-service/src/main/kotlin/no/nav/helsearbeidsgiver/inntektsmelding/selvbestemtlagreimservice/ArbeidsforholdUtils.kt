@@ -1,32 +1,30 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
-import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
-import no.nav.helsearbeidsgiver.felles.domene.PeriodeNullable
+import no.nav.helsearbeidsgiver.felles.domene.PeriodeAapen
 
 private const val MAKS_DAGER_OPPHOLD = 3L
 
-fun List<Periode>.aktivtArbeidsforholdIPeriode(arbeidsforhold: List<Arbeidsforhold>): Boolean {
-    val ansattPerioder = arbeidsforhold.map { it.ansettelsesperiode.periode }
-    val ansattPerioderSammenslaatt = slaaSammenPerioder(ansattPerioder)
-    return this.any { it.innenforArbeidsforhold(ansattPerioderSammenslaatt) } || this.any { it.innenforArbeidsforhold(ansattPerioder) }
+fun List<Periode>.aktivtArbeidsforholdIPeriode(ansettelsesperioder: Set<PeriodeAapen>): Boolean {
+    val ansattPerioderSammenslaatt = slaaSammenPerioder(ansettelsesperioder)
+    return this.any { it.innenforArbeidsforhold(ansattPerioderSammenslaatt) } || this.any { it.innenforArbeidsforhold(ansettelsesperioder) }
 }
 
-private fun Periode.innenforArbeidsforhold(ansattPerioder: List<PeriodeNullable>): Boolean =
+private fun Periode.innenforArbeidsforhold(ansattPerioder: Set<PeriodeAapen>): Boolean =
     ansattPerioder.any { ansPeriode ->
-        (ansPeriode.tom == null || this.tom.isBefore(ansPeriode.tom) || this.tom == ansPeriode.tom) &&
-            (ansPeriode.fom!!.isBefore(this.fom) || ansPeriode.fom!!.isEqual(this.fom))
+        !fom.isBefore(ansPeriode.fom) &&
+            (ansPeriode.tom == null || !tom.isAfter(ansPeriode.tom))
     }
 
-private fun slaaSammenPerioder(list: List<PeriodeNullable>): List<PeriodeNullable> {
-    if (list.size < 2) return list
+private fun slaaSammenPerioder(ansettelsesperioder: Set<PeriodeAapen>): Set<PeriodeAapen> {
+    if (ansettelsesperioder.size <= 1) return ansettelsesperioder
 
     val remainingPeriods =
-        list
+        ansettelsesperioder
             .sortedBy { it.fom }
             .toMutableList()
 
-    val merged = ArrayList<PeriodeNullable>()
+    val merged = ArrayList<PeriodeAapen>()
 
     do {
         var currentPeriod = remainingPeriods[0]
@@ -35,9 +33,9 @@ private fun slaaSammenPerioder(list: List<PeriodeNullable>): List<PeriodeNullabl
         do {
             val connectedPeriod =
                 remainingPeriods
-                    .find { !oppholdMellomPerioderOverstigerDager(currentPeriod, it, MAKS_DAGER_OPPHOLD) }
+                    .find { !oppholdMellomPerioderOverstigerDager(currentPeriod, it) }
             if (connectedPeriod != null) {
-                currentPeriod = PeriodeNullable(currentPeriod.fom, connectedPeriod.tom)
+                currentPeriod = PeriodeAapen(currentPeriod.fom, connectedPeriod.tom)
                 remainingPeriods.remove(connectedPeriod)
             }
         } while (connectedPeriod != null)
@@ -45,11 +43,10 @@ private fun slaaSammenPerioder(list: List<PeriodeNullable>): List<PeriodeNullabl
         merged.add(currentPeriod)
     } while (remainingPeriods.isNotEmpty())
 
-    return merged
+    return merged.toSet()
 }
 
 private fun oppholdMellomPerioderOverstigerDager(
-    a1: PeriodeNullable,
-    a2: PeriodeNullable,
-    dager: Long,
-): Boolean = a1.tom?.plusDays(dager)?.isBefore(a2.fom) ?: true
+    a1: PeriodeAapen,
+    a2: PeriodeAapen,
+): Boolean = a1.tom?.plusDays(MAKS_DAGER_OPPHOLD)?.isBefore(a2.fom) ?: true

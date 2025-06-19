@@ -18,10 +18,6 @@ object Metrics {
 
     val dbSelvbestemtIm = databaseMetric("inntektsmelding", "selvbestemt_inntektsmelding")
 
-    val aaregRequest = requestMetric("Aareg")
-
-    val brregRequest = requestMetric("Brreg")
-
     val forespoerslerBesvartFraSpleis = counterMetric("forespoersler besvart fra Spleis")
 
     object Expose {
@@ -73,12 +69,6 @@ private fun databaseMetric(
     latencyMetric(
         name = "db_${dbName}_$tableName",
         description = "database '$dbName' and table '$tableName'",
-    )
-
-private fun requestMetric(clientName: String): Summary =
-    latencyMetric(
-        name = "client_$clientName",
-        description = "$clientName-request",
     )
 
 private fun latencyMetric(

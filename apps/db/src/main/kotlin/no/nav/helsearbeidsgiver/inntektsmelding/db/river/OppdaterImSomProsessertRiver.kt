@@ -47,7 +47,7 @@ class OppdaterImSomProsessertRiver(
         when (inntektsmelding.type) {
             is Inntektsmelding.Type.Forespurt, is Inntektsmelding.Type.ForespurtEkstern ->
                 imRepo.oppdaterSomProsessert(inntektsmelding.id)
-            is Inntektsmelding.Type.Selvbestemt ->
+            is Inntektsmelding.Type.Selvbestemt, is Inntektsmelding.Type.Fisker, is Inntektsmelding.Type.UtenArbeidsforhold ->
                 selvbestemtImRepo.oppdaterSomProsessert(inntektsmelding.id)
         }
 
@@ -79,7 +79,10 @@ class OppdaterImSomProsessertRiver(
             Log.inntektsmeldingId(inntektsmelding.id),
             when (inntektsmelding.type) {
                 is Inntektsmelding.Type.Forespurt, is Inntektsmelding.Type.ForespurtEkstern -> Log.forespoerselId(inntektsmelding.type.id)
-                is Inntektsmelding.Type.Selvbestemt -> Log.selvbestemtId(inntektsmelding.type.id)
+                is Inntektsmelding.Type.Selvbestemt, is Inntektsmelding.Type.Fisker, is Inntektsmelding.Type.UtenArbeidsforhold ->
+                    Log.selvbestemtId(
+                        inntektsmelding.type.id,
+                    )
             },
         )
 }

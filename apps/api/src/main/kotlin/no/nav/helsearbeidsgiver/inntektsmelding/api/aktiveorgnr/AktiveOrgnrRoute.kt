@@ -47,7 +47,7 @@ fun Route.aktiveOrgnrRoute(
 
             val resultat = resultatJson.success?.fromJson(AktiveArbeidsgivere.serializer())
             if (resultat != null) {
-                if (resultat.underenheter.isEmpty()) {
+                if (resultat.arbeidsgivere.isEmpty()) {
                     respondNotFound("Fant ingen arbeidsforhold.", String.serializer())
                 } else {
                     val response = resultat.toResponse()
@@ -89,13 +89,13 @@ private fun Producer.sendRequestEvent(
 
 private fun AktiveArbeidsgivere.toResponse(): AktiveOrgnrResponse =
     AktiveOrgnrResponse(
-        fulltNavn = fulltNavn,
-        avsenderNavn = avsenderNavn,
+        fulltNavn = sykmeldtNavn,
+        avsenderNavn = avsenderNavn.orEmpty(),
         underenheter =
-            underenheter.map {
+            arbeidsgivere.map {
                 GyldigUnderenhet(
-                    orgnrUnderenhet = it.orgnrUnderenhet,
-                    virksomhetsnavn = it.virksomhetsnavn,
+                    orgnrUnderenhet = it.orgnr,
+                    virksomhetsnavn = it.orgNavn,
                 )
             },
     )

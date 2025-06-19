@@ -8,16 +8,15 @@ import io.mockk.clearAllMocks
 import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.AktiveArbeidsgivere
-import no.nav.helsearbeidsgiver.felles.domene.Ansettelsesperiode
-import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
-import no.nav.helsearbeidsgiver.felles.domene.Arbeidsgiver
-import no.nav.helsearbeidsgiver.felles.domene.PeriodeNullable
+import no.nav.helsearbeidsgiver.felles.domene.PeriodeAapen
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.ansettelsesperioderSerializer
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -32,7 +31,6 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -70,7 +68,7 @@ class AktiveOrgnrServiceTest :
                 Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.sykmeldtFnr)
             }
             testRapid.message(1).also {
-                it.lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
+                it.lesBehov() shouldBe BehovType.HENT_ANSETTELSESPERIODER
                 Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.sykmeldtFnr)
             }
             testRapid.message(2).also {
@@ -108,7 +106,7 @@ class AktiveOrgnrServiceTest :
             testRapid.sendJson(
                 Mock
                     .steg1Data(kontekstId, orgnr)
-                    .plusData(Key.ARBEIDSFORHOLD to emptyList<Arbeidsforhold>().toJson(Arbeidsforhold.serializer())),
+                    .plusData(Key.ANSETTELSESPERIODER to JsonObject(emptyMap())),
             )
 
             // Virksomheter hentes ikke
@@ -212,13 +210,13 @@ private object Mock {
         ResultJson(
             success =
                 AktiveArbeidsgivere(
-                    fulltNavn = SYKMELDT_NAVN,
+                    sykmeldtNavn = SYKMELDT_NAVN,
                     avsenderNavn = AVSENDER_NAVN,
-                    underenheter =
+                    arbeidsgivere =
                         listOf(
                             AktiveArbeidsgivere.Arbeidsgiver(
-                                orgnrUnderenhet = orgnr.verdi,
-                                virksomhetsnavn = ORG_NAVN,
+                                orgnr = orgnr,
+                                orgNavn = ORG_NAVN,
                             ),
                         ),
                 ).toJson(AktiveArbeidsgivere.serializer()),
@@ -228,9 +226,9 @@ private object Mock {
         ResultJson(
             success =
                 AktiveArbeidsgivere(
-                    fulltNavn = SYKMELDT_NAVN,
+                    sykmeldtNavn = SYKMELDT_NAVN,
                     avsenderNavn = AVSENDER_NAVN,
-                    underenheter = emptyList(),
+                    arbeidsgivere = emptyList(),
                 ).toJson(AktiveArbeidsgivere.serializer()),
         )
 
@@ -259,18 +257,10 @@ private object Mock {
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.ARBEIDSFORHOLD to
-                        listOf(
-                            Arbeidsforhold(
-                                arbeidsgiver =
-                                    Arbeidsgiver(
-                                        type = "ORG",
-                                        organisasjonsnummer = orgnr.verdi,
-                                    ),
-                                ansettelsesperiode = Ansettelsesperiode(PeriodeNullable(12.mars, 13.mars)),
-                                registrert = 12.mars.kl(13, 1, 2, 3),
-                            ),
-                        ).toJson(Arbeidsforhold.serializer()),
+                    Key.ANSETTELSESPERIODER to
+                        mapOf(
+                            orgnr to setOf(PeriodeAapen(12.mars, 13.mars)),
+                        ).toJson(ansettelsesperioderSerializer),
                     Key.ORG_RETTIGHETER to setOf(orgnr).toJson(Orgnr.serializer()),
                     Key.PERSONER to personer.toJson(personMapSerializer),
                 ).toJson(),

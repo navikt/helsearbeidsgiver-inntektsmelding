@@ -11,9 +11,10 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsm
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
+import no.nav.helsearbeidsgiver.felles.domene.PeriodeAapen
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.ansettelsesperioderSerializer
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
@@ -29,7 +30,6 @@ import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
-import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
@@ -40,6 +40,7 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.collections.orEmpty
 
 data class Steg0(
     val kontekstId: UUID,
@@ -52,7 +53,7 @@ sealed class Steg1 {
     data class Komplett(
         val orgnrMedNavn: Map<Orgnr, String>,
         val personer: Map<Fnr, Person>,
-        val arbeidsforhold: List<Arbeidsforhold>,
+        val ansettelsesperioder: Map<Orgnr, Set<PeriodeAapen>>,
     ) : Steg1()
 
     data object Delvis : Steg1()
@@ -87,24 +88,17 @@ class LagreSelvbestemtImService(
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 {
-        val steg0 = lesSteg0(melding)
-
         val orgnrMedNavn = runCatching { Key.VIRKSOMHETER.les(orgMapSerializer, melding) }
         val personer = runCatching { Key.PERSONER.les(personMapSerializer, melding) }
-        val arbeidsforhold =
-            runCatching {
-                Key.ARBEIDSFORHOLD
-                    .les(Arbeidsforhold.serializer().list(), melding)
-                    .filter { it.arbeidsgiver.organisasjonsnummer == steg0.skjema.avsender.orgnr.verdi }
-            }
+        val ansettelsesperioder = runCatching { Key.ANSETTELSESPERIODER.les(ansettelsesperioderSerializer, melding) }
 
-        val results = listOf(orgnrMedNavn, personer, arbeidsforhold)
+        val results = listOf(orgnrMedNavn, personer, ansettelsesperioder)
 
         return if (results.all { it.isSuccess }) {
             Steg1.Komplett(
                 orgnrMedNavn = orgnrMedNavn.getOrThrow(),
                 personer = personer.getOrThrow(),
-                arbeidsforhold = arbeidsforhold.getOrThrow(),
+                ansettelsesperioder = ansettelsesperioder.getOrThrow(),
             )
         } else if (results.any { it.isSuccess }) {
             Steg1.Delvis
@@ -163,7 +157,7 @@ class LagreSelvbestemtImService(
         rapid.publish(
             key = steg0.skjema.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
-            Key.BEHOV to BehovType.HENT_ARBEIDSFORHOLD.toJson(),
+            Key.BEHOV to BehovType.HENT_ANSETTELSESPERIODER.toJson(),
             Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
@@ -199,7 +193,10 @@ class LagreSelvbestemtImService(
                     ?.perioder
                     .orEmpty()
                     .plus(steg0.skjema.sykmeldingsperioder)
-            val erAktivtArbeidsforhold = sykeperioder.aktivtArbeidsforholdIPeriode(steg1.arbeidsforhold)
+
+            val ansettelsesperioderForAktuellOrg = steg1.ansettelsesperioder[steg0.skjema.avsender.orgnr].orEmpty()
+
+            val erAktivtArbeidsforhold = sykeperioder.aktivtArbeidsforholdIPeriode(ansettelsesperioderForAktuellOrg)
 
             if (erAktivtArbeidsforhold) {
                 rapid

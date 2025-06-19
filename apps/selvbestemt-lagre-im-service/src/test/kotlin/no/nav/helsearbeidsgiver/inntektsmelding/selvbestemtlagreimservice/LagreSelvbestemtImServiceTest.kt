@@ -28,12 +28,10 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.Ansettelsesperiode
-import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
-import no.nav.helsearbeidsgiver.felles.domene.Arbeidsgiver
-import no.nav.helsearbeidsgiver.felles.domene.PeriodeNullable
+import no.nav.helsearbeidsgiver.felles.domene.PeriodeAapen
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.ansettelsesperioderSerializer
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -54,13 +52,13 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.kl
+import no.nav.helsearbeidsgiver.utils.test.date.mai
 import no.nav.helsearbeidsgiver.utils.test.date.mars
+import no.nav.helsearbeidsgiver.utils.test.date.november
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -107,7 +105,7 @@ class LagreSelvbestemtImServiceTest :
                 Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.skjema.sykmeldtFnr)
             }
             testRapid.message(2).also {
-                it.lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
+                it.lesBehov() shouldBe BehovType.HENT_ANSETTELSESPERIODER
                 Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.skjema.sykmeldtFnr)
             }
 
@@ -172,7 +170,7 @@ class LagreSelvbestemtImServiceTest :
                 Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.skjema.sykmeldtFnr)
             }
             testRapid.message(2).also {
-                it.lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
+                it.lesBehov() shouldBe BehovType.HENT_ANSETTELSESPERIODER
                 Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.skjema.sykmeldtFnr)
             }
 
@@ -411,7 +409,7 @@ class LagreSelvbestemtImServiceTest :
                 testRapid.sendJson(
                     Mock
                         .steg1(kontekstId)
-                        .plusData(Key.ARBEIDSFORHOLD to Mock.lagArbeidsforhold("123456789").toJson(Arbeidsforhold.serializer())),
+                        .plusData(Key.ANSETTELSESPERIODER to Mock.lagAnsettelsesperioder(Orgnr.genererGyldig()).toJson(ansettelsesperioderSerializer)),
                 )
             }
 
@@ -549,7 +547,7 @@ private object Mock {
                             sykmeldt.fnr to sykmeldt,
                             avsender.fnr to avsender,
                         ).toJson(personMapSerializer),
-                    Key.ARBEIDSFORHOLD to lagArbeidsforhold(orgnr = skjema.avsender.orgnr.verdi).toJson(Arbeidsforhold.serializer()),
+                    Key.ANSETTELSESPERIODER to lagAnsettelsesperioder(skjema.avsender.orgnr).toJson(ansettelsesperioderSerializer),
                 ).toJson(),
         )
 
@@ -577,12 +575,14 @@ private object Mock {
                 ).toJson(),
         )
 
-    fun lagArbeidsforhold(orgnr: String) =
-        listOf(
-            Arbeidsforhold(
-                arbeidsgiver = Arbeidsgiver("ORG", orgnr),
-                ansettelsesperiode = Ansettelsesperiode(PeriodeNullable(LocalDate.MIN, LocalDate.MAX)),
-                registrert = LocalDateTime.MIN,
-            ),
+    fun lagAnsettelsesperioder(orgnr: Orgnr) =
+        mapOf(
+            orgnr to
+                setOf(
+                    PeriodeAapen(
+                        1.mai(2016),
+                        30.november(2024),
+                    ),
+                ),
         )
 }

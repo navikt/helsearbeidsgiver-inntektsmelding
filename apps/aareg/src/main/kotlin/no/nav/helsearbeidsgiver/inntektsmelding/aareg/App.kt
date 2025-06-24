@@ -7,7 +7,7 @@ import no.nav.helsearbeidsgiver.felles.auth.AuthClient
 import no.nav.helsearbeidsgiver.felles.auth.IdentityProvider
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.helsearbeidsgiver.utils.log.logger
-import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.minutes
 
 private val logger = "im-aareg".logger()
 
@@ -28,7 +28,7 @@ private fun buildClient(): AaregClient {
     val tokenGetter = AuthClient().tokenGetter(IdentityProvider.AZURE_AD, Env.aaregScope)
     return AaregClient(
         url = Env.aaregUrl,
-        cacheConfig = LocalCache.Config(7.days, 1000),
+        cacheConfig = LocalCache.Config(5.minutes, 1000),
         getAccessToken = tokenGetter,
     )
 }

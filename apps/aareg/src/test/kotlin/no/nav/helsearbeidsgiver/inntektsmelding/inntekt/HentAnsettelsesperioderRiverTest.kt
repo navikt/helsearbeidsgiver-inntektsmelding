@@ -12,10 +12,12 @@ import io.mockk.coVerifySequence
 import io.mockk.mockk
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.aareg.AaregClient
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
+import no.nav.helsearbeidsgiver.felles.domene.PeriodeAapen
+import no.nav.helsearbeidsgiver.felles.json.ansettelsesperioderSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
@@ -23,34 +25,58 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.inntektsmelding.aareg.HentArbeidsforholdMelding
-import no.nav.helsearbeidsgiver.inntektsmelding.aareg.HentArbeidsforholdRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.aareg.tilArbeidsforhold
+import no.nav.helsearbeidsgiver.inntektsmelding.aareg.HentAnsettelsesperioderMelding
+import no.nav.helsearbeidsgiver.inntektsmelding.aareg.HentAnsettelsesperioderRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
+import no.nav.helsearbeidsgiver.aareg.Periode as KlientPeriode
 
-class HentArbeidsforholdRiverTest :
+class HentAnsettelsesperioderRiverTest :
     FunSpec({
         val testRapid = TestRapid()
         val mockAaregClient = mockk<AaregClient>()
 
-        HentArbeidsforholdRiver(mockAaregClient).connect(testRapid)
+        HentAnsettelsesperioderRiver(mockAaregClient).connect(testRapid)
 
         beforeTest {
             testRapid.reset()
             clearAllMocks()
         }
 
-        test("henter arbeidsforhold") {
-            val expectedArbeidsforhold =
-                mockKlientArbeidsforhold()
-                    .tilArbeidsforhold()
-                    .let(::listOf)
+        test("henter ansettelsesperioder") {
+            val orgnr = Orgnr.genererGyldig()
+            val periode =
+                Periode(
+                    fom = 1.januar,
+                    tom = 16.januar,
+                )
+            val ansettelsesperioderFraKlient =
+                mapOf(
+                    orgnr to
+                        setOf(
+                            KlientPeriode(
+                                fom = periode.fom,
+                                tom = periode.tom,
+                            ),
+                        ),
+                )
+            val ansettelsesperioder =
+                mapOf(
+                    orgnr to
+                        setOf(
+                            PeriodeAapen(
+                                fom = periode.fom,
+                                tom = periode.tom,
+                            ),
+                        ),
+                )
 
-            coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } returns listOf(mockKlientArbeidsforhold())
+            coEvery { mockAaregClient.hentAnsettelsesperioder(any(), any()) } returns ansettelsesperioderFraKlient
 
             val innkommendeMelding = Mock.innkommendeMelding()
 
@@ -64,23 +90,23 @@ class HentArbeidsforholdRiverTest :
                     Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.DATA to
                         innkommendeMelding.data
-                            .plus(Key.ARBEIDSFORHOLD to expectedArbeidsforhold.toJson(Arbeidsforhold.serializer()))
+                            .plus(Key.ANSETTELSESPERIODER to ansettelsesperioder.toJson(ansettelsesperioderSerializer))
                             .toJson(),
                 )
 
             coVerifySequence {
-                mockAaregClient.hentArbeidsforhold(innkommendeMelding.fnr.verdi, innkommendeMelding.kontekstId.toString())
+                mockAaregClient.hentAnsettelsesperioder(innkommendeMelding.fnr.verdi, innkommendeMelding.kontekstId.toString())
             }
         }
 
         test("håndterer feil") {
-            coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } throws NullPointerException()
+            coEvery { mockAaregClient.hentAnsettelsesperioder(any(), any()) } throws NullPointerException()
 
             val innkommendeMelding = Mock.innkommendeMelding()
 
             val forventetFail =
                 Fail(
-                    feilmelding = "Klarte ikke hente arbeidsforhold fra Aareg.",
+                    feilmelding = "Klarte ikke hente ansettelsesperioder fra Aareg.",
                     kontekstId = innkommendeMelding.kontekstId,
                     utloesendeMelding = innkommendeMelding.toMap(),
                 )
@@ -92,7 +118,7 @@ class HentArbeidsforholdRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             coVerifySequence {
-                mockAaregClient.hentArbeidsforhold(innkommendeMelding.fnr.verdi, innkommendeMelding.kontekstId.toString())
+                mockAaregClient.hentAnsettelsesperioder(innkommendeMelding.fnr.verdi, innkommendeMelding.kontekstId.toString())
             }
         }
 
@@ -114,20 +140,20 @@ class HentArbeidsforholdRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 coVerify(exactly = 0) {
-                    mockAaregClient.hentArbeidsforhold(any(), any())
+                    mockAaregClient.hentAnsettelsesperioder(any(), any())
                 }
             }
         }
     })
 
 private object Mock {
-    fun innkommendeMelding(): HentArbeidsforholdMelding {
+    fun innkommendeMelding(): HentAnsettelsesperioderMelding {
         val fnr = Fnr.genererGyldig()
         val svarKafkaKey = KafkaKey(fnr)
 
-        return HentArbeidsforholdMelding(
+        return HentAnsettelsesperioderMelding(
             eventName = EventName.AKTIVE_ORGNR_REQUESTED,
-            behovType = BehovType.HENT_ARBEIDSFORHOLD,
+            behovType = BehovType.HENT_ANSETTELSESPERIODER,
             kontekstId = UUID.randomUUID(),
             data =
                 mapOf(
@@ -139,7 +165,7 @@ private object Mock {
         )
     }
 
-    fun HentArbeidsforholdMelding.toMap(): Map<Key, JsonElement> =
+    fun HentAnsettelsesperioderMelding.toMap(): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to behovType.toJson(),

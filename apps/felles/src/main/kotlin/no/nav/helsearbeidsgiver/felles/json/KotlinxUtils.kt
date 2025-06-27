@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.domene.PeriodeAapen
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
@@ -37,6 +38,12 @@ val inntektMapSerializer =
     MapSerializer(
         YearMonthSerializer,
         Double.serializer().nullable,
+    )
+
+val ansettelsesperioderSerializer =
+    MapSerializer(
+        Orgnr.serializer(),
+        PeriodeAapen.serializer().set(),
     )
 
 fun EventName.toJson(): JsonElement = toJson(EventName.serializer())

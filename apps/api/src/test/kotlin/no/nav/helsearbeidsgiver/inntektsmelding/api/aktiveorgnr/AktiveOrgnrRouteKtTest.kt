@@ -12,16 +12,17 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.AktiveArbeidsgivere
+import no.nav.helsearbeidsgiver.felles.domene.AktiveArbeidsgivere.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -37,26 +38,47 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
     @Test
     fun `skal godta og returnere liste med organisasjoner`() =
         testApi {
-            val arbeidstakerFnr = Fnr.genererGyldig()
+            val sykmeldtFnr = Fnr.genererGyldig()
+            val request = AktiveOrgnrRequest(sykmeldtFnr)
+            val aktivArbeidgiver =
+                AktiveArbeidsgivere(
+                    sykmeldtNavn = "Silje Sykmeldt",
+                    avsenderNavn = "Arild Avsender",
+                    arbeidsgivere =
+                        listOf(
+                            Arbeidsgiver(
+                                orgnr = Orgnr.genererGyldig(),
+                                orgNavn = "Orker og ostekaker AS",
+                            ),
+                        ),
+                )
 
             coEvery { mockRedisConnection.get(any()) } returns
                 ResultJson(
-                    success = Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE.parseJson(),
+                    success = aktivArbeidgiver.toJson(AktiveArbeidsgivere.serializer()),
                 ).toJson()
                     .toString()
 
-            val requestBody = """
-                {"sykmeldtFnr":"$arbeidstakerFnr"}
-            """
+            val response = post(path, request, AktiveOrgnrRequest.serializer())
 
-            val response = post(path, requestBody.fromJson(AktiveOrgnrRequest.serializer()), AktiveOrgnrRequest.serializer())
-
-            assertEquals(HttpStatusCode.OK, response.status)
-            assertEquals(Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE, response.bodyAsText())
+            response.status shouldBe HttpStatusCode.OK
+            response.bodyAsText() shouldBe
+                AktiveOrgnrResponse(
+                    fulltNavn = aktivArbeidgiver.sykmeldtNavn,
+                    avsenderNavn = aktivArbeidgiver.avsenderNavn.orEmpty(),
+                    underenheter =
+                        aktivArbeidgiver.arbeidsgivere.map {
+                            GyldigUnderenhet(
+                                orgnrUnderenhet = it.orgnr,
+                                virksomhetsnavn = it.orgNavn,
+                            )
+                        },
+                ).toJson(AktiveOrgnrResponse.serializer())
+                    .toString()
 
             verifySequence {
                 mockProducer.send(
-                    key = arbeidstakerFnr,
+                    key = sykmeldtFnr,
                     message =
                         withArg<Map<Key, JsonElement>> {
                             it shouldContainKey Key.KONTEKST_ID
@@ -65,7 +87,7 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
                                     Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
                                     Key.DATA to
                                         mapOf(
-                                            Key.FNR to arbeidstakerFnr.toJson(),
+                                            Key.FNR to sykmeldtFnr.toJson(),
                                             Key.ARBEIDSGIVER_FNR to mockPid.toJson(),
                                         ).toJson(),
                                 )
@@ -79,9 +101,9 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
         testApi {
             val resultatUtenArbeidsforhold =
                 AktiveArbeidsgivere(
-                    fulltNavn = "Johnny Jobblaus",
+                    sykmeldtNavn = "Johnny Jobblaus",
                     avsenderNavn = "Håvard Hå-Err",
-                    underenheter = emptyList(),
+                    arbeidsgivere = emptyList(),
                 )
 
             coEvery { mockRedisConnection.get(any()) } returns
@@ -106,16 +128,5 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
 
         val requestObj = requestBody.fromJson(AktiveOrgnrRequest.serializer())
         assertEquals(fnr, requestObj.sykmeldtFnr)
-    }
-
-    private object Mock {
-        val GYLDIG_AKTIVE_ORGNR_RESPONSE =
-            """
-            {
-                "fulltNavn": "test-navn",
-                "avsenderNavn": "Arild Avsender",
-                "underenheter": [{"orgnrUnderenhet": "test-orgnr", "virksomhetsnavn": "test-orgnavn"}]
-            }
-        """.removeJsonWhitespace()
     }
 }

@@ -1,16 +1,17 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.aareg
 
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
+import no.nav.helsearbeidsgiver.felles.domene.PeriodeAapen
+import no.nav.helsearbeidsgiver.felles.json.ansettelsesperioderSerializer
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
@@ -22,7 +23,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
-data class HentArbeidsforholdMelding(
+data class HentAnsettelsesperioderMelding(
     val eventName: EventName,
     val behovType: BehovType,
     val kontekstId: UUID,
@@ -31,21 +32,21 @@ data class HentArbeidsforholdMelding(
     val fnr: Fnr,
 )
 
-class HentArbeidsforholdRiver(
+class HentAnsettelsesperioderRiver(
     private val aaregClient: AaregClient,
-) : ObjectRiver<HentArbeidsforholdMelding>() {
+) : ObjectRiver<HentAnsettelsesperioderMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun les(json: Map<Key, JsonElement>): HentArbeidsforholdMelding? =
+    override fun les(json: Map<Key, JsonElement>): HentAnsettelsesperioderMelding? =
         if (Key.FAIL in json) {
             null
         } else {
             val data = json[Key.DATA]?.toMap().orEmpty()
 
-            HentArbeidsforholdMelding(
+            HentAnsettelsesperioderMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
-                behovType = Key.BEHOV.krev(BehovType.HENT_ARBEIDSFORHOLD, BehovType.serializer(), json),
+                behovType = Key.BEHOV.krev(BehovType.HENT_ANSETTELSESPERIODER, BehovType.serializer(), json),
                 kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 svarKafkaKey = Key.SVAR_KAFKA_KEY.les(KafkaKey.serializer(), data),
@@ -53,24 +54,25 @@ class HentArbeidsforholdRiver(
             )
         }
 
-    override fun HentArbeidsforholdMelding.bestemNoekkel(): KafkaKey = svarKafkaKey
+    override fun HentAnsettelsesperioderMelding.bestemNoekkel(): KafkaKey = svarKafkaKey
 
-    override fun HentArbeidsforholdMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        val arbeidsforhold =
-            Metrics.aaregRequest
-                .recordTime(aaregClient::hentArbeidsforhold) {
-                    aaregClient.hentArbeidsforhold(fnr.verdi, kontekstId.toString())
-                }.map { it.tilArbeidsforhold() }
+    override fun HentAnsettelsesperioderMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
+        val ansettelsesperioder =
+            runBlocking {
+                aaregClient.hentAnsettelsesperioder(fnr.verdi, kontekstId.toString())
+            }.mapValues { (_, perioder) ->
+                perioder
+                    .map {
+                        PeriodeAapen(
+                            fom = it.fom,
+                            tom = it.tom,
+                        )
+                    }.toSet()
+            }
 
-        "Fant ${arbeidsforhold.size} arbeidsforhold.".also {
+        "Fant ${ansettelsesperioder.size} ansettelsesperioder.".also {
             logger.info(it)
             sikkerLogger.info(it)
-        }
-
-        // Logger dette midlertidig for å finne ut om det er mulig.
-        // Det er det trolig ikke: https://www.skatteetaten.no/bedrift-og-organisasjon/arbeidsgiver/a-meldingen/veiledning/arbeidsforholdet/type-arbeidsforhold/ordinart-arbeidsforhold/#Hvilken-informasjon-skal-du-oppgi
-        if (arbeidsforhold.any { it.ansettelsesperiode.periode.fom == null }) {
-            sikkerLogger.info("Fant arbeidsforhold uten fra-dato. Dette logges kun for å vurdere forenklinger i koden.")
         }
 
         return mapOf(
@@ -79,18 +81,18 @@ class HentArbeidsforholdRiver(
             Key.DATA to
                 data
                     .plus(
-                        Key.ARBEIDSFORHOLD to arbeidsforhold.toJson(Arbeidsforhold.serializer()),
+                        Key.ANSETTELSESPERIODER to ansettelsesperioder.toJson(ansettelsesperioderSerializer),
                     ).toJson(),
         )
     }
 
-    override fun HentArbeidsforholdMelding.haandterFeil(
+    override fun HentAnsettelsesperioderMelding.haandterFeil(
         json: Map<Key, JsonElement>,
         error: Throwable,
     ): Map<Key, JsonElement> {
         val fail =
             Fail(
-                feilmelding = "Klarte ikke hente arbeidsforhold fra Aareg.",
+                feilmelding = "Klarte ikke hente ansettelsesperioder fra Aareg.",
                 kontekstId = kontekstId,
                 utloesendeMelding = json,
             )
@@ -101,9 +103,9 @@ class HentArbeidsforholdRiver(
         return fail.tilMelding()
     }
 
-    override fun HentArbeidsforholdMelding.loggfelt(): Map<String, String> =
+    override fun HentAnsettelsesperioderMelding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this@HentArbeidsforholdRiver),
+            Log.klasse(this@HentAnsettelsesperioderRiver),
             Log.event(eventName),
             Log.behov(behovType),
             Log.kontekstId(kontekstId),

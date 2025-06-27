@@ -9,16 +9,14 @@ import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
-import no.nav.helsearbeidsgiver.aareg.Ansettelsesperiode
-import no.nav.helsearbeidsgiver.aareg.Arbeidsgiver
-import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.AktiveArbeidsgivere
-import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
+import no.nav.helsearbeidsgiver.felles.domene.PeriodeAapen
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.ansettelsesperioderSerializer
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -26,17 +24,14 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.inntektsmelding.aareg.tilArbeidsforhold
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.maxMekker
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
-import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -45,7 +40,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
-import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold as AAregArbeidsforhold
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AktiveOrgnrServiceIT : EndToEndTest() {
@@ -58,9 +52,9 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
     fun `Henter aktive organisasjoner`() {
         val kontekstId = UUID.randomUUID()
 
-        coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforholdListe
+        coEvery { aaregClient.hentAnsettelsesperioder(any(), any()) } returns Mock.ansettelsesperioder
         coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet
-        coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Orgnr("810007842") to "ANSTENDIG PIGGSVIN BARNEHAGE")
+        coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Mock.orgnr to Mock.orgNavn)
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
 
         publish(
@@ -86,7 +80,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             }
 
         aktiveOrgnrMeldinger
-            .filter(BehovType.HENT_ARBEIDSFORHOLD)
+            .filter(BehovType.HENT_ANSETTELSESPERIODER)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -110,11 +104,12 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             }
 
         aktiveOrgnrMeldinger
-            .filter(Key.ARBEIDSFORHOLD)
+            .filter(Key.ANSETTELSESPERIODER)
             .firstAsMap()
             .also { melding ->
                 val data = melding[Key.DATA].shouldNotBeNull().toMap()
-                Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), data) shouldContainExactly Mock.arbeidsforholdListe.map { it.tilArbeidsforhold() }
+                Key.ANSETTELSESPERIODER.les(ansettelsesperioderSerializer, data) shouldContainExactly
+                    Mock.ansettelsesperioder.mapValues { (_, perioder) -> perioder.map { PeriodeAapen(it.fom, it.tom) }.toSet() }
             }
 
         aktiveOrgnrMeldinger
@@ -122,7 +117,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-                Key.ORGNR_UNDERENHETER.les(String.serializer().set(), data) shouldBe Mock.underenheter
+                Key.ORGNR_UNDERENHETER.les(Orgnr.serializer().set(), data) shouldBe setOf(Mock.orgnr)
             }
 
         aktiveOrgnrMeldinger
@@ -130,7 +125,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-                Key.VIRKSOMHETER.les(orgMapSerializer, data) shouldBe mapOf(Orgnr("810007842") to "ANSTENDIG PIGGSVIN BARNEHAGE")
+                Key.VIRKSOMHETER.les(orgMapSerializer, data) shouldBe mapOf(Mock.orgnr to Mock.orgNavn)
             }
     }
 
@@ -138,9 +133,9 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
     fun `ingen arbeidsforhold`() {
         val kontekstId = UUID.randomUUID()
 
-        coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns emptyList()
+        coEvery { aaregClient.hentAnsettelsesperioder(any(), any()) } returns emptyMap()
         coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet
-        coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Orgnr("810007842") to "ANSTENDIG PIGGSVIN BARNEHAGE")
+        coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Mock.orgnr to Mock.orgNavn)
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
 
         publish(
@@ -166,7 +161,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             }
 
         aktiveOrgnrMeldinger
-            .filter(BehovType.HENT_ARBEIDSFORHOLD)
+            .filter(BehovType.HENT_ANSETTELSESPERIODER)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
@@ -190,11 +185,11 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             }
 
         aktiveOrgnrMeldinger
-            .filter(Key.ARBEIDSFORHOLD)
+            .filter(Key.ANSETTELSESPERIODER)
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-                Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), data) shouldBe emptyList()
+                Key.ANSETTELSESPERIODER.les(ansettelsesperioderSerializer, data) shouldBe emptyMap()
             }
     }
 
@@ -202,9 +197,9 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
     fun `Ved feil under henting av personer så svarer service med feil`() {
         val kontekstId = UUID.randomUUID()
 
-        coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforholdListe
+        coEvery { aaregClient.hentAnsettelsesperioder(any(), any()) } returns Mock.ansettelsesperioder
         coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet
-        coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Orgnr("810007842") to "ANSTENDIG PIGGSVIN BARNEHAGE")
+        coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Mock.orgnr to Mock.orgNavn)
 
         coEvery { pdlKlient.personBolk(any()) } throws IllegalArgumentException("Ingen folk å finne her!")
 
@@ -261,13 +256,16 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
     }
 
     private object Mock {
+        val orgnr = Orgnr("810007842")
+        val orgNavn = "ANSTENDIG PIGGSVIN BARNEHAGE"
+
         val GYLDIG_AKTIVE_ORGNR_RESPONSE =
             """
             {
                 "success": {
-                    "fulltNavn": "Bjarne Betjent",
+                    "sykmeldtNavn": "Bjarne Betjent",
                     "avsenderNavn": "Max Mekker",
-                    "underenheter": [{"orgnrUnderenhet": "810007842", "virksomhetsnavn": "ANSTENDIG PIGGSVIN BARNEHAGE"}]
+                    "arbeidsgivere": [{"orgnr": "$orgnr", "orgNavn": "$orgNavn"}]
                 }
             }
         """.removeJsonWhitespace()
@@ -276,43 +274,27 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             ResultJson(
                 success =
                     AktiveArbeidsgivere(
-                        fulltNavn = "Bjarne Betjent",
+                        sykmeldtNavn = "Bjarne Betjent",
                         avsenderNavn = "Max Mekker",
-                        underenheter = emptyList(),
+                        arbeidsgivere = emptyList(),
                     ).toJson(AktiveArbeidsgivere.serializer()),
             ).toJson()
 
         val fnr = Fnr.genererGyldig()
         val fnrAg = Fnr.genererGyldig()
 
-        val arbeidsforholdListe =
-            listOf(
-                AAregArbeidsforhold(
-                    arbeidsgiver =
-                        Arbeidsgiver(
-                            type = "Underenhet",
-                            organisasjonsnummer = "810007842",
+        val ansettelsesperioder =
+            mapOf(
+                orgnr to
+                    setOf(
+                        Periode(
+                            fom = 1.januar,
+                            tom = null,
                         ),
-                    opplysningspliktig =
-                        Opplysningspliktig(
-                            type = "ikke brukt",
-                            organisasjonsnummer = "ikke brukt heller",
-                        ),
-                    arbeidsavtaler = emptyList(),
-                    ansettelsesperiode =
-                        Ansettelsesperiode(
-                            Periode(
-                                fom = 1.januar,
-                                tom = null,
-                            ),
-                        ),
-                    registrert = 3.januar.kl(6, 30, 40, 50000),
-                ),
+                    ),
             )
 
-        val altinnOrganisasjonSet = setOf("810007842", "810008032", "810007982")
-
-        val underenheter = setOf("810007842")
+        val altinnOrganisasjonSet = setOf(orgnr.verdi, "810008032", "810007982")
 
         val personer =
             listOf(

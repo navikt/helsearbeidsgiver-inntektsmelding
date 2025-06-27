@@ -3,98 +3,126 @@ package no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
-import no.nav.helsearbeidsgiver.felles.domene.Ansettelsesperiode
-import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
-import no.nav.helsearbeidsgiver.felles.domene.Arbeidsgiver
-import no.nav.helsearbeidsgiver.felles.domene.PeriodeNullable
-import java.time.LocalDate
-import java.time.LocalDateTime
+import no.nav.helsearbeidsgiver.felles.domene.PeriodeAapen
+import no.nav.helsearbeidsgiver.utils.test.date.april
+import no.nav.helsearbeidsgiver.utils.test.date.februar
+import no.nav.helsearbeidsgiver.utils.test.date.januar
+import no.nav.helsearbeidsgiver.utils.test.date.juli
+import no.nav.helsearbeidsgiver.utils.test.date.juni
+import no.nav.helsearbeidsgiver.utils.test.date.mai
+import no.nav.helsearbeidsgiver.utils.test.date.mars
+import no.nav.helsearbeidsgiver.utils.test.date.oktober
 
 class ArbeidsforholdInnenforPeriodeKtTest :
     FunSpec({
 
-        val arbeidsgiver1 = Arbeidsgiver("ORG", "123456789")
-        val minDate = LocalDateTime.MIN
         test("Ansatt slutter fram i tid") {
+            val ansettelsesperiode =
+                setOf(
+                    PeriodeAapen(
+                        1.juni(2020),
+                        30.april(2022),
+                    ),
+                )
+
             listOf(
                 Periode(
-                    LocalDate.of(2021, 1, 15),
-                    LocalDate.of(2021, 1, 20),
+                    15.januar(2021),
+                    20.januar(2021),
                 ),
-            ).aktivtArbeidsforholdIPeriode(AaregTestData.arbeidsforholdMedSluttDato) shouldBe true
+            ).aktivtArbeidsforholdIPeriode(ansettelsesperiode) shouldBe true
         }
 
-        test("Perode er innenfor Arbeidsforholdet") {
+        test("Perode er innenfor ansettelsesperiode") {
+            val ansettelsesperiode =
+                setOf(
+                    PeriodeAapen(
+                        2.mars(2020),
+                        20.oktober(2023),
+                    ),
+                )
+
             listOf(
                 Periode(
-                    LocalDate.of(2021, 1, 15),
-                    LocalDate.of(2021, 1, 28),
+                    15.januar(2021),
+                    28.januar(2021),
                 ),
-            ).aktivtArbeidsforholdIPeriode(AaregTestData.evigArbeidsForholdListe) shouldBe true
+            ).aktivtArbeidsforholdIPeriode(ansettelsesperiode) shouldBe true
         }
 
         test("Sammenhengende arbeidsforhold slås sammen til en periode") {
-            val arbeidsforholdListe =
-                listOf(
-                    Arbeidsforhold(
-                        arbeidsgiver = arbeidsgiver1,
-                        ansettelsesperiode =
-                            Ansettelsesperiode(
-                                PeriodeNullable(
-                                    LocalDate.of(2019, 1, 1),
-                                    LocalDate.of(2021, 2, 28),
-                                ),
-                            ),
-                        registrert = minDate,
+            val ansettelsesperioder =
+                setOf(
+                    PeriodeAapen(
+                        1.januar(2019),
+                        28.februar(2021),
                     ),
-                    Arbeidsforhold(
-                        arbeidsgiver = arbeidsgiver1,
-                        ansettelsesperiode =
-                            Ansettelsesperiode(
-                                PeriodeNullable(
-                                    LocalDate.of(2021, 3, 1),
-                                    null,
-                                ),
-                            ),
-                        registrert = minDate,
+                    PeriodeAapen(
+                        1.mars(2021),
+                        null,
                     ),
                 )
+
             listOf(
                 Periode(
-                    LocalDate.of(2021, 1, 15),
-                    LocalDate.of(2021, 1, 18),
+                    15.januar(2021),
+                    18.januar(2021),
                 ),
                 Periode(
-                    LocalDate.of(2021, 2, 26),
-                    LocalDate.of(2021, 3, 10),
+                    26.februar(2021),
+                    10.mars(2021),
                 ),
-            ).aktivtArbeidsforholdIPeriode(arbeidsforholdListe) shouldBe true
+            ).aktivtArbeidsforholdIPeriode(ansettelsesperioder) shouldBe true
         }
 
-        test("Periode er før Arbeidsforholdet har begynt") {
+        test("Periode er før ansettelsesperiode har begynt") {
+            val ansettelsesperiode =
+                setOf(
+                    PeriodeAapen(
+                        3.mars(2021),
+                        null,
+                    ),
+                )
+
             listOf(
                 Periode(
-                    LocalDate.of(2021, 1, 1),
-                    LocalDate.of(2021, 1, 5),
+                    1.januar(2021),
+                    5.januar(2021),
                 ),
-            ).aktivtArbeidsforholdIPeriode(AaregTestData.paagaaendeArbeidsforholdListe) shouldBe false
+            ).aktivtArbeidsforholdIPeriode(ansettelsesperiode) shouldBe false
         }
 
-        test("Periode begynner samtidig som Arbeidsforholdet") {
+        test("Periode begynner samtidig som ansettelsesperiode") {
+            val ansettelsesperiode =
+                setOf(
+                    PeriodeAapen(
+                        5.februar(2021),
+                        null,
+                    ),
+                )
+
             listOf(
                 Periode(
-                    LocalDate.of(2021, 2, 5),
-                    LocalDate.of(2021, 2, 9),
+                    5.februar(2021),
+                    9.februar(2021),
                 ),
-            ).aktivtArbeidsforholdIPeriode(AaregTestData.paagaaendeArbeidsforholdListe) shouldBe true
+            ).aktivtArbeidsforholdIPeriode(ansettelsesperiode) shouldBe true
         }
 
-        test("Periode etter Arbeidsforholdet er avsluttet") {
+        test("Periode etter ansettelsesperiode er avsluttet") {
+            val ansettelsesperiode =
+                setOf(
+                    PeriodeAapen(
+                        13.juli(2019),
+                        5.februar(2021),
+                    ),
+                )
+
             listOf(
                 Periode(
-                    LocalDate.of(2021, 5, 15),
-                    LocalDate.of(2021, 5, 18),
+                    15.mai(2021),
+                    18.mai(2021),
                 ),
-            ).aktivtArbeidsforholdIPeriode(AaregTestData.avsluttetArbeidsforholdListe) shouldBe false
+            ).aktivtArbeidsforholdIPeriode(ansettelsesperiode) shouldBe false
         }
     })

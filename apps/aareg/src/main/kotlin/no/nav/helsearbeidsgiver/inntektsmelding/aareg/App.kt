@@ -27,7 +27,7 @@ fun RapidsConnection.createAaregRiver(aaregClient: AaregClient): RapidsConnectio
 private fun buildClient(): AaregClient {
     val tokenGetter = AuthClient().tokenGetter(IdentityProvider.AZURE_AD, Env.aaregScope)
     return AaregClient(
-        url = Env.aaregUrl,
+        baseUrl = Env.aaregUrl,
         cacheConfig = LocalCache.Config(5.minutes, 1000),
         getAccessToken = tokenGetter,
     )

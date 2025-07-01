@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RefusjonEndring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.ArbeidsforholdType
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaAvsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
@@ -450,6 +451,8 @@ private object Mock {
             navn = "King Kong Keiser",
         )
 
+    val vedtaksperiodeId: UUID = UUID.randomUUID()
+
     val skjema =
         SkjemaInntektsmeldingSelvbestemt(
             selvbestemtId = UUID.randomUUID(),
@@ -517,7 +520,8 @@ private object Mock {
                             ),
                         ),
                 ),
-            vedtaksperiodeId = null,
+            vedtaksperiodeId = vedtaksperiodeId,
+            arbeidsforholdType = ArbeidsforholdType.MedArbeidsforhold(vedtaksperiodeId = vedtaksperiodeId),
         )
 
     val inntektsmelding =

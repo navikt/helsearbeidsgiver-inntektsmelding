@@ -129,9 +129,9 @@ class ArbeidsforholdInnenforPeriodeKtTest :
         test("Periode er empty list") {
             listOf(
                 Periode(
-                    LocalDate.of(2021, 5, 15),
-                    LocalDate.of(2021, 5, 18),
+                    15.mai(2021),
+                    18.mai(2021),
                 ),
-            ).aktivtArbeidsforholdIPeriode(emptyList()) shouldBe false
+            ).aktivtArbeidsforholdIPeriode(emptySet()) shouldBe false
         }
     })

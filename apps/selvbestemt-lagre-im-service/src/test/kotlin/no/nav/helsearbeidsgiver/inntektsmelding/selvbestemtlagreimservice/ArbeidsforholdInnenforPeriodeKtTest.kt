@@ -126,7 +126,7 @@ class ArbeidsforholdInnenforPeriodeKtTest :
             ).aktivtArbeidsforholdIPeriode(ansettelsesperiode) shouldBe false
         }
 
-        test("Periode er empty list") {
+        test("Periode er empty set") {
             listOf(
                 Periode(
                     15.mai(2021),

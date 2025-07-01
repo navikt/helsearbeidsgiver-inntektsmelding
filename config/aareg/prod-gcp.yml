@@ -2,7 +2,7 @@ kafkaPool: nav-prod
 entraIdEnabled: true
 env:
 - name: AAREG_URL
-  value: "https://aareg-services.prod-fss-pub.nais.io/api/v1/arbeidstaker/arbeidsforhold?sporingsinformasjon=false&historikk=false"
+  value: "https://aareg-services.prod-fss-pub.nais.io"
 - name: AAREG_SCOPE
   value: "api://prod-fss.arbeidsforhold.aareg-services-nais/.default"
 externalHosts:

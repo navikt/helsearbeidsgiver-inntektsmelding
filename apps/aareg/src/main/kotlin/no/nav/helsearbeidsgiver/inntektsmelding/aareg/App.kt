@@ -5,7 +5,9 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.felles.auth.AuthClient
 import no.nav.helsearbeidsgiver.felles.auth.IdentityProvider
+import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.helsearbeidsgiver.utils.log.logger
+import kotlin.time.Duration.Companion.minutes
 
 private val logger = "im-aareg".logger()
 
@@ -18,11 +20,15 @@ fun main() {
 
 fun RapidsConnection.createAaregRiver(aaregClient: AaregClient): RapidsConnection =
     also {
-        logger.info("Starter ${HentArbeidsforholdRiver::class.simpleName}...")
-        HentArbeidsforholdRiver(aaregClient).connect(this)
+        logger.info("Starter ${HentAnsettelsesperioderRiver::class.simpleName}...")
+        HentAnsettelsesperioderRiver(aaregClient).connect(this)
     }
 
 private fun buildClient(): AaregClient {
     val tokenGetter = AuthClient().tokenGetter(IdentityProvider.AZURE_AD, Env.aaregScope)
-    return AaregClient(url = Env.aaregUrl, getAccessToken = tokenGetter)
+    return AaregClient(
+        baseUrl = Env.aaregUrl,
+        cacheConfig = LocalCache.Config(5.minutes, 1000),
+        getAccessToken = tokenGetter,
+    )
 }

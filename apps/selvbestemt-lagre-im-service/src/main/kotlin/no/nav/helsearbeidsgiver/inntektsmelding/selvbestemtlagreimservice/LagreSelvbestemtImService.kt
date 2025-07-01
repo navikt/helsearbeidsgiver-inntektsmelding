@@ -201,7 +201,9 @@ class LagreSelvbestemtImService(
                     .plus(steg0.skjema.sykmeldingsperioder)
             val erAktivtArbeidsforhold = sykeperioder.aktivtArbeidsforholdIPeriode(steg1.arbeidsforhold)
 
-            if (erAktivtArbeidsforhold) {
+            val harIngenArbeidsforhold = inntektsmelding.type is Inntektsmelding.Type.Fisker || inntektsmelding.type is Inntektsmelding.Type.UtenArbeidsforhold
+
+            if (erAktivtArbeidsforhold || harIngenArbeidsforhold) {
                 rapid
                     .publish(
                         key = inntektsmelding.type.id,

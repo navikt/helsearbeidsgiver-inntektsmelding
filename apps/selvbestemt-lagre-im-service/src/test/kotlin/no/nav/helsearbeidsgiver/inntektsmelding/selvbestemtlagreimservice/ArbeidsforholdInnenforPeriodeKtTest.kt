@@ -97,4 +97,13 @@ class ArbeidsforholdInnenforPeriodeKtTest :
                 ),
             ).aktivtArbeidsforholdIPeriode(AaregTestData.avsluttetArbeidsforholdListe) shouldBe false
         }
+
+        test("Periode er empty list") {
+            listOf(
+                Periode(
+                    LocalDate.of(2021, 5, 15),
+                    LocalDate.of(2021, 5, 18),
+                ),
+            ).aktivtArbeidsforholdIPeriode(emptyList()) shouldBe false
+        }
     })

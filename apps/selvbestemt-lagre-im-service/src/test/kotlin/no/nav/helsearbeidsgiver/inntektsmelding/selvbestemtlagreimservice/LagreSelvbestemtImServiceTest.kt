@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.datatest.withData
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -50,6 +51,7 @@ import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice.Mock.lagArbeidsforhold
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
@@ -75,87 +77,112 @@ class LagreSelvbestemtImServiceTest :
             LagreSelvbestemtImService(testRapid, mockRedis.store),
         ).connect(testRapid)
 
-        beforeEach {
+        beforeTest {
             testRapid.reset()
             clearAllMocks()
             mockRedis.setup()
         }
 
-        test("helt ny inntektsmelding lagres og sak opprettes") {
-            val kontekstId = UUID.randomUUID()
-            val nyInntektsmelding = Mock.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Ny)
+        context("Inntektsmeldinger AarsakInnsending.Ny lagres og sak oprettes") {
 
-            testRapid.sendJson(
-                Mock
-                    .steg0(kontekstId)
-                    .plusData(
-                        Pair(
-                            Key.SKJEMA_INNTEKTSMELDING,
-                            Mock.skjema
-                                .copy(selvbestemtId = null)
-                                .toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
-                        ),
-                    ),
-            )
-
-            testRapid.inspektør.size shouldBeExactly 3
-            testRapid.message(0).also {
-                it.lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
-                Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.skjema.sykmeldtFnr)
-            }
-            testRapid.message(1).also {
-                it.lesBehov() shouldBe BehovType.HENT_PERSONER
-                Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.skjema.sykmeldtFnr)
-            }
-            testRapid.message(2).also {
-                it.lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
-                Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.skjema.sykmeldtFnr)
-            }
-
-            mockStatic(OffsetDateTime::class) {
-                every { OffsetDateTime.now() } returns nyInntektsmelding.mottatt
-
-                testRapid.sendJson(Mock.steg1(kontekstId))
-            }
-
-            testRapid.inspektør.size shouldBeExactly 4
-            testRapid.message(3).toMap().also {
-                Key.BEHOV.lesOrNull(BehovType.serializer(), it) shouldBe BehovType.LAGRE_SELVBESTEMT_IM
-                it.lesInntektsmelding().shouldBeEqualToIgnoringFields(nyInntektsmelding, Inntektsmelding::id, Inntektsmelding::type)
-
-                val type = it.lesInntektsmelding().type
-                when (type) {
-                    is Inntektsmelding.Type.Selvbestemt -> type.id shouldNotBe nyInntektsmelding.type.id
-
-                    else ->
-                        fail(
-                            "Feil type: $type",
-                        )
+            fun ArbeidsforholdType.skalHaArbeidsforhold(): Boolean =
+                when (this) {
+                    is ArbeidsforholdType.MedArbeidsforhold -> true
+                    is ArbeidsforholdType.UtenArbeidsforhold, is ArbeidsforholdType.Fisker -> false
                 }
-            }
 
-            testRapid.sendJson(Mock.steg2(kontekstId, nyInntektsmelding))
-
-            testRapid.inspektør.size shouldBeExactly 5
-            testRapid.message(4).lesBehov() shouldBe BehovType.OPPRETT_SELVBESTEMT_SAK
-
-            testRapid.sendJson(Mock.steg3(kontekstId))
-
-            testRapid.inspektør.size shouldBeExactly 6
-            testRapid.message(5).toMap().also {
-                Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.SELVBESTEMT_IM_LAGRET
-                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
-
-                it.lesInntektsmelding().shouldBeEqualToIgnoringFields(nyInntektsmelding, Inntektsmelding::id)
-            }
-
-            verify {
-                mockRedis.store.skrivResultat(
-                    kontekstId,
-                    ResultJson(
-                        success = nyInntektsmelding.type.id.toJson(),
+            withData(
+                nameFn = { "med skjema ${ArbeidsforholdType::class.simpleName}.${it::class.simpleName}" },
+                ts =
+                    setOf(
+                        Mock.skjema.arbeidsforholdType,
+                        ArbeidsforholdType.Fisker,
+                        ArbeidsforholdType.UtenArbeidsforhold,
                     ),
+            ) { arbeidsforholdType ->
+
+                val skjema = Mock.skjema.copy(selvbestemtId = null, arbeidsforholdType = arbeidsforholdType)
+
+                val inntektsmeldingType = arbeidsforholdType.tilInntektsmeldingType(UUID.randomUUID())
+                val nyInntektsmelding = Mock.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Ny, type = inntektsmeldingType)
+
+                val kontekstId = UUID.randomUUID()
+
+                testRapid.sendJson(
+                    Mock
+                        .steg0(kontekstId)
+                        .plusData(
+                            Pair(
+                                Key.SKJEMA_INNTEKTSMELDING,
+                                skjema
+                                    .copy(selvbestemtId = null)
+                                    .toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+                            ),
+                        ),
                 )
+
+                testRapid.inspektør.size shouldBeExactly 3
+                testRapid.message(0).also {
+                    it.lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
+                    Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(skjema.sykmeldtFnr)
+                }
+                testRapid.message(1).also {
+                    it.lesBehov() shouldBe BehovType.HENT_PERSONER
+                    Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(skjema.sykmeldtFnr)
+                }
+                testRapid.message(2).also {
+                    it.lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
+                    Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(skjema.sykmeldtFnr)
+                }
+
+                val arbeidsforholdListe =
+                    if (arbeidsforholdType.skalHaArbeidsforhold()) {
+                        lagArbeidsforhold(orgnr = Mock.skjema.avsender.orgnr.verdi)
+                    } else {
+                        emptyList()
+                    }
+
+                mockStatic(OffsetDateTime::class) {
+                    every { OffsetDateTime.now() } returns nyInntektsmelding.mottatt
+
+                    testRapid.sendJson(
+                        Mock.steg1(kontekstId).plusData(Key.ARBEIDSFORHOLD to arbeidsforholdListe.toJson(Arbeidsforhold.serializer())),
+                    )
+                }
+
+                testRapid.inspektør.size shouldBeExactly 4
+                testRapid.message(3).toMap().also {
+                    Key.BEHOV.lesOrNull(BehovType.serializer(), it) shouldBe BehovType.LAGRE_SELVBESTEMT_IM
+                    it.lesInntektsmelding().shouldBeEqualToIgnoringFields(nyInntektsmelding, Inntektsmelding::id, Inntektsmelding::type)
+
+                    val type = it.lesInntektsmelding().type
+                    type.shouldBeEqualToIgnoringFields(inntektsmeldingType, Inntektsmelding.Type::id)
+                    type.id shouldNotBe nyInntektsmelding.type.id
+                }
+
+                testRapid.sendJson(Mock.steg2(kontekstId, nyInntektsmelding))
+
+                testRapid.inspektør.size shouldBeExactly 5
+                testRapid.message(4).lesBehov() shouldBe BehovType.OPPRETT_SELVBESTEMT_SAK
+
+                testRapid.sendJson(Mock.steg3(kontekstId))
+
+                testRapid.inspektør.size shouldBeExactly 6
+                testRapid.message(5).toMap().also {
+                    Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.SELVBESTEMT_IM_LAGRET
+                    Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
+
+                    it.lesInntektsmelding().shouldBeEqualToIgnoringFields(nyInntektsmelding, Inntektsmelding::id)
+                }
+
+                verify {
+                    mockRedis.store.skrivResultat(
+                        kontekstId,
+                        ResultJson(
+                            success = nyInntektsmelding.type.id.toJson(),
+                        ),
+                    )
+                }
             }
         }
 
@@ -402,7 +429,7 @@ class LagreSelvbestemtImServiceTest :
             }
         }
 
-        test("stopp flyt ved ikke aktivt arbeidsforhold") {
+        test("stopp flyt ved skjema.arbeidsforholdType.MedArbeidsforhold men ikke aktivt arbeidsforhold i aareg") {
             val kontekstId = UUID.randomUUID()
             val inntektsmelding = Mock.inntektsmelding
 

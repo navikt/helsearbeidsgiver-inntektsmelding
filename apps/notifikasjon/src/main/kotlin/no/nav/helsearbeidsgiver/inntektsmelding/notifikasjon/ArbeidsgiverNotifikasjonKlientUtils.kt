@@ -24,9 +24,6 @@ private val sikkerLogger = sikkerLogger()
 
 object NotifikasjonTekst {
     const val MERKELAPP = "Inntektsmelding sykepenger"
-
-    @Deprecated("Bruk NotifikasjonTekst.MERKELAPP. Utdatert siden 21.05.2024.")
-    const val MERKELAPP_GAMMEL = "Inntektsmelding"
     const val OPPGAVE_TEKST = "Innsending av inntektsmelding"
     const val PAAMINNELSE_TITTEL = "Påminnelse – Vi mangler inntektsmelding for en av deres ansatte"
     const val STATUS_TEKST_UNDER_BEHANDLING = "Nav trenger inntektsmelding"
@@ -130,14 +127,6 @@ fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(
                 statusTekst = NotifikasjonTekst.STATUS_TEKST_FERDIG,
                 nyLenke = nyLenke,
             )
-        }.recoverCatching {
-            nyStatusSakByGrupperingsid(
-                grupperingsid = forespoerselId.toString(),
-                merkelapp = NotifikasjonTekst.MERKELAPP_GAMMEL,
-                status = SaksStatus.FERDIG,
-                statusTekst = NotifikasjonTekst.STATUS_TEKST_FERDIG,
-                nyLenke = nyLenke,
-            )
         }.onFailure { error ->
             loggWarnIkkeFunnetEllerThrow("Fant ikke sak under ferdigstilling.", error)
         }
@@ -153,14 +142,6 @@ fun ArbeidsgiverNotifikasjonKlient.avbrytSak(
             nyStatusSakByGrupperingsid(
                 grupperingsid = forespoerselId.toString(),
                 merkelapp = NotifikasjonTekst.MERKELAPP,
-                status = SaksStatus.FERDIG,
-                statusTekst = NotifikasjonTekst.STATUS_TEKST_AVBRUTT,
-                nyLenke = nyLenke,
-            )
-        }.recoverCatching {
-            nyStatusSakByGrupperingsid(
-                grupperingsid = forespoerselId.toString(),
-                merkelapp = NotifikasjonTekst.MERKELAPP_GAMMEL,
                 status = SaksStatus.FERDIG,
                 statusTekst = NotifikasjonTekst.STATUS_TEKST_AVBRUTT,
                 nyLenke = nyLenke,
@@ -223,12 +204,6 @@ fun ArbeidsgiverNotifikasjonKlient.ferdigstillOppgave(
                 merkelapp = NotifikasjonTekst.MERKELAPP,
                 nyLenke = lenke,
             )
-        }.recoverCatching {
-            oppgaveUtfoertByEksternIdV2(
-                eksternId = forespoerselId.toString(),
-                merkelapp = NotifikasjonTekst.MERKELAPP_GAMMEL,
-                nyLenke = lenke,
-            )
         }.onFailure { error ->
             loggWarnIkkeFunnetEllerThrow("Fant ikke oppgave under ferdigstilling.", error)
         }
@@ -244,12 +219,6 @@ fun ArbeidsgiverNotifikasjonKlient.settOppgaveUtgaatt(
             oppgaveUtgaattByEksternId(
                 eksternId = forespoerselId.toString(),
                 merkelapp = NotifikasjonTekst.MERKELAPP,
-                nyLenke = lenke,
-            )
-        }.recoverCatching {
-            oppgaveUtgaattByEksternId(
-                eksternId = forespoerselId.toString(),
-                merkelapp = NotifikasjonTekst.MERKELAPP_GAMMEL,
                 nyLenke = lenke,
             )
         }.onFailure { error ->

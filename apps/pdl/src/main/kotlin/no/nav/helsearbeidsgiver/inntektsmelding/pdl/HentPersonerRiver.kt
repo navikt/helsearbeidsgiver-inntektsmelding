@@ -113,13 +113,12 @@ class HentPersonerRiver(
             pdlClient.personBolk(
                 fnrListe.map(Fnr::verdi),
             )
-        }.orEmpty()
-            .mapNotNull { person ->
-                person.ident?.let { fnr ->
-                    Person(
-                        fnr = Fnr(fnr),
-                        navn = person.navn.fulltNavn(),
-                    )
-                }
+        }.mapNotNull { person ->
+            person.ident?.let { fnr ->
+                Person(
+                    fnr = Fnr(fnr),
+                    navn = person.navn.fulltNavn(),
+                )
             }
+        }
 }

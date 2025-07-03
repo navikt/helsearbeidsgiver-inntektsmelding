@@ -5,7 +5,9 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helsearbeidsgiver.felles.auth.AuthClient
 import no.nav.helsearbeidsgiver.felles.auth.IdentityProvider
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
+import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.helsearbeidsgiver.utils.log.logger
+import kotlin.time.Duration.Companion.minutes
 
 private val logger = "helsearbeidsgiver-im-inntekt".logger()
 
@@ -24,5 +26,9 @@ fun RapidsConnection.createHentInntektRiver(inntektKlient: InntektKlient): Rapid
 
 fun createInntektKlient(): InntektKlient {
     val tokenGetter = AuthClient().tokenGetter(IdentityProvider.AZURE_AD, Env.inntektScope)
-    return InntektKlient(Env.inntektUrl, tokenGetter)
+    return InntektKlient(
+        baseUrl = Env.inntektUrl,
+        cacheConfig = LocalCache.Config(10.minutes, 1000),
+        getAccessToken = tokenGetter,
+    )
 }

@@ -30,7 +30,7 @@ fun buildClient(): PdlClient {
     return PdlClient(
         url = Env.pdlUrl,
         behandlingsgrunnlag = Behandlingsgrunnlag.INNTEKTSMELDING,
-        cacheConfig = LocalCache.Config(1.days, 20_000),
+        cacheConfig = LocalCache.Config(1.days, 10_000),
         getAccessToken = tokenGetter,
     )
 }

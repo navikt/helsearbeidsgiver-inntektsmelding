@@ -1,8 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
-import io.kotest.assertions.fail
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.datatest.withData
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -127,13 +127,13 @@ class LagreSelvbestemtImServiceTest :
                     Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(skjema.sykmeldtFnr)
                 }
                 testRapid.message(2).also {
-                    it.lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
+                    it.lesBehov() shouldBe BehovType.HENT_ANSETTELSESPERIODER
                     Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(skjema.sykmeldtFnr)
                 }
 
                 val arbeidsforholdListe =
                     if (arbeidsforholdType.skalHaArbeidsforhold()) {
-                        Mock.lagAnsettelsesperioder(orgnr = Mock.skjema.avsender.orgnr.verdi)
+                        Mock.lagAnsettelsesperioder(orgnr = Mock.skjema.avsender.orgnr)
                     } else {
                         emptyMap()
                     }

@@ -408,6 +408,7 @@ fun tilInntektsmelding(
         refusjon = skjema.refusjon,
         aarsakInnsending = aarsakInnsending,
         mottatt = mottatt.toOffsetDateTimeOslo(),
+        //TODO: Fjerne "?: skjema.vedtaksperiodeId" etter frontend har implementert arbeidsforholdType
         vedtaksperiodeId = skjema.arbeidsforholdType.tilVedtaksperiodeId() ?: skjema.vedtaksperiodeId,
     )
 }

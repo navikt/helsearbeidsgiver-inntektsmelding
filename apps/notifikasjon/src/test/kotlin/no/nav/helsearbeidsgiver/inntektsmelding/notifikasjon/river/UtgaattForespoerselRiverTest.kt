@@ -66,57 +66,10 @@ class UtgaattForespoerselRiverTest :
             }
         }
 
-        test("Hvis oppdatering av oppgave og sak feiler med SakEllerOppgaveFinnesIkkeException skal oppgaven og saken oppdateres med gammel merkelapp") {
-            coEvery {
-                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId("Inntektsmelding sykepenger", any(), any())
-            } throws SakEllerOppgaveFinnesIkkeException("Feil fra agNotikitasjonKlient")
-            coEvery {
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), "Inntektsmelding sykepenger", any(), any(), any(), any())
-            } throws SakEllerOppgaveFinnesIkkeException("Feil fra agNotikitasjonKlient")
-
-            val innkommendeMelding = Mock.innkommendeMelding()
-
-            testRapid.sendJson(innkommendeMelding.toMap())
-
-            testRapid.inspektør.size shouldBeExactly 1
-            testRapid.firstMessage().toMap() shouldContainExactly Mock.forventetUtgaaendeMelding(innkommendeMelding)
-
-            coVerifySequence {
-                // Feiler
-                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
-                    merkelapp = "Inntektsmelding sykepenger",
-                    eksternId = innkommendeMelding.forespoerselId.toString(),
-                    nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
-                )
-                // Feiler ikke
-                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
-                    merkelapp = "Inntektsmelding",
-                    eksternId = innkommendeMelding.forespoerselId.toString(),
-                    nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
-                )
-                // Feiler
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
-                    grupperingsid = innkommendeMelding.forespoerselId.toString(),
-                    merkelapp = "Inntektsmelding sykepenger",
-                    status = SaksStatus.FERDIG,
-                    statusTekst = "Avbrutt av Nav",
-                    nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
-                )
-                // Feiler ikke
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
-                    grupperingsid = innkommendeMelding.forespoerselId.toString(),
-                    merkelapp = "Inntektsmelding",
-                    status = SaksStatus.FERDIG,
-                    statusTekst = "Avbrutt av Nav",
-                    nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
-                )
-            }
-        }
-
-        test("Hvis oppgaveUtgaattByEksternId med ny og gammel merkelapp feiler med SakEllerOppgaveFinnesIkkeException skal saken avbrytes likevel") {
+        test("Hvis oppgaveUtgaattByEksternId feiler med SakEllerOppgaveFinnesIkkeException skal saken avbrytes likevel") {
             coEvery {
                 mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(any(), any(), any())
-            } throws SakEllerOppgaveFinnesIkkeException("Feil fra agNotikitasjonKlient")
+            } throws SakEllerOppgaveFinnesIkkeException("Feil fra agNotifikasjonKlient")
 
             val innkommendeMelding = Mock.innkommendeMelding()
 
@@ -132,12 +85,6 @@ class UtgaattForespoerselRiverTest :
                     eksternId = innkommendeMelding.forespoerselId.toString(),
                     nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
                 )
-                // Feiler
-                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
-                    merkelapp = "Inntektsmelding",
-                    eksternId = innkommendeMelding.forespoerselId.toString(),
-                    nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
-                )
                 // Feiler ikke
                 mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
                     grupperingsid = innkommendeMelding.forespoerselId.toString(),
@@ -149,10 +96,10 @@ class UtgaattForespoerselRiverTest :
             }
         }
 
-        test("Hvis avbrytSak med ny og gammel merkelapp feiler med SakEllerOppgaveFinnesIkkeException skal oppgaven settes til utgått likevel") {
+        test("Hvis avbrytSak feiler med SakEllerOppgaveFinnesIkkeException skal oppgaven settes til utgått likevel") {
             coEvery {
                 mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any(), any())
-            } throws SakEllerOppgaveFinnesIkkeException("Feil fra agNotikitasjonKlient")
+            } throws SakEllerOppgaveFinnesIkkeException("Feil fra agNotifikasjonKlient")
 
             val innkommendeMelding = Mock.innkommendeMelding()
 
@@ -176,21 +123,13 @@ class UtgaattForespoerselRiverTest :
                     statusTekst = "Avbrutt av Nav",
                     nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
                 )
-                // Feiler
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
-                    grupperingsid = innkommendeMelding.forespoerselId.toString(),
-                    merkelapp = "Inntektsmelding",
-                    status = SaksStatus.FERDIG,
-                    statusTekst = "Avbrutt av Nav",
-                    nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
-                )
             }
         }
 
-        test("Ved feil ved oppgaveUtgaattByEksternId med ny og gammel merkelapp skal saken ikke avbrytes") {
+        test("Ved feil ved oppgaveUtgaattByEksternId skal saken ikke avbrytes") {
             coEvery {
                 mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(any(), any(), any())
-            } throws Exception("Feil fra agNotikitasjonKlient")
+            } throws Exception("Feil fra agNotifikasjonKlient")
 
             val innkommendeMelding = Mock.innkommendeMelding()
 
@@ -203,12 +142,6 @@ class UtgaattForespoerselRiverTest :
                 // Feiler
                 mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
                     merkelapp = "Inntektsmelding sykepenger",
-                    eksternId = innkommendeMelding.forespoerselId.toString(),
-                    nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
-                )
-                // Feiler
-                mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
-                    merkelapp = "Inntektsmelding",
                     eksternId = innkommendeMelding.forespoerselId.toString(),
                     nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
                 )

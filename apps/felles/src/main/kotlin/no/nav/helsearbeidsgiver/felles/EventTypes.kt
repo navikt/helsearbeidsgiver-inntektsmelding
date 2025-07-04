@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class BehovType {
     // Hente data
-    HENT_ARBEIDSFORHOLD,
+    HENT_ANSETTELSESPERIODER,
     ARBEIDSGIVERE,
     HENT_INNTEKT,
     HENT_LAGRET_IM,

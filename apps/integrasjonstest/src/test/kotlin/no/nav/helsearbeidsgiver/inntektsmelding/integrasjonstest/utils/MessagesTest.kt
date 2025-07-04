@@ -64,7 +64,7 @@ class MessagesTest :
 
         test("finner ikke manglende melding for key") {
             Mock.meldinger
-                .filter(Key.ARBEIDSFORHOLD)
+                .filter(Key.ANSETTELSESPERIODER)
                 .all()
                 .shouldBeEmpty()
         }

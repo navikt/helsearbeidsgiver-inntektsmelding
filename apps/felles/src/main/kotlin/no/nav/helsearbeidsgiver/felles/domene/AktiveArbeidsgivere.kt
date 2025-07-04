@@ -1,16 +1,17 @@
 package no.nav.helsearbeidsgiver.felles.domene
 
 import kotlinx.serialization.Serializable
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 
 @Serializable
 data class AktiveArbeidsgivere(
-    val fulltNavn: String? = null,
-    val avsenderNavn: String,
-    val underenheter: List<Arbeidsgiver>,
+    val sykmeldtNavn: String?,
+    val avsenderNavn: String?,
+    val arbeidsgivere: List<Arbeidsgiver>,
 ) {
     @Serializable
     data class Arbeidsgiver(
-        val orgnrUnderenhet: String,
-        val virksomhetsnavn: String,
+        val orgnr: Orgnr,
+        val orgNavn: String,
     )
 }

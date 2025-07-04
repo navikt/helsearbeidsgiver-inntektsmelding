@@ -16,7 +16,6 @@ kotlin {
     }
 }
 
-
 allprojects {
     repositories {
         val githubPassword: String by project

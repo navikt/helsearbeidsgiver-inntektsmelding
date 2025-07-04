@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RefusjonEndring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.AvsenderSystem
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.ArbeidsforholdType
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaAvsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
@@ -63,6 +64,7 @@ fun mockInnsending(): Innsending {
 
 fun mockSkjemaInntektsmeldingSelvbestemt(): SkjemaInntektsmeldingSelvbestemt {
     val inntektsmelding = mockInntektsmeldingV1()
+    val vedtaksperiodeId = UUID.randomUUID()
     return SkjemaInntektsmeldingSelvbestemt(
         selvbestemtId = UUID.randomUUID(),
         sykmeldtFnr = inntektsmelding.sykmeldt.fnr,
@@ -75,7 +77,11 @@ fun mockSkjemaInntektsmeldingSelvbestemt(): SkjemaInntektsmeldingSelvbestemt {
         agp = inntektsmelding.agp,
         inntekt = inntektsmelding.inntekt!!,
         refusjon = inntektsmelding.refusjon,
-        vedtaksperiodeId = UUID.randomUUID(),
+        vedtaksperiodeId = vedtaksperiodeId,
+        arbeidsforholdType =
+            ArbeidsforholdType.MedArbeidsforhold(
+                vedtaksperiodeId = vedtaksperiodeId,
+            ),
     )
 }
 

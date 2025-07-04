@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.ArbeidsforholdType
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -356,6 +357,19 @@ class LagreSelvbestemtImService(
         )
 }
 
+fun ArbeidsforholdType.tilVedtaksperiodeId(): UUID? =
+    when (this) {
+        is ArbeidsforholdType.MedArbeidsforhold -> vedtaksperiodeId
+        else -> null
+    }
+
+fun ArbeidsforholdType.tilInntektsmeldingType(id: UUID): Inntektsmelding.Type =
+    when (this) {
+        is ArbeidsforholdType.MedArbeidsforhold -> Inntektsmelding.Type.Selvbestemt(id = id)
+        is ArbeidsforholdType.Fisker -> Inntektsmelding.Type.Fisker(id = id)
+        is ArbeidsforholdType.UtenArbeidsforhold -> Inntektsmelding.Type.UtenArbeidsforhold(id = id)
+    }
+
 fun tilInntektsmelding(
     skjema: SkjemaInntektsmeldingSelvbestemt,
     orgNavn: String,
@@ -373,7 +387,7 @@ fun tilInntektsmelding(
     return Inntektsmelding(
         id = UUID.randomUUID(),
         type =
-            Inntektsmelding.Type.Selvbestemt(
+            skjema.arbeidsforholdType.tilInntektsmeldingType(
                 id = skjema.selvbestemtId ?: UUID.randomUUID(),
             ),
         sykmeldt =
@@ -394,6 +408,7 @@ fun tilInntektsmelding(
         refusjon = skjema.refusjon,
         aarsakInnsending = aarsakInnsending,
         mottatt = mottatt.toOffsetDateTimeOslo(),
-        vedtaksperiodeId = skjema.vedtaksperiodeId,
+        // TODO: Fjerne "?: skjema.vedtaksperiodeId" etter frontend har implementert arbeidsforholdType
+        vedtaksperiodeId = skjema.arbeidsforholdType.tilVedtaksperiodeId() ?: skjema.vedtaksperiodeId,
     )
 }

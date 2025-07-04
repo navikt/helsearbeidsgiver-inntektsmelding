@@ -133,7 +133,10 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
                         {"aarsak": "Bonus"}
                     ]
                 },
-                "refusjon": null
+                "refusjon": null,
+                "arbeidsforholdType": {
+                    "type": "UtenArbeidsforhold"
+                }
             }
             """.removeJsonWhitespace()
                     .parseJson()

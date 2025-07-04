@@ -316,6 +316,23 @@ class PdfDokumentTest {
         }
     }
 
+    @Test
+    fun `fisker og utenarbeidsforhold markeres i tittel`() {
+        val medFisker =
+            im.copy(
+                type =
+                    Inntektsmelding.Type.Fisker(
+                        id = im.type.id,
+                    ),
+            )
+        writePDF(
+            "med_fisker",
+            medFisker,
+        )
+        val pdfTekst = extractTextFromPdf(PdfDokument(medFisker).export())
+        assert(pdfTekst!!.contains("Inntektsmelding (Fisker) for sykepenger"))
+    }
+
     private fun List<InntektEndringAarsak>.tilIm(): Inntektsmelding =
         im.copy(
             inntekt =

@@ -112,12 +112,22 @@ class PdfDokument(
         }
     }
 
+    private fun Inntektsmelding.Type.genererTittel(): String =
+        when (this) {
+            is Inntektsmelding.Type.Fisker -> "Inntektsmelding (Fisker) for sykepenger"
+            is Inntektsmelding.Type.UtenArbeidsforhold -> "Inntektsmelding (Uten Arbeidsforhold) for sykepenger"
+            is Inntektsmelding.Type.Selvbestemt,
+            is Inntektsmelding.Type.Forespurt,
+            is Inntektsmelding.Type.ForespurtEkstern,
+            -> "Inntektsmelding for sykepenger"
+        }
+
     private fun addHeader() {
         pdf.addTitle(
             title =
                 when (inntektsmelding.aarsakInnsending) {
-                    AarsakInnsending.Ny -> "Inntektsmelding for sykepenger"
-                    AarsakInnsending.Endring -> "Inntektsmelding for sykepenger - endring"
+                    AarsakInnsending.Ny -> inntektsmelding.type.genererTittel()
+                    AarsakInnsending.Endring -> "${inntektsmelding.type.genererTittel()} - endring"
                 },
             x = 0,
             y = y,
@@ -217,19 +227,25 @@ class PdfDokument(
 
                 is Ferie ->
                     addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.ferier)
+
                 is Permisjon ->
                     addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.permisjoner)
+
                 is Permittering ->
                     addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.permitteringer)
+
                 is Sykefravaer ->
                     addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.sykefravaer)
 
                 is NyStilling ->
                     addNyStilling(forklaringEndring, endringAarsak)
+
                 is Tariffendring ->
                     addTariffendring(forklaringEndring, endringAarsak)
+
                 is VarigLoennsendring ->
                     addVarigLonnsendring(forklaringEndring, endringAarsak)
+
                 is NyStillingsprosent ->
                     addNyStillingsprosent(forklaringEndring, endringAarsak)
             }

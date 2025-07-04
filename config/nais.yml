@@ -13,10 +13,6 @@ metadata:
   namespace: helsearbeidsgiver
   labels:
     team: helsearbeidsgiver
-  {{#if entraIdEnabled}}
-  annotations:
-    texas.nais.io/enabled: "{{ entraIdEnabled }}"
-  {{/if}}
 spec:
   image: {{ image }}
   resources:

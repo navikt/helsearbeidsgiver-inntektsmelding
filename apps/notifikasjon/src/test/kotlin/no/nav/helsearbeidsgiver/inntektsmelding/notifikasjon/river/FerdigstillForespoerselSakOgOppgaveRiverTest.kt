@@ -82,63 +82,6 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
             }
         }
 
-        test("sak og oppgave med gammel merkelapp ferdigstilles") {
-            val innkommendeMelding = innkommendeMelding()
-
-            coEvery {
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), NotifikasjonTekst.MERKELAPP, any(), any(), any())
-            } throws SakEllerOppgaveFinnesIkkeException("'Tis but a scratch")
-
-            coEvery {
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), NotifikasjonTekst.MERKELAPP_GAMMEL, any(), any(), any())
-            } just Runs
-
-            coEvery {
-                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), NotifikasjonTekst.MERKELAPP, any())
-            } throws SakEllerOppgaveFinnesIkkeException("We are the knights who say 'Ni!'")
-
-            coEvery {
-                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), NotifikasjonTekst.MERKELAPP_GAMMEL, any())
-            } just Runs
-
-            testRapid.sendJson(innkommendeMelding.toMap())
-
-            testRapid.inspektør.size shouldBeExactly 1
-
-            testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding)
-
-            coVerifySequence {
-                // Feiler
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
-                    grupperingsid = innkommendeMelding.forespoerselId.toString(),
-                    merkelapp = "Inntektsmelding sykepenger",
-                    status = SaksStatus.FERDIG,
-                    statusTekst = "Mottatt – Se kvittering eller korriger inntektsmelding",
-                    nyLenke = "$mockLinkUrl/im-dialog/kvittering/${innkommendeMelding.forespoerselId}",
-                )
-                // Feiler ikke
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
-                    grupperingsid = innkommendeMelding.forespoerselId.toString(),
-                    merkelapp = "Inntektsmelding",
-                    status = SaksStatus.FERDIG,
-                    statusTekst = "Mottatt – Se kvittering eller korriger inntektsmelding",
-                    nyLenke = "$mockLinkUrl/im-dialog/kvittering/${innkommendeMelding.forespoerselId}",
-                )
-                // Feiler
-                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(
-                    eksternId = innkommendeMelding.forespoerselId.toString(),
-                    merkelapp = "Inntektsmelding sykepenger",
-                    nyLenke = "$mockLinkUrl/im-dialog/kvittering/${innkommendeMelding.forespoerselId}",
-                )
-                // Feiler ikke
-                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(
-                    eksternId = innkommendeMelding.forespoerselId.toString(),
-                    merkelapp = "Inntektsmelding",
-                    nyLenke = "$mockLinkUrl/im-dialog/kvittering/${innkommendeMelding.forespoerselId}",
-                )
-            }
-        }
-
         test("sak ferdigstilles selv om oppgave ikke finnes") {
             val innkommendeMelding = innkommendeMelding()
 
@@ -159,7 +102,6 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
             coVerifySequence {
                 mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), "Inntektsmelding sykepenger", any(), any(), any())
                 mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), "Inntektsmelding sykepenger", any())
-                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), "Inntektsmelding", any())
             }
         }
 
@@ -182,7 +124,6 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
 
             coVerifySequence {
                 mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), "Inntektsmelding sykepenger", any(), any(), any())
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), "Inntektsmelding", any(), any(), any())
                 mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), "Inntektsmelding sykepenger", any())
             }
         }
@@ -206,9 +147,7 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
 
             coVerifySequence {
                 mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), "Inntektsmelding sykepenger", any(), any(), any())
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), "Inntektsmelding", any(), any(), any())
                 mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), "Inntektsmelding sykepenger", any())
-                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), "Inntektsmelding", any())
             }
         }
 
@@ -226,7 +165,6 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail(innkommendeMelding).tilMelding()
             coVerifySequence {
                 mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), "Inntektsmelding sykepenger", any(), any(), any())
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), "Inntektsmelding", any(), any(), any())
             }
         }
 
@@ -250,7 +188,6 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
             coVerifySequence {
                 mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), "Inntektsmelding sykepenger", any(), any(), any())
                 mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), "Inntektsmelding sykepenger", any())
-                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), "Inntektsmelding", any())
             }
         }
 

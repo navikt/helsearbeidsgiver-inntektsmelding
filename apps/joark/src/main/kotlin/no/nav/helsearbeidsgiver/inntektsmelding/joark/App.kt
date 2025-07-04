@@ -24,9 +24,5 @@ fun RapidsConnection.createJournalfoerImRiver(dokArkivClient: DokArkivClient): R
 
 private fun createDokArkivClient(): DokArkivClient {
     val tokenGetter = AuthClient().tokenGetter(IdentityProvider.AZURE_AD, Env.dokArkivScope)
-    return DokArkivClient(
-        url = Env.dokArkivUrl,
-        maxRetries = 3,
-        getAccessToken = tokenGetter,
-    )
+    return DokArkivClient(Env.dokArkivUrl, tokenGetter)
 }

@@ -3,17 +3,14 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.maps.shouldContainAll
+import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.aareg.Ansettelsesperiode
-import no.nav.helsearbeidsgiver.aareg.Arbeidsgiver
-import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
@@ -24,7 +21,8 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsm
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.Arbeidsforhold
+import no.nav.helsearbeidsgiver.felles.domene.PeriodeAapen
+import no.nav.helsearbeidsgiver.felles.json.ansettelsesperioderSerializer
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
@@ -33,12 +31,10 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
-import no.nav.helsearbeidsgiver.inntektsmelding.aareg.tilArbeidsforhold
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.august
@@ -52,7 +48,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
-import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold as KlientArbeidsforhold
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LagreSelvbestemtIT : EndToEndTest() {
@@ -75,7 +70,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Mock.organisasjon)
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
-        coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforhold
+        coEvery { aaregClient.hentAnsettelsesperioder(any(), any()) } returns Mock.ansettelsesperioder
         coEvery { agNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns Mock.sakId
         coEvery { dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any()) } returns
             OpprettOgFerdigstillResponse(
@@ -120,11 +115,12 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         // Data hentet
         serviceMessages
-            .filter(Key.ARBEIDSFORHOLD)
+            .filter(Key.ANSETTELSESPERIODER)
             .firstAsMap()
             .also { melding ->
                 val data = melding[Key.DATA].shouldNotBeNull().toMap()
-                Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), data) shouldContainExactly Mock.arbeidsforhold.map { it.tilArbeidsforhold() }
+                Key.ANSETTELSESPERIODER.les(ansettelsesperioderSerializer, data) shouldContainExactly
+                    Mock.ansettelsesperioder.mapValues { (_, perioder) -> perioder.map { PeriodeAapen(it.fom, it.tom) }.toSet() }
             }
 
         // Lagring forespurt
@@ -195,7 +191,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Mock.organisasjon)
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
-        coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforhold
+        coEvery { aaregClient.hentAnsettelsesperioder(any(), any()) } returns Mock.ansettelsesperioder
         coEvery { dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any()) } returns
             OpprettOgFerdigstillResponse(
                 journalpostId = Mock.journalpostId,
@@ -272,7 +268,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Mock.organisasjon)
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
-        coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforhold
+        coEvery { aaregClient.hentAnsettelsesperioder(any(), any()) } returns Mock.ansettelsesperioder
 
         publish(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
@@ -406,29 +402,15 @@ class LagreSelvbestemtIT : EndToEndTest() {
                 ),
             )
 
-        val arbeidsforhold =
-            listOf(
-                KlientArbeidsforhold(
-                    arbeidsgiver =
-                        Arbeidsgiver(
-                            type = "Underenhet",
-                            organisasjonsnummer = orgnr.verdi,
+        val ansettelsesperioder =
+            mapOf(
+                orgnr to
+                    setOf(
+                        Periode(
+                            fom = 8.oktober,
+                            tom = null,
                         ),
-                    opplysningspliktig =
-                        Opplysningspliktig(
-                            type = "ikke brukt",
-                            organisasjonsnummer = "ikke brukt heller",
-                        ),
-                    arbeidsavtaler = emptyList(),
-                    ansettelsesperiode =
-                        Ansettelsesperiode(
-                            Periode(
-                                fom = 8.oktober,
-                                tom = null,
-                            ),
-                        ),
-                    registrert = 7.oktober.kl(20, 0, 0, 0),
-                ),
+                    ),
             )
 
         val inntektsmelding =

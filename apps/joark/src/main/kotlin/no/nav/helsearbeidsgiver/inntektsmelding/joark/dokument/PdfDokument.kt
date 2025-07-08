@@ -114,7 +114,7 @@ class PdfDokument(
 
     private fun Inntektsmelding.Type.genererTittel(): String =
         when (this) {
-            is Inntektsmelding.Type.Fisker -> "Inntektsmelding (Fisker m/ hyre) for sykepenger"
+            is Inntektsmelding.Type.Fisker -> "Inntektsmelding (Fisker m/hyre) for sykepenger"
             is Inntektsmelding.Type.UtenArbeidsforhold -> "Inntektsmelding (Uten Arbeidsforhold) for sykepenger"
             is Inntektsmelding.Type.Selvbestemt,
             is Inntektsmelding.Type.Forespurt,

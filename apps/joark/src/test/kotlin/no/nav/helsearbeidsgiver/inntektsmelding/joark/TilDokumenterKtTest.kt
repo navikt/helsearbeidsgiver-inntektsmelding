@@ -52,7 +52,7 @@ class TilDokumenterKtTest {
     }
 
     @Test
-    fun `tilDokumentbeskrivelse returnerer forventet for forskjellige typer`() {
+    fun `tilDokumentbeskrivelse returnerer det som er forventet for forskjellige typer`() {
         val im = mockInntektsmeldingV1()
         val id = im.type.id
         val standardBeskrivelse = "Inntektsmelding-05.10.2018 - [...] - 22.10.2018"

@@ -22,7 +22,10 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RefusjonEndring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykefravaer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.AvsenderSystem
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
 import org.junit.jupiter.api.Test
@@ -317,20 +320,21 @@ class PdfDokumentTest {
     }
 
     @Test
-    fun `fisker og utenarbeidsforhold markeres i tittel`() {
-        val medFisker =
-            im.copy(
-                type =
-                    Inntektsmelding.Type.Fisker(
-                        id = im.type.id,
-                    ),
-            )
-        writePDF(
-            "med_fisker",
-            medFisker,
-        )
-        val pdfTekst = extractTextFromPdf(PdfDokument(medFisker).export())
-        assert(pdfTekst!!.contains("Inntektsmelding (Fisker) for sykepenger"))
+    fun `generert pdf tittel samsvarer med inntektsmelding type`() {
+        val id = im.type.id
+        val forespurtEkstern = Inntektsmelding.Type.ForespurtEkstern(id = id, avsenderSystem = AvsenderSystem(Orgnr.genererGyldig(), "Test system", "1.0"))
+        setOf(
+            forespurtEkstern to "Inntektsmelding for sykepenger",
+            Inntektsmelding.Type.Forespurt(id) to "Inntektsmelding for sykepenger",
+            Inntektsmelding.Type.Selvbestemt(id) to "Inntektsmelding for sykepenger",
+            Inntektsmelding.Type.Fisker(id) to "Inntektsmelding (Fisker) for sykepenger",
+            Inntektsmelding.Type.UtenArbeidsforhold(id) to "Inntektsmelding (Uten Arbeidsforhold) for sykepenger",
+        ).forEach { (imType, forventetTittel) ->
+            val inntektsmelding = im.copy(type = imType)
+            val pdfTekst = pdfTekstFraIm(inntektsmelding)
+
+            pdfTekst shouldContain forventetTittel
+        }
     }
 
     private fun List<InntektEndringAarsak>.tilIm(): Inntektsmelding =
@@ -352,8 +356,8 @@ class PdfDokumentTest {
         title: String,
         im: Inntektsmelding,
     ) {
-//        val file = File(System.getProperty("user.home"), "/Desktop/pdf/$title.pdf")
-        val file = File.createTempFile(title, ".pdf")
+        val file = File(System.getProperty("user.home"), "/Desktop/pdf/$title.pdf")
+        // val file = File.createTempFile(title, ".pdf")
         val writer = FileOutputStream(file)
         writer.write(PdfDokument(im).export())
         println("Lagde PDF $title med filnavn ${file.toPath()}")

@@ -63,7 +63,7 @@ class TilDokumenterKtTest {
             im.copy(type = Inntektsmelding.Type.Forespurt(id)) to standardBeskrivelse,
             im.copy(type = Inntektsmelding.Type.Selvbestemt(id)) to standardBeskrivelse,
         ).forEach { (im, forventet) ->
-            assertEquals(standardBeskrivelse + forventet, im.tilDokumentbeskrivelse())
+            assertEquals(forventet, im.tilDokumentbeskrivelse())
         }
     }
 

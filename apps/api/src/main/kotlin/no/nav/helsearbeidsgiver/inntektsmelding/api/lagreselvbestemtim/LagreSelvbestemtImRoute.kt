@@ -107,8 +107,7 @@ private suspend fun RoutingContext.lesRequestOrNull(): SkjemaInntektsmeldingSelv
                         logger.info(it)
                         sikkerLogger.info("$it\n${json.toPretty()}")
                     }
-                }
-                .let {
+                }.let {
                     // TODO: Midlertidig håndtering av manglende arbeidsforholdType kan fjernes når frontend er oppdatert
                     val arbeidforholdTypeJson = it.jsonObject[SkjemaInntektsmeldingSelvbestemt::arbeidsforholdType.name]
                     if (arbeidforholdTypeJson != null) {
@@ -116,12 +115,12 @@ private suspend fun RoutingContext.lesRequestOrNull(): SkjemaInntektsmeldingSelv
                     } else {
                         val vedtaksperiodeId = it.jsonObject[SkjemaInntektsmeldingSelvbestemt::vedtaksperiodeId.name]?.fromJson(UuidSerializer)
                         val arbeidsforholdType = ArbeidsforholdType.MedArbeidsforhold(vedtaksperiodeId = requireNotNull(vedtaksperiodeId))
-                        it.jsonObject.plus(
-                            SkjemaInntektsmeldingSelvbestemt::arbeidsforholdType.name to arbeidsforholdType.toJson(ArbeidsforholdType.serializer())
-                        ).toJson()
+                        it.jsonObject
+                            .plus(
+                                SkjemaInntektsmeldingSelvbestemt::arbeidsforholdType.name to arbeidsforholdType.toJson(ArbeidsforholdType.serializer()),
+                            ).toJson()
                     }
-                }
-                .fromJson(SkjemaInntektsmeldingSelvbestemt.serializer())
+                }.fromJson(SkjemaInntektsmeldingSelvbestemt.serializer())
         }.getOrElse { error ->
             "Kunne ikke parse json for selvbestemt inntektsmeldingsskjema.".let {
                 logger.error(it)

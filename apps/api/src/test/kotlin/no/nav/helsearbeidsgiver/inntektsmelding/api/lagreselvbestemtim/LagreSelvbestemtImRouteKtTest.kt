@@ -366,10 +366,11 @@ private object Mock {
             }
             """.removeJsonWhitespace()
             .parseJson()
+
     fun skjemaJsonUtenArbeidsforholdType(
         selvbestemtId: UUID,
         vedtaksperiodeId: UUID?,
-        arbeidsforholdTypeString: String = ""
+        arbeidsforholdTypeString: String = "",
     ) = """
             {
                 "selvbestemtId": "$selvbestemtId",

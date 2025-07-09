@@ -23,7 +23,7 @@ class TilDokumenterKtTest {
     }
 
     @Test
-    fun dokumentbeskrivelseToPerioder() {
+    fun `tilDokumentbeskrivelse returnerer forventet med to perioder`() {
         val im =
             mockInntekstmeldingMedPerioder(
                 listOf(
@@ -35,7 +35,7 @@ class TilDokumenterKtTest {
     }
 
     @Test
-    fun dokumentbeskrivelseEnPeriode() {
+    fun `tilDokumentbeskrivelse returnerer forventet med en periode`() {
         val im =
             mockInntekstmeldingMedPerioder(
                 listOf(
@@ -46,9 +46,25 @@ class TilDokumenterKtTest {
     }
 
     @Test
-    fun dokumentbeskrivelseIngenPeriode() {
+    fun `tilDokumentbeskrivelse returnerer forventet med ingen perioder`() {
         val im = mockInntekstmeldingMedPerioder(emptyList())
         assertEquals("Inntektsmelding-(ingen agp)", im.tilDokumentbeskrivelse())
+    }
+
+    @Test
+    fun `tilDokumentbeskrivelse returnerer det som er forventet for forskjellige typer`() {
+        val im = mockInntektsmeldingV1()
+        val id = im.type.id
+        val standardBeskrivelse = "Inntektsmelding-05.10.2018 - [...] - 22.10.2018"
+
+        setOf(
+            im.copy(type = Inntektsmelding.Type.Fisker(id)) to "$standardBeskrivelse (Fisker m/hyre)",
+            im.copy(type = Inntektsmelding.Type.UtenArbeidsforhold(id)) to "$standardBeskrivelse (Uten arbeidsforhold)",
+            im.copy(type = Inntektsmelding.Type.Forespurt(id)) to standardBeskrivelse,
+            im.copy(type = Inntektsmelding.Type.Selvbestemt(id)) to standardBeskrivelse,
+        ).forEach { (im, forventet) ->
+            assertEquals(forventet, im.tilDokumentbeskrivelse())
+        }
     }
 
     private fun mockInntekstmeldingMedPerioder(perioder: List<Periode>): Inntektsmelding =

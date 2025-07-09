@@ -46,11 +46,17 @@ fun tilDokumenter(inntektsmelding: Inntektsmelding): List<Dokument> =
 private fun ByteArray.encode(): String = base64.encodeToString(this)
 
 fun Inntektsmelding.tilDokumentbeskrivelse(): String {
+    val arbeidsforhold =
+        when (this.type) {
+            is Inntektsmelding.Type.UtenArbeidsforhold -> " (Uten arbeidsforhold)"
+            is Inntektsmelding.Type.Fisker -> " (Fisker m/hyre)"
+            else -> ""
+        }
     val agp =
         this.agp
             ?.perioder
             ?.ifEmpty { null }
             ?.tilKortFormat()
             .orDefault("(ingen agp)")
-    return "Inntektsmelding-$agp"
+    return "Inntektsmelding-$agp$arbeidsforhold"
 }

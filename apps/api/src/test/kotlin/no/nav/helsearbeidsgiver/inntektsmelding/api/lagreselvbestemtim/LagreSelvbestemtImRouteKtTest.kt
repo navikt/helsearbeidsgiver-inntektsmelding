@@ -11,6 +11,7 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.jsonObject
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -369,31 +370,16 @@ private object Mock {
 
     fun skjemaJsonUtenArbeidsforholdType(
         selvbestemtId: UUID,
-        vedtaksperiodeId: UUID?,
-        arbeidsforholdTypeString: String = "",
-    ) = """
-            {
-                "selvbestemtId": "$selvbestemtId",
-                "sykmeldtFnr": "${Fnr.genererGyldig()}",
-                "avsender": {
-                    "orgnr": "${Orgnr.genererGyldig()}",
-                    "tlf": "${randomDigitString(8)}"
-                },
-                "sykmeldingsperioder": [{"fom": "2024-02-12", "tom": "2024-02-28"}],
-                "agp": null,
-                "inntekt": {
-                    "beloep": 1000.10,
-                    "inntektsdato": "2024-02-12",
-                    "naturalytelser": [],
-                    "endringAarsaker": [
-                        {"aarsak": "Bonus"}
-                    ]
-                },
-                "refusjon": null,
-                "vedtaksperiodeId": "$vedtaksperiodeId"
-            }
-            """.removeJsonWhitespace()
-        .parseJson()
+        vedtaksperiodeId: UUID? = null,
+    ): JsonElement {
+        val json = skjemaJson(selvbestemtId).jsonObject.minus(SkjemaInntektsmeldingSelvbestemt::arbeidsforholdType.name)
+
+        return if (vedtaksperiodeId != null) {
+            json.plus(SkjemaInntektsmeldingSelvbestemt::vedtaksperiodeId.name to vedtaksperiodeId.toJson()).toJson()
+        } else {
+            json.toJson()
+        }
+    }
 
     fun successResponseJson(selvbestemtId: UUID): String =
         """

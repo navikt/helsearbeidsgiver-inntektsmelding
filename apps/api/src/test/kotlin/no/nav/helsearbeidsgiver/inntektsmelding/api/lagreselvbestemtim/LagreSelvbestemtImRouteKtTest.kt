@@ -110,36 +110,7 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
                     Mock.successResult(selvbestemtId),
                 )
 
-            val skjemaJson =
-                """
-            {
-                "selvbestemtId": "$selvbestemtId",
-                "type": {
-                    "type": "Selvbestemt",
-                    "id": "${UUID.randomUUID()}"
-                },
-                "sykmeldtFnr": "${Fnr.genererGyldig()}",
-                "avsender": {
-                    "orgnr": "${Orgnr.genererGyldig()}",
-                    "tlf": "${randomDigitString(8)}"
-                },
-                "sykmeldingsperioder": [{"fom": "2024-02-12", "tom": "2024-02-28"}],
-                "agp": null,
-                "inntekt": {
-                    "beloep": 1000.10,
-                    "inntektsdato": "2024-02-12",
-                    "naturalytelser": [],
-                    "endringAarsaker": [
-                        {"aarsak": "Bonus"}
-                    ]
-                },
-                "refusjon": null,
-                "arbeidsforholdType": {
-                    "type": "UtenArbeidsforhold"
-                }
-            }
-            """.removeJsonWhitespace()
-                    .parseJson()
+            val skjemaJson = Mock.skjemaJson(selvbestemtId)
 
             val response = post(path, skjemaJson, JsonElement.serializer())
 
@@ -147,6 +118,48 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
 
             response.status shouldBe HttpStatusCode.OK
             actualJson shouldBe Mock.successResponseJson(selvbestemtId)
+        }
+
+    @Test
+    fun `skal godta og returnere id ved innsending som mangler arbeodsforholdType men inneholder vedtaksperiodeId`() =
+        testApi {
+            val selvbestemtId = UUID.randomUUID()
+
+            coEvery { mockRedisConnection.get(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    Mock.successResult(selvbestemtId),
+                )
+
+            val skjemaJson = Mock.skjemaJsonUtenArbeidsforholdType(selvbestemtId, UUID.randomUUID())
+
+            val response = post(path, skjemaJson, JsonElement.serializer())
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.OK
+            actualJson shouldBe Mock.successResponseJson(selvbestemtId)
+        }
+
+    @Test
+    fun `skal ikke godta innsending som mangler arbeodsforholdType og mangler vedtaksperiodeId`() =
+        testApi {
+            val selvbestemtId = UUID.randomUUID()
+
+            coEvery { mockRedisConnection.get(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    Mock.successResult(selvbestemtId),
+                )
+
+            val skjemaJson = Mock.skjemaJsonUtenArbeidsforholdType(selvbestemtId, null)
+
+            val response = post(path, skjemaJson, JsonElement.serializer())
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.BadRequest
+            actualJson shouldBe Mock.failureResponseJson("Feil under serialisering.")
         }
 
     @Test
@@ -327,6 +340,60 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
 }
 
 private object Mock {
+    fun skjemaJson(selvbestemtId: UUID) =
+        """
+            {
+                "selvbestemtId": "$selvbestemtId",
+                "sykmeldtFnr": "${Fnr.genererGyldig()}",
+                "avsender": {
+                    "orgnr": "${Orgnr.genererGyldig()}",
+                    "tlf": "${randomDigitString(8)}"
+                },
+                "sykmeldingsperioder": [{"fom": "2024-02-12", "tom": "2024-02-28"}],
+                "agp": null,
+                "inntekt": {
+                    "beloep": 1000.10,
+                    "inntektsdato": "2024-02-12",
+                    "naturalytelser": [],
+                    "endringAarsaker": [
+                        {"aarsak": "Bonus"}
+                    ]
+                },
+                "refusjon": null,
+                "arbeidsforholdType": {
+                    "type": "UtenArbeidsforhold"
+                }
+            }
+            """.removeJsonWhitespace()
+            .parseJson()
+    fun skjemaJsonUtenArbeidsforholdType(
+        selvbestemtId: UUID,
+        vedtaksperiodeId: UUID?,
+        arbeidsforholdTypeString: String = ""
+    ) = """
+            {
+                "selvbestemtId": "$selvbestemtId",
+                "sykmeldtFnr": "${Fnr.genererGyldig()}",
+                "avsender": {
+                    "orgnr": "${Orgnr.genererGyldig()}",
+                    "tlf": "${randomDigitString(8)}"
+                },
+                "sykmeldingsperioder": [{"fom": "2024-02-12", "tom": "2024-02-28"}],
+                "agp": null,
+                "inntekt": {
+                    "beloep": 1000.10,
+                    "inntektsdato": "2024-02-12",
+                    "naturalytelser": [],
+                    "endringAarsaker": [
+                        {"aarsak": "Bonus"}
+                    ]
+                },
+                "refusjon": null,
+                "vedtaksperiodeId": "$vedtaksperiodeId"
+            }
+            """.removeJsonWhitespace()
+        .parseJson()
+
     fun successResponseJson(selvbestemtId: UUID): String =
         """
         {

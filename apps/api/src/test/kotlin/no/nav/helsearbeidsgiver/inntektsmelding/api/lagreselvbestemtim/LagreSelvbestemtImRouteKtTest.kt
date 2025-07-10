@@ -122,7 +122,7 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
         }
 
     @Test
-    fun `skal godta og returnere id ved innsending som mangler arbeodsforholdType men inneholder vedtaksperiodeId`() =
+    fun `skal godta og returnere id ved innsending som mangler arbeidsforholdType men inneholder vedtaksperiodeId`() =
         testApi {
             val selvbestemtId = UUID.randomUUID()
 
@@ -143,7 +143,7 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
         }
 
     @Test
-    fun `skal ikke godta innsending som mangler arbeodsforholdType og mangler vedtaksperiodeId`() =
+    fun `skal ikke godta innsending som mangler arbeidsforholdType og mangler vedtaksperiodeId`() =
         testApi {
             val selvbestemtId = UUID.randomUUID()
 

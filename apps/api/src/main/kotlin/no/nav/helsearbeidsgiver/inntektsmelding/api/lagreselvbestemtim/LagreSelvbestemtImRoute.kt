@@ -5,6 +5,8 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.post
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.jsonObject
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.ArbeidsforholdType
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -104,6 +106,19 @@ private suspend fun RoutingContext.lesRequestOrNull(): SkjemaInntektsmeldingSelv
                     "Mottok selvbestemt inntektsmelding.".let {
                         logger.info(it)
                         sikkerLogger.info("$it\n${json.toPretty()}")
+                    }
+                }.let {
+                    // TODO: Midlertidig håndtering av manglende arbeidsforholdType kan fjernes når frontend er oppdatert
+                    val arbeidforholdTypeJson = it.jsonObject[SkjemaInntektsmeldingSelvbestemt::arbeidsforholdType.name]
+                    if (arbeidforholdTypeJson != null) {
+                        it
+                    } else {
+                        val vedtaksperiodeId = it.jsonObject[SkjemaInntektsmeldingSelvbestemt::vedtaksperiodeId.name]?.fromJson(UuidSerializer)
+                        val arbeidsforholdType = ArbeidsforholdType.MedArbeidsforhold(vedtaksperiodeId = requireNotNull(vedtaksperiodeId))
+                        it.jsonObject
+                            .plus(
+                                SkjemaInntektsmeldingSelvbestemt::arbeidsforholdType.name to arbeidsforholdType.toJson(ArbeidsforholdType.serializer()),
+                            ).toJson()
                     }
                 }.fromJson(SkjemaInntektsmeldingSelvbestemt.serializer())
         }.getOrElse { error ->

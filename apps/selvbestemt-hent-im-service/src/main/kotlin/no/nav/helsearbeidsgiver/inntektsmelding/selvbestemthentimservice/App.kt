@@ -2,10 +2,10 @@ package no.nav.helsearbeidsgiver.inntektsmelding.selvbestemthentimservice
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.onShutdown
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.utils.log.logger
 
@@ -23,7 +23,7 @@ fun main() {
     RapidApplication
         .create(System.getenv())
         .createHentSelvbestemtImService(redisConnection)
-        .registerShutdownLifecycle {
+        .onShutdown {
             redisConnection.close()
         }.start()
 }

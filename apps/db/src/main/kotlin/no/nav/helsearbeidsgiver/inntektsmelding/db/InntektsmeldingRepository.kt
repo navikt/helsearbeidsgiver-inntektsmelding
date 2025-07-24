@@ -4,7 +4,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.domene.LagretInntektsmelding
-import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.InntektsmeldingGammeltFormat
 import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.convert
 import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.convertAgp
@@ -30,84 +29,80 @@ class InntektsmeldingRepository(
     private val sikkerLogger = sikkerLogger()
 
     fun hentNyesteInntektsmelding(forespoerselId: UUID): LagretInntektsmelding? =
-        Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::hentNyesteInntektsmelding) {
-            transaction(db) {
-                InntektsmeldingEntitet
-                    .select(
-                        InntektsmeldingEntitet.skjema,
-                        InntektsmeldingEntitet.dokument,
-                        InntektsmeldingEntitet.eksternInntektsmelding,
-                        InntektsmeldingEntitet.innsendt,
-                        InntektsmeldingEntitet.avsenderNavn,
-                    ).where { InntektsmeldingEntitet.forespoerselId eq forespoerselId }
-                    .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
-                    .limit(1)
-                    .map {
-                        InntektsmeldingResult(
-                            it[InntektsmeldingEntitet.skjema],
-                            it[InntektsmeldingEntitet.dokument],
-                            it[InntektsmeldingEntitet.eksternInntektsmelding],
-                            it[InntektsmeldingEntitet.innsendt],
-                            it[InntektsmeldingEntitet.avsenderNavn],
+        transaction(db) {
+            InntektsmeldingEntitet
+                .select(
+                    InntektsmeldingEntitet.skjema,
+                    InntektsmeldingEntitet.dokument,
+                    InntektsmeldingEntitet.eksternInntektsmelding,
+                    InntektsmeldingEntitet.innsendt,
+                    InntektsmeldingEntitet.avsenderNavn,
+                ).where { InntektsmeldingEntitet.forespoerselId eq forespoerselId }
+                .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
+                .limit(1)
+                .map {
+                    InntektsmeldingResult(
+                        it[InntektsmeldingEntitet.skjema],
+                        it[InntektsmeldingEntitet.dokument],
+                        it[InntektsmeldingEntitet.eksternInntektsmelding],
+                        it[InntektsmeldingEntitet.innsendt],
+                        it[InntektsmeldingEntitet.avsenderNavn],
+                    )
+                }
+        }.firstOrNull()
+            ?.let { result ->
+                when {
+                    result.skjema != null ->
+                        LagretInntektsmelding.Skjema(
+                            avsenderNavn = result.avsenderNavn ?: result.inntektsmeldingGammeltFormat?.innsenderNavn,
+                            skjema = result.skjema,
+                            mottatt = result.mottatt,
+                        )
+
+                    result.inntektsmeldingGammeltFormat != null -> {
+                        val bakoverkompatibeltSkjema =
+                            SkjemaInntektsmelding(
+                                forespoerselId = forespoerselId,
+                                avsenderTlf = result.inntektsmeldingGammeltFormat.telefonnummer.orEmpty(),
+                                agp = result.inntektsmeldingGammeltFormat.convertAgp(),
+                                inntekt = result.inntektsmeldingGammeltFormat.convertInntekt(),
+                                refusjon = result.inntektsmeldingGammeltFormat.refusjon.convert(),
+                            )
+
+                        LagretInntektsmelding.Skjema(
+                            avsenderNavn = result.inntektsmeldingGammeltFormat.innsenderNavn,
+                            skjema = bakoverkompatibeltSkjema,
+                            mottatt = result.mottatt,
                         )
                     }
-            }.firstOrNull()
-                ?.let { result ->
-                    when {
-                        result.skjema != null ->
-                            LagretInntektsmelding.Skjema(
-                                avsenderNavn = result.avsenderNavn ?: result.inntektsmeldingGammeltFormat?.innsenderNavn,
-                                skjema = result.skjema,
-                                mottatt = result.mottatt,
-                            )
 
-                        result.inntektsmeldingGammeltFormat != null -> {
-                            val bakoverkompatibeltSkjema =
-                                SkjemaInntektsmelding(
-                                    forespoerselId = forespoerselId,
-                                    avsenderTlf = result.inntektsmeldingGammeltFormat.telefonnummer.orEmpty(),
-                                    agp = result.inntektsmeldingGammeltFormat.convertAgp(),
-                                    inntekt = result.inntektsmeldingGammeltFormat.convertInntekt(),
-                                    refusjon = result.inntektsmeldingGammeltFormat.refusjon.convert(),
-                                )
-
-                            LagretInntektsmelding.Skjema(
-                                avsenderNavn = result.inntektsmeldingGammeltFormat.innsenderNavn,
-                                skjema = bakoverkompatibeltSkjema,
-                                mottatt = result.mottatt,
-                            )
-                        }
-
-                        result.eksternInntektsmelding != null -> LagretInntektsmelding.Ekstern(result.eksternInntektsmelding)
-                        else -> null
-                    }
+                    result.eksternInntektsmelding != null -> LagretInntektsmelding.Ekstern(result.eksternInntektsmelding)
+                    else -> null
                 }
-        }
+            }
 
     fun oppdaterJournalpostId(
         inntektsmeldingId: UUID,
         journalpostId: String,
     ) {
-        Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::oppdaterJournalpostId) {
-            val antallOppdatert =
-                transaction(db) {
-                    InntektsmeldingEntitet.update(
-                        where = { InntektsmeldingEntitet.inntektsmeldingId eq inntektsmeldingId },
-                    ) {
-                        it[InntektsmeldingEntitet.journalpostId] = journalpostId
-                    }
+        val antallOppdatert =
+            transaction(db) {
+                InntektsmeldingEntitet.update(
+                    where = { InntektsmeldingEntitet.inntektsmeldingId eq inntektsmeldingId },
+                ) {
+                    it[InntektsmeldingEntitet.journalpostId] = journalpostId
                 }
+            }
 
-            if (antallOppdatert == 1) {
-                "Lagret journalpost-ID '$journalpostId' i database.".also {
-                    logger.info(it)
-                    sikkerLogger.info(it)
-                }
-            } else {
-                "Oppdaterte uventet antall ($antallOppdatert) rader med journalpost-ID '$journalpostId'.".also {
-                    logger.error(it)
-                    sikkerLogger.error(it)
-                }
+        if (antallOppdatert == 1) {
+            "Lagret journalpost-ID '$journalpostId' i database.".also {
+                logger.info(it)
+                sikkerLogger.info(it)
+            }
+        } else {
+            "Oppdaterte uventet antall ($antallOppdatert) rader med journalpost-ID '$journalpostId'.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
             }
         }
     }
@@ -141,12 +136,10 @@ class InntektsmeldingRepository(
     }
 
     fun hentNyesteInntektsmeldingSkjema(forespoerselId: UUID): SkjemaInntektsmelding? =
-        Metrics.dbInntektsmelding.recordTime(InntektsmeldingRepository::hentNyesteInntektsmeldingSkjema) {
-            transaction(db) {
-                hentNyesteImSkjemaQuery(forespoerselId)
-                    .firstOrNull()
-                    ?.getOrNull(InntektsmeldingEntitet.skjema)
-            }
+        transaction(db) {
+            hentNyesteImSkjemaQuery(forespoerselId)
+                .firstOrNull()
+                ?.getOrNull(InntektsmeldingEntitet.skjema)
         }
 
     fun hentNyesteBerikedeInntektsmeldingId(forespoerselId: UUID): UUID? =

@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.VedtaksperiodeIdForespoerselIdPar
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.Producer
-import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -47,33 +46,31 @@ fun Route.hentForespoerselIdListe(
     val redisPoller = RedisStore(redisConnection, RedisPrefix.HentForespoerslerForVedtaksperiodeIdListe).let(::RedisPoller)
 
     post(Routes.HENT_FORESPOERSEL_ID_LISTE) {
-        Metrics.hentForespoerselIdListeEndpoint.recordTime(Route::hentForespoerselIdListe) {
-            runCatching {
-                receive(HentForespoerslerRequest.serializer())
-            }.onSuccess { request ->
-                if (request.vedtaksperiodeIdListe.size > MAKS_ANTALL_VEDTAKSPERIODE_IDER) {
-                    loggErrorSikkerOgUsikker(
-                        "Stopper forsøk på å hente forespørsler for mer enn $MAKS_ANTALL_VEDTAKSPERIODE_IDER vedtaksperiode-IDer på en gang.",
-                    )
-                    respondBadRequest(UGYLDIG_REQUEST, String.serializer())
-                } else {
-                    try {
-                        hentForespoersler(producer, tilgangskontroll, redisPoller, request)
-                    } catch (_: ManglerAltinnRettigheterException) {
-                        respondForbidden("Mangler rettigheter for organisasjon.", String.serializer())
-                    } catch (e: RedisPollerTimeoutException) {
-                        loggErrorSikkerOgUsikker("Fikk timeout ved henting av forespørselIDer for vedtaksperiodeIDene: ${request.vedtaksperiodeIdListe}", e)
-                        respondInternalServerError(RedisTimeoutResponse(), RedisTimeoutResponse.serializer())
-                    } catch (e: Exception) {
-                        loggErrorSikkerOgUsikker("Ukjent feil ved henting av forespørselIDer for vedtaksperiodeIDene: ${request.vedtaksperiodeIdListe}", e)
-                        respondInternalServerError(TEKNISK_FEIL_FORBIGAAENDE, String.serializer())
-                    }
+        runCatching {
+            receive(HentForespoerslerRequest.serializer())
+        }.onSuccess { request ->
+            if (request.vedtaksperiodeIdListe.size > MAKS_ANTALL_VEDTAKSPERIODE_IDER) {
+                loggErrorSikkerOgUsikker(
+                    "Stopper forsøk på å hente forespørsler for mer enn $MAKS_ANTALL_VEDTAKSPERIODE_IDER vedtaksperiode-IDer på en gang.",
+                )
+                respondBadRequest(UGYLDIG_REQUEST, String.serializer())
+            } else {
+                try {
+                    hentForespoersler(producer, tilgangskontroll, redisPoller, request)
+                } catch (_: ManglerAltinnRettigheterException) {
+                    respondForbidden("Mangler rettigheter for organisasjon.", String.serializer())
+                } catch (e: RedisPollerTimeoutException) {
+                    loggErrorSikkerOgUsikker("Fikk timeout ved henting av forespørselIDer for vedtaksperiodeIDene: ${request.vedtaksperiodeIdListe}", e)
+                    respondInternalServerError(RedisTimeoutResponse(), RedisTimeoutResponse.serializer())
+                } catch (e: Exception) {
+                    loggErrorSikkerOgUsikker("Ukjent feil ved henting av forespørselIDer for vedtaksperiodeIDene: ${request.vedtaksperiodeIdListe}", e)
+                    respondInternalServerError(TEKNISK_FEIL_FORBIGAAENDE, String.serializer())
                 }
-            }.onFailure {
-                "Klarte ikke lese request.".let { feilMelding ->
-                    loggErrorSikkerOgUsikker(feilMelding, it)
-                    respondBadRequest(feilMelding, String.serializer())
-                }
+            }
+        }.onFailure {
+            "Klarte ikke lese request.".let { feilMelding ->
+                loggErrorSikkerOgUsikker(feilMelding, it)
+                respondBadRequest(feilMelding, String.serializer())
             }
         }
     }

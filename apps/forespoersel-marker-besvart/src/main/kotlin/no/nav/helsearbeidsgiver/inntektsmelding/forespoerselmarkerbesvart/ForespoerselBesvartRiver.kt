@@ -9,7 +9,6 @@ import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.kafka.pritopic.toPretty
-import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.PriObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -45,8 +44,6 @@ class ForespoerselBesvartRiver : PriObjectRiver<BesvartMelding>() {
     override fun BesvartMelding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok melding på pri-topic om ${Pri.NotisType.FORESPOERSEL_BESVART}.")
         sikkerLogger.info("Mottok melding på pri-topic:\n${json.toPretty()}")
-
-        Metrics.forespoerslerBesvartFraSpleis.inc()
 
         return mapOf(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),

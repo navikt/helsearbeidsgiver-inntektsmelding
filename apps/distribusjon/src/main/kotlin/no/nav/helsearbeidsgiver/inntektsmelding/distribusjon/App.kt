@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.distribusjon
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helsearbeidsgiver.felles.kafka.Producer
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.onShutdown
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "im-distribusjon".logger()
@@ -14,7 +14,7 @@ fun main() {
     RapidApplication
         .create(System.getenv())
         .createDistribusjonRiver(producer)
-        .registerShutdownLifecycle {
+        .onShutdown {
             producer.close()
         }.start()
 }

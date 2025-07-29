@@ -12,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.Producer
-import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -44,53 +43,51 @@ fun Route.innsending(
     val redisPoller = RedisStore(redisConnection, RedisPrefix.Innsending).let(::RedisPoller)
 
     post(Routes.INNSENDING) {
-        Metrics.innsendingEndpoint.recordTime(Route::innsending) {
-            val kontekstId = UUID.randomUUID()
-            val mottatt = LocalDateTime.now()
+        val kontekstId = UUID.randomUUID()
+        val mottatt = LocalDateTime.now()
 
-            val skjema = lesRequestOrNull()
-            when {
-                skjema == null -> {
-                    respondBadRequest(JsonErrorResponse(), JsonErrorResponse.serializer())
+        val skjema = lesRequestOrNull()
+        when {
+            skjema == null -> {
+                respondBadRequest(JsonErrorResponse(), JsonErrorResponse.serializer())
+            }
+
+            skjema.valider().isNotEmpty() -> {
+                val valideringsfeil = skjema.valider()
+
+                "Fikk valideringsfeil: $valideringsfeil".also {
+                    logger.error(it)
+                    sikkerLogger.error(it)
                 }
 
-                skjema.valider().isNotEmpty() -> {
-                    val valideringsfeil = skjema.valider()
+                val response = ValideringErrorResponse(valideringsfeil)
 
-                    "Fikk valideringsfeil: $valideringsfeil".also {
-                        logger.error(it)
-                        sikkerLogger.error(it)
-                    }
+                respondBadRequest(response, ValideringErrorResponse.serializer())
+            }
 
-                    val response = ValideringErrorResponse(valideringsfeil)
+            else -> {
+                tilgangskontroll.validerTilgangTilForespoersel(call.request, skjema.forespoerselId)
 
-                    respondBadRequest(response, ValideringErrorResponse.serializer())
-                }
+                val avsenderFnr = call.request.lesFnrFraAuthToken()
 
-                else -> {
-                    tilgangskontroll.validerTilgangTilForespoersel(call.request, skjema.forespoerselId)
+                producer.sendRequestEvent(kontekstId, avsenderFnr, skjema, mottatt)
 
-                    val avsenderFnr = call.request.lesFnrFraAuthToken()
+                val resultat = runCatching { redisPoller.hent(kontekstId) }
 
-                    producer.sendRequestEvent(kontekstId, avsenderFnr, skjema, mottatt)
+                resultat
+                    .onSuccess {
+                        sikkerLogger.info("Fikk resultat for innsending:\n$it")
 
-                    val resultat = runCatching { redisPoller.hent(kontekstId) }
-
-                    resultat
-                        .onSuccess {
-                            sikkerLogger.info("Fikk resultat for innsending:\n$it")
-
-                            if (it.success != null) {
-                                respond(HttpStatusCode.Created, InnsendingResponse(skjema.forespoerselId), InnsendingResponse.serializer())
-                            } else {
-                                val feilmelding = it.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
-                                respondInternalServerError(feilmelding, String.serializer())
-                            }
-                        }.onFailure {
-                            sikkerLogger.info("Fikk timeout for forespørselId: ${skjema.forespoerselId}", it)
-                            respondInternalServerError(RedisTimeoutResponse(skjema.forespoerselId), RedisTimeoutResponse.serializer())
+                        if (it.success != null) {
+                            respond(HttpStatusCode.Created, InnsendingResponse(skjema.forespoerselId), InnsendingResponse.serializer())
+                        } else {
+                            val feilmelding = it.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
+                            respondInternalServerError(feilmelding, String.serializer())
                         }
-                }
+                    }.onFailure {
+                        sikkerLogger.info("Fikk timeout for forespørselId: ${skjema.forespoerselId}", it)
+                        respondInternalServerError(RedisTimeoutResponse(skjema.forespoerselId), RedisTimeoutResponse.serializer())
+                    }
             }
         }
     }

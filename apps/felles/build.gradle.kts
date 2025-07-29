@@ -3,7 +3,6 @@ val kotestVersion: String by project
 val lettuceVersion: String by project
 val micrometerVersion: String by project
 val mockkVersion: String by project
-val prometheusVersion: String by project
 val rapidsAndRiversTestVersion: String by project
 val rapidsAndRiversVersion: String by project
 val slf4jVersion: String by project
@@ -19,7 +18,6 @@ dependencies {
 
     implementation("io.lettuce:lettuce-core:$lettuceVersion")
     implementation("io.micrometer:micrometer-core:$micrometerVersion")
-    implementation("io.prometheus:simpleclient_common:$prometheusVersion")
 
     testFixturesApi("com.github.navikt.tbd-libs:rapids-and-rivers-test:$rapidsAndRiversTestVersion")
     testFixturesApi("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")

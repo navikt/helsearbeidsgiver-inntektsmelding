@@ -45,8 +45,6 @@ spec:
     autoInstrumentation:
       enabled: true
       runtime: java
-  prometheus:
-    enabled: true
   {{#if ingress}}
   ingresses:
     - {{ ingress }}

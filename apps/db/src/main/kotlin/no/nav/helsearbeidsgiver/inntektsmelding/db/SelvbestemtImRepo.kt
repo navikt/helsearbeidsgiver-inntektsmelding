@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.db.exposed.firstOrNull
-import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.SelvbestemtInntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -23,25 +22,21 @@ class SelvbestemtImRepo(
     private val sikkerLogger = sikkerLogger()
 
     fun hentNyesteIm(selvbestemtId: UUID): Inntektsmelding? =
-        Metrics.dbSelvbestemtIm.recordTime(::hentNyesteIm) {
-            transaction(db) {
-                SelvbestemtInntektsmeldingEntitet
-                    .selectAll()
-                    .where { SelvbestemtInntektsmeldingEntitet.selvbestemtId eq selvbestemtId }
-                    .orderBy(SelvbestemtInntektsmeldingEntitet.opprettet, SortOrder.DESC)
-                    .limit(1)
-                    .firstOrNull(SelvbestemtInntektsmeldingEntitet.inntektsmelding)
-            }
+        transaction(db) {
+            SelvbestemtInntektsmeldingEntitet
+                .selectAll()
+                .where { SelvbestemtInntektsmeldingEntitet.selvbestemtId eq selvbestemtId }
+                .orderBy(SelvbestemtInntektsmeldingEntitet.opprettet, SortOrder.DESC)
+                .limit(1)
+                .firstOrNull(SelvbestemtInntektsmeldingEntitet.inntektsmelding)
         }
 
     fun lagreIm(im: Inntektsmelding) {
-        Metrics.dbSelvbestemtIm.recordTime(::lagreIm) {
-            transaction(db) {
-                SelvbestemtInntektsmeldingEntitet.insert {
-                    it[inntektsmeldingId] = im.id
-                    it[selvbestemtId] = im.type.id
-                    it[inntektsmelding] = im
-                }
+        transaction(db) {
+            SelvbestemtInntektsmeldingEntitet.insert {
+                it[inntektsmeldingId] = im.id
+                it[selvbestemtId] = im.type.id
+                it[inntektsmelding] = im
             }
         }
     }
@@ -51,16 +46,14 @@ class SelvbestemtImRepo(
         journalpostId: String,
     ) {
         val antallOppdatert =
-            Metrics.dbSelvbestemtIm.recordTime(::oppdaterJournalpostId) {
-                transaction(db) {
-                    SelvbestemtInntektsmeldingEntitet.update(
-                        where = {
-                            (SelvbestemtInntektsmeldingEntitet.inntektsmeldingId eq inntektsmeldingId) and
-                                SelvbestemtInntektsmeldingEntitet.journalpostId.isNull()
-                        },
-                    ) {
-                        it[this.journalpostId] = journalpostId
-                    }
+            transaction(db) {
+                SelvbestemtInntektsmeldingEntitet.update(
+                    where = {
+                        (SelvbestemtInntektsmeldingEntitet.inntektsmeldingId eq inntektsmeldingId) and
+                            SelvbestemtInntektsmeldingEntitet.journalpostId.isNull()
+                    },
+                ) {
+                    it[this.journalpostId] = journalpostId
                 }
             }
 

@@ -363,6 +363,4 @@ fun InntektEndringAarsak.beskrivelse(): String =
         is Tariffendring -> "Tariffendring"
         is VarigLoennsendring -> "Varig lønnsendring"
         is NyStillingsprosent -> "Ny stillingsprosent"
-
-        else -> throw NotImplementedError("Ingen beskrivelse definert for InntektEndringAarsak")
     }

@@ -16,14 +16,15 @@ import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceRiverStateless
+import no.nav.helsearbeidsgiver.felles.rr.test.firstMessage
+import no.nav.helsearbeidsgiver.felles.rr.test.message
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
+import no.nav.helsearbeidsgiver.felles.rr.test.sendJson
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.json.plusData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
@@ -31,9 +32,13 @@ class HentDataTilSakOgOppgaveServiceTest :
     FunSpec({
         val testRapid = TestRapid()
 
-        ServiceRiverStateless(
-            HentDataTilSakOgOppgaveService(testRapid),
-        ).connect(testRapid)
+        mockConnectToRapid(testRapid) {
+            listOf(
+                ServiceRiverStateless(
+                    HentDataTilSakOgOppgaveService(it),
+                ),
+            )
+        }
 
         beforeEach {
             testRapid.reset()

@@ -14,8 +14,9 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
+import no.nav.helsearbeidsgiver.felles.rr.test.sendJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.prosessor.FeilProsessor
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
@@ -30,7 +31,11 @@ class FeilLytterTest :
         val rapid = TestRapid()
         val repository = MockBakgrunnsjobbRepository()
 
-        FeilLytter(repository).connect(rapid)
+        mockConnectToRapid(rapid) {
+            listOf(
+                FeilLytter(repository),
+            )
+        }
 
         afterTest {
             repository.deleteAll()

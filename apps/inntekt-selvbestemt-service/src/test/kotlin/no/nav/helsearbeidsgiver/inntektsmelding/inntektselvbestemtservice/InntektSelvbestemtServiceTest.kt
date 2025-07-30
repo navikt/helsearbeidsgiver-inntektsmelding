@@ -14,12 +14,13 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.inntektMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
+import no.nav.helsearbeidsgiver.felles.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceRiverStateless
+import no.nav.helsearbeidsgiver.felles.rr.test.firstMessage
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
+import no.nav.helsearbeidsgiver.felles.rr.test.sendJson
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.juni
@@ -34,9 +35,13 @@ class InntektSelvbestemtServiceTest :
         val testRapid = TestRapid()
         val mockRedisStore = mockk<RedisStore>(relaxed = true)
 
-        ServiceRiverStateless(
-            InntektSelvbestemtService(testRapid, mockRedisStore),
-        ).connect(testRapid)
+        mockConnectToRapid(testRapid) {
+            listOf(
+                ServiceRiverStateless(
+                    InntektSelvbestemtService(it, mockRedisStore),
+                ),
+            )
+        }
 
         beforeEach {
             testRapid.reset()

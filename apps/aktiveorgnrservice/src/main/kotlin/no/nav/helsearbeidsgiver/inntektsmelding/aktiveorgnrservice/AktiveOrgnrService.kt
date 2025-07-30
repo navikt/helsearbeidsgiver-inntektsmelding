@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -14,12 +13,12 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rr.KafkaKey
+import no.nav.helsearbeidsgiver.felles.rr.Publisher
+import no.nav.helsearbeidsgiver.felles.rr.service.Service
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
@@ -51,7 +50,7 @@ data class Steg2(
 )
 
 class AktiveOrgnrService(
-    private val rapid: RapidsConnection,
+    private val publisher: Publisher,
     override val redisStore: RedisStore,
 ) : ServiceMed2Steg<Steg0, Steg1, Steg2>(),
     Service.MedRedis {
@@ -98,7 +97,7 @@ class AktiveOrgnrService(
     ) {
         val svarKafkaKey = KafkaKey(steg0.sykmeldtFnr)
 
-        rapid.publish(
+        publisher.publish(
             key = steg0.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
@@ -110,7 +109,7 @@ class AktiveOrgnrService(
                 ).toJson(),
         )
 
-        rapid.publish(
+        publisher.publish(
             key = steg0.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_ANSETTELSESPERIODER.toJson(),
@@ -122,7 +121,7 @@ class AktiveOrgnrService(
                 ).toJson(),
         )
 
-        rapid.publish(
+        publisher.publish(
             key = steg0.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
@@ -152,7 +151,7 @@ class AktiveOrgnrService(
             } else if (arbeidsgivere.isEmpty()) {
                 utfoerSteg2(data, steg0, steg1, Steg2(emptyMap()))
             } else {
-                rapid.publish(
+                publisher.publish(
                     key = steg0.sykmeldtFnr,
                     Key.EVENT_NAME to eventName.toJson(),
                     Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),

@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
@@ -21,12 +20,12 @@ import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed3Steg
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rr.KafkaKey
+import no.nav.helsearbeidsgiver.felles.rr.Publisher
+import no.nav.helsearbeidsgiver.felles.rr.service.Service
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceMed3Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
@@ -71,7 +70,7 @@ data class Steg3(
 )
 
 class LagreSelvbestemtImService(
-    private val rapid: RapidsConnection,
+    private val publisher: Publisher,
     override val redisStore: RedisStore,
 ) : ServiceMed3Steg<Steg0, Steg1, Steg2, Steg3>(),
     Service.MedRedis {
@@ -127,7 +126,7 @@ class LagreSelvbestemtImService(
 
         kontrollerSkjema(steg0.skjema)
 
-        rapid.publish(
+        publisher.publish(
             key = steg0.skjema.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
@@ -139,7 +138,7 @@ class LagreSelvbestemtImService(
                 ).toJson(),
         )
 
-        rapid.publish(
+        publisher.publish(
             key = steg0.skjema.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
@@ -155,7 +154,7 @@ class LagreSelvbestemtImService(
                 ).toJson(),
         )
 
-        rapid.publish(
+        publisher.publish(
             key = steg0.skjema.sykmeldtFnr,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_ANSETTELSESPERIODER.toJson(),
@@ -202,7 +201,7 @@ class LagreSelvbestemtImService(
             val harIngenArbeidsforhold = inntektsmelding.type is Inntektsmelding.Type.Fisker || inntektsmelding.type is Inntektsmelding.Type.UtenArbeidsforhold
 
             if (erAktivtArbeidsforhold || harIngenArbeidsforhold) {
-                rapid
+                publisher
                     .publish(
                         key = inntektsmelding.type.id,
                         Key.EVENT_NAME to eventName.toJson(),
@@ -239,7 +238,7 @@ class LagreSelvbestemtImService(
             }
 
             AarsakInnsending.Ny -> {
-                rapid
+                publisher
                     .publish(
                         key = steg2.inntektsmelding.type.id,
                         Key.EVENT_NAME to eventName.toJson(),
@@ -277,7 +276,7 @@ class LagreSelvbestemtImService(
 
             if (!steg2.erDuplikat) {
                 val publisert =
-                    rapid.publish(
+                    publisher.publish(
                         key = steg2.inntektsmelding.type.id,
                         Key.EVENT_NAME to EventName.SELVBESTEMT_IM_LAGRET.toJson(),
                         Key.KONTEKST_ID to steg0.kontekstId.toJson(),

@@ -17,11 +17,12 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.inntektMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.rr.KafkaKey
+import no.nav.helsearbeidsgiver.felles.rr.test.firstMessage
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
+import no.nav.helsearbeidsgiver.felles.rr.test.sendJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -44,7 +45,11 @@ class HentInntektRiverTest :
         val testRapid = TestRapid()
         val mockInntektClient = mockk<InntektKlient>()
 
-        HentInntektRiver(mockInntektClient).connect(testRapid)
+        mockConnectToRapid(testRapid) {
+            listOf(
+                HentInntektRiver(mockInntektClient),
+            )
+        }
 
         beforeTest {
             testRapid.reset()

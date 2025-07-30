@@ -8,8 +8,8 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.kafka.pritopic.toPretty
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.PriObjectRiver
+import no.nav.helsearbeidsgiver.felles.rr.KafkaKey
+import no.nav.helsearbeidsgiver.felles.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -24,7 +24,7 @@ data class ForkastetMelding(
 )
 
 /** Tar imot notifikasjon om at en forespørsel om arbeidsgiveropplysninger er forkastet. */
-class ForespoerselForkastetRiver : PriObjectRiver<ForkastetMelding>() {
+class ForespoerselForkastetRiver : ObjectRiver.PriTopic<ForkastetMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 

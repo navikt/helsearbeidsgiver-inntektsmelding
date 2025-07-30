@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.inntektservice
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -11,11 +10,11 @@ import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.inntektMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rr.KafkaKey
+import no.nav.helsearbeidsgiver.felles.rr.Publisher
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -43,7 +42,7 @@ data class Steg2(
 )
 
 class InntektService(
-    private val rapid: RapidsConnection,
+    private val publisher: Publisher,
     private val redisStore: RedisStore,
 ) : ServiceMed2Steg<Steg0, Steg1, Steg2>() {
     override val logger = logger()
@@ -72,7 +71,7 @@ class InntektService(
         data: Map<Key, JsonElement>,
         steg0: Steg0,
     ) {
-        rapid
+        publisher
             .publish(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
@@ -97,7 +96,7 @@ class InntektService(
         steg0: Steg0,
         steg1: Steg1,
     ) {
-        rapid
+        publisher
             .publish(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),

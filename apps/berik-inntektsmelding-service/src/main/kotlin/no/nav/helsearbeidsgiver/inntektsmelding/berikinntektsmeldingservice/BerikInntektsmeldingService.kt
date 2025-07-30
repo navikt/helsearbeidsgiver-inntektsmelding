@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
@@ -17,10 +16,10 @@ import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed3Steg
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.rr.KafkaKey
+import no.nav.helsearbeidsgiver.felles.rr.Publisher
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceMed3Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -61,7 +60,7 @@ data class Steg3(
 )
 
 class BerikInntektsmeldingService(
-    private val rapid: RapidsConnection,
+    private val publisher: Publisher,
 ) : ServiceMed3Steg<Steg0, Steg1, Steg2, Steg3>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
@@ -99,7 +98,7 @@ class BerikInntektsmeldingService(
         data: Map<Key, JsonElement>,
         steg0: Steg0,
     ) {
-        rapid
+        publisher
             .publish(
                 key = steg0.skjema.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
@@ -121,7 +120,7 @@ class BerikInntektsmeldingService(
         steg0: Steg0,
         steg1: Steg1,
     ) {
-        rapid
+        publisher
             .publish(
                 key = steg0.skjema.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
@@ -166,7 +165,7 @@ class BerikInntektsmeldingService(
                 mottatt = steg0.mottatt,
             )
 
-        rapid
+        publisher
             .publish(
                 key = steg0.skjema.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
@@ -189,7 +188,7 @@ class BerikInntektsmeldingService(
     ) {
         if (!steg3.erDuplikat) {
             val publisert =
-                rapid.publish(
+                publisher.publish(
                     key = steg0.skjema.forespoerselId,
                     Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
                     Key.KONTEKST_ID to steg0.kontekstId.toJson(),

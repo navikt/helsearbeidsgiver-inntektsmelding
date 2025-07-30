@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending.api
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
@@ -12,10 +11,10 @@ import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rr.Publisher
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -43,7 +42,7 @@ data class Steg2(
 )
 
 class ApiInnsendingService(
-    private val rapid: RapidsConnection,
+    private val publisher: Publisher,
     private val redisStore: RedisStore,
 ) : ServiceMed2Steg<Steg0, Steg1, Steg2>() {
     override val logger = logger()
@@ -73,7 +72,7 @@ class ApiInnsendingService(
         data: Map<Key, JsonElement>,
         steg0: Steg0,
     ) {
-        rapid
+        publisher
             .publish(
                 key = steg0.innsending.skjema.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
@@ -94,7 +93,7 @@ class ApiInnsendingService(
         steg0: Steg0,
         steg1: Steg1,
     ) {
-        rapid
+        publisher
             .publish(
                 key = steg0.innsending.skjema.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
@@ -128,7 +127,7 @@ class ApiInnsendingService(
 
         if (!steg2.erDuplikat) {
             val publisert =
-                rapid.publish(
+                publisher.publish(
                     key = steg0.innsending.skjema.forespoerselId,
                     Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
                     Key.KONTEKST_ID to steg0.kontekstId.toJson(),

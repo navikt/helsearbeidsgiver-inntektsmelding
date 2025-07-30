@@ -1,11 +1,11 @@
 package no.nav.helsearbeidsgiver.felles.kafka
 
-import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.JournalfoertInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.kafka.pritopic.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -63,11 +63,3 @@ class Producer(
             ).get()
     }
 }
-
-private fun Map<Pri.Key, JsonElement>.toJson(): JsonElement =
-    toJson(
-        MapSerializer(
-            Pri.Key.serializer(),
-            JsonElement.serializer(),
-        ),
-    )

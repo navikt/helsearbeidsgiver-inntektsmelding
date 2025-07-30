@@ -11,7 +11,7 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.rr.test.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.fromEnv
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.Mock.altinnOrganisasjoner
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.Mock.innkommendeMelding

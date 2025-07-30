@@ -9,9 +9,9 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.rr.KafkaKey
+import no.nav.helsearbeidsgiver.felles.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -27,7 +27,7 @@ data class FjernPaaminnelseMelding(
 
 class FjernPaaminnelseRiver(
     val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
-) : ObjectRiver<FjernPaaminnelseMelding>() {
+) : ObjectRiver.Simba<FjernPaaminnelseMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 

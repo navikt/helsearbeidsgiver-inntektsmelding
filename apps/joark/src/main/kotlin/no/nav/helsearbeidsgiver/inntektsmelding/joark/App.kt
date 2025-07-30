@@ -1,26 +1,20 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.auth.AuthClient
 import no.nav.helsearbeidsgiver.felles.auth.IdentityProvider
-import no.nav.helsearbeidsgiver.utils.log.logger
-
-private val logger = "helsearbeidsgiver-im-joark".logger()
+import no.nav.helsearbeidsgiver.felles.rr.river.ObjectRiver
 
 fun main() {
-    RapidApplication
-        .create(System.getenv())
-        .createJournalfoerImRiver(createDokArkivClient())
-        .start()
+    ObjectRiver.connectToRapid {
+        createJournalfoerImRiver(createDokArkivClient())
+    }
 }
 
-fun RapidsConnection.createJournalfoerImRiver(dokArkivClient: DokArkivClient): RapidsConnection =
-    also {
-        logger.info("Starter ${JournalfoerImRiver::class.simpleName}...")
-        JournalfoerImRiver(dokArkivClient).connect(this)
-    }
+fun createJournalfoerImRiver(dokArkivClient: DokArkivClient): List<JournalfoerImRiver> =
+    listOf(
+        JournalfoerImRiver(dokArkivClient),
+    )
 
 private fun createDokArkivClient(): DokArkivClient {
     val tokenGetter = AuthClient().tokenGetter(IdentityProvider.AZURE_AD, Env.dokArkivScope)

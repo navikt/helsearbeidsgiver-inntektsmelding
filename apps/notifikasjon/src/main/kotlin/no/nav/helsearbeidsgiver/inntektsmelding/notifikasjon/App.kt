@@ -1,70 +1,56 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.felles.auth.AuthClient
 import no.nav.helsearbeidsgiver.felles.auth.IdentityProvider
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
+import no.nav.helsearbeidsgiver.felles.rr.Publisher
+import no.nav.helsearbeidsgiver.felles.rr.river.ObjectRiver
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.EndrePaaminnelseRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FerdigstillForespoerselSakOgOppgaveRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FjernPaaminnelseRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettForespoerselSakOgOppgaveRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSelvbestemtSakRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.UtgaattForespoerselRiver
-import no.nav.helsearbeidsgiver.utils.log.logger
-
-private val logger = "im-notifikasjon".logger()
 
 fun main() {
-    RapidApplication
-        .create(System.getenv())
-        .createNotifikasjonService()
-        .createNotifikasjonRivers(Env.linkUrl, Env.tidMellomOppgaveOpprettelseOgPaaminnelse, buildClient())
-        .start()
+    ObjectRiver.connectToRapid {
+        listOf(
+            createNotifikasjonServices(it),
+            createNotifikasjonRivers(Env.linkUrl, Env.tidMellomOppgaveOpprettelseOgPaaminnelse, agNotifikasjonKlient()),
+        ).flatten()
+    }
 }
 
-fun RapidsConnection.createNotifikasjonService(): RapidsConnection =
-    also {
-        logger.info("Starter ${HentDataTilSakOgOppgaveService::class.simpleName}...")
+fun createNotifikasjonServices(publisher: Publisher): List<ServiceRiverStateless> =
+    listOf(
         ServiceRiverStateless(
-            HentDataTilSakOgOppgaveService(this),
-        ).connect(this)
-        logger.info("Starter ${HentDataTilPaaminnelseService::class.simpleName}...")
+            HentDataTilSakOgOppgaveService(publisher),
+        ),
         ServiceRiverStateless(
-            HentDataTilPaaminnelseService(this),
-        ).connect(this)
-    }
+            HentDataTilPaaminnelseService(publisher),
+        ),
+    )
 
-fun RapidsConnection.createNotifikasjonRivers(
+fun createNotifikasjonRivers(
     linkUrl: String,
     tidMellomOppgaveOpprettelseOgPaaminnelse: String,
     agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
-): RapidsConnection =
-    also {
-        logger.info("Starter ${OpprettForespoerselSakOgOppgaveRiver::class.simpleName}...")
+): List<ObjectRiver.Simba<*>> =
+    listOf(
         OpprettForespoerselSakOgOppgaveRiver(
             lenkeBaseUrl = linkUrl,
             tidMellomOppgaveOpprettelseOgPaaminnelse = tidMellomOppgaveOpprettelseOgPaaminnelse,
             agNotifikasjonKlient = agNotifikasjonKlient,
-        ).connect(this)
+        ),
+        OpprettSelvbestemtSakRiver(linkUrl, agNotifikasjonKlient),
+        FerdigstillForespoerselSakOgOppgaveRiver(linkUrl, agNotifikasjonKlient),
+        UtgaattForespoerselRiver(linkUrl, agNotifikasjonKlient),
+        FjernPaaminnelseRiver(agNotifikasjonKlient),
+        EndrePaaminnelseRiver(agNotifikasjonKlient),
+    )
 
-        logger.info("Starter ${OpprettSelvbestemtSakRiver::class.simpleName}...")
-        OpprettSelvbestemtSakRiver(linkUrl, agNotifikasjonKlient).connect(this)
-
-        logger.info("Starter ${FerdigstillForespoerselSakOgOppgaveRiver::class.simpleName}...")
-        FerdigstillForespoerselSakOgOppgaveRiver(linkUrl, agNotifikasjonKlient).connect(this)
-
-        logger.info("Starter ${UtgaattForespoerselRiver::class.simpleName}...")
-        UtgaattForespoerselRiver(linkUrl, agNotifikasjonKlient).connect(this)
-
-        logger.info("Starter ${FjernPaaminnelseRiver::class.simpleName}...")
-        FjernPaaminnelseRiver(agNotifikasjonKlient).connect(this)
-        logger.info("Starter ${EndrePaaminnelseRiver::class.simpleName}...")
-        EndrePaaminnelseRiver(agNotifikasjonKlient).connect(this)
-    }
-
-private fun buildClient(): ArbeidsgiverNotifikasjonKlient {
+private fun agNotifikasjonKlient(): ArbeidsgiverNotifikasjonKlient {
     val tokenGetter = AuthClient().tokenGetter(IdentityProvider.AZURE_AD, Env.agNotifikasjonScope)
     return ArbeidsgiverNotifikasjonKlient(Env.agNotifikasjonUrl, tokenGetter)
 }

@@ -16,9 +16,10 @@ import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.rr.test.firstMessage
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
+import no.nav.helsearbeidsgiver.felles.rr.test.sendJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -30,7 +31,11 @@ class ForespoerselMottattRiverTest :
     FunSpec({
         val testRapid = TestRapid()
 
-        ForespoerselMottattRiver().connect(testRapid)
+        mockConnectToRapid(testRapid) {
+            listOf(
+                ForespoerselMottattRiver(),
+            )
+        }
 
         beforeEach {
             testRapid.reset()

@@ -6,9 +6,9 @@ import io.lettuce.core.api.sync.RedisCommands
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 
 class MockRedis(

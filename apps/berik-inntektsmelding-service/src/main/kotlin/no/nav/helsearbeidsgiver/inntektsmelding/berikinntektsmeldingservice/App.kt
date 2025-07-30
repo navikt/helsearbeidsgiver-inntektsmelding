@@ -1,23 +1,18 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
-import no.nav.helsearbeidsgiver.utils.log.logger
-
-private val logger = "helsearbeidsgiver-im-berik-inntektsmelding-service".logger()
+import no.nav.helsearbeidsgiver.felles.rr.Publisher
+import no.nav.helsearbeidsgiver.felles.rr.river.ObjectRiver
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceRiverStateless
 
 fun main() {
-    RapidApplication
-        .create(System.getenv())
-        .createBerikInntektsmeldingService()
-        .start()
+    ObjectRiver.connectToRapid {
+        createBerikInntektsmeldingService(it)
+    }
 }
 
-fun RapidsConnection.createBerikInntektsmeldingService(): RapidsConnection =
-    also {
-        logger.info("Starter ${BerikInntektsmeldingService::class.simpleName}...")
+fun createBerikInntektsmeldingService(publisher: Publisher): List<ServiceRiverStateless> =
+    listOf(
         ServiceRiverStateless(
-            BerikInntektsmeldingService(this),
-        ).connect(this)
-    }
+            BerikInntektsmeldingService(publisher),
+        ),
+    )

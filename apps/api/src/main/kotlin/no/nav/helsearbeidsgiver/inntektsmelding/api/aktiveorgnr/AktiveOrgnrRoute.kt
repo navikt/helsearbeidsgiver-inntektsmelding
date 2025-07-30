@@ -12,9 +12,9 @@ import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.AktiveArbeidsgivere
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.Producer
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes

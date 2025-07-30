@@ -9,9 +9,9 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
-import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
+import no.nav.helsearbeidsgiver.felles.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceRiverStateless
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.TilgangOrgService
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -22,10 +22,16 @@ class TilgangOrgServiceTest {
     private val testRapid = TestRapid()
     private val mockRedisStore = mockk<RedisStore>(relaxed = true)
 
-    private val service = TilgangOrgService(testRapid, mockRedisStore)
+    private lateinit var service: TilgangOrgService
 
     init {
-        ServiceRiverStateless(service).connect(testRapid)
+        mockConnectToRapid(testRapid) {
+            service = TilgangOrgService(it, mockRedisStore)
+
+            listOf(
+                ServiceRiverStateless(service),
+            )
+        }
     }
 
     @BeforeEach

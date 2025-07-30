@@ -1,13 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.brreg
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helsearbeidsgiver.brreg.BrregClient
+import no.nav.helsearbeidsgiver.felles.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
-import no.nav.helsearbeidsgiver.utils.log.logger
 import kotlin.time.Duration.Companion.days
-
-private val logger = "im-brreg".logger()
 
 fun main() {
     val brregClient =
@@ -17,17 +13,15 @@ fun main() {
         )
     val isDevelopmentMode = Env.brregUrl.contains("localhost")
 
-    RapidApplication
-        .create(System.getenv())
-        .createBrregRiver(brregClient, isDevelopmentMode)
-        .start()
+    ObjectRiver.connectToRapid {
+        createHentOrganisasjonNavnRiver(brregClient, isDevelopmentMode)
+    }
 }
 
-fun RapidsConnection.createBrregRiver(
+fun createHentOrganisasjonNavnRiver(
     brregClient: BrregClient,
     isDevelopmentMode: Boolean,
-): RapidsConnection =
-    also {
-        logger.info("Starter ${HentOrganisasjonNavnRiver::class.simpleName}... (isDevelopmentMode: $isDevelopmentMode)")
-        HentOrganisasjonNavnRiver(brregClient, isDevelopmentMode).connect(this)
-    }
+): List<HentOrganisasjonNavnRiver> =
+    listOf(
+        HentOrganisasjonNavnRiver(brregClient, isDevelopmentMode),
+    )

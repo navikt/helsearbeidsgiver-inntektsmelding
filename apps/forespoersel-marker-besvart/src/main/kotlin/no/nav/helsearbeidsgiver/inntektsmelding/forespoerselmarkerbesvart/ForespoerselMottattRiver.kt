@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart
 
-import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -11,12 +10,12 @@ import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.PriObjectRiver
+import no.nav.helsearbeidsgiver.felles.kafka.pritopic.toPretty
+import no.nav.helsearbeidsgiver.felles.rr.KafkaKey
+import no.nav.helsearbeidsgiver.felles.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
@@ -30,7 +29,7 @@ data class MottattMelding(
 )
 
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */
-class ForespoerselMottattRiver : PriObjectRiver<MottattMelding>() {
+class ForespoerselMottattRiver : ObjectRiver.PriTopic<MottattMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -81,7 +80,3 @@ class ForespoerselMottattRiver : PriObjectRiver<MottattMelding>() {
             Log.forespoerselId(forespoerselId),
         )
 }
-
-private fun Map<Pri.Key, JsonElement>.toPretty(): String =
-    toJson(MapSerializer(Pri.Key.serializer(), JsonElement.serializer()))
-        .toPretty()

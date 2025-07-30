@@ -15,7 +15,8 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
+import no.nav.helsearbeidsgiver.felles.rr.test.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
@@ -24,7 +25,11 @@ class TrengerForespoerselRiverTest :
         val testRapid = TestRapid()
         val mockProducer = mockk<Producer>()
 
-        TrengerForespoerselRiver(mockProducer).connect(testRapid)
+        mockConnectToRapid(testRapid) {
+            listOf(
+                TrengerForespoerselRiver(mockProducer),
+            )
+        }
 
         test("Ved behov om forespørsel på rapid-topic publiseres behov om forespørsel på pri-topic") {
             // Må bare returnere en Result med gyldig JSON

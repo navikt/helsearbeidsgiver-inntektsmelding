@@ -15,14 +15,15 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
+import no.nav.helsearbeidsgiver.felles.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceRiverStateless
+import no.nav.helsearbeidsgiver.felles.rr.test.firstMessage
+import no.nav.helsearbeidsgiver.felles.rr.test.message
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
+import no.nav.helsearbeidsgiver.felles.rr.test.sendJson
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.MockHent.forespoersler
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -33,9 +34,13 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
         val testRapid = TestRapid()
         val mockRedisStore = mockk<RedisStore>(relaxed = true)
 
-        ServiceRiverStateless(
-            HentForespoerslerForVedtaksperiodeIdListeService(testRapid, mockRedisStore),
-        ).connect(testRapid)
+        mockConnectToRapid(testRapid) {
+            listOf(
+                ServiceRiverStateless(
+                    HentForespoerslerForVedtaksperiodeIdListeService(it, mockRedisStore),
+                ),
+            )
+        }
 
         beforeEach {
             testRapid.reset()

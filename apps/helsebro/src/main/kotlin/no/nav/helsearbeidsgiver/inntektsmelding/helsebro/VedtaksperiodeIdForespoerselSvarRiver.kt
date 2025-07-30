@@ -11,9 +11,9 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.PriObjectRiver
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.rr.KafkaKey
+import no.nav.helsearbeidsgiver.felles.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselListeSvar
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -30,7 +30,7 @@ data class VedtaksperiodeIdForespoerselSvarMelding(
     val forespoerselSvar: ForespoerselListeSvar,
 )
 
-class VedtaksperiodeIdForespoerselSvarRiver : PriObjectRiver<VedtaksperiodeIdForespoerselSvarMelding>() {
+class VedtaksperiodeIdForespoerselSvarRiver : ObjectRiver.PriTopic<VedtaksperiodeIdForespoerselSvarMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 

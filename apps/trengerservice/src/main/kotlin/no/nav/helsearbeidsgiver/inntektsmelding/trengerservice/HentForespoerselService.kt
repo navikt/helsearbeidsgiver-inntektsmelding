@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.trengerservice
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -17,12 +16,12 @@ import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rr.KafkaKey
+import no.nav.helsearbeidsgiver.felles.rr.Publisher
+import no.nav.helsearbeidsgiver.felles.rr.service.Service
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -56,7 +55,7 @@ sealed class Steg2 {
 }
 
 class HentForespoerselService(
-    private val rapid: RapidsConnection,
+    private val publisher: Publisher,
     override val redisStore: RedisStore,
 ) : ServiceMed2Steg<Steg0, Steg1, Steg2>(),
     Service.MedRedis {
@@ -101,7 +100,7 @@ class HentForespoerselService(
         data: Map<Key, JsonElement>,
         steg0: Steg0,
     ) {
-        rapid
+        publisher
             .publish(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
@@ -122,7 +121,7 @@ class HentForespoerselService(
         val svarKafkaKey = KafkaKey(steg0.forespoerselId)
         val inntektsdato = steg1.forespoersel.forslagInntektsdato()
 
-        rapid
+        publisher
             .publish(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
@@ -135,7 +134,7 @@ class HentForespoerselService(
                     ).toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_VIRKSOMHET_NAVN, it) }
 
-        rapid
+        publisher
             .publish(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
@@ -152,7 +151,7 @@ class HentForespoerselService(
                     ).toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_PERSONER, it) }
 
-        rapid
+        publisher
             .publish(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),

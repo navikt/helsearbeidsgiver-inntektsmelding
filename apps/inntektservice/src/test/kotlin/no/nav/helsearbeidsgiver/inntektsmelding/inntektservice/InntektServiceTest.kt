@@ -5,13 +5,13 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.result.shouldBeSuccess
 import io.mockk.clearAllMocks
 import io.mockk.mockk
-import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
+import no.nav.helsearbeidsgiver.felles.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceRiverStateless
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import org.junit.jupiter.api.BeforeEach
@@ -21,13 +21,16 @@ class InntektServiceTest {
     private val testRapid = TestRapid()
     private val mockRedisStore = mockk<RedisStore>(relaxed = true)
 
-    private val service =
-        spyk(
-            InntektService(testRapid, mockRedisStore),
-        )
+    private lateinit var service: InntektService
 
     init {
-        ServiceRiverStateless(service).connect(testRapid)
+        mockConnectToRapid(testRapid) {
+            service = InntektService(it, mockRedisStore)
+
+            listOf(
+                ServiceRiverStateless(service),
+            )
+        }
     }
 
     @BeforeEach

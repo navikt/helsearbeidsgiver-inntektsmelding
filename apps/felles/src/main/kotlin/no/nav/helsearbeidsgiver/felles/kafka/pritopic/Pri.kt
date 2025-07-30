@@ -72,6 +72,12 @@ object Pri {
     )
 }
 
-fun Map<Pri.Key, JsonElement>.toPretty(): String =
-    toJson(MapSerializer(Pri.Key.serializer(), JsonElement.serializer()))
-        .toPretty()
+fun Map<Pri.Key, JsonElement>.toJson(): JsonElement =
+    toJson(
+        MapSerializer(
+            Pri.Key.serializer(),
+            JsonElement.serializer(),
+        ),
+    )
+
+fun Map<Pri.Key, JsonElement>.toPretty(): String = toJson().toPretty()

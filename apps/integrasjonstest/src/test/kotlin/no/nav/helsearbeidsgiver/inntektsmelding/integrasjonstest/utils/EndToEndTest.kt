@@ -1,7 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
-import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.lettuce.core.RedisClient
 import io.lettuce.core.RedisURI
@@ -22,11 +20,13 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.db.exposed.Database
 import no.nav.helsearbeidsgiver.felles.domene.ForespoerselFraBro
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rr.test.ImTestRapid
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAaregRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
@@ -34,7 +34,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice.createBerikInntektsmeldingService
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createHentEksternImRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrregRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createHentOrganisasjonNavnRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDbRivers
@@ -44,23 +44,22 @@ import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.create
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebroRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselListeSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsendingServices
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createHentInntektRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektselvbestemtservice.createInntektSelvbestemtService
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJournalfoerImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonRivers
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonService
-import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdlRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonServices
+import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createHentPersonerRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.selvbestemthentimservice.createHentSelvbestemtImService
 import no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice.createLagreSelvbestemtImService
-import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.createTilgangService
-import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createHentForespoerselService
+import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.createTilgangServices
+import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createHentForespoerselServices
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.mai
@@ -184,35 +183,37 @@ abstract class EndToEndTest : ContainerTest() {
 
     @BeforeAll
     fun beforeAllEndToEnd() {
-        // Start rivers
         println("Starter rivers...")
-        imTestRapid.apply {
-            // Servicer
-            createAktiveOrgnrService(redisConnection)
-            createInnsending(redisConnection)
-            createInntektService(redisConnection)
-            createInntektSelvbestemtService(redisConnection)
-            createLagreSelvbestemtImService(redisConnection)
-            createNotifikasjonService()
-            createTilgangService(redisConnection)
-            createHentForespoerselService(redisConnection)
-            createHentSelvbestemtImService(redisConnection)
-            createBerikInntektsmeldingService()
 
-            // Rivers
-            createAaregRiver(aaregClient)
-            createAltinn(altinnClient)
-            createBrregRiver(brregClient, false)
-            createDbRivers(imRepository, selvbestemtImRepo)
-            createDistribusjonRiver(producer)
-            createHelsebroRivers(producer)
-            createHentEksternImRiver(spinnKlient)
-            createHentInntektRiver(inntektClient)
-            createJournalfoerImRiver(dokarkivClient)
-            createForespoerselEventSwitch(producer)
-            createNotifikasjonRivers("notifikasjonLink", "P28D", agNotifikasjonKlient)
-            createPdlRiver(pdlKlient)
-            createFeilLytter(bakgrunnsjobbRepository)
+        mockConnectToRapid(imTestRapid) {
+            listOf(
+                // Services
+                createAktiveOrgnrService(it, redisConnection),
+                createBerikInntektsmeldingService(it),
+                createHentForespoerselServices(it, redisConnection),
+                createHentSelvbestemtImService(it, redisConnection),
+                createInnsendingServices(it, redisConnection),
+                createInntektSelvbestemtService(it, redisConnection),
+                createInntektService(it, redisConnection),
+                createLagreSelvbestemtImService(it, redisConnection),
+                createNotifikasjonServices(it),
+                createTilgangServices(it, redisConnection),
+                // Rivers
+                createAaregRiver(aaregClient),
+                createAltinn(altinnClient),
+                createDbRivers(imRepository, selvbestemtImRepo),
+                createDistribusjonRiver(producer),
+                createForespoerselEventSwitch(producer),
+                createHelsebroRivers(producer),
+                createHentEksternImRiver(spinnKlient),
+                createHentInntektRiver(inntektClient),
+                createHentOrganisasjonNavnRiver(brregClient, false),
+                createHentPersonerRiver(pdlKlient),
+                createJournalfoerImRiver(dokarkivClient),
+                createNotifikasjonRivers("notifikasjonLink", "P28D", agNotifikasjonKlient),
+                // Feilbehandler
+                createFeilLytter(it, bakgrunnsjobbRepository),
+            ).flatten()
         }
     }
 
@@ -224,32 +225,16 @@ abstract class EndToEndTest : ContainerTest() {
         println("Stopped.")
     }
 
+    @JvmName("publishVarargPairKeyAndJsonElement")
     fun publish(vararg messageFields: Pair<Key, JsonElement>) {
         println("Publiserer melding med felt: ${messageFields.toMap()}")
-        imTestRapid.publish(UUID.randomUUID(), *messageFields)
+        imTestRapid.publish(messageFields.toMap().mapKeys { (key, _) -> key.toString() })
     }
 
-    fun publish(vararg messageFields: Pair<Pri.Key, JsonElement>): JsonElement {
+    @JvmName("publishVarargPairPriKeyAndJsonElement")
+    fun publish(vararg messageFields: Pair<Pri.Key, JsonElement>) {
         println("Publiserer pri-melding med felt: ${messageFields.toMap()}")
-        return messageFields
-            .toMap()
-            .mapKeys { (key, _) -> key.toString() }
-            .toJson()
-            .toString()
-            .let {
-                JsonMessage(
-                    originalMessage = it,
-                    problems = MessageProblems(it),
-                    randomIdGenerator = null,
-                )
-            }.toJson()
-            .also(imTestRapid::publish)
-            .parseJson()
-    }
-
-    fun publish(message: String) {
-        println("Publiserer melding: $message")
-        imTestRapid.publish(message)
+        imTestRapid.publish(messageFields.toMap().mapKeys { (key, _) -> key.toString() })
     }
 
     fun mockForespoerselSvarFraHelsebro(

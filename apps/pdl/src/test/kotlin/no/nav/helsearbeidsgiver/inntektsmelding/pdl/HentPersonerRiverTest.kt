@@ -18,11 +18,12 @@ import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.rr.KafkaKey
+import no.nav.helsearbeidsgiver.felles.rr.test.firstMessage
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
+import no.nav.helsearbeidsgiver.felles.rr.test.sendJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.Mock.toMap
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
@@ -39,7 +40,11 @@ class HentPersonerRiverTest :
         val testRapid = TestRapid()
         val mockPdlClient = mockk<PdlClient>()
 
-        HentPersonerRiver(mockPdlClient).connect(testRapid)
+        mockConnectToRapid(testRapid) {
+            listOf(
+                HentPersonerRiver(mockPdlClient),
+            )
+        }
 
         beforeTest {
             testRapid.reset()

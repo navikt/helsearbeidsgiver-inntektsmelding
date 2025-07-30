@@ -18,9 +18,10 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
+import no.nav.helsearbeidsgiver.felles.rr.test.sendJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
@@ -29,7 +30,11 @@ class MarkerForespoerselBesvartRiverTest :
         val testRapid = TestRapid()
         val mockProducer = mockk<Producer>()
 
-        MarkerForespoerselBesvartRiver(mockProducer).connect(testRapid)
+        mockConnectToRapid(testRapid) {
+            listOf(
+                MarkerForespoerselBesvartRiver(mockProducer),
+            )
+        }
 
         beforeTest {
             testRapid.reset()

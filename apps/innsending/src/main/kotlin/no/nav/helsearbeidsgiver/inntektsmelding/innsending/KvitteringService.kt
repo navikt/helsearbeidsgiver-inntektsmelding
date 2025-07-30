@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -14,12 +13,12 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rr.KafkaKey
+import no.nav.helsearbeidsgiver.felles.rr.Publisher
+import no.nav.helsearbeidsgiver.felles.rr.service.Service
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -36,7 +35,7 @@ private const val UKJENT_NAVN = "Ukjent navn"
 private const val UKJENT_VIRKSOMHET = "Ukjent virksomhet"
 
 class KvitteringService(
-    private val rapid: RapidsConnection,
+    private val publisher: Publisher,
     override val redisStore: RedisStore,
 ) : ServiceMed2Steg<KvitteringService.Steg0, KvitteringService.Steg1, KvitteringService.Steg2>(),
     Service.MedRedis {
@@ -105,7 +104,7 @@ class KvitteringService(
         data: Map<Key, JsonElement>,
         steg0: Steg0,
     ) {
-        rapid
+        publisher
             .publish(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
@@ -123,7 +122,7 @@ class KvitteringService(
         steg0: Steg0,
         steg1: Steg1,
     ) {
-        rapid
+        publisher
             .publish(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
@@ -136,7 +135,7 @@ class KvitteringService(
                     ).toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_VIRKSOMHET_NAVN, it) }
 
-        rapid
+        publisher
             .publish(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
@@ -149,7 +148,7 @@ class KvitteringService(
                     ).toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_PERSONER, it) }
 
-        rapid
+        publisher
             .publish(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),

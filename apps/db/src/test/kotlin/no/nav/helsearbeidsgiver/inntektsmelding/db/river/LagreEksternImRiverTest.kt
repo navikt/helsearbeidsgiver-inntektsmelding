@@ -19,11 +19,12 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.rr.test.firstMessage
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
+import no.nav.helsearbeidsgiver.felles.rr.test.sendJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -33,7 +34,11 @@ class LagreEksternImRiverTest :
         val testRapid = TestRapid()
         val mockImRepo = mockk<InntektsmeldingRepository>()
 
-        LagreEksternImRiver(mockImRepo).connect(testRapid)
+        mockConnectToRapid(testRapid) {
+            listOf(
+                LagreEksternImRiver(mockImRepo),
+            )
+        }
 
         beforeTest {
             testRapid.reset()

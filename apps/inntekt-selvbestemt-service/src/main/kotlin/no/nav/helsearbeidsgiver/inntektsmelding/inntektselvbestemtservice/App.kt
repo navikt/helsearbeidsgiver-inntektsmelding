@@ -1,15 +1,11 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.inntektselvbestemtservice
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.onShutdown
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateless
-import no.nav.helsearbeidsgiver.utils.log.logger
-
-private val logger = "helsearbeidsgiver-im-inntektselvbestemtservice".logger()
+import no.nav.helsearbeidsgiver.felles.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rr.Publisher
+import no.nav.helsearbeidsgiver.felles.rr.river.ObjectRiver
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceRiverStateless
 
 fun main() {
     val redisConnection =
@@ -20,21 +16,22 @@ fun main() {
             password = Env.redisPassword,
         )
 
-    RapidApplication
-        .create(System.getenv())
-        .createInntektSelvbestemtService(redisConnection)
-        .onShutdown {
-            redisConnection.close()
-        }.start()
+    ObjectRiver.connectToRapid(
+        onShutdown = { redisConnection.close() },
+    ) {
+        createInntektSelvbestemtService(it, redisConnection)
+    }
 }
 
-fun RapidsConnection.createInntektSelvbestemtService(redisConnection: RedisConnection): RapidsConnection =
-    also {
-        logger.info("Starter ${InntektSelvbestemtService::class.simpleName}...")
+fun createInntektSelvbestemtService(
+    publisher: Publisher,
+    redisConnection: RedisConnection,
+): List<ServiceRiverStateless> =
+    listOf(
         ServiceRiverStateless(
             InntektSelvbestemtService(
-                rapid = this,
+                publisher = publisher,
                 redisStore = RedisStore(redisConnection, RedisPrefix.InntektSelvbestemt),
             ),
-        ).connect(this)
-    }
+        ),
+    )

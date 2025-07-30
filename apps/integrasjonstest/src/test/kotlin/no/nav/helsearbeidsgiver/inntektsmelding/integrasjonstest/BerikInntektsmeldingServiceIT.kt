@@ -219,7 +219,15 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         }
 
         // Gjenoppta berikelsen ved å kjøre den utløsende meldingen i bakgrunnsjobben
-        bakgrunnsjobb?.data?.let { publish(it) }
+        bakgrunnsjobb?.data?.let {
+            publish(
+                *it
+                    .parseJson()
+                    .toMap()
+                    .toList()
+                    .toTypedArray(),
+            )
+        }
 
         // Sykmeldt og innsender hentet
         messages

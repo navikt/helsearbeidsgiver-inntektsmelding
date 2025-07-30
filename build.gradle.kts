@@ -51,7 +51,7 @@ subprojects {
             }
         }
 
-        if (!project.erFellesModul() && !project.erFellesAuthModul() && !project.erFellesDatabaseModul()) {
+        if (!project.erFellesModul() && !project.erFellesAuthModul() && !project.erFellesDatabaseModul() && !project.erFellesRRModul()) {
             named<Jar>("jar") {
                 archiveBaseName.set("app")
 
@@ -105,6 +105,11 @@ subprojects {
         if (!erFellesModul()) {
             implementation(project(":felles"))
             testImplementation(testFixtures(project(":felles")))
+
+            if (!erFellesAuthModul() && !erFellesDatabaseModul() && !erFellesRRModul()) {
+                implementation(project(":felles-rapids-and-rivers"))
+                testImplementation(testFixtures(project(":felles-rapids-and-rivers")))
+            }
         }
 
         implementation("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion")
@@ -255,6 +260,8 @@ fun Project.erFellesModul(): Boolean = name == "felles"
 fun Project.erFellesAuthModul(): Boolean = name == "felles-auth"
 
 fun Project.erFellesDatabaseModul(): Boolean = name == "felles-db-exposed"
+
+fun Project.erFellesRRModul(): Boolean = name == "felles-rapids-and-rivers"
 
 fun Project.erIntegrasjonstestModul(): Boolean = name == "integrasjonstest"
 

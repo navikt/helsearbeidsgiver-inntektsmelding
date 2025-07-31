@@ -158,10 +158,13 @@ class AktiveOrgnrService(
                     Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                     Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                     Key.DATA to
-                        mapOf(
-                            Key.SVAR_KAFKA_KEY to KafkaKey(steg0.sykmeldtFnr).toJson(),
-                            Key.ORGNR_UNDERENHETER to arbeidsgivere.toJson(Orgnr.serializer()),
-                        ).toJson(),
+                        data
+                            .plus(
+                                mapOf(
+                                    Key.SVAR_KAFKA_KEY to KafkaKey(steg0.sykmeldtFnr).toJson(),
+                                    Key.ORGNR_UNDERENHETER to arbeidsgivere.toJson(Orgnr.serializer()),
+                                ),
+                            ).toJson(),
                 )
             }
         }

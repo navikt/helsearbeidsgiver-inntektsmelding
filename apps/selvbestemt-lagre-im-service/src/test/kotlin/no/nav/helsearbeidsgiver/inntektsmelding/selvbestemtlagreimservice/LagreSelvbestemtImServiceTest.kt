@@ -79,7 +79,7 @@ class LagreSelvbestemtImServiceTest :
             mockRedis.setup()
         }
 
-        context("Inntektsmeldinger AarsakInnsending.Ny lagres og sak oprettes") {
+        context("Inntektsmeldinger AarsakInnsending.Ny lagres og sak opprettes") {
 
             fun ArbeidsforholdType.skalHaArbeidsforhold(): Boolean =
                 when (this) {
@@ -161,7 +161,7 @@ class LagreSelvbestemtImServiceTest :
                 testRapid.inspektør.size shouldBeExactly 5
                 testRapid.message(4).lesBehov() shouldBe BehovType.OPPRETT_SELVBESTEMT_SAK
 
-                testRapid.sendJson(Mock.steg3(kontekstId))
+                testRapid.sendJson(Mock.steg3(kontekstId, nyInntektsmelding))
 
                 testRapid.inspektør.size shouldBeExactly 6
                 testRapid.message(5).toMap().also {
@@ -588,24 +588,19 @@ private object Mock {
         kontekstId: UUID,
         inntektsmelding: Inntektsmelding,
     ): Map<Key, JsonElement> =
-        mapOf(
-            Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-            Key.KONTEKST_ID to kontekstId.toJson(),
-            Key.DATA to
-                mapOf(
-                    Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                    Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
-                ).toJson(),
+        steg1(kontekstId).plusData(
+            mapOf(
+                Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
+            ),
         )
 
-    fun steg3(kontekstId: UUID): Map<Key, JsonElement> =
-        mapOf(
-            Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-            Key.KONTEKST_ID to kontekstId.toJson(),
-            Key.DATA to
-                mapOf(
-                    Key.SAK_ID to "folkelig-lurendreier-sak-id".toJson(),
-                ).toJson(),
+    fun steg3(
+        kontekstId: UUID,
+        inntektsmelding: Inntektsmelding,
+    ): Map<Key, JsonElement> =
+        steg2(kontekstId, inntektsmelding).plusData(
+            Key.SAK_ID to "folkelig-lurendreier-sak-id".toJson(),
         )
 
     fun lagAnsettelsesperioder(orgnr: Orgnr) =

@@ -1,4 +1,5 @@
 kafkaPool: nav-prod
+replicasMax: 5
 entraIdEnabled: true
 env:
 - name: AAREG_URL

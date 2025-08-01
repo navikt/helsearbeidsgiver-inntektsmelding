@@ -22,11 +22,13 @@ spec:
     limits:
       memory: 1024Mi
   replicas:
-    min: {{#if replicasMin }}{{ replicasMin }}{{else}}1{{/if}}
-    max: {{#if replicasMax }}{{ replicasMax }}{{else}}1{{/if}}
+    min: 2
+    max: {{#if replicasMax}}{{ replicasMax }}{{else}}2{{/if}}
     scalingStrategy:
-      cpu:
-        thresholdPercentage: 75
+      kafka:
+        consumerGroup: helsearbeidsgiver-im-{{app}}-v1
+        topic: helsearbeidsgiver.rapid
+        threshold: 100
   startup:
     path: /isalive
     initialDelay: 10

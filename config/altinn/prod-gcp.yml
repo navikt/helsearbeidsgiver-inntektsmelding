@@ -1,4 +1,5 @@
 kafkaPool: nav-prod
+replicasMax: 5
 entraIdEnabled: true
 apps:
   - name: arbeidsgiver-altinn-tilganger

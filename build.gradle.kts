@@ -133,7 +133,7 @@ dependencies {
 }
 
 tasks {
-    create("buildMatrix") {
+    register("buildMatrix") {
         doLast {
             taskOutputJson(
                 "project" to getBuildableProjects().toJsonList(),
@@ -141,11 +141,11 @@ tasks {
         }
     }
 
-    create("deployMatrixDev") {
+    register("deployMatrixDev") {
         deployMatrix(includeCluster = "dev-gcp")
     }
 
-    create("deployMatrixProd") {
+    register("deployMatrixProd") {
         deployMatrix(includeCluster = "prod-gcp")
     }
 

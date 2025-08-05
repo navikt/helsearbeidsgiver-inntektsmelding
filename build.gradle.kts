@@ -107,20 +107,24 @@ subprojects {
             implementation("commons-beanutils:commons-beanutils:1.11.0") {
                 because("helsearbeidsgiver-kontrakt-inntektsmelding")
             }
-            implementation("commons-io:commons-io:2.14.0") {
-                because("testcontainers-redis-junit")
-            }
             implementation("io.ktor:ktor-client-core-jvm:2.3.13") {
                 because("hag-bakgrunnsjobb")
-            }
-            implementation("org.apache.commons:commons-compress:1.26.2") {
-                because("kafka, testcontainers-redis-junit, postgresql")
             }
             implementation("org.apache.commons:commons-lang3:3.18.0") {
                 because("helsearbeidsgiver-kontrakt-inntektsmelding")
             }
             implementation("org.apache.httpcomponents.client5:httpclient5:5.4.4") {
                 because("brreg-client")
+            }
+            implementation("org.apache.kafka:kafka-clients:3.9.1") {
+                because("rapids-and-rivers")
+            }
+
+            testImplementation("commons-io:commons-io:2.14.0") {
+                because("testcontainers-redis-junit")
+            }
+            testImplementation("org.apache.commons:commons-compress:1.26.2") {
+                because("kafka, testcontainers-redis-junit, postgresql")
             }
         }
 

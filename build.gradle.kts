@@ -113,7 +113,7 @@ subprojects {
             implementation("org.apache.commons:commons-lang3:3.18.0") {
                 because("helsearbeidsgiver-kontrakt-inntektsmelding")
             }
-            implementation("org.apache.httpcomponents.client5:httpclient5:5.4.4") {
+            implementation("org.apache.httpcomponents.client5:httpclient5:5.5") {
                 because("brreg-client")
             }
             implementation("org.apache.kafka:kafka-clients:3.9.1") {

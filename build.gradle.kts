@@ -120,7 +120,7 @@ subprojects {
                 because("rapids-and-rivers")
             }
 
-            testImplementation("commons-io:commons-io:2.14.0") {
+            testImplementation("commons-io:commons-io:2.20.0") {
                 because("testcontainers-redis-junit")
             }
             testImplementation("org.apache.commons:commons-compress:1.26.2") {

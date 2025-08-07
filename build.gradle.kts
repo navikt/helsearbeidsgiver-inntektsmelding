@@ -123,7 +123,7 @@ subprojects {
             testImplementation("commons-io:commons-io:2.14.0") {
                 because("testcontainers-redis-junit")
             }
-            testImplementation("org.apache.commons:commons-compress:1.26.2") {
+            testImplementation("org.apache.commons:commons-compress:1.28.0") {
                 because("kafka, testcontainers-redis-junit, postgresql")
             }
         }

@@ -208,9 +208,10 @@ class LagreSelvbestemtImService(
                         Key.BEHOV to BehovType.LAGRE_SELVBESTEMT_IM.toJson(),
                         Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                         Key.DATA to
-                            mapOf(
-                                Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                            ).toJson(),
+                            data
+                                .plus(
+                                    Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                                ).toJson(),
                     ).also {
                         logger.info("Publiserte melding med behov '${BehovType.LAGRE_SELVBESTEMT_IM}'.")
                         sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
@@ -245,9 +246,10 @@ class LagreSelvbestemtImService(
                         Key.BEHOV to BehovType.OPPRETT_SELVBESTEMT_SAK.toJson(),
                         Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                         Key.DATA to
-                            mapOf(
-                                Key.SELVBESTEMT_INNTEKTSMELDING to steg2.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                            ).toJson(),
+                            data
+                                .plus(
+                                    Key.SELVBESTEMT_INNTEKTSMELDING to steg2.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                                ).toJson(),
                     ).also {
                         logger.info("Publiserte melding med behov '${BehovType.OPPRETT_SELVBESTEMT_SAK}'.")
                         sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")

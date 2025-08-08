@@ -1,4 +1,5 @@
 kafkaPool: nav-dev
+replicasMax: 5
 env:
 - name: ENHETSREGISTERET_URL
   value: "http://localhost"

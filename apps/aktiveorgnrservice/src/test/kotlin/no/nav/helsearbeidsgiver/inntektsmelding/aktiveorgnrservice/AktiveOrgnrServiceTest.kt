@@ -275,12 +275,7 @@ private object Mock {
         kontekstId: UUID,
         orgnr: Orgnr,
     ): Map<Key, JsonElement> =
-        mapOf(
-            Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-            Key.KONTEKST_ID to kontekstId.toJson(),
-            Key.DATA to
-                mapOf(
-                    Key.VIRKSOMHETER to mapOf(orgnr.verdi to ORG_NAVN).toJson(),
-                ).toJson(),
+        steg1Data(kontekstId, orgnr).plusData(
+            Key.VIRKSOMHETER to mapOf(orgnr.verdi to ORG_NAVN).toJson(),
         )
 }

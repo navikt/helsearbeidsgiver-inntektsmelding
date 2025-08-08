@@ -1,7 +1,6 @@
 kafkaPool: nav-dev
+replicasMax: 5
 entraIdEnabled: true
-replicasMin: 2
-replicasMax: 2
 apps:
   - name: arbeidsgiver-altinn-tilganger
     namespace: fager

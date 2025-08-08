@@ -1,15 +1,16 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.prosessor
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.hag.utils.bakgrunnsjobb.Bakgrunnsjobb
 import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbProsesserer
+import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rr.Publisher
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class FeilProsessor(
-    private val rapid: RapidsConnection,
+    private val publisher: Publisher,
 ) : BakgrunnsjobbProsesserer {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -26,7 +27,12 @@ class FeilProsessor(
             logger.info(it)
             sikkerLogger.info(it)
         }
-        sikkerLogger.debug("Sender melding.\n${jobb.data.parseJson().toPretty()}")
-        rapid.publish(jobb.data)
+
+        val melding = jobb.data.parseJson()
+
+        sikkerLogger.debug("Sender melding.\n${melding.toPretty()}")
+
+        // Bruker 'jobb.uuid' som nøkkel enn så lenge, men bør bruke nøkkelen fra den originale meldingen
+        publisher.publish(jobb.uuid, *melding.toMap().toList().toTypedArray())
     }
 }

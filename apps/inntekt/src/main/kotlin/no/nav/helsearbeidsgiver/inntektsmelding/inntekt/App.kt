@@ -1,28 +1,22 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.inntekt
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helsearbeidsgiver.felles.auth.AuthClient
 import no.nav.helsearbeidsgiver.felles.auth.IdentityProvider
+import no.nav.helsearbeidsgiver.felles.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
-import no.nav.helsearbeidsgiver.utils.log.logger
 import kotlin.time.Duration.Companion.minutes
 
-private val logger = "helsearbeidsgiver-im-inntekt".logger()
-
 fun main() {
-    RapidApplication
-        .create(System.getenv())
-        .createHentInntektRiver(createInntektKlient())
-        .start()
+    ObjectRiver.connectToRapid {
+        createHentInntektRiver(createInntektKlient())
+    }
 }
 
-fun RapidsConnection.createHentInntektRiver(inntektKlient: InntektKlient): RapidsConnection =
-    also {
-        logger.info("Starter ${HentInntektRiver::class.simpleName}...")
-        HentInntektRiver(inntektKlient).connect(this)
-    }
+fun createHentInntektRiver(inntektKlient: InntektKlient): List<HentInntektRiver> =
+    listOf(
+        HentInntektRiver(inntektKlient),
+    )
 
 fun createInntektKlient(): InntektKlient {
     val tokenGetter = AuthClient().tokenGetter(IdentityProvider.AZURE_AD, Env.inntektScope)

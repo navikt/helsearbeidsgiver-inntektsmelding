@@ -1,10 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helsearbeidsgiver.felles.db.exposed.Database
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.onShutdown
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.onStartup
+import no.nav.helsearbeidsgiver.felles.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentLagretImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentSelvbestemtImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreEksternImRiver
@@ -23,46 +20,33 @@ fun main() {
     val imRepo = InntektsmeldingRepository(database.db)
     val selvbestemtImRepo = SelvbestemtImRepo(database.db)
 
-    return RapidApplication
-        .create(System.getenv())
-        .onStartup {
+    ObjectRiver.connectToRapid(
+        onStartup = {
             logger.info("Migrering starter...")
             database.migrate()
             logger.info("Migrering ferdig.")
-        }.onShutdown {
+        },
+        onShutdown = {
             logger.info("Stoppsignal mottatt, lukker databasetilkobling...")
             database.dataSource.close()
             logger.info("Databasetilkobling lukket.")
-        }.createDbRivers(imRepo, selvbestemtImRepo)
-        .start()
+        },
+    ) {
+        createDbRivers(imRepo, selvbestemtImRepo)
+    }
 }
 
-fun RapidsConnection.createDbRivers(
+fun createDbRivers(
     imRepo: InntektsmeldingRepository,
     selvbestemtImRepo: SelvbestemtImRepo,
-): RapidsConnection =
-    also {
-        logger.info("Starter ${HentLagretImRiver::class.simpleName}...")
-        HentLagretImRiver(imRepo).connect(this)
-
-        logger.info("Starter ${HentSelvbestemtImRiver::class.simpleName}...")
-        HentSelvbestemtImRiver(selvbestemtImRepo).connect(this)
-
-        logger.info("Starter ${LagreImSkjemaRiver::class.simpleName}...")
-        LagreImSkjemaRiver(imRepo).connect(this)
-
-        logger.info("Starter ${LagreImRiver::class.simpleName}...")
-        LagreImRiver(imRepo).connect(this)
-
-        logger.info("Starter ${LagreJournalpostIdRiver::class.simpleName}...")
-        LagreJournalpostIdRiver(imRepo, selvbestemtImRepo).connect(this)
-
-        logger.info("Starter ${LagreEksternImRiver::class.simpleName}...")
-        LagreEksternImRiver(imRepo).connect(this)
-
-        logger.info("Starter ${LagreSelvbestemtImRiver::class.simpleName}...")
-        LagreSelvbestemtImRiver(selvbestemtImRepo).connect(this)
-
-        logger.info("Starter ${OppdaterImSomProsessertRiver::class.simpleName}...")
-        OppdaterImSomProsessertRiver(imRepo, selvbestemtImRepo).connect(this)
-    }
+): List<ObjectRiver.Simba<*>> =
+    listOf(
+        HentLagretImRiver(imRepo),
+        HentSelvbestemtImRiver(selvbestemtImRepo),
+        LagreImSkjemaRiver(imRepo),
+        LagreImRiver(imRepo),
+        LagreJournalpostIdRiver(imRepo, selvbestemtImRepo),
+        LagreEksternImRiver(imRepo),
+        LagreSelvbestemtImRiver(selvbestemtImRepo),
+        OppdaterImSomProsessertRiver(imRepo, selvbestemtImRepo),
+    )

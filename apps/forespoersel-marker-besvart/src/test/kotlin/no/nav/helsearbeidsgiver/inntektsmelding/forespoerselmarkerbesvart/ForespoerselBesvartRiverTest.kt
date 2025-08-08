@@ -11,8 +11,9 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.rr.test.firstMessage
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
+import no.nav.helsearbeidsgiver.felles.rr.test.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
@@ -20,7 +21,11 @@ class ForespoerselBesvartRiverTest :
     FunSpec({
         val testRapid = TestRapid()
 
-        ForespoerselBesvartRiver().connect(testRapid)
+        mockConnectToRapid(testRapid) {
+            listOf(
+                ForespoerselBesvartRiver(),
+            )
+        }
 
         beforeEach {
             testRapid.reset()

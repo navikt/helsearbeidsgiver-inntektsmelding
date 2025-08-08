@@ -19,10 +19,11 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Tilgang
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.rr.test.firstMessage
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
+import no.nav.helsearbeidsgiver.felles.rr.test.sendJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.MockTilgang.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -35,7 +36,11 @@ class TilgangRiverTest :
         val testRapid = TestRapid()
         val mockAltinn3M2MClient = mockk<Altinn3M2MClient>()
 
-        TilgangRiver(mockAltinn3M2MClient).connect(testRapid)
+        mockConnectToRapid(testRapid) {
+            listOf(
+                TilgangRiver(mockAltinn3M2MClient),
+            )
+        }
 
         beforeTest {
             testRapid.reset()

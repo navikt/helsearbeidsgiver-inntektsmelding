@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -12,10 +11,10 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.rr.KafkaKey
+import no.nav.helsearbeidsgiver.felles.rr.Publisher
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -41,7 +40,7 @@ data class Steg2(
 )
 
 class HentDataTilSakOgOppgaveService(
-    private val rapid: RapidsConnection,
+    private val publisher: Publisher,
 ) : ServiceMed2Steg<Steg0, Steg1, Steg2>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
@@ -75,7 +74,7 @@ class HentDataTilSakOgOppgaveService(
             sikkerLogger.info(it)
         }
 
-        rapid.publish(
+        publisher.publish(
             key = steg0.forespoerselId,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
@@ -96,7 +95,7 @@ class HentDataTilSakOgOppgaveService(
         steg0: Steg0,
         steg1: Steg1,
     ) {
-        rapid.publish(
+        publisher.publish(
             key = steg0.forespoerselId,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
@@ -126,7 +125,7 @@ class HentDataTilSakOgOppgaveService(
         val orgNavn = steg1.orgnrMedNavn[steg0.forespoersel.orgnr] ?: ORG_NAVN_DEFAULT
         val sykmeldt = steg2.personer[steg0.forespoersel.fnr] ?: personDefault(steg0.forespoersel.fnr)
 
-        rapid.publish(
+        publisher.publish(
             key = steg0.forespoerselId,
             Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED.toJson(),
             Key.KONTEKST_ID to steg0.kontekstId.toJson(),

@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -9,10 +8,10 @@ import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.rr.KafkaKey
+import no.nav.helsearbeidsgiver.felles.rr.Publisher
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -22,7 +21,7 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 class HentDataTilPaaminnelseService(
-    private val rapid: RapidsConnection,
+    private val publisher: Publisher,
 ) : ServiceMed2Steg<HentDataTilPaaminnelseService.Steg0, HentDataTilPaaminnelseService.Steg1, HentDataTilPaaminnelseService.Steg2>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
@@ -54,7 +53,7 @@ class HentDataTilPaaminnelseService(
             sikkerLogger.info(it)
         }
 
-        rapid.publish(
+        publisher.publish(
             key = steg0.forespoerselId,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
@@ -72,7 +71,7 @@ class HentDataTilPaaminnelseService(
         steg0: Steg0,
         steg1: Steg1,
     ) {
-        rapid.publish(
+        publisher.publish(
             key = steg0.forespoerselId,
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
@@ -101,7 +100,7 @@ class HentDataTilPaaminnelseService(
 
         val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr] ?: ORG_NAVN_DEFAULT
 
-        rapid.publish(
+        publisher.publish(
             key = steg0.forespoerselId,
             Key.EVENT_NAME to EventName.OPPGAVE_ENDRE_PAAMINNELSE_REQUESTED.toJson(),
             Key.KONTEKST_ID to steg0.kontekstId.toJson(),

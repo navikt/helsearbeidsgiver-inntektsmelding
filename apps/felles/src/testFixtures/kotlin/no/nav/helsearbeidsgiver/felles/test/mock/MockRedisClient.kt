@@ -8,7 +8,7 @@ import io.lettuce.core.api.sync.RedisCommands
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.redis.RedisConnection
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 
 fun redisWithMockRedisClient(mockStorageInit: Map<String, String?>): RedisConnection {

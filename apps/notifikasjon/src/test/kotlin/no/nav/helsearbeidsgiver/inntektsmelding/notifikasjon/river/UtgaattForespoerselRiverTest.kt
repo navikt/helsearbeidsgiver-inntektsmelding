@@ -20,9 +20,10 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.rr.test.firstMessage
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
+import no.nav.helsearbeidsgiver.felles.rr.test.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -34,7 +35,11 @@ class UtgaattForespoerselRiverTest :
         val testRapid = TestRapid()
         val mockAgNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
 
-        UtgaattForespoerselRiver(Mock.LINK_URL, mockAgNotifikasjonKlient).connect(testRapid)
+        mockConnectToRapid(testRapid) {
+            listOf(
+                UtgaattForespoerselRiver(Mock.LINK_URL, mockAgNotifikasjonKlient),
+            )
+        }
 
         beforeTest {
             testRapid.reset()

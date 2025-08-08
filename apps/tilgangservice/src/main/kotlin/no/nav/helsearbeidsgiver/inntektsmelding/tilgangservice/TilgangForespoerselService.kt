@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -11,10 +10,10 @@ import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.domene.Tilgang
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rr.Publisher
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -26,7 +25,7 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class TilgangForespoerselService(
-    private val rapid: RapidsConnection,
+    private val publisher: Publisher,
     private val redisStore: RedisStore,
 ) : ServiceMed2Steg<
         TilgangForespoerselService.Steg0,
@@ -73,7 +72,7 @@ class TilgangForespoerselService(
         data: Map<Key, JsonElement>,
         steg0: Steg0,
     ) {
-        rapid
+        publisher
             .publish(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),
@@ -98,7 +97,7 @@ class TilgangForespoerselService(
         steg0: Steg0,
         steg1: Steg1,
     ) {
-        rapid
+        publisher
             .publish(
                 key = steg0.forespoerselId,
                 Key.EVENT_NAME to eventName.toJson(),

@@ -12,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.PeriodeAapen
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer
@@ -49,8 +48,6 @@ val ansettelsesperioderSerializer =
 fun EventName.toJson(): JsonElement = toJson(EventName.serializer())
 
 fun BehovType.toJson(): JsonElement = toJson(BehovType.serializer())
-
-fun KafkaKey.toJson(): JsonElement = toJson(KafkaKey.serializer())
 
 fun ResultJson.toJson(): JsonElement = toJson(ResultJson.serializer())
 

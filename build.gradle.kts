@@ -116,7 +116,7 @@ subprojects {
             implementation("org.apache.httpcomponents.client5:httpclient5:5.4.4") {
                 because("brreg-client")
             }
-            implementation("org.apache.kafka:kafka-clients:3.9.1") {
+            implementation("org.apache.kafka:kafka-clients:4.0.0") {
                 because("rapids-and-rivers")
             }
 

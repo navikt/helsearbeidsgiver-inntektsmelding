@@ -60,11 +60,14 @@ class OppdaterImSomProsessertRiverTest :
 
                     verifySequence {
                         when (inntektsmelding.type) {
-                            is Inntektsmelding.Type.Forespurt, is Inntektsmelding.Type.ForespurtEkstern ->
-                                mockImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
-
-                            is Inntektsmelding.Type.Selvbestemt, is Inntektsmelding.Type.Fisker, is Inntektsmelding.Type.UtenArbeidsforhold ->
-                                mockSelvbestemtImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
+                            is Inntektsmelding.Type.Forespurt,
+                            is Inntektsmelding.Type.ForespurtEkstern,
+                            -> mockImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
+                            is Inntektsmelding.Type.Selvbestemt,
+                            is Inntektsmelding.Type.Fisker,
+                            is Inntektsmelding.Type.UtenArbeidsforhold,
+                            is Inntektsmelding.Type.Behandlingsdager,
+                            -> mockSelvbestemtImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
                         }
                     }
                 }
@@ -93,7 +96,9 @@ class OppdaterImSomProsessertRiverTest :
                             is Inntektsmelding.Type.Forespurt, is Inntektsmelding.Type.ForespurtEkstern ->
                                 mockImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
 
-                            is Inntektsmelding.Type.Selvbestemt, is Inntektsmelding.Type.Fisker, is Inntektsmelding.Type.UtenArbeidsforhold ->
+                            is Inntektsmelding.Type.Selvbestemt, is Inntektsmelding.Type.Fisker, is Inntektsmelding.Type.UtenArbeidsforhold,
+                            is Inntektsmelding.Type.Behandlingsdager,
+                            ->
                                 mockSelvbestemtImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
                         }
                     }

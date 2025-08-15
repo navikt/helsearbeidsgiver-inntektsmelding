@@ -14,5 +14,6 @@ class SelvbestemtImUtilsTest :
             ArbeidsforholdType.MedArbeidsforhold(UUID.randomUUID()).tilInntektsmeldingType(id) shouldBe Inntektsmelding.Type.Selvbestemt(id)
             ArbeidsforholdType.Fisker.tilInntektsmeldingType(id) shouldBe Inntektsmelding.Type.Fisker(id)
             ArbeidsforholdType.UtenArbeidsforhold.tilInntektsmeldingType(id) shouldBe Inntektsmelding.Type.UtenArbeidsforhold(id)
+            ArbeidsforholdType.Behandlingsdager.tilInntektsmeldingType(id) shouldBe Inntektsmelding.Type.Behandlingsdager(id)
         }
     })

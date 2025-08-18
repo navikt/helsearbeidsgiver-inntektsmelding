@@ -142,7 +142,7 @@ class PdfDokument(
         addLabel("Navn", inntektsmelding.sykmeldt.navn, linefeed = false, splitLines = true)
         val afterY = y
         moveCursorTo(topY)
-        addLabel("Personnummer", inntektsmelding.sykmeldt.fnr.verdi, kolonneTo)
+        addLabel("Fødselsnummer", inntektsmelding.sykmeldt.fnr.verdi, kolonneTo)
         moveCursorTo(afterY)
         moveCursorBy(pdf.bodySize * 2)
     }

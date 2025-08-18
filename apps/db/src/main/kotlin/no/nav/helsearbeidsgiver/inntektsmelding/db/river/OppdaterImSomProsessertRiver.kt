@@ -45,10 +45,14 @@ class OppdaterImSomProsessertRiver(
 
     override fun OppdaterImSomProsessertMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         when (inntektsmelding.type) {
-            is Inntektsmelding.Type.Forespurt, is Inntektsmelding.Type.ForespurtEkstern ->
-                imRepo.oppdaterSomProsessert(inntektsmelding.id)
-            is Inntektsmelding.Type.Selvbestemt, is Inntektsmelding.Type.Fisker, is Inntektsmelding.Type.UtenArbeidsforhold ->
-                selvbestemtImRepo.oppdaterSomProsessert(inntektsmelding.id)
+            is Inntektsmelding.Type.Forespurt,
+            is Inntektsmelding.Type.ForespurtEkstern,
+            -> imRepo.oppdaterSomProsessert(inntektsmelding.id)
+            is Inntektsmelding.Type.Selvbestemt,
+            is Inntektsmelding.Type.Fisker,
+            is Inntektsmelding.Type.UtenArbeidsforhold,
+            is Inntektsmelding.Type.Behandlingsdager,
+            -> selvbestemtImRepo.oppdaterSomProsessert(inntektsmelding.id)
         }
 
         return null
@@ -78,8 +82,14 @@ class OppdaterImSomProsessertRiver(
             Log.kontekstId(kontekstId),
             Log.inntektsmeldingId(inntektsmelding.id),
             when (inntektsmelding.type) {
-                is Inntektsmelding.Type.Forespurt, is Inntektsmelding.Type.ForespurtEkstern -> Log.forespoerselId(inntektsmelding.type.id)
-                is Inntektsmelding.Type.Selvbestemt, is Inntektsmelding.Type.Fisker, is Inntektsmelding.Type.UtenArbeidsforhold ->
+                is Inntektsmelding.Type.Forespurt,
+                is Inntektsmelding.Type.ForespurtEkstern,
+                -> Log.forespoerselId(inntektsmelding.type.id)
+                is Inntektsmelding.Type.Selvbestemt,
+                is Inntektsmelding.Type.Fisker,
+                is Inntektsmelding.Type.UtenArbeidsforhold,
+                is Inntektsmelding.Type.Behandlingsdager,
+                ->
                     Log.selvbestemtId(
                         inntektsmelding.type.id,
                     )

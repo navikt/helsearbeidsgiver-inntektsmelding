@@ -344,6 +344,15 @@ private fun Inntektsmelding.Type.hardcodedJson(): String =
                 "avsenderSystem": ${this.avsenderSystem.hardcodedJson()}
             }
             """
+
+        is Inntektsmelding.Type.Behandlingsdager ->
+            """
+            {
+                "type": "Behandlingsdager",
+                "id": "$id",
+                "avsenderSystem": ${this.avsenderSystem.hardcodedJson()}
+            }
+            """
     }
 
 private fun Sykmeldt.hardcodedJson(): String =

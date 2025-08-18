@@ -50,6 +50,7 @@ fun Inntektsmelding.tilDokumentbeskrivelse(): String {
         when (this.type) {
             is Inntektsmelding.Type.UtenArbeidsforhold -> " (Uten arbeidsforhold)"
             is Inntektsmelding.Type.Fisker -> " (Fisker m/hyre)"
+            is Inntektsmelding.Type.Behandlingsdager -> " (Behandlingsdager)"
             else -> ""
         }
     val agp =

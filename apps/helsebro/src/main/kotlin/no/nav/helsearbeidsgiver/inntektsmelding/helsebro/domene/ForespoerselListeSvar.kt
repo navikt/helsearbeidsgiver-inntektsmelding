@@ -12,8 +12,8 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 @Serializable
 data class ForespoerselListeSvar(
     val resultat: List<ForespoerselFraBro>,
-    val boomerang: JsonElement,
     val feil: Feil? = null,
+    val boomerang: JsonElement,
 ) {
     enum class Feil {
         FORESPOERSEL_FOR_VEDTAKSPERIODE_ID_LISTE_FEILET,

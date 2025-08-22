@@ -278,7 +278,8 @@ fun HentForespoerselResultat.tilResponseJson(): String =
         "eksternInntektsdato": ${forespoersel.eksternInntektsdato().jsonStrOrNull()},
         "inntekt": ${inntekt?.hardcodedJson()},
         "forespurtData": ${forespoersel.forespurtData.hardcodedJson()},
-        "erBesvart": ${forespoersel.erBesvart}
+        "erBesvart": ${forespoersel.erBesvart},
+        "erBegrenset": ${forespoersel.erBegrenset}
     }
     """.removeJsonWhitespace()
 

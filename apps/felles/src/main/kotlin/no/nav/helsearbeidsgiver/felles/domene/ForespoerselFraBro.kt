@@ -23,6 +23,8 @@ data class ForespoerselFraBro(
     val bestemmendeFravaersdager: Map<Orgnr, LocalDate>,
     val forespurtData: ForespurtData,
     val erBesvart: Boolean,
+    // TODO fjern default etter overgangsfase
+    val erBegrenset: Boolean = false,
 ) {
     fun toForespoersel(): Forespoersel =
         Forespoersel(
@@ -34,5 +36,6 @@ data class ForespoerselFraBro(
             bestemmendeFravaersdager = bestemmendeFravaersdager,
             forespurtData = forespurtData,
             erBesvart = erBesvart,
+            erBegrenset = erBegrenset,
         )
 }

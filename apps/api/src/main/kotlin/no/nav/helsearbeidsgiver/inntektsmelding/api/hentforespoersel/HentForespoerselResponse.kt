@@ -24,6 +24,7 @@ data class HentForespoerselResponse(
     val inntekt: Inntekt?,
     val forespurtData: ForespurtData,
     val erBesvart: Boolean,
+    val erBegrenset: Boolean,
 )
 
 @Serializable

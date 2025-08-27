@@ -15,7 +15,8 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
+import no.nav.helsearbeidsgiver.felles.rr.test.sendJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -25,7 +26,11 @@ class HentForespoerslerForVedtaksperiodeIdListeRiverTest :
         val testRapid = TestRapid()
         val mockProducer = mockk<Producer>()
 
-        HentForespoerslerForVedtaksperiodeIdListeRiver(mockProducer).connect(testRapid)
+        mockConnectToRapid(testRapid) {
+            listOf(
+                HentForespoerslerForVedtaksperiodeIdListeRiver(mockProducer),
+            )
+        }
 
         test("Ved behov om forespørsler på rapid-topic publiseres behov om forespørsler på pri-topic") {
             // Må bare returnere en Result med gyldig JSON

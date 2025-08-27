@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.trengerservice
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -11,10 +10,10 @@ import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rr.Publisher
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
@@ -26,7 +25,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
 class HentForespoerslerForVedtaksperiodeIdListeService(
-    private val rapid: RapidsConnection,
+    private val publisher: Publisher,
     private val redisStore: RedisStore,
 ) : ServiceMed1Steg<HentForespoerslerForVedtaksperiodeIdListeService.Steg0, HentForespoerslerForVedtaksperiodeIdListeService.Steg1>() {
     override val logger = logger()
@@ -58,7 +57,7 @@ class HentForespoerslerForVedtaksperiodeIdListeService(
         data: Map<Key, JsonElement>,
         steg0: Steg0,
     ) {
-        rapid
+        publisher
             .publish(
                 key = UUID.randomUUID(),
                 Key.EVENT_NAME to eventName.toJson(),

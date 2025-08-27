@@ -44,7 +44,6 @@ val dokarkivKlientVersion: String by props
 val inntektKlientVersion: String by props
 val pdlKlientVersion: String by props
 
-val junitJupiterVersion: String by project
 val testcontainersRedisJunitVersion: String by project
 val testcontainersVersion: String by project
 

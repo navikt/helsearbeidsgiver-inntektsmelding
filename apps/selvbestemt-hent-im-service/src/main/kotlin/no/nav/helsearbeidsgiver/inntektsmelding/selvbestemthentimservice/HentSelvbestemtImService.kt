@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.selvbestemthentimservice
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -9,10 +8,10 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rr.Publisher
+import no.nav.helsearbeidsgiver.felles.rr.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -32,7 +31,7 @@ data class Steg1(
 )
 
 class HentSelvbestemtImService(
-    private val rapid: RapidsConnection,
+    private val publisher: Publisher,
     private val redisStore: RedisStore,
 ) : ServiceMed1Steg<Steg0, Steg1>() {
     override val logger = logger()
@@ -56,7 +55,7 @@ class HentSelvbestemtImService(
         steg0: Steg0,
     ) {
         val publisert =
-            rapid.publish(
+            publisher.publish(
                 key = steg0.selvbestemtId,
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_SELVBESTEMT_IM.toJson(),

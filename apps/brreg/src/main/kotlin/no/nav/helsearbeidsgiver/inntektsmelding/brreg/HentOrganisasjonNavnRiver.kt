@@ -11,9 +11,9 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.orgMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.river.ObjectRiver
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.rr.KafkaKey
+import no.nav.helsearbeidsgiver.felles.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
@@ -35,7 +35,7 @@ data class HentOrganisasjonMelding(
 class HentOrganisasjonNavnRiver(
     private val brregClient: BrregClient,
     private val isPreProd: Boolean,
-) : ObjectRiver<HentOrganisasjonMelding>() {
+) : ObjectRiver.Simba<HentOrganisasjonMelding>() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 

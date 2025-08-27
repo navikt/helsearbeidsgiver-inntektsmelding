@@ -20,11 +20,12 @@ import no.nav.helsearbeidsgiver.felles.domene.PeriodeAapen
 import no.nav.helsearbeidsgiver.felles.json.ansettelsesperioderSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.rr.KafkaKey
+import no.nav.helsearbeidsgiver.felles.rr.test.firstMessage
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
+import no.nav.helsearbeidsgiver.felles.rr.test.sendJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.HentAnsettelsesperioderMelding
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.HentAnsettelsesperioderRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.Mock.toMap
@@ -41,7 +42,11 @@ class HentAnsettelsesperioderRiverTest :
         val testRapid = TestRapid()
         val mockAaregClient = mockk<AaregClient>()
 
-        HentAnsettelsesperioderRiver(mockAaregClient).connect(testRapid)
+        mockConnectToRapid(testRapid) {
+            listOf(
+                HentAnsettelsesperioderRiver(mockAaregClient),
+            )
+        }
 
         beforeTest {
             testRapid.reset()

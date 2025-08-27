@@ -6,12 +6,12 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifySequence
-import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.JournalfoertInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.kafka.pritopic.toJson
 import no.nav.helsearbeidsgiver.felles.test.kafka.mockRecordMetadata
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
@@ -200,11 +200,3 @@ class ProducerTest :
             }
         }
     })
-
-private fun Map<Pri.Key, JsonElement>.toJson(): JsonElement =
-    toJson(
-        MapSerializer(
-            Pri.Key.serializer(),
-            JsonElement.serializer(),
-        ),
-    )

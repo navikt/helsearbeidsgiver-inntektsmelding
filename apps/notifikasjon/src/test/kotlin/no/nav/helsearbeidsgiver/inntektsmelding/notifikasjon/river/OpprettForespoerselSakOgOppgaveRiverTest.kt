@@ -23,10 +23,11 @@ import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.rr.test.firstMessage
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
+import no.nav.helsearbeidsgiver.felles.rr.test.sendJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakLevetid
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -38,11 +39,15 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
         val testRapid = TestRapid()
         val mockAgNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
 
-        OpprettForespoerselSakOgOppgaveRiver(
-            lenkeBaseUrl = "en-slags-url",
-            tidMellomOppgaveOpprettelseOgPaaminnelse = "P28D",
-            agNotifikasjonKlient = mockAgNotifikasjonKlient,
-        ).connect(testRapid)
+        mockConnectToRapid(testRapid) {
+            listOf(
+                OpprettForespoerselSakOgOppgaveRiver(
+                    lenkeBaseUrl = "en-slags-url",
+                    tidMellomOppgaveOpprettelseOgPaaminnelse = "P28D",
+                    agNotifikasjonKlient = mockAgNotifikasjonKlient,
+                ),
+            )
+        }
 
         beforeTest {
             testRapid.reset()

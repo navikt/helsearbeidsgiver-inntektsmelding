@@ -17,9 +17,10 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.model.Fail
+import no.nav.helsearbeidsgiver.felles.rr.test.firstMessage
+import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
+import no.nav.helsearbeidsgiver.felles.rr.test.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -30,7 +31,11 @@ class FjernPaaminnelseRiverTest :
         val testRapid = TestRapid()
         val mockagNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
 
-        FjernPaaminnelseRiver(mockagNotifikasjonKlient).connect(testRapid)
+        mockConnectToRapid(testRapid) {
+            listOf(
+                FjernPaaminnelseRiver(mockagNotifikasjonKlient),
+            )
+        }
 
         beforeTest {
             testRapid.reset()

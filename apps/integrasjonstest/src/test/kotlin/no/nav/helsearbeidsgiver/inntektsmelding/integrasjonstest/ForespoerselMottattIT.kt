@@ -140,6 +140,7 @@ class ForespoerselMottattIT : EndToEndTest() {
                 bestemmendeFravaersdager = emptyMap(),
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
+                erBegrenset = false,
             )
         val sakId = UUID.randomUUID().toString()
         val oppgaveId = UUID.randomUUID().toString()

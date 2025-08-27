@@ -41,6 +41,7 @@ fun mockForespoerselListeSvarMedSuksess(): ForespoerselListeSvar {
                     bestemmendeFravaersdager = mapOf(orgnr to 1.januar),
                     forespurtData = mockForespurtData(),
                     erBesvart = false,
+                    erBegrenset = false,
                 ),
             ),
         boomerang = mockBoomerang(),
@@ -74,6 +75,7 @@ fun mockForespoerselSvarSuksess(forespoerselId: UUID): ForespoerselFraBro {
         bestemmendeFravaersdager = mapOf(orgnr to 1.januar),
         forespurtData = mockForespurtData(),
         erBesvart = false,
+        erBegrenset = false,
     )
 }
 

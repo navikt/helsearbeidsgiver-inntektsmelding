@@ -23,6 +23,7 @@ data class Forespoersel(
     val bestemmendeFravaersdager: Map<Orgnr, LocalDate>,
     val forespurtData: ForespurtData,
     val erBesvart: Boolean,
+    val erBegrenset: Boolean,
 ) {
     fun forslagBestemmendeFravaersdag(): LocalDate {
         val forslag = bestemmendeFravaersdager[orgnr]

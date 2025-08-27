@@ -24,7 +24,7 @@ private val sikkerLogger = sikkerLogger()
 
 object NotifikasjonTekst {
     const val MERKELAPP = "Inntektsmelding sykepenger"
-    const val OPPGAVE_TEKST = "Innsending av inntektsmelding"
+    const val OPPGAVE_TEKST = "Innsending av inntektsmelding for sykepenger"
     const val PAAMINNELSE_TITTEL = "Påminnelse – Vi mangler inntektsmelding for en av deres ansatte"
     const val STATUS_TEKST_UNDER_BEHANDLING = "Nav trenger inntektsmelding"
     const val STATUS_TEKST_FERDIG = "Mottatt – Se kvittering eller korriger inntektsmelding"

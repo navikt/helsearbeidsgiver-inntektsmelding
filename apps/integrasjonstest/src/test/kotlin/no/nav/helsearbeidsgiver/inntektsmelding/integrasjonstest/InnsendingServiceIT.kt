@@ -197,6 +197,7 @@ class InnsendingServiceIT : EndToEndTest() {
                 bestemmendeFravaersdager = mapOf(orgnr to 17.mars),
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
+                erBegrenset = false,
             )
     }
 }

@@ -88,7 +88,7 @@ class LagreSelvbestemtImServiceTest :
 
             fun ArbeidsforholdType.skalHaArbeidsforhold(): Boolean =
                 when (this) {
-                    is ArbeidsforholdType.MedArbeidsforhold -> true
+                    is ArbeidsforholdType.MedArbeidsforhold, is ArbeidsforholdType.Behandlingsdager -> true
                     is ArbeidsforholdType.UtenArbeidsforhold, is ArbeidsforholdType.Fisker -> false
                 }
 

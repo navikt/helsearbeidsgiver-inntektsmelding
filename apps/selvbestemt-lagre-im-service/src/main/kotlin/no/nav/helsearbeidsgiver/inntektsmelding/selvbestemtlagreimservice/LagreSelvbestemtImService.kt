@@ -369,6 +369,7 @@ fun ArbeidsforholdType.tilInntektsmeldingType(id: UUID): Inntektsmelding.Type =
         is ArbeidsforholdType.MedArbeidsforhold -> Inntektsmelding.Type.Selvbestemt(id = id)
         is ArbeidsforholdType.Fisker -> Inntektsmelding.Type.Fisker(id = id)
         is ArbeidsforholdType.UtenArbeidsforhold -> Inntektsmelding.Type.UtenArbeidsforhold(id = id)
+        is ArbeidsforholdType.Behandlingsdager -> Inntektsmelding.Type.Behandlingsdager(id = id)
     }
 
 fun tilInntektsmelding(

@@ -237,6 +237,7 @@ private object Mock {
             bestemmendeFravaersdager = mapOf(orgnr to 25.april),
             forespurtData = mockForespurtData(),
             erBesvart = false,
+            erBegrenset = false,
         )
 
     val resultat =
@@ -278,7 +279,8 @@ fun HentForespoerselResultat.tilResponseJson(): String =
         "eksternInntektsdato": ${forespoersel.eksternInntektsdato().jsonStrOrNull()},
         "inntekt": ${inntekt?.hardcodedJson()},
         "forespurtData": ${forespoersel.forespurtData.hardcodedJson()},
-        "erBesvart": ${forespoersel.erBesvart}
+        "erBesvart": ${forespoersel.erBesvart},
+        "erBegrenset": ${forespoersel.erBegrenset}
     }
     """.removeJsonWhitespace()
 

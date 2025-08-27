@@ -25,6 +25,7 @@ fun mockForespoerselSvarSuksess(): ForespoerselFraBro {
             ),
         forespurtData = mockForespurtData(),
         erBesvart = false,
+        erBegrenset = false,
     )
 }
 
@@ -47,6 +48,7 @@ fun mockForespoerselListeSvarResultat(
                 ),
             forespurtData = mockForespurtData(),
             erBesvart = false,
+            erBegrenset = false,
         )
     return listOf(forespoersel, forespoersel.copy(vedtaksperiodeId = vedtaksperiodeId2))
 }

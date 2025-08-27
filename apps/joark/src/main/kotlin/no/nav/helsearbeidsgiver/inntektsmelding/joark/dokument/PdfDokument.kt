@@ -116,6 +116,7 @@ class PdfDokument(
         when (this) {
             is Inntektsmelding.Type.Fisker -> "Inntektsmelding (Fisker m/hyre) for sykepenger"
             is Inntektsmelding.Type.UtenArbeidsforhold -> "Inntektsmelding (Uten arbeidsforhold) for sykepenger"
+            is Inntektsmelding.Type.Behandlingsdager -> "Inntektsmelding (Behandlingsdager) for sykepenger"
             is Inntektsmelding.Type.Selvbestemt,
             is Inntektsmelding.Type.Forespurt,
             is Inntektsmelding.Type.ForespurtEkstern,
@@ -141,7 +142,7 @@ class PdfDokument(
         addLabel("Navn", inntektsmelding.sykmeldt.navn, linefeed = false, splitLines = true)
         val afterY = y
         moveCursorTo(topY)
-        addLabel("Personnummer", inntektsmelding.sykmeldt.fnr.verdi, kolonneTo)
+        addLabel("Fødselsnummer", inntektsmelding.sykmeldt.fnr.verdi, kolonneTo)
         moveCursorTo(afterY)
         moveCursorBy(pdf.bodySize * 2)
     }

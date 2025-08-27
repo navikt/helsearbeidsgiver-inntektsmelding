@@ -188,4 +188,5 @@ private fun HentForespoerselResultat.toResponse(): HentForespoerselResponse =
             },
         forespurtData = forespoersel.forespurtData,
         erBesvart = forespoersel.erBesvart,
+        erBegrenset = forespoersel.erBegrenset,
     )

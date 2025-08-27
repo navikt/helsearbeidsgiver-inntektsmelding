@@ -237,6 +237,7 @@ private object Mock {
             bestemmendeFravaersdager = mapOf(orgnr to 25.april),
             forespurtData = mockForespurtData(),
             erBesvart = false,
+            erBegrenset = false,
         )
 
     val resultat =

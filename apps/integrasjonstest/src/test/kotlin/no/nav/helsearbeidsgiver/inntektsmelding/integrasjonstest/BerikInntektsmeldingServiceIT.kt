@@ -310,6 +310,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                 bestemmendeFravaersdager = mapOf(orgnr to 15.juli),
                 forespurtData = mockForespurtData(),
                 erBesvart = false,
+                erBegrenset = false,
             )
     }
 }

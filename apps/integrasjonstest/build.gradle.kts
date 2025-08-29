@@ -64,7 +64,7 @@ dependencies {
     testImplementation("no.nav.helsearbeidsgiver:inntekt-klient:$inntektKlientVersion")
     testImplementation("no.nav.helsearbeidsgiver:pdl-client:$pdlKlientVersion")
 
-    testImplementation("com.redis.testcontainers:testcontainers-redis-junit:$testcontainersRedisJunitVersion")
+    testImplementation("com.redis:testcontainers-redis:$testcontainersRedisJunitVersion")
     testImplementation("no.nav.helsearbeidsgiver:hag-bakgrunnsjobb:$bakgrunnsjobbVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")

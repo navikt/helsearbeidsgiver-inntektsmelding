@@ -44,7 +44,7 @@ val dokarkivKlientVersion: String by props
 val inntektKlientVersion: String by props
 val pdlKlientVersion: String by props
 
-val testcontainersRedisJunitVersion: String by project
+val testcontainersRedisVersion: String by project
 val testcontainersVersion: String by project
 
 dependencies {
@@ -64,7 +64,7 @@ dependencies {
     testImplementation("no.nav.helsearbeidsgiver:inntekt-klient:$inntektKlientVersion")
     testImplementation("no.nav.helsearbeidsgiver:pdl-client:$pdlKlientVersion")
 
-    testImplementation("com.redis.testcontainers:testcontainers-redis-junit:$testcontainersRedisJunitVersion")
+    testImplementation("com.redis:testcontainers-redis:$testcontainersRedisVersion")
     testImplementation("no.nav.helsearbeidsgiver:hag-bakgrunnsjobb:$bakgrunnsjobbVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")

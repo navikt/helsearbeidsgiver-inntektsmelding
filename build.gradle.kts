@@ -120,11 +120,8 @@ subprojects {
                 because("rapids-and-rivers")
             }
 
-            testImplementation("commons-io:commons-io:2.14.0") {
-                because("testcontainers-redis-junit")
-            }
             testImplementation("org.apache.commons:commons-compress:1.26.2") {
-                because("kafka, testcontainers-redis-junit, postgresql")
+                because("kafka, testcontainers-redis, postgresql")
             }
         }
 

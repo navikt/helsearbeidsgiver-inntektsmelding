@@ -60,7 +60,7 @@ class OpprettSelvbestemtSakRiver(
         val sakId =
             agNotifikasjonKlient.opprettSak(
                 lenke = NotifikasjonTekst.lenkeFerdigstiltSelvbestemt(linkUrl, inntektsmelding.type.id),
-                inntektsmeldingTypeId = inntektsmelding.type.id,
+                inntektsmeldingType = inntektsmelding.type,
                 orgnr = inntektsmelding.avsender.orgnr,
                 sykmeldt = inntektsmelding.sykmeldt.let { Person(it.fnr, it.navn) },
                 sykmeldingsperioder = inntektsmelding.sykmeldingsperioder,

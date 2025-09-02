@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveDuplikatException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -75,7 +76,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                     grupperingsid = innkommendeMelding.forespoerselId.toString(),
                     merkelapp = NotifikasjonTekst.MERKELAPP,
                     lenke = "en-slags-url/im-dialog/${innkommendeMelding.forespoerselId}",
-                    tittel = NotifikasjonTekst.sakTittel(innkommendeMelding.sykmeldt),
+                    tittel = NotifikasjonTekst.sakTittel(Inntektsmelding.Type.Forespurt(innkommendeMelding.forespoerselId), innkommendeMelding.sykmeldt),
                     statusTekst = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
                     tilleggsinfo = NotifikasjonTekst.sakTilleggsinfo(innkommendeMelding.forespoersel.sykmeldingsperioder),
                     initiellStatus = SaksStatus.UNDER_BEHANDLING,

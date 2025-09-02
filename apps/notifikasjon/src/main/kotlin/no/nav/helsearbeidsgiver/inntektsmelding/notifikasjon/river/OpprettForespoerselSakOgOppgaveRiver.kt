@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
@@ -67,7 +68,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
         val sakId =
             agNotifikasjonKlient.opprettSak(
                 lenke = lenke,
-                inntektsmeldingTypeId = forespoerselId,
+                inntektsmeldingType = Inntektsmelding.Type.Forespurt(forespoerselId),
                 orgnr = forespoersel.orgnr,
                 sykmeldt = sykmeldt,
                 sykmeldingsperioder = forespoersel.sykmeldingsperioder,

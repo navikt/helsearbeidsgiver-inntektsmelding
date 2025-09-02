@@ -6,6 +6,7 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveDuplikatException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.domene.Person
 import no.nav.helsearbeidsgiver.felles.utils.tilKortFormat
@@ -47,7 +48,21 @@ object NotifikasjonTekst {
         selvbestemtId: UUID,
     ): String = "$linkUrl/im-dialog/kvittering/agi/$selvbestemtId"
 
-    fun sakTittel(sykmeldt: Person): String = "Inntektsmelding for ${sykmeldt.navn}: f. ${sykmeldt.fnr.lesFoedselsdato()}"
+    fun sakTittel(
+        inntektsmeldingType: Inntektsmelding.Type,
+        sykmeldt: Person,
+    ): String =
+        when (inntektsmeldingType) {
+            is Inntektsmelding.Type.Forespurt,
+            is Inntektsmelding.Type.ForespurtEkstern,
+            is Inntektsmelding.Type.Selvbestemt,
+            is Inntektsmelding.Type.Behandlingsdager,
+            ->
+                "Inntektsmelding for ${sykmeldt.navn}: f. ${sykmeldt.fnr.lesFoedselsdato()}"
+            is Inntektsmelding.Type.UtenArbeidsforhold,
+            is Inntektsmelding.Type.Fisker,
+            -> "Inntektsmelding for Ukjent Navn: f. ${sykmeldt.fnr.lesFoedselsdato()}"
+        }
 
     fun sakTilleggsinfo(sykmeldingsperioder: List<Periode>): String = "Sykmeldingsperiode ${sykmeldingsperioder.tilKortFormat()}"
 
@@ -79,7 +94,7 @@ object NotifikasjonTekst {
 
 fun ArbeidsgiverNotifikasjonKlient.opprettSak(
     lenke: String,
-    inntektsmeldingTypeId: UUID,
+    inntektsmeldingType: Inntektsmelding.Type,
     orgnr: Orgnr,
     sykmeldt: Person,
     sykmeldingsperioder: List<Periode>,
@@ -95,10 +110,10 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
         runBlocking {
             opprettNySak(
                 virksomhetsnummer = orgnr.verdi,
-                grupperingsid = inntektsmeldingTypeId.toString(),
+                grupperingsid = inntektsmeldingType.id.toString(),
                 merkelapp = NotifikasjonTekst.MERKELAPP,
                 lenke = lenke,
-                tittel = NotifikasjonTekst.sakTittel(sykmeldt),
+                tittel = NotifikasjonTekst.sakTittel(inntektsmeldingType, sykmeldt),
                 statusTekst = statusTekst,
                 tilleggsinfo = NotifikasjonTekst.sakTilleggsinfo(sykmeldingsperioder),
                 initiellStatus = initiellStatus,

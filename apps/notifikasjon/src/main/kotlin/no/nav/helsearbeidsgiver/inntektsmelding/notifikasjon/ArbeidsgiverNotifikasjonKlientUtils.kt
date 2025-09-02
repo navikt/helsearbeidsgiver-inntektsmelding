@@ -61,7 +61,7 @@ object NotifikasjonTekst {
                 "Inntektsmelding for ${sykmeldt.navn}: f. ${sykmeldt.fnr.lesFoedselsdato()}"
             is Inntektsmelding.Type.UtenArbeidsforhold,
             is Inntektsmelding.Type.Fisker,
-            -> "Inntektsmelding for: f. ${sykmeldt.fnr.lesFoedselsdato()}"
+            -> "Inntektsmelding for Ukjent Navn: f. ${sykmeldt.fnr.lesFoedselsdato()}"
         }
 
     fun sakTilleggsinfo(sykmeldingsperioder: List<Periode>): String = "Sykmeldingsperiode ${sykmeldingsperioder.tilKortFormat()}"

@@ -34,12 +34,13 @@ class ArbeidsgiverNotifikasjonKlientUtilsTest :
 
             test("Fisker gir forventet saktittel uten navn") {
                 val person = Person(defaultFnr, "Daniel Kraig")
-                NotifikasjonTekst.sakTittel(Inntektsmelding.Type.Fisker(UUID.randomUUID()), person) shouldBe "Inntektsmelding for: f. 310302"
+                NotifikasjonTekst.sakTittel(Inntektsmelding.Type.Fisker(UUID.randomUUID()), person) shouldBe "Inntektsmelding for Ukjent Navn: f. 310302"
             }
 
             test("UtenArbeidsforhold gir forventet saktittel uten navn") {
                 val person = Person(defaultFnr, "Roger Mår")
-                NotifikasjonTekst.sakTittel(Inntektsmelding.Type.UtenArbeidsforhold(UUID.randomUUID()), person) shouldBe "Inntektsmelding for: f. 310302"
+                NotifikasjonTekst.sakTittel(Inntektsmelding.Type.UtenArbeidsforhold(UUID.randomUUID()), person) shouldBe
+                    "Inntektsmelding for Ukjent Navn: f. 310302"
             }
         }
 

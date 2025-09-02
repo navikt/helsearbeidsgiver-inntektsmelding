@@ -47,6 +47,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hardcodedJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import org.junit.jupiter.api.BeforeEach
@@ -66,6 +67,27 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
     fun setup() {
         clearAllMocks()
     }
+
+    @Test
+    fun `Fisker inneholder ikke sykmeldtes navn`() =
+        testApi {
+            val inntektsmelding =
+                mockInntektsmeldingV1().copy(
+                    type =
+                        Inntektsmelding.Type.Fisker(
+                            id = UUID.randomUUID(),
+                        ),
+                )
+            coEvery { mockRedisConnection.get(any()) } returnsMany
+                listOf(
+                    Mock.successResult(inntektsmelding),
+                    harTilgangResultat,
+                )
+            val response = get(pathMedId)
+            val responseJson = response.bodyAsText()
+            val responseIm = responseJson.fromJson(ResultJson.serializer()).success?.fromJson(HentSelvbestemtImResponseSuccess.serializer())
+            responseIm?.selvbestemtInntektsmelding?.sykmeldt?.navn shouldBe ""
+        }
 
     @Test
     fun `gir OK med inntektsmelding`() =

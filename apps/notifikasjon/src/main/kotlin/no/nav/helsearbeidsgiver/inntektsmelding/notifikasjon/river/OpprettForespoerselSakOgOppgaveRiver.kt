@@ -15,6 +15,7 @@ import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.opprettOppgave
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.opprettSak
@@ -67,7 +68,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
         val sakId =
             agNotifikasjonKlient.opprettSak(
                 lenke = lenke,
-                inntektsmeldingTypeId = forespoerselId,
+                inntektsmeldingType = Inntektsmelding.Type.Forespurt(forespoerselId),
                 orgnr = forespoersel.orgnr,
                 sykmeldt = sykmeldt,
                 sykmeldingsperioder = forespoersel.sykmeldingsperioder,

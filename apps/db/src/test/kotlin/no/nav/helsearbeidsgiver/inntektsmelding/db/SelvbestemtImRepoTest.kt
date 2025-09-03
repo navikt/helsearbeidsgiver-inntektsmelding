@@ -10,12 +10,12 @@ import io.kotest.matchers.ranges.shouldBeIn
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.delay
+import no.nav.hag.simba.utils.db.exposed.test.FunSpecWithDb
+import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
+import no.nav.hag.simba.utils.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
-import no.nav.helsearbeidsgiver.felles.db.exposed.test.FunSpecWithDb
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
-import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.SelvbestemtInntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import no.nav.helsearbeidsgiver.utils.test.date.september

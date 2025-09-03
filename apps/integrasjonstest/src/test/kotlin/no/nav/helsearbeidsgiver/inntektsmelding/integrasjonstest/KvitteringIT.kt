@@ -2,16 +2,16 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.LagretInntektsmelding
-import no.nav.helsearbeidsgiver.felles.domene.ResultJson
-import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
-import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
+import no.nav.hag.simba.utils.felles.EventName
+import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.domene.LagretInntektsmelding
+import no.nav.hag.simba.utils.felles.domene.ResultJson
+import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.felles.json.toMap
+import no.nav.hag.simba.utils.felles.test.mock.mockEksternInntektsmelding
+import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
+import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
+import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson

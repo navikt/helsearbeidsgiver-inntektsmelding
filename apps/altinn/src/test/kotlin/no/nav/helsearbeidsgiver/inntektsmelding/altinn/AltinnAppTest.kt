@@ -10,9 +10,9 @@ import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import kotlinx.serialization.builtins.serializer
+import no.nav.hag.simba.utils.felles.utils.fromEnv
+import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helsearbeidsgiver.felles.rr.test.sendJson
-import no.nav.helsearbeidsgiver.felles.utils.fromEnv
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.Mock.altinnOrganisasjoner
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.Mock.innkommendeMelding
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.Mock.toMap
@@ -32,7 +32,7 @@ class AltinnAppTest :
         }
         afterEach {
             clearAllMocks()
-            unmockkStatic("no.nav.helsearbeidsgiver.felles.utils.EnvUtilsKt")
+            unmockkStatic("no.nav.hag.simba.utils.felles.utils.EnvUtilsKt")
             testRapid.reset()
             server.shutdown()
         }
@@ -72,7 +72,7 @@ class AltinnAppTest :
     })
 
 private fun mockEnv(server: MockWebServer) {
-    mockkStatic("no.nav.helsearbeidsgiver.felles.utils.EnvUtilsKt")
+    mockkStatic("no.nav.hag.simba.utils.felles.utils.EnvUtilsKt")
 
     every { "ALTINN_TILGANGER_BASE_URL".fromEnv() } returns server.url("/altinn").toString()
     every { "ALTINN_SERVICE_CODE".fromEnv() } returns "4936"

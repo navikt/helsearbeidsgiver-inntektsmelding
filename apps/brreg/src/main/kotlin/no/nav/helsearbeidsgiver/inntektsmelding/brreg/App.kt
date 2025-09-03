@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.brreg
 
+import no.nav.hag.simba.utils.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.brreg.BrregClient
-import no.nav.helsearbeidsgiver.felles.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import kotlin.time.Duration.Companion.days
 

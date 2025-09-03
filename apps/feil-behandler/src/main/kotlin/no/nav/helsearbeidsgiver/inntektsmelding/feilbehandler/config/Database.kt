@@ -2,7 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.config
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import no.nav.helsearbeidsgiver.felles.utils.fromEnv
+import no.nav.hag.simba.utils.felles.utils.fromEnv
 import org.flywaydb.core.Flyway
 
 class Database(

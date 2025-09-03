@@ -51,7 +51,7 @@ subprojects {
             }
         }
 
-        if (!project.erFellesModul() && !project.erFellesAuthModul() && !project.erFellesDatabaseModul() && !project.erFellesRRModul()) {
+        if (!project.erUtilsModul()) {
             named<Jar>("jar") {
                 archiveBaseName.set("app")
 
@@ -125,13 +125,13 @@ subprojects {
             }
         }
 
-        if (!erFellesModul()) {
-            implementation(project(":felles"))
-            testImplementation(testFixtures(project(":felles")))
+        if (!erUtilsFellesModul()) {
+            implementation(project(":utils-felles"))
+            testImplementation(testFixtures(project(":utils-felles")))
 
-            if (!erFellesAuthModul() && !erFellesDatabaseModul() && !erFellesRRModul()) {
-                implementation(project(":felles-rapids-and-rivers"))
-                testImplementation(testFixtures(project(":felles-rapids-and-rivers")))
+            if (!erUtilsModul()) {
+                implementation(project(":utils-rapids-and-rivers"))
+                testImplementation(testFixtures(project(":utils-rapids-and-rivers")))
             }
         }
 
@@ -183,7 +183,7 @@ tasks {
 }
 
 fun getBuildableProjects(): List<String> {
-    val testfilRegex = Regex("^apps/[\\w-]+/src/test.+")
+    val testfilRegex = Regex("^(?:apps|utils)/[\\w-]+/src/test(?:Fixtures)?.+")
 
     val changedFiles =
         System
@@ -194,11 +194,22 @@ fun getBuildableProjects(): List<String> {
             ?: throw IllegalStateException("Ingen endrede filer funnet.")
 
     val hasCommonChanges =
-        changedFiles.any {
-            it.startsWith("apps/felles/gradle.properties") ||
-                it.startsWith("apps/felles/src/main/") ||
-                it.startsWith("apps/felles-auth/src/main/") ||
-                it in
+        changedFiles.any { file ->
+            val hasUtilsChanges =
+                setOf(
+                    "auth",
+                    "felles",
+                    "rapids-and-rivers",
+                ).flatMap {
+                    setOf(
+                        "utils/$it/build.gradle.kts",
+                        "utils/$it/gradle.properties",
+                        "utils/$it/src/main/",
+                    )
+                }.any { file.startsWith(it) }
+
+            hasUtilsChanges ||
+                file in
                 listOf(
                     "Dockerfile",
                     "build.gradle.kts",
@@ -215,9 +226,10 @@ fun getBuildableProjects(): List<String> {
                 projects
             } else {
                 projects.filter { project ->
+                    val dirName = project.removePrefix("apps-")
                     changedFiles.any {
-                        it.startsWith("apps/$project/") ||
-                            it.startsWith("config/$project/")
+                        it.startsWith("apps/$dirName/") ||
+                            it.startsWith("config/$dirName/")
                     }
                 }
             }
@@ -276,17 +288,16 @@ fun Task.validateMainClassFound(mainClass: String) {
     if (!mainClassFound) throw RuntimeException("Kunne ikke finne main class: $mainClass")
 }
 
-fun Project.mainClass(): String = "$group.${name.replace("-", "")}.AppKt"
+fun Project.mainClass(): String {
+    val validName = name.removePrefix("apps-").replace("-", "")
+    return "$group.$validName.AppKt"
+}
 
-fun Project.erFellesModul(): Boolean = name == "felles"
+fun Project.erUtilsModul(): Boolean = name.startsWith("utils-")
 
-fun Project.erFellesAuthModul(): Boolean = name == "felles-auth"
+fun Project.erUtilsFellesModul(): Boolean = name == "utils-felles"
 
-fun Project.erFellesDatabaseModul(): Boolean = name == "felles-db-exposed"
-
-fun Project.erFellesRRModul(): Boolean = name == "felles-rapids-and-rivers"
-
-fun Project.erIntegrasjonstestModul(): Boolean = name == "integrasjonstest"
+fun Project.erIntegrasjonstestModul(): Boolean = name == "apps-integrasjonstest"
 
 fun Task.deployMatrix(includeCluster: String) {
     doLast {

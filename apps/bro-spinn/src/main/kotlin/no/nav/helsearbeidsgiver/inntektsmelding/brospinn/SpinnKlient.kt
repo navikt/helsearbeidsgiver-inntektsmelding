@@ -8,7 +8,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
-import no.nav.helsearbeidsgiver.felles.domene.EksternInntektsmelding
+import no.nav.hag.simba.utils.felles.domene.EksternInntektsmelding
 import java.util.UUID
 
 class SpinnKlient(

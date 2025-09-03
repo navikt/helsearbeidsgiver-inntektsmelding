@@ -1,15 +1,24 @@
+import kotlin.collections.map
+
 rootProject.name = "helsearbeidsgiver-inntektsmelding"
 
-val apps =
-    File(rootDir, "apps")
-        .listFiles()
-        ?.map { it.name }
-        .orEmpty()
+val projects =
+    setOf(
+        "apps",
+        "utils"
+    )
+        .mapNotNull { dirName ->
+            File(rootDir, dirName)
+                .listFiles()
+                ?.map { it.name to dirName }
+        }
+        .flatten()
+        .toMap()
 
-include(apps)
+include(projects.map { it.projectName() })
 
-apps.forEach {
-    project(":$it").projectDir = file("apps/$it")
+projects.forEach {
+    project(":${it.projectName()}").projectDir = file("${it.value}/${it.key}")
 }
 
 pluginManagement {
@@ -22,3 +31,6 @@ pluginManagement {
         id("org.jmailen.kotlinter") version kotlinterVersion
     }
 }
+
+private fun Map.Entry<String, String>.projectName(): String =
+    "$value-$key"

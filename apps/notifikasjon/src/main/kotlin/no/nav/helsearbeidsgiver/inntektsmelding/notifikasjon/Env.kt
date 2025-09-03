@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
-import no.nav.helsearbeidsgiver.felles.utils.fromEnv
+import no.nav.hag.simba.utils.felles.utils.fromEnv
 
 object Env {
     val linkUrl = "LINK_URL".fromEnv()

@@ -1,4 +1,4 @@
 dependencies {
-    implementation(project(":felles-db-exposed"))
-    testImplementation(testFixtures(project(":felles-db-exposed")))
+    implementation(project(":utils-db-exposed"))
+    testImplementation(testFixtures(project(":utils-db-exposed")))
 }

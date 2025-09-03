@@ -2,8 +2,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
-import no.nav.helsearbeidsgiver.felles.domene.PeriodeAapen
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar

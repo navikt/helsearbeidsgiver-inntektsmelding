@@ -1,11 +1,11 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice
 
-import no.nav.helsearbeidsgiver.felles.redis.RedisConnection
-import no.nav.helsearbeidsgiver.felles.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rr.Publisher
-import no.nav.helsearbeidsgiver.felles.rr.river.ObjectRiver
-import no.nav.helsearbeidsgiver.felles.rr.service.ServiceRiverStateful
+import no.nav.hag.simba.utils.rr.Publisher
+import no.nav.hag.simba.utils.rr.river.ObjectRiver
+import no.nav.hag.simba.utils.rr.service.ServiceRiverStateful
+import no.nav.hag.simba.utils.valkey.RedisConnection
+import no.nav.hag.simba.utils.valkey.RedisPrefix
+import no.nav.hag.simba.utils.valkey.RedisStore
 
 fun main() {
     val redisConnection =

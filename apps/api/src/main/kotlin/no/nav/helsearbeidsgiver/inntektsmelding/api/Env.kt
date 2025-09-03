@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
-import no.nav.helsearbeidsgiver.felles.utils.fromEnv
+import no.nav.hag.simba.utils.felles.utils.fromEnv
 
 object Env {
     val kafkaTopic = "KAFKA_RAPID_TOPIC".fromEnv()

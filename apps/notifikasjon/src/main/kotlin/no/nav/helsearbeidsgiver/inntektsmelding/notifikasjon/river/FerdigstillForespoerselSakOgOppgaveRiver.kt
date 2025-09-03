@@ -1,17 +1,17 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.utils.felles.EventName
+import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.json.les
+import no.nav.hag.simba.utils.felles.json.lesOrNull
+import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.felles.json.toMap
+import no.nav.hag.simba.utils.felles.model.Fail
+import no.nav.hag.simba.utils.felles.utils.Log
+import no.nav.hag.simba.utils.rr.KafkaKey
+import no.nav.hag.simba.utils.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
-import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
-import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.model.Fail
-import no.nav.helsearbeidsgiver.felles.rr.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rr.river.ObjectRiver
-import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.ferdigstillOppgave
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.ferdigstillSak

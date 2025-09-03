@@ -42,18 +42,22 @@ val bakgrunnsjobbVersion: String by props
 val brregKlientVersion: String by props
 val dokarkivKlientVersion: String by props
 val inntektKlientVersion: String by props
+val lettuceVersion: String by project
 val pdlKlientVersion: String by props
-
 val testcontainersRedisVersion: String by project
 val testcontainersVersion: String by project
 
 dependencies {
     apps.forEach {
-        testImplementation(project(":$it"))
+        testImplementation(project(":apps-$it"))
     }
 
-    testImplementation(project(":felles-db-exposed"))
-    testImplementation(testFixtures(project(":felles-db-exposed")))
+    testImplementation(project(":utils-db-exposed"))
+    testImplementation(project(":utils-kafka"))
+    testImplementation(project(":utils-valkey"))
+    testImplementation(testFixtures(project(":utils-db-exposed")))
+    testImplementation(testFixtures(project(":utils-kafka")))
+    testImplementation(testFixtures(project(":utils-valkey")))
 
     // Klienter
     testImplementation("no.nav.helsearbeidsgiver:aareg-client:$aaregClientVersion")
@@ -65,6 +69,7 @@ dependencies {
     testImplementation("no.nav.helsearbeidsgiver:pdl-client:$pdlKlientVersion")
 
     testImplementation("com.redis:testcontainers-redis:$testcontainersRedisVersion")
+    testImplementation("io.lettuce:lettuce-core:${lettuceVersion}")
     testImplementation("no.nav.helsearbeidsgiver:hag-bakgrunnsjobb:$bakgrunnsjobbVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")

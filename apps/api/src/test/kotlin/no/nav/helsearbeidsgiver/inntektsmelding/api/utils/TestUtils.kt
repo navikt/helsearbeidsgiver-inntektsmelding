@@ -15,11 +15,11 @@ import io.ktor.server.testing.testApplication
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.KSerializer
-import no.nav.helsearbeidsgiver.felles.domene.ResultJson
-import no.nav.helsearbeidsgiver.felles.domene.Tilgang
-import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.kafka.Producer
-import no.nav.helsearbeidsgiver.felles.redis.RedisConnection
+import no.nav.hag.simba.utils.felles.domene.ResultJson
+import no.nav.hag.simba.utils.felles.domene.Tilgang
+import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.kafka.Producer
+import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.helsearbeidsgiver.inntektsmelding.api.apiModule
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import no.nav.helsearbeidsgiver.utils.json.toJson

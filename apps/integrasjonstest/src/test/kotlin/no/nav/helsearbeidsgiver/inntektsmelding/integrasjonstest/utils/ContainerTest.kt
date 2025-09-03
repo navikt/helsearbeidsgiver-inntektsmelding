@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
 import com.redis.testcontainers.RedisContainer
-import no.nav.helsearbeidsgiver.felles.db.exposed.test.postgresContainer
+import no.nav.hag.simba.utils.db.exposed.test.postgresContainer
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
 import org.apache.kafka.clients.admin.NewTopic

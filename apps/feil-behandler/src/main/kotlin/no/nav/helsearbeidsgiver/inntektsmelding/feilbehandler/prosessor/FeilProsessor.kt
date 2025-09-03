@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.prosessor
 
+import no.nav.hag.simba.utils.felles.json.toMap
+import no.nav.hag.simba.utils.rr.Publisher
 import no.nav.hag.utils.bakgrunnsjobb.Bakgrunnsjobb
 import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbProsesserer
-import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rr.Publisher
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger

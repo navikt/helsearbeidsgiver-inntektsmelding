@@ -1,6 +1,6 @@
 val inntektKlientVersion: String by project
 
 dependencies {
-    implementation(project(":felles-auth"))
+    implementation(project(":utils-auth"))
     implementation("no.nav.helsearbeidsgiver:inntekt-klient:$inntektKlientVersion")
 }

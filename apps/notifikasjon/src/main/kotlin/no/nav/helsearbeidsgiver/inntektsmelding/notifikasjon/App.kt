@@ -1,11 +1,11 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
+import no.nav.hag.simba.utils.auth.AuthClient
+import no.nav.hag.simba.utils.auth.IdentityProvider
+import no.nav.hag.simba.utils.rr.Publisher
+import no.nav.hag.simba.utils.rr.river.ObjectRiver
+import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
-import no.nav.helsearbeidsgiver.felles.auth.AuthClient
-import no.nav.helsearbeidsgiver.felles.auth.IdentityProvider
-import no.nav.helsearbeidsgiver.felles.rr.Publisher
-import no.nav.helsearbeidsgiver.felles.rr.river.ObjectRiver
-import no.nav.helsearbeidsgiver.felles.rr.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.EndrePaaminnelseRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FerdigstillForespoerselSakOgOppgaveRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FjernPaaminnelseRiver

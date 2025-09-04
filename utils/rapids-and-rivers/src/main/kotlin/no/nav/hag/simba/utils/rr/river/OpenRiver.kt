@@ -1,0 +1,40 @@
+package no.nav.hag.simba.utils.rr.river
+
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers.River
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import io.micrometer.core.instrument.MeterRegistry
+import no.nav.hag.simba.utils.rr.publish
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+
+/**
+ * En [River] som implementerer logikken for rapids-and-rivers.
+ * Leser alle meldinger ukritisk og mater dem til [haandterMelding].
+ *
+ * @property haandterMelding En funksjon som leser, filtrerer og prosesserer meldinger.
+ */
+internal class OpenRiver(
+    rapid: RapidsConnection,
+    private val haandterMelding: MessageHandler,
+) : River.PacketListener {
+    init {
+        River(rapid).register(this)
+    }
+
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ) {
+        packet
+            .toJson()
+            .parseJson()
+            .haandterMelding()
+            ?.also { (kafkaKey, melding) ->
+                context.publish(kafkaKey.key, melding)
+            }
+    }
+}

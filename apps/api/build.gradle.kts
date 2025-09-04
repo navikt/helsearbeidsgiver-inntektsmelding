@@ -10,6 +10,8 @@ tasks {
 }
 
 dependencies {
+    implementation(project(":utils-kafka"))
+    implementation(project(":utils-valkey"))
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")

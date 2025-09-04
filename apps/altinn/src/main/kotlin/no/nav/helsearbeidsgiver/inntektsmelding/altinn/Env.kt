@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
-import no.nav.helsearbeidsgiver.felles.utils.fromEnv
+import no.nav.hag.simba.utils.felles.utils.fromEnv
 
 object Env {
     val altinnScope = "ALTINN_TILGANGER_SCOPE".fromEnv()

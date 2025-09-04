@@ -12,7 +12,7 @@ tasks {
 }
 
 dependencies {
-    implementation(project(":felles-auth"))
+    implementation(project(":utils-auth"))
     implementation("javax.xml.bind:jaxb-api:$jaxbAPIVersion")
     implementation("no.nav.helsearbeidsgiver:dokarkiv-client:$dokarkivKlientVersion")
     implementation("no.nav.helsearbeidsgiver:helsearbeidsgiver-kontrakt-inntektsmelding:$hagImXmlKontraktVersion")

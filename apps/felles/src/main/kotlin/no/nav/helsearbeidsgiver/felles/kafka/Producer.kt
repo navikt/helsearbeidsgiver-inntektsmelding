@@ -4,6 +4,8 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.JournalfoertInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending
+import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.toJson
 import no.nav.helsearbeidsgiver.felles.kafka.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.kafka.pritopic.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -35,6 +37,14 @@ class Producer(
     fun send(
         key: UUID,
         message: Map<Pri.Key, JsonElement>,
+    ) {
+        send(key.toString(), message.toJson())
+    }
+
+    @JvmName("sendWithMessageInnsendingKey")
+    fun send(
+        key: UUID,
+        message: Map<Innsending.Key, JsonElement>,
     ) {
         send(key.toString(), message.toJson())
     }

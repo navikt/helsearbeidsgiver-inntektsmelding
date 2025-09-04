@@ -5,8 +5,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
-import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
@@ -15,11 +13,9 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
-import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rr.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.felles.rr.test.message
 import no.nav.helsearbeidsgiver.felles.rr.test.mockConnectToRapid
@@ -39,12 +35,11 @@ class ApiInnsendingServiceTest :
     FunSpec({
 
         val testRapid = TestRapid()
-        val mockRedisStore = mockk<RedisStore>(relaxed = true)
 
         mockConnectToRapid(testRapid) {
             listOf(
                 ServiceRiverStateless(
-                    ApiInnsendingService(it, mockRedisStore),
+                    ApiInnsendingService(it),
                 ),
             )
         }
@@ -87,15 +82,6 @@ class ApiInnsendingServiceTest :
                 val data = it[Key.DATA]?.toMap().orEmpty()
                 Key.SKJEMA_INNTEKTSMELDING.lesOrNull(SkjemaInntektsmelding.serializer(), data) shouldBe innsending.skjema
             }
-
-            verify {
-                mockRedisStore.skrivResultat(
-                    kontekstId,
-                    ResultJson(
-                        success = innsending.skjema.forespoerselId.toJson(),
-                    ),
-                )
-            }
         }
 
         test("duplikat skjema sendes _ikke_ videre til beriking") {
@@ -125,17 +111,6 @@ class ApiInnsendingServiceTest :
             )
 
             testRapid.inspektør.size shouldBeExactly 2
-
-            verify {
-                mockRedisStore.skrivResultat(
-                    kontekstId,
-                    ResultJson(
-                        success =
-                            Mock.innsending.skjema.forespoerselId
-                                .toJson(),
-                    ),
-                )
-            }
         }
 
         test("svar med feilmelding ved feil") {
@@ -151,15 +126,6 @@ class ApiInnsendingServiceTest :
             testRapid.sendJson(fail.tilMelding())
 
             testRapid.inspektør.size shouldBeExactly 1
-
-            verify {
-                mockRedisStore.skrivResultat(
-                    fail.kontekstId,
-                    ResultJson(
-                        failure = fail.feilmelding.toJson(),
-                    ),
-                )
-            }
         }
     })
 
@@ -169,7 +135,7 @@ private object Mock {
 
     fun steg0(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
-            Key.EVENT_NAME to EventName.API_INNSENDING_STARTET.toJson(),
+            Key.EVENT_NAME to EventName.API_INNSENDING_VALIDERT.toJson(),
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(

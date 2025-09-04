@@ -8,11 +8,9 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
-import no.nav.helsearbeidsgiver.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.model.Fail
-import no.nav.helsearbeidsgiver.felles.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rr.Publisher
 import no.nav.helsearbeidsgiver.felles.rr.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -43,12 +41,11 @@ data class Steg2(
 
 class ApiInnsendingService(
     private val publisher: Publisher,
-    private val redisStore: RedisStore,
 ) : ServiceMed2Steg<Steg0, Steg1, Steg2>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val eventName = EventName.API_INNSENDING_STARTET
+    override val eventName = EventName.API_INNSENDING_VALIDERT
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
@@ -116,15 +113,6 @@ class ApiInnsendingService(
         steg1: Steg1,
         steg2: Steg2,
     ) {
-        val resultJson =
-            ResultJson(
-                success =
-                    steg0.innsending.skjema.forespoerselId
-                        .toJson(),
-            )
-
-        redisStore.skrivResultat(steg0.kontekstId, resultJson)
-
         if (!steg2.erDuplikat) {
             val publisert =
                 publisher.publish(
@@ -154,9 +142,7 @@ class ApiInnsendingService(
         melding: Map<Key, JsonElement>,
         fail: Fail,
     ) {
-        val resultJson = ResultJson(failure = fail.feilmelding.toJson())
-
-        redisStore.skrivResultat(fail.kontekstId, resultJson)
+        // TODO: Feilhåndtering?
     }
 
     override fun Steg0.loggfelt(): Map<String, String> =

@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
+import no.nav.helsearbeidsgiver.felles.kafka.Producer
 import no.nav.helsearbeidsgiver.felles.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.redis.RedisStore
@@ -8,7 +9,7 @@ import no.nav.helsearbeidsgiver.felles.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.rr.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.rr.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.api.ApiInnsendingService
-import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.api.ValiderApiInnsendingService
 
 fun main() {
     val redisConnection =
@@ -29,32 +30,47 @@ fun main() {
 fun createInnsendingServices(
     publisher: Publisher,
     redisConnection: RedisConnection,
-): List<ObjectRiver.Simba<*>> =
-    listOfNotNull(
+): List<ObjectRiver.Simba<*>> {
+    val isDev = "dev-gcp".equals(System.getenv()["NAIS_CLUSTER_NAME"], ignoreCase = true)
+
+    val innsendingServiceRiver =
         ServiceRiverStateless(
             InnsendingService(
                 publisher = publisher,
                 redisStore = RedisStore(redisConnection, RedisPrefix.Innsending),
             ),
-        ),
-        // TODO: Enable i prod når vi kobler til nytt kafka-topic
-        if ("dev-gcp".equals(System.getenv()["NAIS_CLUSTER_NAME"], ignoreCase = true)) {
-            val logger = "helsearbeidsgiver-im-innsending".logger()
-            logger.info("Starter ${ApiInnsendingService::class.simpleName}...")
+        )
+    val apiInnsendingServiceRiver =
+        if (isDev) {
+            ServiceRiverStateless(ApiInnsendingService(publisher = publisher))
+        } else {
+            null
+        }
 
+    val valideringsServiceRiver =
+        if (isDev) {
             ServiceRiverStateless(
-                ApiInnsendingService(
+                ValiderApiInnsendingService(
                     publisher = publisher,
-                    redisStore = RedisStore(redisConnection, RedisPrefix.ApiInnsending),
+                    producer = Producer(topic = "helsearbeidsgiver.api-innsending"),
                 ),
             )
         } else {
             null
-        },
+        }
+
+    val kvitteringServiceRiver =
         ServiceRiverStateful(
             KvitteringService(
                 publisher = publisher,
                 redisStore = RedisStore(redisConnection, RedisPrefix.Kvittering),
             ),
-        ),
+        )
+
+    return listOfNotNull(
+        innsendingServiceRiver,
+        apiInnsendingServiceRiver,
+        valideringsServiceRiver,
+        kvitteringServiceRiver,
     )
+}

@@ -49,7 +49,7 @@ val testcontainersVersion: String by project
 
 dependencies {
     apps.forEach {
-        testImplementation(project(":apps-$it"))
+        testImplementation(project(":$it"))
     }
 
     testImplementation(project(":utils-db-exposed"))
@@ -69,7 +69,7 @@ dependencies {
     testImplementation("no.nav.helsearbeidsgiver:pdl-client:$pdlKlientVersion")
 
     testImplementation("com.redis:testcontainers-redis:$testcontainersRedisVersion")
-    testImplementation("io.lettuce:lettuce-core:${lettuceVersion}")
+    testImplementation("io.lettuce:lettuce-core:$lettuceVersion")
     testImplementation("no.nav.helsearbeidsgiver:hag-bakgrunnsjobb:$bakgrunnsjobbVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")

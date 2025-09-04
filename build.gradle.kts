@@ -226,10 +226,9 @@ fun getBuildableProjects(): List<String> {
                 projects
             } else {
                 projects.filter { project ->
-                    val dirName = project.removePrefix("apps-")
                     changedFiles.any {
-                        it.startsWith("apps/$dirName/") ||
-                            it.startsWith("config/$dirName/")
+                        it.startsWith("apps/$project/") ||
+                            it.startsWith("config/$project/")
                     }
                 }
             }
@@ -288,16 +287,13 @@ fun Task.validateMainClassFound(mainClass: String) {
     if (!mainClassFound) throw RuntimeException("Kunne ikke finne main class: $mainClass")
 }
 
-fun Project.mainClass(): String {
-    val validName = name.removePrefix("apps-").replace("-", "")
-    return "$group.$validName.AppKt"
-}
+fun Project.mainClass(): String = "$group.${name.replace("-", "")}.AppKt"
 
 fun Project.erUtilsModul(): Boolean = name.startsWith("utils-")
 
 fun Project.erUtilsFellesModul(): Boolean = name == "utils-felles"
 
-fun Project.erIntegrasjonstestModul(): Boolean = name == "apps-integrasjonstest"
+fun Project.erIntegrasjonstestModul(): Boolean = name == "integrasjonstest"
 
 fun Task.deployMatrix(includeCluster: String) {
     doLast {

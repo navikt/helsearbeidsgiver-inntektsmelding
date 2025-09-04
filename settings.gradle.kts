@@ -2,17 +2,16 @@ import kotlin.collections.map
 
 rootProject.name = "helsearbeidsgiver-inntektsmelding"
 
+val appsDirName = "apps"
+val utilsDirName = "utils"
+
 val projects =
-    setOf(
-        "apps",
-        "utils"
-    )
+    setOf(appsDirName, utilsDirName)
         .mapNotNull { dirName ->
             File(rootDir, dirName)
                 .listFiles()
                 ?.map { it.name to dirName }
-        }
-        .flatten()
+        }.flatten()
         .toMap()
 
 include(projects.map { it.projectName() })
@@ -33,4 +32,8 @@ pluginManagement {
 }
 
 private fun Map.Entry<String, String>.projectName(): String =
-    "$value-$key"
+    if (value == appsDirName) {
+        key
+    } else {
+        "$value-$key"
+    }

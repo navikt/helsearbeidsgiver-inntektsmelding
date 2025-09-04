@@ -61,7 +61,7 @@ enum class Key : IKey {
 
     companion object {
         fun fromString(key: String): Key =
-            Key.entries.firstOrNull {
+            entries.firstOrNull {
                 key == it.toString()
             }
                 ?: throw IllegalArgumentException("Fant ingen Key med verdi som matchet '$key'.")

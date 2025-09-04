@@ -45,7 +45,7 @@ class Producer(
             key =
                 inntektsmelding.inntektsmelding.type.id
                     .toString(),
-            message = inntektsmelding.toJson(JournalfoertInntektsmelding.Companion.serializer()),
+            message = inntektsmelding.toJson(JournalfoertInntektsmelding.serializer()),
         )
     }
 

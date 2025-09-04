@@ -57,25 +57,12 @@ class ApiInnsendingServiceTest :
             )
 
             testRapid.inspektør.size shouldBeExactly 1
-            testRapid.message(0).lesBehov() shouldBe BehovType.HENT_TRENGER_IM
+            testRapid.message(0).lesBehov() shouldBe BehovType.LAGRE_IM_SKJEMA
 
-            testRapid.sendJson(
-                Mock.steg1(kontekstId).plusData(
-                    Key.INNSENDING to innsending.toJson(Innsending.serializer()),
-                ),
-            )
+            testRapid.sendJson(Mock.steg1(kontekstId))
 
             testRapid.inspektør.size shouldBeExactly 2
-            testRapid.message(1).lesBehov() shouldBe BehovType.LAGRE_IM_SKJEMA
-
-            testRapid.sendJson(
-                Mock.steg2(kontekstId).plusData(
-                    Key.SKJEMA_INNTEKTSMELDING to innsending.skjema.toJson(SkjemaInntektsmelding.serializer()),
-                ),
-            )
-
-            testRapid.inspektør.size shouldBeExactly 3
-            testRapid.message(2).toMap().also {
+            testRapid.message(1).toMap().also {
                 Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe EventName.INNTEKTSMELDING_SKJEMA_LAGRET
                 Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
 
@@ -86,31 +73,19 @@ class ApiInnsendingServiceTest :
 
         test("duplikat skjema sendes _ikke_ videre til beriking") {
             val kontekstId = UUID.randomUUID()
-            val innsending = mockInnsending()
 
-            testRapid.sendJson(
-                Mock.steg0(kontekstId),
-            )
+            testRapid.sendJson(Mock.steg0(kontekstId))
 
             testRapid.inspektør.size shouldBeExactly 1
-            testRapid.message(0).lesBehov() shouldBe BehovType.HENT_TRENGER_IM
+            testRapid.message(0).lesBehov() shouldBe BehovType.LAGRE_IM_SKJEMA
 
             testRapid.sendJson(
                 Mock.steg1(kontekstId).plusData(
-                    Key.INNSENDING to innsending.toJson(Innsending.serializer()),
-                ),
-            )
-
-            testRapid.inspektør.size shouldBeExactly 2
-            testRapid.message(1).lesBehov() shouldBe BehovType.LAGRE_IM_SKJEMA
-
-            testRapid.sendJson(
-                Mock.steg2(kontekstId).plusData(
                     Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
                 ),
             )
 
-            testRapid.inspektør.size shouldBeExactly 2
+            testRapid.inspektør.size shouldBeExactly 1
         }
 
         test("svar med feilmelding ved feil") {
@@ -141,16 +116,12 @@ private object Mock {
                 mapOf(
                     Key.INNSENDING to innsending.toJson(Innsending.serializer()),
                     Key.MOTTATT to mottatt.toJson(),
+                    Key.FORESPOERSEL_SVAR to mockForespoersel().toJson(Forespoersel.serializer()),
                 ).toJson(),
         )
 
     fun steg1(kontekstId: UUID): Map<Key, JsonElement> =
         steg0(kontekstId).plusData(
-            Key.FORESPOERSEL_SVAR to mockForespoersel().toJson(Forespoersel.serializer()),
-        )
-
-    fun steg2(kontekstId: UUID): Map<Key, JsonElement> =
-        steg1(kontekstId).plusData(
             mapOf(
                 Key.SKJEMA_INNTEKTSMELDING to innsending.skjema.toJson(SkjemaInntektsmelding.serializer()),
                 Key.INNTEKTSMELDING_ID to innsending.innsendingId.toJson(),

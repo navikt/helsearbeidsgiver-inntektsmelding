@@ -4,11 +4,11 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.domene.Person
 import no.nav.hag.simba.utils.felles.json.les
 import no.nav.hag.simba.utils.felles.json.orgMapSerializer
 import no.nav.hag.simba.utils.felles.json.personMapSerializer
-import no.nav.hag.simba.utils.felles.model.Fail
 import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson

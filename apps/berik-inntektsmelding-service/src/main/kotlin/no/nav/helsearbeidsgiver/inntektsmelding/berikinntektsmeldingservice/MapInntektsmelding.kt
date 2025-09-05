@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice
 
-import no.nav.hag.simba.utils.felles.domene.Forespoersel
+import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding

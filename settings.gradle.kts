@@ -1,12 +1,11 @@
-import kotlin.collections.map
-
 rootProject.name = "helsearbeidsgiver-inntektsmelding"
 
 val appsDirName = "apps"
+val kontraktDirName = "kontrakt"
 val utilsDirName = "utils"
 
 val projects =
-    setOf(appsDirName, utilsDirName)
+    setOf(appsDirName, kontraktDirName, utilsDirName)
         .mapNotNull { dirName ->
             File(rootDir, dirName)
                 .listFiles()

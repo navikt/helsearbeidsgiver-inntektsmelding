@@ -16,9 +16,9 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
-import no.nav.hag.simba.utils.felles.model.Fail
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
 import no.nav.hag.simba.utils.felles.test.mock.randomDigitString

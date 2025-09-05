@@ -12,19 +12,21 @@ plugins {
 }
 
 dependencies {
+    api(project(":kontrakt-kafkatopic-pri"))
+    api(project(":utils-felles"))
     api("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
     api("org.slf4j:slf4j-api:$slf4jVersion")
 
     implementation(project(":utils-valkey"))
     implementation("io.micrometer:micrometer-core:$micrometerVersion")
 
+    testImplementation(testFixtures(project(":utils-felles")))
     testImplementation(testFixtures(project(":utils-valkey")))
 
     testFixturesApi("com.github.navikt.tbd-libs:rapids-and-rivers-test:$rapidsAndRiversTestVersion")
     testFixturesApi("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
     testFixturesApi("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion")
 
-    testFixturesImplementation(project(":utils-felles"))
     testFixturesImplementation(testFixtures("no.nav.helsearbeidsgiver:utils:$utilsVersion"))
     testFixturesImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testFixturesImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")

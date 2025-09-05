@@ -10,12 +10,12 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.Forespoersel
-import no.nav.hag.simba.utils.felles.domene.ForespoerselFraBro
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
-import no.nav.hag.simba.utils.felles.pritopic.Pri
-import no.nav.hag.simba.utils.felles.test.mock.mockForespurtData
+import no.nav.hag.simba.utils.kontrakt.domene.bro.forespoersel.ForespoerselFraBro
+import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.Forespoersel
+import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.test.mockForespurtData
+import no.nav.hag.simba.utils.kontrakt.kafkatopic.pri.Pri
 import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson

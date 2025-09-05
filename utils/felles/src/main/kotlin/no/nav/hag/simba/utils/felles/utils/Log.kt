@@ -2,7 +2,6 @@ package no.nav.hag.simba.utils.felles.utils
 
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
-import no.nav.hag.simba.utils.felles.pritopic.Pri
 import java.util.UUID
 
 object Log {
@@ -10,7 +9,7 @@ object Log {
 
     fun event(value: EventName) = "hag_event_name" to value.name
 
-    fun priNotis(value: Pri.NotisType) = "hag_pri_notis" to value.name
+    fun priNotis(value: String) = "hag_pri_notis" to value
 
     fun behov(value: BehovType) = "hag_behov" to value.name
 

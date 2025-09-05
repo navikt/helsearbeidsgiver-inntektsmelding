@@ -86,7 +86,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
             val response = get(pathMedId)
             val responseJson = response.bodyAsText()
             val responseIm = responseJson.fromJson(ResultJson.serializer()).success?.fromJson(HentSelvbestemtImResponseSuccess.serializer())
-            responseIm?.selvbestemtInntektsmelding?.sykmeldt?.navn shouldBe ""
+            responseIm?.selvbestemtInntektsmelding?.sykmeldt?.navn shouldBe "Ukjent navn"
         }
 
     @Test

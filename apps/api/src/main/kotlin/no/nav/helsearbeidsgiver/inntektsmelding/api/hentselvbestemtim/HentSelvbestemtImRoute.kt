@@ -87,7 +87,7 @@ fun Route.hentSelvbestemtImRoute(
 
 private fun Inntektsmelding.fjernNavnHvisIngenArbeidsforhold() =
     if (type is Inntektsmelding.Type.Fisker || type is Inntektsmelding.Type.UtenArbeidsforhold) {
-        copy(sykmeldt = sykmeldt.copy(navn = ""))
+        copy(sykmeldt = sykmeldt.copy(navn = "Ukjent navn"))
     } else {
         this
     }

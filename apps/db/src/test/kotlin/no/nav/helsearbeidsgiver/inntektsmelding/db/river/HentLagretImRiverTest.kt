@@ -13,14 +13,14 @@ import io.mockk.verifySequence
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.LagretInntektsmelding
+import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
-import no.nav.hag.simba.utils.felles.model.Fail
-import no.nav.hag.simba.utils.felles.test.mock.mockEksternInntektsmelding
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
 import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
+import no.nav.hag.simba.utils.kontrakt.domene.inntektsmelding.LagretInntektsmelding
+import no.nav.hag.simba.utils.kontrakt.domene.inntektsmelding.test.mockEksternInntektsmelding
 import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid

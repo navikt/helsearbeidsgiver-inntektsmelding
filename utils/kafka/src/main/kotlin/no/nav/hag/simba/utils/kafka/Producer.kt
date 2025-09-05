@@ -3,8 +3,8 @@ package no.nav.hag.simba.utils.kafka
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.json.toJson
-import no.nav.hag.simba.utils.felles.pritopic.Pri
-import no.nav.hag.simba.utils.felles.pritopic.toJson
+import no.nav.hag.simba.utils.kontrakt.kafkatopic.pri.Pri
+import no.nav.hag.simba.utils.kontrakt.kafkatopic.pri.toJson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.JournalfoertInntektsmelding
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr

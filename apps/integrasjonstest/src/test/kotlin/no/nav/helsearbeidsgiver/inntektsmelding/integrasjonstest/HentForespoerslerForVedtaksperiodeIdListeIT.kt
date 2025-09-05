@@ -7,10 +7,10 @@ import kotlinx.serialization.builtins.MapSerializer
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.Forespoersel
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
+import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselListeSvarResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest

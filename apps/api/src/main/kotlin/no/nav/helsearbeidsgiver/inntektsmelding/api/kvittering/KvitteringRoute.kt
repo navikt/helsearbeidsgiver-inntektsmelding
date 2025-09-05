@@ -7,11 +7,11 @@ import kotlinx.serialization.builtins.serializer
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.Tekst
-import no.nav.hag.simba.utils.felles.domene.Forespoersel
-import no.nav.hag.simba.utils.felles.domene.KvitteringResultat
-import no.nav.hag.simba.utils.felles.domene.LagretInntektsmelding
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.kafka.Producer
+import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.Forespoersel
+import no.nav.hag.simba.utils.kontrakt.domene.inntektsmelding.LagretInntektsmelding
+import no.nav.hag.simba.utils.kontrakt.resultat.kvittering.KvitteringResultat
 import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.RedisStore

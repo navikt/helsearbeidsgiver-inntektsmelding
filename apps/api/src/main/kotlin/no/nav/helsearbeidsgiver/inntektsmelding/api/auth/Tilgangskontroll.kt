@@ -5,10 +5,10 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.Tilgang
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.kafka.Producer
+import no.nav.hag.simba.utils.kontrakt.resultat.tilgang.Tilgang
 import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.RedisStore

@@ -10,10 +10,9 @@ import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.Tekst.TEKNISK_FEIL_FORBIGAAENDE
 import no.nav.hag.simba.utils.felles.Tekst.UGYLDIG_REQUEST
-import no.nav.hag.simba.utils.felles.domene.Forespoersel
-import no.nav.hag.simba.utils.felles.domene.VedtaksperiodeIdForespoerselIdPar
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.kafka.Producer
+import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.RedisStore
@@ -22,6 +21,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
+import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIdListe.VedtaksperiodeIdForespoerselIdPar
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger

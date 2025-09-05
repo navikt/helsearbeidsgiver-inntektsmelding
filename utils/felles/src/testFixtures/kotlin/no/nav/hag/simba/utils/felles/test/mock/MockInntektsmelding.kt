@@ -1,6 +1,5 @@
 package no.nav.hag.simba.utils.felles.test.mock
 
-import no.nav.hag.simba.utils.felles.domene.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
@@ -183,12 +182,4 @@ fun mockRefusjon(): Refusjon =
                     startdato = 30.november,
                 ),
             ),
-    )
-
-fun mockEksternInntektsmelding(): EksternInntektsmelding =
-    EksternInntektsmelding(
-        avsenderSystemNavn = "Trygge Trygves Trygdesystem",
-        avsenderSystemVersjon = "T1000",
-        arkivreferanse = "Arkiv nr. 49",
-        tidspunkt = 12.oktober.kl(14, 0, 12, 0),
     )

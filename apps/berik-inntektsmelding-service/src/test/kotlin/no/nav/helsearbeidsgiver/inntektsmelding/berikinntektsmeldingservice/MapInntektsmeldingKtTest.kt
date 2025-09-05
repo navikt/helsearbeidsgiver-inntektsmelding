@@ -6,11 +6,11 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.hag.simba.utils.felles.test.mock.mockForespoersel
 import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
-import no.nav.hag.simba.utils.felles.test.mock.utenPaakrevdAGP
-import no.nav.hag.simba.utils.felles.test.mock.utenPaakrevdInntekt
-import no.nav.hag.simba.utils.felles.test.mock.utenPaakrevdRefusjon
+import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.test.mockForespoersel
+import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.test.utenPaakrevdAGP
+import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.test.utenPaakrevdInntekt
+import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.test.utenPaakrevdRefusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding

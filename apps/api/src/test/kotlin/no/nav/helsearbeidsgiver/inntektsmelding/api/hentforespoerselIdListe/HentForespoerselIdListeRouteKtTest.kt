@@ -14,10 +14,10 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.Forespoersel
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
-import no.nav.hag.simba.utils.felles.test.mock.mockForespoersel
+import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.Forespoersel
+import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse

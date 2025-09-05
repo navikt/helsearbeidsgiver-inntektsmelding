@@ -16,12 +16,12 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.EksternInntektsmelding
+import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
-import no.nav.hag.simba.utils.felles.model.Fail
-import no.nav.hag.simba.utils.felles.test.mock.mockEksternInntektsmelding
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
+import no.nav.hag.simba.utils.kontrakt.domene.inntektsmelding.EksternInntektsmelding
+import no.nav.hag.simba.utils.kontrakt.domene.inntektsmelding.test.mockEksternInntektsmelding
 import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson

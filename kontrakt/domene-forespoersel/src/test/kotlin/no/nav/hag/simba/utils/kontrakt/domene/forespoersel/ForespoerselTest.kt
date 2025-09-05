@@ -25,7 +25,7 @@ class ForespoerselTest :
 
         context(Forespoersel::forslagBestemmendeFravaersdag.name) {
             test("bestemmende fraværsdag-forslaget fra Spleis overstyres av eldre sykmelding + egenmelding") {
-                val orgnr = Orgnr.Companion.genererGyldig()
+                val orgnr = Orgnr.genererGyldig()
 
                 val forespoersel =
                     mockForespoersel().copy(
@@ -35,7 +35,7 @@ class ForespoerselTest :
                         bestemmendeFravaersdager =
                             mapOf(
                                 orgnr to 1.juli,
-                                Orgnr.Companion.genererGyldig() to 13.mai,
+                                Orgnr.genererGyldig() to 13.mai,
                             ),
                     )
 
@@ -43,7 +43,7 @@ class ForespoerselTest :
             }
 
             test("bestemmende fraværsdag-forslaget fra Spleis brukes dersom den er tidligere enn sykmelding + egenmelding") {
-                val orgnr = Orgnr.Companion.genererGyldig()
+                val orgnr = Orgnr.genererGyldig()
 
                 val forespoersel =
                     mockForespoersel().copy(
@@ -56,7 +56,7 @@ class ForespoerselTest :
                         bestemmendeFravaersdager =
                             mapOf(
                                 orgnr to 1.juli,
-                                Orgnr.Companion.genererGyldig() to 13.mai,
+                                Orgnr.genererGyldig() to 13.mai,
                             ),
                     )
 
@@ -64,7 +64,7 @@ class ForespoerselTest :
             }
 
             test("bestemmende fraværsdag-forslaget fra Spleis brukes dersom det ikke finnes egenmeldinger") {
-                val orgnr = Orgnr.Companion.genererGyldig()
+                val orgnr = Orgnr.genererGyldig()
 
                 val forespoersel =
                     mockForespoersel().copy(
@@ -77,7 +77,7 @@ class ForespoerselTest :
                         bestemmendeFravaersdager =
                             mapOf(
                                 orgnr to 1.juli,
-                                Orgnr.Companion.genererGyldig() to 13.mai,
+                                Orgnr.genererGyldig() to 13.mai,
                             ),
                     )
 
@@ -87,7 +87,7 @@ class ForespoerselTest :
             test("beregner bestemmende fraværsdag dersom det mangler for eget orgnr") {
                 val forespoersel =
                     mockForespoersel().copy(
-                        orgnr = Orgnr.Companion.genererGyldig(),
+                        orgnr = Orgnr.genererGyldig(),
                         sykmeldingsperioder =
                             listOf(
                                 5.januar til 30.januar,
@@ -95,7 +95,7 @@ class ForespoerselTest :
                         egenmeldingsperioder = listOf(1.januar til 1.januar),
                         bestemmendeFravaersdager =
                             mapOf(
-                                Orgnr.Companion.genererGyldig() to 13.mai,
+                                Orgnr.genererGyldig() to 13.mai,
                             ),
                     )
 
@@ -106,10 +106,10 @@ class ForespoerselTest :
                 val forespoersel =
                     mockForespoersel()
                         .copy(
-                            orgnr = Orgnr.Companion.genererGyldig(),
+                            orgnr = Orgnr.genererGyldig(),
                             sykmeldingsperioder = listOf(7.mars til 31.mars),
                             egenmeldingsperioder = listOf(5.mars til 6.mars),
-                            bestemmendeFravaersdager = mapOf(Orgnr.Companion.genererGyldig() to 14.april),
+                            bestemmendeFravaersdager = mapOf(Orgnr.genererGyldig() to 14.april),
                         ).utenPaakrevdAGP()
 
                 forespoersel.forslagBestemmendeFravaersdag() shouldBe 7.mars
@@ -118,7 +118,7 @@ class ForespoerselTest :
 
         context(Forespoersel::forslagInntektsdato.name) {
             test("gir minste bestemmende fraværsdag (når det stammer fra eget orgnr og den er tidligere enn sykmelding + egenmelding)") {
-                val orgnr = Orgnr.Companion.genererGyldig()
+                val orgnr = Orgnr.genererGyldig()
 
                 val forespoersel =
                     mockForespoersel().copy(
@@ -131,8 +131,8 @@ class ForespoerselTest :
                         bestemmendeFravaersdager =
                             mapOf(
                                 orgnr to 28.februar,
-                                Orgnr.Companion.genererGyldig() to 1.mars,
-                                Orgnr.Companion.genererGyldig() to 3.mars,
+                                Orgnr.genererGyldig() to 1.mars,
+                                Orgnr.genererGyldig() to 3.mars,
                             ),
                     )
 
@@ -140,7 +140,7 @@ class ForespoerselTest :
             }
 
             test("gir minste bestemmende fraværsdag (når det stammer fra annet orgnr og den er tidligere enn sykmelding + egenmelding)") {
-                val orgnr = Orgnr.Companion.genererGyldig()
+                val orgnr = Orgnr.genererGyldig()
 
                 val forespoersel =
                     mockForespoersel().copy(
@@ -153,8 +153,8 @@ class ForespoerselTest :
                         bestemmendeFravaersdager =
                             mapOf(
                                 orgnr to 9.november,
-                                Orgnr.Companion.genererGyldig() to 4.november,
-                                Orgnr.Companion.genererGyldig() to 2.desember,
+                                Orgnr.genererGyldig() to 4.november,
+                                Orgnr.genererGyldig() to 2.desember,
                             ),
                     )
 
@@ -164,7 +164,7 @@ class ForespoerselTest :
             test("gir minste bestemmende fraværsdag selv uten eget orgnr når den er tidligere enn sykmelding + egenmelding") {
                 val forespoersel =
                     mockForespoersel().copy(
-                        orgnr = Orgnr.Companion.genererGyldig(),
+                        orgnr = Orgnr.genererGyldig(),
                         sykmeldingsperioder =
                             listOf(
                                 1.desember til 31.desember,
@@ -172,8 +172,8 @@ class ForespoerselTest :
                         egenmeldingsperioder = listOf(28.november til 29.november),
                         bestemmendeFravaersdager =
                             mapOf(
-                                Orgnr.Companion.genererGyldig() to 7.juni,
-                                Orgnr.Companion.genererGyldig() to 5.juni,
+                                Orgnr.genererGyldig() to 7.juni,
+                                Orgnr.genererGyldig() to 5.juni,
                             ),
                     )
 
@@ -181,7 +181,7 @@ class ForespoerselTest :
             }
 
             test("gir minste bestemmende fraværsdag dersom det ikke finnes egenmeldinger") {
-                val orgnr = Orgnr.Companion.genererGyldig()
+                val orgnr = Orgnr.genererGyldig()
 
                 val forespoersel =
                     mockForespoersel().copy(
@@ -194,8 +194,8 @@ class ForespoerselTest :
                         bestemmendeFravaersdager =
                             mapOf(
                                 orgnr to 11.desember,
-                                Orgnr.Companion.genererGyldig() to 8.desember,
-                                Orgnr.Companion.genererGyldig() to 7.desember,
+                                Orgnr.genererGyldig() to 8.desember,
+                                Orgnr.genererGyldig() to 7.desember,
                             ),
                     )
 
@@ -205,7 +205,7 @@ class ForespoerselTest :
             test("beregner bestemmende fraværsdag fra sykmelding + egenmelding dersom de kommer tidligere enn bestemmende fraværsdager fra Spleis") {
                 val forespoersel =
                     mockForespoersel().copy(
-                        orgnr = Orgnr.Companion.genererGyldig(),
+                        orgnr = Orgnr.genererGyldig(),
                         sykmeldingsperioder =
                             listOf(
                                 2.januar til 31.januar,
@@ -213,8 +213,8 @@ class ForespoerselTest :
                         egenmeldingsperioder = listOf(1.januar til 1.januar),
                         bestemmendeFravaersdager =
                             mapOf(
-                                Orgnr.Companion.genererGyldig() to 7.juni,
-                                Orgnr.Companion.genererGyldig() to 5.juni,
+                                Orgnr.genererGyldig() to 7.juni,
+                                Orgnr.genererGyldig() to 5.juni,
                             ),
                     )
 
@@ -238,7 +238,7 @@ class ForespoerselTest :
                 val forespoersel =
                     mockForespoersel()
                         .copy(
-                            orgnr = Orgnr.Companion.genererGyldig(),
+                            orgnr = Orgnr.genererGyldig(),
                             sykmeldingsperioder = listOf(8.august til 28.august),
                             egenmeldingsperioder = listOf(2.august til 7.august),
                             bestemmendeFravaersdager = emptyMap(),
@@ -250,7 +250,7 @@ class ForespoerselTest :
 
         context(Forespoersel::eksternInntektsdato.name) {
             test("gir minste bestemmende fraværsdag blant andre orgnr (når eget orgnr tilstede)") {
-                val orgnr = Orgnr.Companion.genererGyldig()
+                val orgnr = Orgnr.genererGyldig()
 
                 val forespoersel =
                     mockForespoersel().copy(
@@ -258,8 +258,8 @@ class ForespoerselTest :
                         bestemmendeFravaersdager =
                             mapOf(
                                 orgnr to 12.august,
-                                Orgnr.Companion.genererGyldig() to 19.september,
-                                Orgnr.Companion.genererGyldig() to 27.september,
+                                Orgnr.genererGyldig() to 19.september,
+                                Orgnr.genererGyldig() to 27.september,
                             ),
                     )
 
@@ -269,11 +269,11 @@ class ForespoerselTest :
             test("gir minste bestemmende fraværsdag blant andre orgnr (når eget orgnr mangler)") {
                 val forespoersel =
                     mockForespoersel().copy(
-                        orgnr = Orgnr.Companion.genererGyldig(),
+                        orgnr = Orgnr.genererGyldig(),
                         bestemmendeFravaersdager =
                             mapOf(
-                                Orgnr.Companion.genererGyldig() to 13.juli,
-                                Orgnr.Companion.genererGyldig() to 12.juli,
+                                Orgnr.genererGyldig() to 13.juli,
+                                Orgnr.genererGyldig() to 12.juli,
                             ),
                     )
 
@@ -281,7 +281,7 @@ class ForespoerselTest :
             }
 
             test("gir 'null' dersom bestemmende fraværsdag kun er tilstede for eget orgnr") {
-                val orgnr = Orgnr.Companion.genererGyldig()
+                val orgnr = Orgnr.genererGyldig()
 
                 val forespoersel =
                     mockForespoersel().copy(

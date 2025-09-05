@@ -10,11 +10,11 @@ tasks {
 }
 
 dependencies {
-    implementation(project(":utils-kafka"))
     implementation(project(":kontrakt-domene-arbeidsgiver"))
     implementation(project(":kontrakt-resultat-kvittering"))
     implementation(project(":kontrakt-resultat-forespoersel"))
     implementation(project(":kontrakt-resultat-tilgang"))
+    implementation(project(":utils-kafka"))
     implementation(project(":utils-valkey"))
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("io.ktor:ktor-server-auth:$ktorVersion")

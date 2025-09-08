@@ -3,7 +3,6 @@ val kotestVersion: String by project
 val micrometerVersion: String by project
 val mockkVersion: String by project
 val rapidsAndRiversTestVersion: String by project
-//TODO: bump rapids-and-rivers version
 val rapidsAndRiversVersion: String by project
 val slf4jVersion: String by project
 val utilsVersion: String by project

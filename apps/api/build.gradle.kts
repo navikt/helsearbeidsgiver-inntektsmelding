@@ -10,6 +10,10 @@ tasks {
 }
 
 dependencies {
+    implementation(project(":kontrakt-domene-arbeidsgiver"))
+    implementation(project(":kontrakt-resultat-kvittering"))
+    implementation(project(":kontrakt-resultat-forespoersel"))
+    implementation(project(":kontrakt-resultat-tilgang"))
     implementation(project(":utils-kafka"))
     implementation(project(":utils-valkey"))
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
@@ -21,6 +25,7 @@ dependencies {
     implementation("no.nav.security:token-client-core:$tokenSupportVersion")
     implementation("no.nav.security:token-validation-ktor-v3:$tokenSupportVersion")
 
+    testImplementation(testFixtures(project(":kontrakt-domene-forespoersel")))
     testImplementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     testImplementation("io.ktor:ktor-client-core:$ktorVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")

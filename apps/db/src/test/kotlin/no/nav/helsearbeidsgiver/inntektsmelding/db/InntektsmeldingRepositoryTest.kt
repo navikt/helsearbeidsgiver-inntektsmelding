@@ -8,14 +8,14 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.ranges.shouldBeIn
 import io.kotest.matchers.shouldBe
 import no.nav.hag.simba.utils.db.exposed.test.FunSpecWithDb
-import no.nav.hag.simba.utils.felles.domene.LagretInntektsmelding
 import no.nav.hag.simba.utils.felles.test.mock.mockArbeidsgiverperiode
-import no.nav.hag.simba.utils.felles.test.mock.mockEksternInntektsmelding
 import no.nav.hag.simba.utils.felles.test.mock.mockInntekt
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
 import no.nav.hag.simba.utils.felles.test.mock.mockRefusjon
 import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.hag.simba.utils.felles.test.mock.randomDigitString
+import no.nav.hag.simba.utils.kontrakt.domene.inntektsmelding.LagretInntektsmelding
+import no.nav.hag.simba.utils.kontrakt.domene.inntektsmelding.test.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.convert
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet

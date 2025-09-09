@@ -7,6 +7,8 @@ plugins {
 }
 
 dependencies {
+    api(project(":utils-felles"))
+
     implementation("io.lettuce:lettuce-core:$lettuceVersion")
 
     testFixturesImplementation(testFixtures("no.nav.helsearbeidsgiver:utils:$utilsVersion"))

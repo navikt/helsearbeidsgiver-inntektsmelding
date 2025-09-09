@@ -16,6 +16,7 @@ dependencies {
     api("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
     api("org.jetbrains.exposed:exposed-json:$exposedVersion")
 
+    implementation(project(":utils-felles"))
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
 
     runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")

@@ -4,7 +4,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoersel
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import no.nav.hag.simba.utils.felles.domene.ForespurtData
+import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.ForespurtData
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer

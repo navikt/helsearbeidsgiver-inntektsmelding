@@ -5,7 +5,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.hag.simba.utils.felles.IKey
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.pritopic.Pri
+import no.nav.hag.simba.utils.kontrakt.kafkatopic.pri.Pri
 import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.Publisher
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered

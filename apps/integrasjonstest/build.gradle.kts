@@ -52,9 +52,17 @@ dependencies {
         testImplementation(project(":$it"))
     }
 
+    testImplementation(project(":kontrakt-domene-arbeidsgiver"))
+    testImplementation(project(":kontrakt-domene-forespoersel"))
+    testImplementation(project(":kontrakt-domene-inntektsmelding"))
+    testImplementation(project(":kontrakt-domene-bro-forespoersel"))
+    testImplementation(project(":kontrakt-resultat-forespoersel"))
+    testImplementation(project(":kontrakt-resultat-tilgang"))
     testImplementation(project(":utils-db-exposed"))
     testImplementation(project(":utils-kafka"))
     testImplementation(project(":utils-valkey"))
+    testImplementation(testFixtures(project(":kontrakt-domene-forespoersel")))
+    testImplementation(testFixtures(project(":kontrakt-domene-inntektsmelding")))
     testImplementation(testFixtures(project(":utils-db-exposed")))
     testImplementation(testFixtures(project(":utils-kafka")))
     testImplementation(testFixtures(project(":utils-valkey")))

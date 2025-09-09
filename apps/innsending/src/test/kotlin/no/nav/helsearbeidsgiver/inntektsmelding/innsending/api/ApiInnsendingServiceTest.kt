@@ -92,7 +92,7 @@ class ApiInnsendingServiceTest :
             val fail =
                 mockFail(
                     feilmelding = "Databasen er smekk full.",
-                    eventName = EventName.API_INNSENDING_STARTET,
+                    eventName = EventName.API_INNSENDING_VALIDERT,
                     behovType = BehovType.HENT_TRENGER_IM,
                 )
 

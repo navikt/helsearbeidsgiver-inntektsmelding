@@ -30,8 +30,6 @@ import java.util.UUID
 import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending.EventName as InnsendingEventName
 import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending.Key as InnsendingKey
 
-const val FEILMARGIN_INNTEKT_A_ORDNING: Double = 10.0
-
 data class ValideringsSteg0(
     val kontekstId: UUID,
     val innsending: Innsending,
@@ -44,6 +42,7 @@ data class ValideringsSteg1(
 
 data class ValideringsSteg2(
     val inntekt: Map<YearMonth, Double?>,
+    val unnlatHentingAvInntekt: Boolean = false,
 )
 
 class ValiderApiInnsendingService(
@@ -100,7 +99,7 @@ class ValiderApiInnsendingService(
         val inntekt = steg0.innsending.skjema.inntekt
         when {
             inntekt == null || inntekt.endringAarsaker.isNotEmpty() ->
-                utfoerSteg2(data, steg0, steg1, steg2 = ValideringsSteg2(inntekt = emptyMap()))
+                utfoerSteg2(data, steg0, steg1, steg2 = ValideringsSteg2(inntekt = emptyMap(), unnlatHentingAvInntekt = true))
 
             else -> {
                 publisher
@@ -136,7 +135,12 @@ class ValiderApiInnsendingService(
         steg1: ValideringsSteg1,
         steg2: ValideringsSteg2,
     ) {
-        val feilkoder = steg0.innsending.skjema.validerInntektMotAordningen(aordningInntekt = steg2.inntekt)
+        val feilkoder =
+            if (steg2.unnlatHentingAvInntekt) {
+                emptySet()
+            } else {
+                steg0.innsending.skjema.validerInntektMotAordningen(aordningInntekt = steg2.inntekt)
+            }
 
         if (feilkoder.isNotEmpty()) {
             val avvistInntektsmelding =
@@ -167,12 +171,12 @@ class ValiderApiInnsendingService(
                         mapOf(
                             Key.MOTTATT to steg0.mottatt.toJson(),
                             Key.INNSENDING to steg0.innsending.toJson(Innsending.serializer()),
-                            Key.FORESPOERSEL to steg1.forespoersel.toJson(Forespoersel.serializer()),
+                            Key.FORESPOERSEL_SVAR to steg1.forespoersel.toJson(Forespoersel.serializer()),
                         ).toJson(),
                 )
 
             MdcUtils.withLogFields(
-                Log.event(EventName.API_INNSENDING_STARTET),
+                Log.event(EventName.API_INNSENDING_VALIDERT),
             ) {
                 logger.info("Publiserte melding.")
                 sikkerLogger.info("Publiserte melding:\n${publisert.toPretty()}")

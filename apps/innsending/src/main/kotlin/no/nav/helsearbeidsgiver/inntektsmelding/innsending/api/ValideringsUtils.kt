@@ -4,6 +4,8 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsm
 import no.nav.helsearbeidsgiver.felles.utils.gjennomsnitt
 import java.time.YearMonth
 
+const val FEILMARGIN_INNTEKT_A_ORDNING: Double = 10.0
+
 /**
  * Validerer om inntekten i inntektsmeldingen avviker fra inntekt i A-ordningen uten at det er oppgitt endringsårsak
  */

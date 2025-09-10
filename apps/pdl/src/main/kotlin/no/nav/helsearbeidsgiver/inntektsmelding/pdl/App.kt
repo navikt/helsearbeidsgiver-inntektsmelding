@@ -1,8 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
-import no.nav.helsearbeidsgiver.felles.auth.AuthClient
-import no.nav.helsearbeidsgiver.felles.auth.IdentityProvider
-import no.nav.helsearbeidsgiver.felles.rr.river.ObjectRiver
+import no.nav.hag.simba.utils.auth.AuthClient
+import no.nav.hag.simba.utils.auth.IdentityProvider
+import no.nav.hag.simba.utils.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.pdl.Behandlingsgrunnlag
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache

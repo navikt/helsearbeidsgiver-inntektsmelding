@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
-import no.nav.helsearbeidsgiver.felles.utils.fromEnv
+import no.nav.hag.simba.utils.felles.utils.fromEnv
 
 object Env {
     val redisHost = "REDIS_HOST_INNTEKTSMELDING".fromEnv()

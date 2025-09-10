@@ -1,15 +1,15 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.utils.felles.EventName
+import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.json.krev
+import no.nav.hag.simba.utils.felles.json.les
+import no.nav.hag.simba.utils.felles.model.Fail
+import no.nav.hag.simba.utils.felles.utils.Log
+import no.nav.hag.simba.utils.rr.KafkaKey
+import no.nav.hag.simba.utils.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
-import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.krev
-import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.model.Fail
-import no.nav.helsearbeidsgiver.felles.rr.KafkaKey
-import no.nav.helsearbeidsgiver.felles.rr.river.ObjectRiver
-import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer

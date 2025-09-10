@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 
-import no.nav.helsearbeidsgiver.felles.utils.fromEnv
+import no.nav.hag.simba.utils.felles.utils.fromEnv
 
 object Env {
     val spinnScope = "SPINN_SCOPE".fromEnv()

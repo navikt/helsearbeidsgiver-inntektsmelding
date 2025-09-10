@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice
 
+import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
-import no.nav.helsearbeidsgiver.felles.domene.PeriodeAapen
 
 private const val MAKS_DAGER_OPPHOLD = 3L
 

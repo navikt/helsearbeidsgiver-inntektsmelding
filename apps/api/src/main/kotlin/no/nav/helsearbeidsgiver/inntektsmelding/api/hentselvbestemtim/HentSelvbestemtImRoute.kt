@@ -4,16 +4,16 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.get
 import kotlinx.serialization.builtins.serializer
+import no.nav.hag.simba.utils.felles.EventName
+import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.domene.ResultJson
+import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.felles.utils.Log
+import no.nav.hag.simba.utils.kafka.Producer
+import no.nav.hag.simba.utils.valkey.RedisConnection
+import no.nav.hag.simba.utils.valkey.RedisPrefix
+import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
-import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.domene.ResultJson
-import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.kafka.Producer
-import no.nav.helsearbeidsgiver.felles.redis.RedisConnection
-import no.nav.helsearbeidsgiver.felles.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -68,7 +68,7 @@ fun Route.hentSelvbestemtImRoute(
 
                     if (inntektsmelding != null) {
                         tilgangskontroll.validerTilgangTilOrg(call.request, inntektsmelding.avsender.orgnr)
-                        sendOkResponse(inntektsmelding)
+                        sendOkResponse(inntektsmelding.fjernNavnHvisIngenArbeidsforhold())
                     } else {
                         val feilmelding =
                             result.failure
@@ -84,6 +84,13 @@ fun Route.hentSelvbestemtImRoute(
         }
     }
 }
+
+private fun Inntektsmelding.fjernNavnHvisIngenArbeidsforhold() =
+    if (type is Inntektsmelding.Type.Fisker || type is Inntektsmelding.Type.UtenArbeidsforhold) {
+        copy(sykmeldt = sykmeldt.copy(navn = "Ukjent navn"))
+    } else {
+        this
+    }
 
 private fun Producer.sendRequestEvent(
     kontekstId: UUID,

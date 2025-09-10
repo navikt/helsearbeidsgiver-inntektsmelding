@@ -3,18 +3,18 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
+import no.nav.hag.simba.utils.felles.test.mock.mockForespoersel
+import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
+import no.nav.hag.simba.utils.felles.test.mock.randomDigitString
+import no.nav.hag.simba.utils.felles.test.mock.utenPaakrevdAGP
+import no.nav.hag.simba.utils.felles.test.mock.utenPaakrevdInntekt
+import no.nav.hag.simba.utils.felles.test.mock.utenPaakrevdRefusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RefusjonEndring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
-import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
-import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
-import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
-import no.nav.helsearbeidsgiver.felles.test.mock.utenPaakrevdAGP
-import no.nav.helsearbeidsgiver.felles.test.mock.utenPaakrevdInntekt
-import no.nav.helsearbeidsgiver.felles.test.mock.utenPaakrevdRefusjon
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.november
 

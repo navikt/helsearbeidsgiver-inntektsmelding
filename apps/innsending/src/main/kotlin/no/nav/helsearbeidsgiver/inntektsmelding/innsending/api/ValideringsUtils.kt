@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending.api
 
+import no.nav.hag.simba.utils.felles.utils.gjennomsnitt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
-import no.nav.helsearbeidsgiver.felles.utils.gjennomsnitt
 import java.time.YearMonth
 
 const val FEILMARGIN_INNTEKT_A_ORDNING: Double = 10.0

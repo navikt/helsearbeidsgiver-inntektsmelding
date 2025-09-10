@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
+import no.nav.hag.simba.utils.felles.domene.Forespoersel
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
-import no.nav.helsearbeidsgiver.felles.domene.Forespoersel
 
 // Så lenge frontend sender felter som ikke kreves av Spleis så må vi filtrere ut disse for å sammenligne skjema
 fun SkjemaInntektsmelding.erDuplikatAv(

@@ -1,12 +1,12 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rr.KafkaKey
-import no.nav.helsearbeidsgiver.felles.test.mock.mockFail
+import no.nav.hag.simba.utils.felles.BehovType
+import no.nav.hag.simba.utils.felles.EventName
+import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.felles.test.mock.mockFail
+import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr

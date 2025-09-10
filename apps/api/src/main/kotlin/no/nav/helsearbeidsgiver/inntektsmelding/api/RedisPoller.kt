@@ -1,8 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import kotlinx.coroutines.delay
-import no.nav.helsearbeidsgiver.felles.domene.ResultJson
-import no.nav.helsearbeidsgiver.felles.redis.RedisStore
+import no.nav.hag.simba.utils.felles.domene.ResultJson
+import no.nav.hag.simba.utils.valkey.RedisStore
 import java.util.UUID
 
 private const val MAX_RETRIES = 10

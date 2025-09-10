@@ -230,7 +230,7 @@ private object Mock2 {
         val avvistInntektsmelding =
             AvvistInntektsmelding(
                 inntektsmeldingId = innsending.innsendingId,
-                feilkode = Feilkode.INNTEKT_A_ORDNINGEN_AVVIK_MANGLER_AARSAK,
+                feilkode = Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN,
             )
         return mapOf(
             InnsendingKey.EVENT_NAME to InnsendingEventName.AVVIST_INNTEKTSMELDING.toJson(),

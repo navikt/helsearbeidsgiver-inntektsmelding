@@ -25,7 +25,7 @@ fun SkjemaInntektsmelding.validerInntektMotAordningen(aordningInntekt: Map<YearM
 
     return when {
         inntektErUtenforFeilmargin || aordningInntekt.isEmpty() ->
-            setOf(Feilkode.INNTEKT_A_ORDNINGEN_AVVIK_MANGLER_AARSAK)
+            setOf(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN)
 
         else -> emptySet()
     }

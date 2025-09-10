@@ -14,5 +14,5 @@ data class AvvistInntektsmelding(
 )
 
 enum class Feilkode {
-    INNTEKT_A_ORDNINGEN_AVVIK_MANGLER_AARSAK,
+    INNTEKT_AVVIKER_FRA_A_ORDNINGEN,
 }

@@ -16,7 +16,6 @@ import no.nav.hag.simba.utils.rr.Publisher
 import no.nav.hag.simba.utils.rr.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending.toJson
-import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.toJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson

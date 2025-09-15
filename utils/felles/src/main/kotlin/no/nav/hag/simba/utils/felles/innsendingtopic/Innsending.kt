@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending.Key
 import no.nav.helsearbeidsgiver.utils.json.serializer.AsStringSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
@@ -45,12 +44,12 @@ object Innsending {
         serialName = "helsearbeidsgiver.kotlinx.felles.Innsending.Key",
         parse = Key.Companion::fromString,
     )
-}
 
-fun Map<Key, JsonElement>.toJson(): JsonElement =
-    toJson(
-        MapSerializer(
-            Key.serializer(),
-            JsonElement.serializer(),
-        ),
-    )
+    fun Map<Key, JsonElement>.toJson(): JsonElement =
+        toJson(
+            MapSerializer(
+                Key.serializer(),
+                JsonElement.serializer(),
+            ),
+        )
+}

@@ -7,7 +7,7 @@ import no.nav.hag.simba.utils.felles.pritopic.Pri
 import no.nav.hag.simba.utils.felles.pritopic.toJson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.JournalfoertInntektsmelding
 import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending
-import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.toJson
+import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.apache.kafka.clients.producer.KafkaProducer

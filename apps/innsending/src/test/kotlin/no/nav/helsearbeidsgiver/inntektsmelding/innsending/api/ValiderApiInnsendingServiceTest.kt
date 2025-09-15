@@ -30,7 +30,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending.toJson
-import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.toJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
@@ -172,7 +171,6 @@ class ValiderApiInnsendingServiceTest :
             testRapid.inspektør.size shouldBeExactly 0
         }
     }) {
-
     companion object {
         fun Innsending.medInntekt(inntekt: Inntekt): Innsending = this.copy(skjema = this.skjema.copy(inntekt = inntekt))
     }

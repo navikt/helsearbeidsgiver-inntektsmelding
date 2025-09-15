@@ -188,8 +188,7 @@ class ValiderApiInnsendingService(
         melding: Map<Key, JsonElement>,
         fail: Fail,
     ) {
-        logger.error("Klarte ikke gjennomføre validering av innsendt inntektsmelding.")
-        // TODO: La FeilLytter plukke opp og retrye feil som inneholder eventet?
+        // FeilLytter plukker opp og retryer feil som inneholder eventet API_INNSENDING_STARTET
     }
 
     override fun ValideringsSteg0.loggfelt(): Map<String, String> =

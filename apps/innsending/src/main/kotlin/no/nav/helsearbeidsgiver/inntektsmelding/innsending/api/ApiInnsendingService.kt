@@ -113,7 +113,7 @@ class ApiInnsendingService(
         melding: Map<Key, JsonElement>,
         fail: Fail,
     ) {
-        // TODO: Feilhåndtering?
+        // FeilLytter plukker opp og retryer feil som inneholder eventet API_INNSENDING_VALIDERT
     }
 
     override fun Steg0.loggfelt(): Map<String, String> =

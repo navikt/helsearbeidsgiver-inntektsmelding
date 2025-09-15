@@ -97,35 +97,34 @@ class ValiderApiInnsendingService(
         steg1: ValideringsSteg1,
     ) {
         val inntekt = steg0.innsending.skjema.inntekt
-        when {
-            inntekt == null || inntekt.endringAarsaker.isNotEmpty() ->
-                utfoerSteg2(data, steg0, steg1, steg2 = ValideringsSteg2(inntekt = emptyMap(), unnlatHentingAvInntekt = true))
 
-            else -> {
-                publisher
-                    .publish(
-                        key = steg0.innsending.skjema.forespoerselId,
-                        Key.EVENT_NAME to eventName.toJson(),
-                        Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
-                        Key.KONTEKST_ID to steg0.kontekstId.toJson(),
-                        Key.DATA to
-                            data
-                                .plus(
-                                    mapOf(
-                                        Key.SVAR_KAFKA_KEY to KafkaKey(steg0.innsending.skjema.forespoerselId).toJson(),
-                                        Key.ORGNR_UNDERENHET to steg1.forespoersel.orgnr.toJson(),
-                                        Key.FNR to steg1.forespoersel.fnr.toJson(),
-                                        Key.INNTEKTSDATO to inntekt.inntektsdato.toJson(),
-                                    ),
-                                ).toJson(),
-                    ).also {
-                        MdcUtils.withLogFields(
-                            Log.behov(BehovType.HENT_INNTEKT),
-                        ) {
-                            sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
-                        }
+        // Hvis inntektsmeldingen mangler inntekt eller har oppgitt endringsårsak, så er det ikke behov for å hente inntekt fra a-ordningen for validering
+        if (inntekt == null || inntekt.endringAarsaker.isNotEmpty()) {
+            utfoerSteg2(data, steg0, steg1, steg2 = ValideringsSteg2(inntekt = emptyMap(), unnlatHentingAvInntekt = true))
+        } else {
+            publisher
+                .publish(
+                    key = steg0.innsending.skjema.forespoerselId,
+                    Key.EVENT_NAME to eventName.toJson(),
+                    Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
+                    Key.KONTEKST_ID to steg0.kontekstId.toJson(),
+                    Key.DATA to
+                        data
+                            .plus(
+                                mapOf(
+                                    Key.SVAR_KAFKA_KEY to KafkaKey(steg0.innsending.skjema.forespoerselId).toJson(),
+                                    Key.ORGNR_UNDERENHET to steg1.forespoersel.orgnr.toJson(),
+                                    Key.FNR to steg1.forespoersel.fnr.toJson(),
+                                    Key.INNTEKTSDATO to inntekt.inntektsdato.toJson(),
+                                ),
+                            ).toJson(),
+                ).also {
+                    MdcUtils.withLogFields(
+                        Log.behov(BehovType.HENT_INNTEKT),
+                    ) {
+                        sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
                     }
-            }
+                }
         }
     }
 
@@ -135,11 +134,13 @@ class ValiderApiInnsendingService(
         steg1: ValideringsSteg1,
         steg2: ValideringsSteg2,
     ) {
+        val inntekt = steg0.innsending.skjema.inntekt
+
         val feilkoder =
-            if (steg2.unnlatHentingAvInntekt) {
+            if (inntekt == null || steg2.unnlatHentingAvInntekt) {
                 emptySet()
             } else {
-                steg0.innsending.skjema.validerInntektMotAordningen(aordningInntekt = steg2.inntekt)
+                inntekt.validerInntektMotAordningen(aordningInntekt = steg2.inntekt)
             }
 
         if (feilkoder.isNotEmpty()) {

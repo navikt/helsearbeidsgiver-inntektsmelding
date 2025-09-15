@@ -8,8 +8,8 @@ import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
 import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.RedisStore
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.api.ApiInnsendingService
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.api.ValiderApiInnsendingService
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.ApiInnsendingService
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.ValiderApiInnsendingService
 
 fun main() {
     val redisConnection =

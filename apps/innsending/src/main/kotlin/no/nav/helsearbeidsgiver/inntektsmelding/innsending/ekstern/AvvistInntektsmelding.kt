@@ -1,6 +1,6 @@
 @file:UseSerializers(UuidSerializer::class)
 
-package no.nav.helsearbeidsgiver.inntektsmelding.innsending.api
+package no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers

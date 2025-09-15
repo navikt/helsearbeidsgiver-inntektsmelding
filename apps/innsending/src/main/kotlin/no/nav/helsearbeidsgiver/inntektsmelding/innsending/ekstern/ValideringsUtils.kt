@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.innsending.api
+package no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern
 
 import no.nav.hag.simba.utils.felles.utils.gjennomsnitt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt

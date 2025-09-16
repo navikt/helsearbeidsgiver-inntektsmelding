@@ -12,6 +12,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.ApiInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.ValiderApiInnsendingService
 
 fun main() {
+    val producer = Producer(topic = "helsearbeidsgiver.api-innsending")
+
     val redisConnection =
         RedisConnection(
             host = Env.redisHost,
@@ -20,19 +22,26 @@ fun main() {
             password = Env.redisPassword,
         )
 
+    val isDev = "dev-gcp".equals(System.getenv()["NAIS_CLUSTER_NAME"], ignoreCase = true)
+
     ObjectRiver.connectToRapid(
         onShutdown = { redisConnection.close() },
     ) {
-        createInnsendingServices(it, redisConnection)
+        createInnsendingServices(
+            publisher = it,
+            redisConnection = redisConnection,
+            producer = producer,
+            taImotEksternInnsending = isDev,
+        )
     }
 }
 
 fun createInnsendingServices(
     publisher: Publisher,
     redisConnection: RedisConnection,
+    producer: Producer,
+    taImotEksternInnsending: Boolean,
 ): List<ObjectRiver.Simba<*>> {
-    val isDev = "dev-gcp".equals(System.getenv()["NAIS_CLUSTER_NAME"], ignoreCase = true)
-
     val innsendingServiceRiver =
         ServiceRiverStateless(
             InnsendingService(
@@ -40,21 +49,21 @@ fun createInnsendingServices(
                 redisStore = RedisStore(redisConnection, RedisPrefix.Innsending),
             ),
         )
-    val apiInnsendingServiceRiver =
-        if (isDev) {
-            ServiceRiverStateless(ApiInnsendingService(publisher = publisher))
+    val valideringsServiceRiver =
+        if (taImotEksternInnsending) {
+            ServiceRiverStateless(
+                ValiderApiInnsendingService(
+                    publisher = publisher,
+                    producer = producer,
+                ),
+            )
         } else {
             null
         }
 
-    val valideringsServiceRiver =
-        if (isDev) {
-            ServiceRiverStateless(
-                ValiderApiInnsendingService(
-                    publisher = publisher,
-                    producer = Producer(topic = "helsearbeidsgiver.api-innsending"),
-                ),
-            )
+    val apiInnsendingServiceRiver =
+        if (taImotEksternInnsending) {
+            ServiceRiverStateless(ApiInnsendingService(publisher = publisher))
         } else {
             null
         }

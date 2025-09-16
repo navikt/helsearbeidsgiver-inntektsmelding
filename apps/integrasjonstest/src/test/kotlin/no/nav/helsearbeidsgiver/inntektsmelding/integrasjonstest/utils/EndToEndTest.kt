@@ -191,7 +191,7 @@ abstract class EndToEndTest : ContainerTest() {
                 createBerikInntektsmeldingService(it),
                 createHentForespoerselServices(it, redisConnection),
                 createHentSelvbestemtImService(it, redisConnection),
-                createInnsendingServices(it, redisConnection),
+                createInnsendingServices(it, redisConnection, producer, taImotEksternInnsending = true),
                 createInntektSelvbestemtService(it, redisConnection),
                 createInntektService(it, redisConnection),
                 createLagreSelvbestemtImService(it, redisConnection),

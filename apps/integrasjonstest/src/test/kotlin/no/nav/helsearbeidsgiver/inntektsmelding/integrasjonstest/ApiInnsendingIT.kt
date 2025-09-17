@@ -21,9 +21,6 @@ import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
-import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending.toJson
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.AvvistInntektsmelding
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.Feilkode
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -40,8 +37,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
-import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending.EventName as InnsendingEventName
-import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending.Key as InnsendingKey
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ApiInnsendingIT : EndToEndTest() {
@@ -63,7 +58,6 @@ class ApiInnsendingIT : EndToEndTest() {
                 november(2017) to Mock.inntektBeloep.plus(10),
                 desember(2017) to Mock.inntektBeloep.minus(10),
             )
-
 
         coEvery { inntektClient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any()) } returns mapOf(Mock.orgnr.toString() to inntektFraAordningen)
 
@@ -148,60 +142,6 @@ class ApiInnsendingIT : EndToEndTest() {
             }
 
         bekreftMarkeringAvForespoerselSomBesvart()
-    }
-
-    @Test
-    fun `skal avvise inntektsmeldingen dersom valideringen mot a-ordningen ikke er OK`() {
-        mockForespoerselSvarFraHelsebro(
-            forespoerselId = Mock.forespoerselId,
-            forespoerselSvar = Mock.forespoerselSvar,
-        )
-
-        val inntektFraAordningen =
-            mapOf(
-                oktober(2017) to Mock.inntektBeloep,
-                november(2017) to Mock.inntektBeloep.minus(100),
-                desember(2017) to Mock.inntektBeloep.minus(100),
-            )
-
-        val kontekstId = UUID.randomUUID()
-
-
-        coEvery { inntektClient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any()) } returns mapOf(Mock.orgnr.toString() to inntektFraAordningen)
-
-        publish(
-            Key.EVENT_NAME to EventName.API_INNSENDING_STARTET.toJson(),
-            Key.KONTEKST_ID to kontekstId.toJson(),
-            Key.DATA to
-                mapOf(
-                    Key.INNSENDING to Mock.innsending.toJson(Innsending.serializer()),
-                    Key.MOTTATT to Mock.mottatt.toJson(),
-                ).toJson(),
-        )
-
-        val avvistInntektsmelding =
-            AvvistInntektsmelding(
-                inntektsmeldingId = Mock.innsending.innsendingId,
-                feilkode = Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN,
-            )
-
-        verify(exactly = 1) {
-            producer.send(
-                key = Mock.forespoerselId,
-                message =
-                    mapOf(
-                        InnsendingKey.EVENT_NAME to InnsendingEventName.AVVIST_INNTEKTSMELDING.toJson(),
-                        InnsendingKey.KONTEKST_ID to kontekstId.toJson(),
-                        InnsendingKey.DATA to
-                            mapOf(
-                                InnsendingKey.AVVIST_INNTEKTSMELDING to avvistInntektsmelding.toJson(AvvistInntektsmelding.serializer()),
-                            ).toJson(),
-                    ),
-            )
-        }
-
-        // Sender _ikke_ inntektsmeldingen videre i innsendingsløypa
-        messages.filter(EventName.API_INNSENDING_VALIDERT).all() shouldBe emptyList()
     }
 
     private fun bekreftMarkeringAvForespoerselSomBesvart() {

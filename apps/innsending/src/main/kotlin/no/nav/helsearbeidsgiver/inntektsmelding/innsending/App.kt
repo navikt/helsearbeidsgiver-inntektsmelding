@@ -22,6 +22,7 @@ fun main() {
             password = Env.redisPassword,
         )
 
+    // TODO: Enable i prod når vi kobler til nytt kafka-topic
     val isDev = "dev-gcp".equals(System.getenv()["NAIS_CLUSTER_NAME"], ignoreCase = true)
 
     ObjectRiver.connectToRapid(

@@ -178,7 +178,10 @@ class ValiderApiInnsendingService(
             MdcUtils.withLogFields(
                 Log.event(EventName.API_INNSENDING_VALIDERT),
             ) {
-                logger.info("Publiserte melding.")
+                logger.info(
+                    "Publiserte melding med event API_INNSENDING_VALIDERT for innsendingId ${steg0.innsending.innsendingId} " +
+                        "og forespoerselId ${steg0.innsending.skjema.forespoerselId}.",
+                )
                 sikkerLogger.info("Publiserte melding:\n${publisert.toPretty()}")
             }
         }

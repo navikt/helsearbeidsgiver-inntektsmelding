@@ -157,10 +157,6 @@ class ApiInnsendingIT : EndToEndTest() {
         }
     }
 
-    companion object {
-        fun Innsending.medInntekt(inntekt: Inntekt): Innsending = this.copy(skjema = this.skjema.copy(inntekt = inntekt))
-    }
-
     private object Mock {
         const val JOURNALPOST_ID = "journalpost-id-skoleboller"
 
@@ -205,3 +201,5 @@ class ApiInnsendingIT : EndToEndTest() {
             )
     }
 }
+
+fun Innsending.medInntekt(inntekt: Inntekt): Innsending = this.copy(skjema = this.skjema.copy(inntekt = inntekt))

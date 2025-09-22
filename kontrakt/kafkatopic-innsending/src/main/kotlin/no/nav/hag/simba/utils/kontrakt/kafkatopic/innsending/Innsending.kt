@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic
+package no.nav.hag.simba.utils.kontrakt.kafkatopic.innsending
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.MapSerializer
@@ -31,19 +31,19 @@ object Innsending {
 
         companion object {
             internal fun fromString(key: String): Key =
-                Key.entries.firstOrNull {
+                entries.firstOrNull {
                     key == it.toString()
                 }
                     ?: throw IllegalArgumentException("Fant ingen Key med verdi som matchet '$key'.")
         }
     }
 
-    fun EventName.toJson(): JsonElement = toJson(EventName.serializer())
-
     internal object KeySerializer : AsStringSerializer<Key>(
         serialName = "helsearbeidsgiver.kotlinx.felles.Innsending.Key",
         parse = Key.Companion::fromString,
     )
+
+    fun EventName.toJson(): JsonElement = toJson(EventName.serializer())
 
     fun Map<Key, JsonElement>.toJson(): JsonElement =
         toJson(

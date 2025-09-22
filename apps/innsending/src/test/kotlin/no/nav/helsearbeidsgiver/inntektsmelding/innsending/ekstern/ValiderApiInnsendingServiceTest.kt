@@ -22,6 +22,7 @@ import no.nav.hag.simba.utils.felles.test.mock.mockInnsending
 import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.test.mockForespoersel
+import no.nav.hag.simba.utils.kontrakt.kafkatopic.innsending.Innsending.toJson
 import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
 import no.nav.hag.simba.utils.rr.test.message
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
@@ -29,7 +30,6 @@ import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
-import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending.toJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
@@ -41,8 +41,8 @@ import no.nav.helsearbeidsgiver.utils.test.date.mai
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import java.util.UUID
-import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending.EventName as InnsendingEventName
-import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending.Key as InnsendingKey
+import no.nav.hag.simba.utils.kontrakt.kafkatopic.innsending.Innsending.EventName as InnsendingEventName
+import no.nav.hag.simba.utils.kontrakt.kafkatopic.innsending.Innsending.Key as InnsendingKey
 
 class ValiderApiInnsendingServiceTest :
     FunSpec({

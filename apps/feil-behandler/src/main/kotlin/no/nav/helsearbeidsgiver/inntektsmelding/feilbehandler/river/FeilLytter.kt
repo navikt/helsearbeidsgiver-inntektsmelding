@@ -49,6 +49,8 @@ class FeilLytter(
             EventName.INNTEKTSMELDING_JOURNALPOST_ID_LAGRET,
             EventName.SELVBESTEMT_IM_LAGRET,
             EventName.INNTEKTSMELDING_DISTRIBUERT,
+            EventName.API_INNSENDING_STARTET,
+            EventName.API_INNSENDING_VALIDERT,
         )
 
     override fun les(json: Map<Key, JsonElement>): Melding =

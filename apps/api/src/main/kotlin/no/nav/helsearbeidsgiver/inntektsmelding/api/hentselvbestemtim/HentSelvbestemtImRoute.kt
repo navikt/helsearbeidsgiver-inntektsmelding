@@ -68,7 +68,7 @@ fun Route.hentSelvbestemtImRoute(
 
                     if (inntektsmelding != null) {
                         tilgangskontroll.validerTilgangTilOrg(call.request, inntektsmelding.avsender.orgnr)
-                        sendOkResponse(inntektsmelding)
+                        sendOkResponse(inntektsmelding.fjernNavnHvisIngenArbeidsforhold())
                     } else {
                         val feilmelding =
                             result.failure
@@ -84,6 +84,13 @@ fun Route.hentSelvbestemtImRoute(
         }
     }
 }
+
+private fun Inntektsmelding.fjernNavnHvisIngenArbeidsforhold() =
+    if (type is Inntektsmelding.Type.Fisker || type is Inntektsmelding.Type.UtenArbeidsforhold) {
+        copy(sykmeldt = sykmeldt.copy(navn = "Ukjent navn"))
+    } else {
+        this
+    }
 
 private fun Producer.sendRequestEvent(
     kontekstId: UUID,

@@ -44,6 +44,7 @@ spec:
     logging:
       destinations:
         - id: loki
+        - id: secure_logs
     autoInstrumentation:
       enabled: true
       runtime: java
@@ -114,6 +115,8 @@ spec:
         - host: {{ item }}
       {{/each}}{{/if}}
       rules:
+        - application: logging
+          namespace: nais-system
         {{#if apps}}{{# each apps as |app| }}
         - application: {{ app.name }}
           {{#if app.namespace}}

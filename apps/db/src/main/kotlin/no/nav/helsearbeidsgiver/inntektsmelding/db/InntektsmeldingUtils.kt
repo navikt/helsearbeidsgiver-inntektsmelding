@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
-import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.Forespoersel
+import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 
 // Så lenge frontend sender felter som ikke kreves av Spleis så må vi filtrere ut disse for å sammenligne skjema

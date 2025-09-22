@@ -4,14 +4,14 @@ import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
+import no.nav.hag.simba.kontrakt.domene.inntektsmelding.EksternInntektsmelding
+import no.nav.hag.simba.kontrakt.domene.inntektsmelding.test.mockEksternInntektsmelding
+import no.nav.hag.simba.kontrakt.kafkatopic.pri.Pri
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.json.les
 import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toMap
-import no.nav.hag.simba.utils.kontrakt.domene.inntektsmelding.EksternInntektsmelding
-import no.nav.hag.simba.utils.kontrakt.domene.inntektsmelding.test.mockEksternInntektsmelding
-import no.nav.hag.simba.utils.kontrakt.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson

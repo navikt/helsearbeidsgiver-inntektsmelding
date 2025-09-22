@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
+import no.nav.hag.simba.kontrakt.kafkatopic.pri.Pri
 import no.nav.hag.simba.utils.kafka.Producer
-import no.nav.hag.simba.utils.kontrakt.kafkatopic.pri.Pri
 import no.nav.hag.simba.utils.rr.river.ObjectRiver
 
 fun main() {

@@ -7,14 +7,14 @@ import io.mockk.coEvery
 import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
+import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
+import no.nav.hag.simba.kontrakt.resultat.kvittering.KvitteringResultat
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
-import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.test.mockForespoersel
-import no.nav.hag.simba.utils.kontrakt.domene.inntektsmelding.LagretInntektsmelding
-import no.nav.hag.simba.utils.kontrakt.resultat.kvittering.KvitteringResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat

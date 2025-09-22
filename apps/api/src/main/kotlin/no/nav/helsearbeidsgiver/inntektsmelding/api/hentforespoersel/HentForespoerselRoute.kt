@@ -6,6 +6,7 @@ import io.ktor.server.routing.RoutingRequest
 import io.ktor.server.routing.get
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.resultat.forespoersel.HentForespoerselResultat
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.Tekst
@@ -13,7 +14,6 @@ import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.felles.utils.gjennomsnitt
 import no.nav.hag.simba.utils.kafka.Producer
-import no.nav.hag.simba.utils.kontrakt.resultat.forespoersel.HentForespoerselResultat
 import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.RedisStore

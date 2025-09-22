@@ -3,12 +3,12 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
+import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
+import no.nav.hag.simba.kontrakt.domene.forespoersel.test.utenPaakrevdAGP
+import no.nav.hag.simba.kontrakt.domene.forespoersel.test.utenPaakrevdInntekt
+import no.nav.hag.simba.kontrakt.domene.forespoersel.test.utenPaakrevdRefusjon
 import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.hag.simba.utils.felles.test.mock.randomDigitString
-import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.test.mockForespoersel
-import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.test.utenPaakrevdAGP
-import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.test.utenPaakrevdInntekt
-import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.test.utenPaakrevdRefusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt

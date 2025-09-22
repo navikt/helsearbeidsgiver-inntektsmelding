@@ -9,6 +9,7 @@ import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import no.nav.hag.simba.kontrakt.domene.arbeidsgiver.AktiveArbeidsgivere
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
@@ -23,7 +24,6 @@ import no.nav.hag.simba.utils.felles.test.json.lesBehov
 import no.nav.hag.simba.utils.felles.test.json.lesData
 import no.nav.hag.simba.utils.felles.test.json.plusData
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
-import no.nav.hag.simba.utils.kontrakt.domene.arbeidsgiver.AktiveArbeidsgivere
 import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.service.ServiceRiverStateful
 import no.nav.hag.simba.utils.rr.test.message

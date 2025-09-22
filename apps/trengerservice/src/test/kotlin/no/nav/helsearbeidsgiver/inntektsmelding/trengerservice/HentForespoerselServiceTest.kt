@@ -9,6 +9,9 @@ import io.mockk.clearAllMocks
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
+import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
+import no.nav.hag.simba.kontrakt.resultat.forespoersel.HentForespoerselResultat
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
@@ -22,9 +25,6 @@ import no.nav.hag.simba.utils.felles.json.personMapSerializer
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.test.json.lesBehov
 import no.nav.hag.simba.utils.felles.test.json.lesData
-import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.Forespoersel
-import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.test.mockForespoersel
-import no.nav.hag.simba.utils.kontrakt.resultat.forespoersel.HentForespoerselResultat
 import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.service.ServiceRiverStateful
 import no.nav.hag.simba.utils.rr.test.message

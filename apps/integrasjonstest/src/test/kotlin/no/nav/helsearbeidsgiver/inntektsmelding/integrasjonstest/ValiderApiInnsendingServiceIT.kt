@@ -6,6 +6,10 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.ForespoerselFraBro
+import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
+import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespurtData
+import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.toJson
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
@@ -15,10 +19,6 @@ import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.test.json.lesBehov
 import no.nav.hag.simba.utils.felles.test.mock.mockInnsending
-import no.nav.hag.simba.utils.kontrakt.domene.bro.forespoersel.ForespoerselFraBro
-import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.Forespoersel
-import no.nav.hag.simba.utils.kontrakt.domene.forespoersel.test.mockForespurtData
-import no.nav.hag.simba.utils.kontrakt.kafkatopic.innsending.Innsending.toJson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
@@ -43,8 +43,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
-import no.nav.hag.simba.utils.kontrakt.kafkatopic.innsending.Innsending.EventName as InnsendingEventName
-import no.nav.hag.simba.utils.kontrakt.kafkatopic.innsending.Innsending.Key as InnsendingKey
+import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.EventName as InnsendingEventName
+import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.Key as InnsendingKey
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ValiderApiInnsendingServiceIT : EndToEndTest() {

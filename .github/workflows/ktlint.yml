@@ -3,14 +3,7 @@ name: Ktlint
 on: pull_request
 
 jobs:
-  Ktlint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: "Install ktlint"
-        uses: nbadal/action-ktlint-setup@v1
-        with:
-          ktlint_version: '1.3.0'
-      - run: ktlint
-        shell: bash
+  ktlint:
+    uses: navikt/hag-workflows/.github/workflows/ktlint.yml@main
+    with:
+      ktlint-version: '1.3.0'

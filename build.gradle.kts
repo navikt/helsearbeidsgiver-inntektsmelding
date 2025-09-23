@@ -159,6 +159,7 @@ dependencies {
 }
 
 tasks {
+    // Krever -PchangedFiles=<filA,filB,filC,...>
     register("buildMatrix") {
         doLast {
             taskOutputJson(
@@ -167,12 +168,9 @@ tasks {
         }
     }
 
-    register("deployMatrixDev") {
-        deployMatrix(includeCluster = "dev-gcp")
-    }
-
-    register("deployMatrixProd") {
-        deployMatrix(includeCluster = "prod-gcp")
+    // Krever -PclusterEnv=<dev/prod> og -PchangedFiles=<filA,filB,filC,...>
+    register("deployMatrix") {
+        deployMatrix()
     }
 
     check {
@@ -184,8 +182,8 @@ fun getBuildableProjects(): List<String> {
     val testfilRegex = Regex("^(?:apps|kontrakt|utils)/[\\w-]+/src/test(?:Fixtures)?.+")
 
     val changedFiles =
-        System
-            .getenv("CHANGED_FILES")
+        properties["changedFiles"]
+            ?.toString()
             ?.takeIf(String::isNotBlank)
             ?.split(",")
             ?.filterNot(testfilRegex::matches)
@@ -221,7 +219,9 @@ fun getBuildableProjects(): List<String> {
         }
 }
 
-fun getDeployMatrixVariables(includeCluster: String): Triple<Set<String>, Set<String>, List<Pair<String, String>>> {
+fun getDeployMatrixVariables(): Triple<Set<String>, Set<String>, List<Pair<String, String>>> {
+    val includeCluster = "${properties["clusterEnv"].toString()}-gcp"
+
     val clustersByProject =
         getBuildableProjects()
             .associateWith { project ->
@@ -281,13 +281,13 @@ fun Project.erAppModul(): Boolean =
 
 fun Project.erIntegrasjonstestModul(): Boolean = name == "integrasjonstest"
 
-fun Task.deployMatrix(includeCluster: String) {
+fun Task.deployMatrix() {
     doLast {
         val (
             deployableProjects,
             clusters,
             exclusions,
-        ) = getDeployMatrixVariables(includeCluster)
+        ) = getDeployMatrixVariables()
 
         taskOutputJson(
             "project" to deployableProjects.toJsonList(),

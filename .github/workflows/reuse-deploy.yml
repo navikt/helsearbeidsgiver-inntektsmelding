@@ -1,0 +1,43 @@
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      env:
+        required: true
+        type: string
+      deploy-matrix:
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    if: "!contains(inputs.deploy-matrix, '\"project\": []')"
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(inputs.deploy-matrix) }}
+    concurrency:
+      group: deploy-${{ inputs.env }}-${{ matrix.project }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Last ned Docker image-fil
+        uses: actions/download-artifact@v5
+        with:
+          name: ${{ matrix.project }}-image
+
+      - name: Les Docker image-fil
+        id: docker-image
+        run: echo "image=$(cat ${{ matrix.project }}-image.txt)" >> $GITHUB_OUTPUT
+
+      - name: Deploy
+        uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: ${{ matrix.cluster }}
+          WORKLOAD_IMAGE: ${{ steps.docker-image.outputs.image }}
+          RESOURCE: config/nais.yml
+          VAR: app=${{ matrix.project }}
+          VARS: config/${{ matrix.project }}/${{ matrix.cluster }}.yml

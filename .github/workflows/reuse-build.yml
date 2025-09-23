@@ -8,8 +8,17 @@ on:
         type: string
 
 jobs:
+  pre-build:
+    runs-on: ubuntu-latest
+    outputs:
+      is-matrix-empty: ${{ steps.validate-matrix.outputs.is-matrix-empty }}
+    steps:
+      - id: validate-matrix
+        run: echo "is-matrix-empty=$(echo ${{ inputs.build-matrix }} | jq '.project == []')" >> $GITHUB_OUTPUT
+
   build:
     runs-on: ubuntu-latest
+    needs: pre-build
     if: 'inputs.build-matrix != ''{"project": []}'''
     strategy:
       fail-fast: false

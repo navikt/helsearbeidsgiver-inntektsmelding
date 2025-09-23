@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: ${{ !contains(inputs.build-matrix, '[]') }}
+    if: '!contains(inputs.build-matrix, ''{"project": []}'')'
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(inputs.build-matrix) }}

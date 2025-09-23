@@ -35,7 +35,7 @@ jobs:
             git_diff=$(git diff-tree --no-commit-id --name-only -r -m $GITHUB_SHA)
           fi
 
-          changed_files=$(echo $git_diff | tr '\r\n' ',' | sed -e 's/,$//' | tr -d '"')
+          changed_files=$(echo $git_diff | tr -s '[:space:]' ',' | sed -e 's/,$//' | tr -d '"')
           echo "changed-files=$changed_files" >> $GITHUB_OUTPUT
           echo Changed files are [$changed_files]
 

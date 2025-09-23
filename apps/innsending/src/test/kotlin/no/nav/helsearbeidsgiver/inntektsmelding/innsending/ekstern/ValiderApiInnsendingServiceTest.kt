@@ -8,10 +8,12 @@ import io.mockk.clearAllMocks
 import io.mockk.mockk
 import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
+import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
+import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.toJson
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.Forespoersel
 import no.nav.hag.simba.utils.felles.json.inntektMapSerializer
 import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toJson
@@ -19,7 +21,6 @@ import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.test.json.lesBehov
 import no.nav.hag.simba.utils.felles.test.json.plusData
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
-import no.nav.hag.simba.utils.felles.test.mock.mockForespoersel
 import no.nav.hag.simba.utils.felles.test.mock.mockInnsending
 import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
@@ -29,7 +30,6 @@ import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
-import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending.toJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
@@ -41,8 +41,8 @@ import no.nav.helsearbeidsgiver.utils.test.date.mai
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import java.util.UUID
-import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending.EventName as InnsendingEventName
-import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending.Key as InnsendingKey
+import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.EventName as InnsendingEventName
+import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.Key as InnsendingKey
 
 class ValiderApiInnsendingServiceTest :
     FunSpec({

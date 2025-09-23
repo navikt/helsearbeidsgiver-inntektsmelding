@@ -2,13 +2,13 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
+import no.nav.hag.simba.kontrakt.domene.inntektsmelding.test.mockEksternInntektsmelding
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.LagretInntektsmelding
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
-import no.nav.hag.simba.utils.felles.test.mock.mockEksternInntektsmelding
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
 import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.hag.simba.utils.valkey.RedisPrefix

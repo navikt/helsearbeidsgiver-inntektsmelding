@@ -11,10 +11,10 @@ import io.mockk.slot
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.ForespoerselFraBro
+import no.nav.hag.simba.kontrakt.kafkatopic.pri.Pri
 import no.nav.hag.simba.utils.db.exposed.Database
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.ForespoerselFraBro
-import no.nav.hag.simba.utils.felles.pritopic.Pri
 import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.rr.test.ImTestRapid
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid

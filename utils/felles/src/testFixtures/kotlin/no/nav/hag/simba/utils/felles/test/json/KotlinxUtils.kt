@@ -5,10 +5,10 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
-import no.nav.hag.simba.utils.felles.model.Fail
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 
 fun JsonElement.lesBehov(): BehovType? = Key.BEHOV.lesOrNull(BehovType.serializer(), this.toMap())

@@ -7,15 +7,15 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
+import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.ForespoerselFraBro
+import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
+import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespurtData
+import no.nav.hag.simba.kontrakt.kafkatopic.pri.Pri
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.Forespoersel
-import no.nav.hag.simba.utils.felles.domene.ForespoerselFraBro
 import no.nav.hag.simba.utils.felles.json.les
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
-import no.nav.hag.simba.utils.felles.pritopic.Pri
-import no.nav.hag.simba.utils.felles.test.mock.mockForespurtData
 import no.nav.hag.simba.utils.felles.test.mock.mockInnsending
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
@@ -157,10 +157,6 @@ class ApiInnsendingIT : EndToEndTest() {
         }
     }
 
-    companion object {
-        fun Innsending.medInntekt(inntekt: Inntekt): Innsending = this.copy(skjema = this.skjema.copy(inntekt = inntekt))
-    }
-
     private object Mock {
         const val JOURNALPOST_ID = "journalpost-id-skoleboller"
 
@@ -205,3 +201,5 @@ class ApiInnsendingIT : EndToEndTest() {
             )
     }
 }
+
+fun Innsending.medInntekt(inntekt: Inntekt): Innsending = this.copy(skjema = this.skjema.copy(inntekt = inntekt))

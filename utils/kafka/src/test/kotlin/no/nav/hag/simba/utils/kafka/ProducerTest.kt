@@ -7,10 +7,10 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.kafkatopic.pri.Pri
+import no.nav.hag.simba.kontrakt.kafkatopic.pri.toJson
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.json.toJson
-import no.nav.hag.simba.utils.felles.pritopic.Pri
-import no.nav.hag.simba.utils.felles.pritopic.toJson
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
 import no.nav.hag.simba.utils.felles.test.mock.randomDigitString
 import no.nav.hag.simba.utils.kafka.test.mockRecordMetadata

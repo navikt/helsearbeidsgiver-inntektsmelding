@@ -3,6 +3,7 @@ val ktorVersion: String by project
 val spinnInntektsmeldingKontraktVersion: String by project
 
 dependencies {
+    implementation(project(":kontrakt-domene-inntektsmelding"))
     implementation(project(":utils-auth"))
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
@@ -13,5 +14,6 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("no.nav.sykepenger.kontrakter:inntektsmelding-kontrakt:$spinnInntektsmeldingKontraktVersion")
 
+    testImplementation(testFixtures(project(":kontrakt-domene-inntektsmelding")))
     testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
 }

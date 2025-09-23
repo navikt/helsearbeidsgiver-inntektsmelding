@@ -9,10 +9,11 @@ import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
+import no.nav.hag.simba.kontrakt.domene.arbeidsgiver.AktiveArbeidsgivere
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.AktiveArbeidsgivere
+import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.ansettelsesperioderSerializer
@@ -20,7 +21,6 @@ import no.nav.hag.simba.utils.felles.json.les
 import no.nav.hag.simba.utils.felles.json.orgMapSerializer
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
-import no.nav.hag.simba.utils.felles.model.Fail
 import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.helsearbeidsgiver.aareg.Periode

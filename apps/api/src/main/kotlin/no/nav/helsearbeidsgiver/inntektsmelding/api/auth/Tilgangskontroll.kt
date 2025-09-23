@@ -3,9 +3,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.auth
 import io.ktor.server.request.ApplicationRequest
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.resultat.tilgang.Tilgang
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.Tilgang
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.kafka.Producer

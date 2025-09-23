@@ -5,5 +5,10 @@ plugins {
 }
 
 dependencies {
+    api(project(":kontrakt-kafkatopic-innsending"))
+    api(project(":kontrakt-kafkatopic-pri"))
+    api(project(":utils-felles"))
     api("org.apache.kafka:kafka-clients:$kafkaClientVersion")
+
+    testImplementation(testFixtures(project(":utils-felles")))
 }

@@ -6,12 +6,11 @@ import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.post
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
+import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.Tekst.TEKNISK_FEIL_FORBIGAAENDE
 import no.nav.hag.simba.utils.felles.Tekst.UGYLDIG_REQUEST
-import no.nav.hag.simba.utils.felles.domene.Forespoersel
-import no.nav.hag.simba.utils.felles.domene.VedtaksperiodeIdForespoerselIdPar
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.valkey.RedisConnection

@@ -6,25 +6,24 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.ForespoerselFraBro
+import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
+import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespurtData
+import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.toJson
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.Forespoersel
-import no.nav.hag.simba.utils.felles.domene.ForespoerselFraBro
 import no.nav.hag.simba.utils.felles.json.inntektMapSerializer
 import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.test.json.lesBehov
-import no.nav.hag.simba.utils.felles.test.mock.mockForespurtData
 import no.nav.hag.simba.utils.felles.test.mock.mockInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
-import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending.toJson
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.AvvistInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.Feilkode
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.ApiInnsendingIT.Companion.medInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
@@ -44,8 +43,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
-import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending.EventName as InnsendingEventName
-import no.nav.helsearbeidsgiver.felles.kafka.innsendingtopic.Innsending.Key as InnsendingKey
+import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.EventName as InnsendingEventName
+import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.Key as InnsendingKey
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ValiderApiInnsendingServiceIT : EndToEndTest() {

@@ -9,10 +9,10 @@ import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import no.nav.hag.simba.kontrakt.domene.arbeidsgiver.AktiveArbeidsgivere
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.AktiveArbeidsgivere
 import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
 import no.nav.hag.simba.utils.felles.domene.Person
 import no.nav.hag.simba.utils.felles.domene.ResultJson

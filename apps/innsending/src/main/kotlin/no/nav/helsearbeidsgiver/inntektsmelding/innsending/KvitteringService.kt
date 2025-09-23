@@ -1,19 +1,19 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
+import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
+import no.nav.hag.simba.kontrakt.resultat.kvittering.KvitteringResultat
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.Forespoersel
-import no.nav.hag.simba.utils.felles.domene.KvitteringResultat
-import no.nav.hag.simba.utils.felles.domene.LagretInntektsmelding
+import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.domene.Person
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.les
 import no.nav.hag.simba.utils.felles.json.orgMapSerializer
 import no.nav.hag.simba.utils.felles.json.personMapSerializer
 import no.nav.hag.simba.utils.felles.json.toJson
-import no.nav.hag.simba.utils.felles.model.Fail
 import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.Publisher

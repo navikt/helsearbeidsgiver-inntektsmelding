@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
-import no.nav.hag.simba.utils.felles.domene.EksternInntektsmelding
-import no.nav.hag.simba.utils.felles.domene.LagretInntektsmelding
+import no.nav.hag.simba.kontrakt.domene.inntektsmelding.EksternInntektsmelding
+import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.InntektsmeldingGammeltFormat

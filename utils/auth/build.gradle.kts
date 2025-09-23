@@ -1,6 +1,7 @@
 val ktorVersion: String by project
 
 dependencies {
+    implementation(project(":utils-felles"))
     implementation("io.ktor:ktor-client-apache5:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-client-core:$ktorVersion")

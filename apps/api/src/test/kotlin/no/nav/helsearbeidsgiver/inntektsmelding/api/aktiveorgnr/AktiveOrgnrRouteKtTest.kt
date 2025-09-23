@@ -9,10 +9,10 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.arbeidsgiver.AktiveArbeidsgivere
+import no.nav.hag.simba.kontrakt.domene.arbeidsgiver.AktiveArbeidsgivere.Arbeidsgiver
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.AktiveArbeidsgivere
-import no.nav.hag.simba.utils.felles.domene.AktiveArbeidsgivere.Arbeidsgiver
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes

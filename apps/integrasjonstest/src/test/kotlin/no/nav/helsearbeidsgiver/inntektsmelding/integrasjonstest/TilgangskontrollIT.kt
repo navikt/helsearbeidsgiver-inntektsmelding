@@ -10,10 +10,10 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.resultat.tilgang.Tilgang
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.Tilgang
 import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.kafka.Producer

@@ -7,10 +7,11 @@ import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
+import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.Forespoersel
 import no.nav.hag.simba.utils.felles.domene.Person
 import no.nav.hag.simba.utils.felles.json.orgMapSerializer
 import no.nav.hag.simba.utils.felles.json.personMapSerializer
@@ -19,7 +20,6 @@ import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.test.json.lesBehov
 import no.nav.hag.simba.utils.felles.test.json.plusData
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
-import no.nav.hag.simba.utils.felles.test.mock.mockForespoersel
 import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
 import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.message

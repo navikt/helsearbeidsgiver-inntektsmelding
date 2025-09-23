@@ -6,11 +6,11 @@ import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldContainKey
 import io.mockk.clearAllMocks
+import no.nav.hag.simba.kontrakt.kafkatopic.pri.Pri
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
-import no.nav.hag.simba.utils.felles.pritopic.Pri
 import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson

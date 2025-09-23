@@ -1,11 +1,11 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.ForespoerselFraBro
+import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespurtData
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.ForespoerselFraBro
 import no.nav.hag.simba.utils.felles.json.toJson
-import no.nav.hag.simba.utils.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselListeSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar

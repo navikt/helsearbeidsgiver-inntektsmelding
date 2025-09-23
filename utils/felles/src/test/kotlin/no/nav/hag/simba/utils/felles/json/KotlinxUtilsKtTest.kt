@@ -14,7 +14,6 @@ import kotlinx.serialization.json.JsonObject
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.IKey
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.pritopic.Pri
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
 class KotlinxUtilsKtTest :
@@ -67,7 +66,7 @@ class KotlinxUtilsKtTest :
             withData(
                 mapOf<String, Row2<IKey, String>>(
                     "Key leses" to row(Key.EVENT_NAME, "testevent"),
-                    "Pri.Key leses" to row(Pri.Key.NOTIS, "husk å drikke vann"),
+                    "TestKey leses" to row(TestKey.EVENT_RSVP, "husk å drikke vann"),
                 ),
             ) { (key, expectedValue) ->
                 val jsonMap = mapOf(key to expectedValue.toJson())
@@ -77,15 +76,16 @@ class KotlinxUtilsKtTest :
                 actualValue shouldBe expectedValue
             }
 
-            test("Key og Pri.Key leses fra samme map") {
+            test("Key og TestKey.Key leses fra samme map") {
+
                 val jsonMap =
                     mapOf(
                         Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-                        Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
+                        TestKey.EVENT_RSVP to "Kanskje".toJson(String.serializer()),
                     )
 
                 Key.EVENT_NAME.les(EventName.serializer(), jsonMap) shouldBe EventName.TRENGER_REQUESTED
-                Pri.Key.NOTIS.les(Pri.NotisType.serializer(), jsonMap) shouldBe Pri.NotisType.FORESPØRSEL_MOTTATT
+                TestKey.EVENT_RSVP.les(String.serializer(), jsonMap) shouldBe "Kanskje"
             }
 
             withData(
@@ -105,3 +105,7 @@ class KotlinxUtilsKtTest :
             }
         }
     })
+
+private enum class TestKey : IKey {
+    EVENT_RSVP,
+}

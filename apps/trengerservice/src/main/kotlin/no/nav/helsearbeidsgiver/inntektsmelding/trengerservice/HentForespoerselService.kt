@@ -2,12 +2,13 @@ package no.nav.helsearbeidsgiver.inntektsmelding.trengerservice
 
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
+import no.nav.hag.simba.kontrakt.resultat.forespoersel.HentForespoerselResultat
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.Tekst
-import no.nav.hag.simba.utils.felles.domene.Forespoersel
-import no.nav.hag.simba.utils.felles.domene.HentForespoerselResultat
+import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.domene.Person
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.inntektMapSerializer
@@ -16,7 +17,6 @@ import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.orgMapSerializer
 import no.nav.hag.simba.utils.felles.json.personMapSerializer
 import no.nav.hag.simba.utils.felles.json.toJson
-import no.nav.hag.simba.utils.felles.model.Fail
 import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.Publisher

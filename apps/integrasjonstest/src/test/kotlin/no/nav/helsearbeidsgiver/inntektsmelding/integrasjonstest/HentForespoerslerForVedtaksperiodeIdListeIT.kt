@@ -4,10 +4,10 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.builtins.MapSerializer
+import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.Forespoersel
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap

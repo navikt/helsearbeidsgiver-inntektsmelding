@@ -1,14 +1,14 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart
 
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.kafkatopic.pri.Pri
+import no.nav.hag.simba.kontrakt.kafkatopic.pri.toPretty
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.json.krev
 import no.nav.hag.simba.utils.felles.json.les
 import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toJson
-import no.nav.hag.simba.utils.felles.pritopic.Pri
-import no.nav.hag.simba.utils.felles.pritopic.toPretty
 import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.river.ObjectRiver
@@ -72,7 +72,7 @@ class ForespoerselBesvartRiver : ObjectRiver.PriTopic<BesvartMelding>() {
     override fun BesvartMelding.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this@ForespoerselBesvartRiver),
-            Log.priNotis(notisType),
+            Log.priNotis(notisType.name),
             Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )

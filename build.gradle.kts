@@ -51,7 +51,7 @@ subprojects {
             }
         }
 
-        if (!project.erUtilsModul()) {
+        if (project.erAppModul()) {
             named<Jar>("jar") {
                 archiveBaseName.set("app")
 
@@ -125,14 +125,12 @@ subprojects {
             }
         }
 
-        if (!erUtilsFellesModul()) {
+        if (erAppModul()) {
             implementation(project(":utils-felles"))
-            testImplementation(testFixtures(project(":utils-felles")))
+            implementation(project(":utils-rapids-and-rivers"))
 
-            if (!erUtilsModul()) {
-                implementation(project(":utils-rapids-and-rivers"))
-                testImplementation(testFixtures(project(":utils-rapids-and-rivers")))
-            }
+            testImplementation(testFixtures(project(":utils-felles")))
+            testImplementation(testFixtures(project(":utils-rapids-and-rivers")))
         }
 
         implementation("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion")
@@ -183,7 +181,7 @@ tasks {
 }
 
 fun getBuildableProjects(): List<String> {
-    val testfilRegex = Regex("^(?:apps|utils)/[\\w-]+/src/test(?:Fixtures)?.+")
+    val testfilRegex = Regex("^(?:apps|kontrakt|utils)/[\\w-]+/src/test(?:Fixtures)?.+")
 
     val changedFiles =
         System
@@ -194,22 +192,10 @@ fun getBuildableProjects(): List<String> {
             ?: throw IllegalStateException("Ingen endrede filer funnet.")
 
     val hasCommonChanges =
-        changedFiles.any { file ->
-            val hasUtilsChanges =
-                setOf(
-                    "auth",
-                    "felles",
-                    "rapids-and-rivers",
-                ).flatMap {
-                    setOf(
-                        "utils/$it/build.gradle.kts",
-                        "utils/$it/gradle.properties",
-                        "utils/$it/src/main/",
-                    )
-                }.any { file.startsWith(it) }
-
-            hasUtilsChanges ||
-                file in
+        changedFiles.any {
+            it.startsWith("kontrakt/") ||
+                it.startsWith("utils/") ||
+                it in
                 listOf(
                     "Dockerfile",
                     "build.gradle.kts",
@@ -289,9 +275,9 @@ fun Task.validateMainClassFound(mainClass: String) {
 
 fun Project.mainClass(): String = "$group.${name.replace("-", "")}.AppKt"
 
-fun Project.erUtilsModul(): Boolean = name.startsWith("utils-")
-
-fun Project.erUtilsFellesModul(): Boolean = name == "utils-felles"
+fun Project.erAppModul(): Boolean =
+    !name.startsWith("kontrakt-") &&
+        !name.startsWith("utils-")
 
 fun Project.erIntegrasjonstestModul(): Boolean = name == "integrasjonstest"
 

@@ -15,6 +15,7 @@ jobs:
 
   build:
     needs: diff-matrix
+    if: ${{ needs.diff-matrix.outputs.is-build-matrix-empty == 'false' }}
     uses: ./.github/workflows/reuse-build.yml
     with:
       build-matrix: ${{ needs.diff-matrix.outputs.build-matrix }}

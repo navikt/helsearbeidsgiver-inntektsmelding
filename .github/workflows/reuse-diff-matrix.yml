@@ -13,6 +13,7 @@ jobs:
     outputs:
       build-matrix: ${{ steps.set-matrix.outputs.build-matrix }}
       deploy-matrix: ${{ steps.set-matrix.outputs.deploy-matrix }}
+      is-build-matrix-empty: ${{ steps.validate-matrix.outputs.is-build-matrix-empty }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -55,3 +56,14 @@ jobs:
           deploy_matrix=$(./gradlew deployMatrix -PclusterEnv=${{ inputs.env }} -PchangedFiles=${{ steps.git-diff.outputs.changed-files }} --quiet --console=plain)
           echo "deploy-matrix=$deploy_matrix" >> $GITHUB_OUTPUT
           echo $deploy_matrix
+
+      # We only need to validate build-matrix, since deploy-matrix depends on it
+      - name: Validate build matrix
+        id: validate-matrix
+        run: |
+          is_build_matrix_empty=$(echo ${{ steps.set-matrix.outputs.build-matrix }} | jq '.project == []')
+          echo "is-build-matrix-empty=$is_build_matrix_empty" >> $GITHUB_OUTPUT
+
+          if [ "$is_build_matrix_empty" = "true" ]; then
+              echo "Build matrix is empty, build and deploy jobs will be skipped."
+          fi

@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSelvbe
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.UtgaattForespoerselRiver
 
 fun main() {
+    println("Noe tull")
     ObjectRiver.connectToRapid {
         listOf(
             createNotifikasjonServices(it),

@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.ApiInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.ValiderApiInnsendingService
 
 fun main() {
+    println("Noe vås")
     val producer = Producer(topic = "helsearbeidsgiver.api-innsending")
 
     val redisConnection =

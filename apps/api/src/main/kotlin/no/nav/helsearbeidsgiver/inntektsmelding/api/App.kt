@@ -54,6 +54,7 @@ object Routes {
 }
 
 fun main() {
+    println("Noe tøys")
     val producer = Producer(Env.kafkaTopic)
     val redisConnection =
         RedisConnection(

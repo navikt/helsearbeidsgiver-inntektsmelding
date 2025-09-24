@@ -13,9 +13,17 @@ jobs:
     with:
       env: dev
 
+  sjekk-output:
+    needs: diff-matrix
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo ${{ needs.diff-matrix.outputs.is-build-matrix-empty }}
+          echo ${{ needs.diff-matrix.outputs.is-build-matrix-empty == 'false' }}
+
   build:
     needs: diff-matrix
-    if: ${{ needs.diff-matrix.outputs.is-build-matrix-empty == 'false' }}
+    if: needs.diff-matrix.outputs.is-build-matrix-empty == 'false'
     uses: ./.github/workflows/reuse-build.yml
     with:
       build-matrix: ${{ needs.diff-matrix.outputs.build-matrix }}

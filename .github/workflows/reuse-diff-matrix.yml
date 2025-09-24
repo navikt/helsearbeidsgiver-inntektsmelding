@@ -61,7 +61,7 @@ jobs:
       - name: Validate build matrix
         id: validate-matrix
         run: |
-          is_build_matrix_empty=$(echo ${{ steps.set-matrix.outputs.build-matrix }} | jq '.project == []')
+          is_build_matrix_empty=$(echo ${{ steps.set-matrix.outputs.build-matrix }} | jq ".project == []")
           echo "is-build-matrix-empty=$is_build_matrix_empty" >> $GITHUB_OUTPUT
 
           if [ "$is_build_matrix_empty" = "true" ]; then

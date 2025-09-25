@@ -110,7 +110,7 @@ subprojects {
             implementation("io.ktor:ktor-client-core-jvm:2.3.13") {
                 because("hag-bakgrunnsjobb")
             }
-            implementation("org.apache.commons:commons-lang3:3.18.0") {
+            implementation("org.apache.commons:commons-lang3:3.19.0") {
                 because("helsearbeidsgiver-kontrakt-inntektsmelding")
             }
             implementation("org.apache.httpcomponents.client5:httpclient5:5.4.4") {

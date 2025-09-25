@@ -27,7 +27,7 @@ class RedisPollerTest :
         }
 
         test("skal finne med tillatt antall forsøk") {
-            every { mockRedisStore.lesResultat(any()) } returnsMany answers(answerOnAttemptNo = 10, answer = etSlagsResultat)
+            every { mockRedisStore.lesResultat(any()) } returnsMany answers(answerOnAttemptNo = 15, answer = etSlagsResultat)
 
             val json = redisPoller.hent(key)
 
@@ -35,7 +35,7 @@ class RedisPollerTest :
         }
 
         test("skal ikke finne etter maks forsøk") {
-            every { mockRedisStore.lesResultat(any()) } returnsMany answers(answerOnAttemptNo = 11, answer = etSlagsResultat)
+            every { mockRedisStore.lesResultat(any()) } returnsMany answers(answerOnAttemptNo = 16, answer = etSlagsResultat)
 
             assertThrows<RedisPollerTimeoutException> {
                 redisPoller.hent(key)

@@ -5,9 +5,9 @@ import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.valkey.RedisStore
 import java.util.UUID
 
-private const val MAX_RETRIES = 10
+private const val MAX_RETRIES = 15
 private const val WAIT_MILLIS_DEFAULT = 500L
-private val WAIT_MILLIS = List(MAX_RETRIES) { 100L * (1 + it) }
+private val WAIT_MILLIS = List(MAX_RETRIES) { 100L * (1 + it) } // 15 retries = 12000 ms total
 
 // TODO Bruke kotlin.Result istedenfor exceptions?
 class RedisPoller(

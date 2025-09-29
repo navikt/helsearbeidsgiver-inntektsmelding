@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.tabell
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
-import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.InntektsmeldingGammeltFormat
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.datetime
@@ -23,12 +22,6 @@ object InntektsmeldingEntitet : Table("inntektsmelding") {
             name = "inntektsmelding",
             jsonConfig = jsonConfig,
             kSerializer = Inntektsmelding.serializer(),
-        ).nullable()
-    val dokument =
-        jsonb<InntektsmeldingGammeltFormat>(
-            name = "dokument",
-            jsonConfig = jsonConfig,
-            kSerializer = InntektsmeldingGammeltFormat.serializer(),
         ).nullable()
     val eksternInntektsmelding =
         jsonb<EksternInntektsmelding>(

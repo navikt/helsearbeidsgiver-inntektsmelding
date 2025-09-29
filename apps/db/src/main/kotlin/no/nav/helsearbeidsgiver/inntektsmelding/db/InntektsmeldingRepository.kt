@@ -4,15 +4,10 @@ import no.nav.hag.simba.kontrakt.domene.inntektsmelding.EksternInntektsmelding
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
-import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.InntektsmeldingGammeltFormat
-import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.convert
-import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.convertAgp
-import no.nav.helsearbeidsgiver.inntektsmelding.db.domene.convertInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
@@ -33,7 +28,6 @@ class InntektsmeldingRepository(
             InntektsmeldingEntitet
                 .select(
                     InntektsmeldingEntitet.skjema,
-                    InntektsmeldingEntitet.dokument,
                     InntektsmeldingEntitet.eksternInntektsmelding,
                     InntektsmeldingEntitet.innsendt,
                     InntektsmeldingEntitet.avsenderNavn,
@@ -43,7 +37,6 @@ class InntektsmeldingRepository(
                 .map {
                     InntektsmeldingResult(
                         it[InntektsmeldingEntitet.skjema],
-                        it[InntektsmeldingEntitet.dokument],
                         it[InntektsmeldingEntitet.eksternInntektsmelding],
                         it[InntektsmeldingEntitet.innsendt],
                         it[InntektsmeldingEntitet.avsenderNavn],
@@ -54,27 +47,10 @@ class InntektsmeldingRepository(
                 when {
                     result.skjema != null ->
                         LagretInntektsmelding.Skjema(
-                            avsenderNavn = result.avsenderNavn ?: result.inntektsmeldingGammeltFormat?.innsenderNavn,
+                            avsenderNavn = result.avsenderNavn,
                             skjema = result.skjema,
                             mottatt = result.mottatt,
                         )
-
-                    result.inntektsmeldingGammeltFormat != null -> {
-                        val bakoverkompatibeltSkjema =
-                            SkjemaInntektsmelding(
-                                forespoerselId = forespoerselId,
-                                avsenderTlf = result.inntektsmeldingGammeltFormat.telefonnummer.orEmpty(),
-                                agp = result.inntektsmeldingGammeltFormat.convertAgp(),
-                                inntekt = result.inntektsmeldingGammeltFormat.convertInntekt(),
-                                refusjon = result.inntektsmeldingGammeltFormat.refusjon.convert(),
-                            )
-
-                        LagretInntektsmelding.Skjema(
-                            avsenderNavn = result.inntektsmeldingGammeltFormat.innsenderNavn,
-                            skjema = bakoverkompatibeltSkjema,
-                            mottatt = result.mottatt,
-                        )
-                    }
 
                     result.eksternInntektsmelding != null -> LagretInntektsmelding.Ekstern(result.eksternInntektsmelding)
                     else -> null
@@ -137,14 +113,22 @@ class InntektsmeldingRepository(
 
     fun hentNyesteInntektsmeldingSkjema(forespoerselId: UUID): SkjemaInntektsmelding? =
         transaction(db) {
-            hentNyesteImSkjemaQuery(forespoerselId)
+            InntektsmeldingEntitet
+                .selectAll()
+                .where { InntektsmeldingEntitet.forespoerselId eq forespoerselId }
+                .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
+                .limit(1)
                 .firstOrNull()
                 ?.getOrNull(InntektsmeldingEntitet.skjema)
         }
 
     fun hentNyesteBerikedeInntektsmeldingId(forespoerselId: UUID): UUID? =
         transaction(db) {
-            hentNyesteImQuery(forespoerselId)
+            InntektsmeldingEntitet
+                .selectAll()
+                .where { (InntektsmeldingEntitet.forespoerselId eq forespoerselId) and InntektsmeldingEntitet.skjema.isNotNull() }
+                .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
+                .limit(1)
                 .firstOrNull()
                 ?.getOrNull(InntektsmeldingEntitet.inntektsmeldingId)
         }
@@ -158,7 +142,6 @@ class InntektsmeldingRepository(
                     },
                 ) {
                     it[this.inntektsmelding] = inntektsmelding
-                    it[dokument] = inntektsmelding.convert()
                     it[avsenderNavn] = inntektsmelding.avsender.navn
                 }
             }
@@ -199,22 +182,7 @@ class InntektsmeldingRepository(
 
 private class InntektsmeldingResult(
     val skjema: SkjemaInntektsmelding?,
-    val inntektsmeldingGammeltFormat: InntektsmeldingGammeltFormat?,
     val eksternInntektsmelding: EksternInntektsmelding?,
     val mottatt: LocalDateTime,
     val avsenderNavn: String?,
 )
-
-private fun hentNyesteImQuery(forespoerselId: UUID): Query =
-    InntektsmeldingEntitet
-        .selectAll()
-        .where { (InntektsmeldingEntitet.forespoerselId eq forespoerselId) and InntektsmeldingEntitet.dokument.isNotNull() }
-        .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
-        .limit(1)
-
-private fun hentNyesteImSkjemaQuery(forespoerselId: UUID): Query =
-    InntektsmeldingEntitet
-        .selectAll()
-        .where { InntektsmeldingEntitet.forespoerselId eq forespoerselId }
-        .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
-        .limit(1)

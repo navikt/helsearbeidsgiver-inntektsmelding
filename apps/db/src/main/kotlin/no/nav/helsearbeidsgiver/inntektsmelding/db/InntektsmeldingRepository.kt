@@ -122,11 +122,11 @@ class InntektsmeldingRepository(
                 ?.getOrNull(InntektsmeldingEntitet.skjema)
         }
 
-    fun hentNyesteBerikedeInntektsmeldingId(forespoerselId: UUID): UUID? =
+    fun hentNyesteInntektsmeldingId(forespoerselId: UUID): UUID? =
         transaction(db) {
             InntektsmeldingEntitet
                 .selectAll()
-                .where { (InntektsmeldingEntitet.forespoerselId eq forespoerselId) and InntektsmeldingEntitet.skjema.isNotNull() }
+                .where { (InntektsmeldingEntitet.forespoerselId eq forespoerselId) and InntektsmeldingEntitet.inntektsmeldingId.isNotNull() }
                 .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
                 .limit(1)
                 .firstOrNull()

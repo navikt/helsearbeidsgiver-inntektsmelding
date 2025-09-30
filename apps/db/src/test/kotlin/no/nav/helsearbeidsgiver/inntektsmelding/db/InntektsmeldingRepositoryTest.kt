@@ -10,13 +10,9 @@ import io.kotest.matchers.shouldBe
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.test.mockEksternInntektsmelding
 import no.nav.hag.simba.utils.db.exposed.test.FunSpecWithDb
-import no.nav.hag.simba.utils.felles.test.mock.mockArbeidsgiverperiode
-import no.nav.hag.simba.utils.felles.test.mock.mockInntekt
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
-import no.nav.hag.simba.utils.felles.test.mock.mockRefusjon
 import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.hag.simba.utils.felles.test.mock.randomDigitString
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.utils.test.date.april
@@ -24,7 +20,6 @@ import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
@@ -63,34 +58,34 @@ class InntektsmeldingRepositoryTest :
 
             val record = testRepo.hentRecordFraInntektsmelding(skjema.forespoerselId).shouldNotBeNull()
 
-            record.getOrNull(InntektsmeldingEntitet.journalpostId) shouldBe null
-            record.getOrNull(InntektsmeldingEntitet.eksternInntektsmelding) shouldBe null
+            record.getOrNull(InntektsmeldingEntitet.inntektsmeldingId) shouldBe inntektsmelding.id
+            record.getOrNull(InntektsmeldingEntitet.forespoerselId) shouldBe skjema.forespoerselId
             record.getOrNull(InntektsmeldingEntitet.skjema) shouldBe skjema
             record.getOrNull(InntektsmeldingEntitet.inntektsmelding) shouldBe inntektsmelding
-
-            inntektsmeldingRepo.hentNyesteBerikedeInntektsmeldingId(skjema.forespoerselId) shouldBe inntektsmelding.id
+            record.getOrNull(InntektsmeldingEntitet.eksternInntektsmelding) shouldBe null
+            record.getOrNull(InntektsmeldingEntitet.avsenderNavn) shouldBe inntektsmelding.avsender.navn
+            record.getOrNull(InntektsmeldingEntitet.journalpostId) shouldBe null
+            record.getOrNull(InntektsmeldingEntitet.innsendt) shouldBe mottatt
+            record.getOrNull(InntektsmeldingEntitet.prosessert) shouldBe null
         }
 
-        test("skal lagre hvert innsendte skjema, men hente nyeste berikede inntektsmelding") {
+        test("skal lagre hvert innsendte skjema, men hente nyeste inntektsmelding-ID") {
             transaction {
                 InntektsmeldingEntitet.selectAll().toList()
             }.shouldBeEmpty()
 
             val skjema = mockSkjemaInntektsmelding()
             val mottatt = 27.mars.atStartOfDay()
-            val inntektsmelding = mockInntektsmeldingV1().copy(mottatt = mottatt.toOffsetDateTimeOslo())
             val inntektsmeldingId1 = UUID.randomUUID()
             val inntektsmeldingId2 = UUID.randomUUID()
 
             inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId1, skjema, mottatt)
+            inntektsmeldingRepo.hentNyesteInntektsmeldingId(skjema.forespoerselId) shouldBe inntektsmeldingId1
+
             inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId2, skjema, mottatt.plusHours(3))
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, mottatt.plusHours(6))
+            inntektsmeldingRepo.hentNyesteInntektsmeldingId(skjema.forespoerselId) shouldBe inntektsmeldingId2
 
-            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId1))
-            inntektsmeldingRepo.hentNyesteBerikedeInntektsmeldingId(skjema.forespoerselId) shouldBe inntektsmeldingId1
-
-            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId2))
-            inntektsmeldingRepo.hentNyesteBerikedeInntektsmeldingId(skjema.forespoerselId) shouldBe inntektsmeldingId2
+            inntektsmeldingRepo.hentNyesteInntektsmeldingId(UUID.randomUUID()) shouldBe null
         }
 
         test("skal oppdatere journalpostId") {

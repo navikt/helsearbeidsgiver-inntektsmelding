@@ -55,7 +55,7 @@ class LagreJournalpostIdRiverTest :
                 val innkommendeMelding = Mock.innkommendeMelding()
 
                 every { mockImRepo.oppdaterJournalpostId(any(), any()) } just Runs
-                every { mockImRepo.hentNyesteBerikedeInntektsmeldingId(any()) } returns innkommendeMelding.inntektsmelding.id
+                every { mockImRepo.hentNyesteInntektsmeldingId(any()) } returns innkommendeMelding.inntektsmelding.id
 
                 testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -71,7 +71,7 @@ class LagreJournalpostIdRiverTest :
 
                 verifySequence {
                     mockImRepo.oppdaterJournalpostId(innkommendeMelding.inntektsmelding.id, innkommendeMelding.journalpostId)
-                    mockImRepo.hentNyesteBerikedeInntektsmeldingId(innkommendeMelding.inntektsmelding.type.id)
+                    mockImRepo.hentNyesteInntektsmeldingId(innkommendeMelding.inntektsmelding.type.id)
                 }
                 verify(exactly = 0) {
                     mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
@@ -114,7 +114,7 @@ class LagreJournalpostIdRiverTest :
 
         test("journalpost-ID lagres i databasen, men blir ikke sendt videre fordi IM ikke er nyeste innsending") {
             every { mockImRepo.oppdaterJournalpostId(any(), any()) } just Runs
-            every { mockImRepo.hentNyesteBerikedeInntektsmeldingId(any()) } returns UUID.randomUUID()
+            every { mockImRepo.hentNyesteInntektsmeldingId(any()) } returns UUID.randomUUID()
 
             val innkommendeMelding = Mock.innkommendeMelding()
 
@@ -124,7 +124,7 @@ class LagreJournalpostIdRiverTest :
 
             verifySequence {
                 mockImRepo.oppdaterJournalpostId(innkommendeMelding.inntektsmelding.id, innkommendeMelding.journalpostId)
-                mockImRepo.hentNyesteBerikedeInntektsmeldingId(innkommendeMelding.inntektsmelding.type.id)
+                mockImRepo.hentNyesteInntektsmeldingId(innkommendeMelding.inntektsmelding.type.id)
             }
             verify(exactly = 0) {
                 mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())

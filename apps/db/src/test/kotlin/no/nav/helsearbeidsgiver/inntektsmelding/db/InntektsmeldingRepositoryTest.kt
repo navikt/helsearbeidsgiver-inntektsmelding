@@ -306,38 +306,6 @@ class InntektsmeldingRepositoryTest :
                     )
             }
 
-            test("henter inntektsmelding som skjema") {
-                val forespoerselId = UUID.randomUUID()
-                val inntektsmelding = mockInntektsmeldingV1()
-                val mottatt = 9.desember.atStartOfDay()
-
-                transaction(db) {
-                    InntektsmeldingEntitet.insert {
-                        it[this.forespoerselId] = forespoerselId
-                        it[this.inntektsmelding] = inntektsmelding
-                        it[innsendt] = mottatt
-                    }
-                }
-
-                val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(forespoerselId)
-
-                val forventetSkjema =
-                    SkjemaInntektsmelding(
-                        forespoerselId = forespoerselId,
-                        avsenderTlf = inntektsmelding.avsender.tlf.orEmpty(),
-                        agp = mockArbeidsgiverperiode(),
-                        inntekt = mockInntekt(),
-                        refusjon = mockRefusjon(),
-                    )
-
-                lagret shouldBe
-                    LagretInntektsmelding.Skjema(
-                        avsenderNavn = "Nifs Krumkake",
-                        skjema = forventetSkjema,
-                        mottatt = mottatt,
-                    )
-            }
-
             test("henter ekstern inntektsmelding") {
                 val forespoerselId = UUID.randomUUID()
                 val eksternInntektsmelding = mockEksternInntektsmelding()

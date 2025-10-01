@@ -170,7 +170,9 @@ tasks {
 
     // Krever -PclusterEnv=<dev/prod> og -PchangedFiles=<filA,filB,filC,...>
     register("deployMatrix") {
-        deployMatrix()
+        doLast {
+            deployMatrix()
+        }
     }
 
     check {
@@ -217,6 +219,27 @@ fun getBuildableProjects(): List<String> {
                 }
             }
         }
+}
+
+fun deployMatrix() {
+    val (
+        deployableProjects,
+        clusters,
+        exclusions,
+    ) = getDeployMatrixVariables()
+
+    taskOutputJson(
+        "project" to deployableProjects.toJsonList(),
+        "cluster" to clusters.toJsonList(),
+        "exclude" to
+            exclusions
+                .map { (project, cluster) ->
+                    listOf(
+                        "project" to project,
+                        "cluster" to cluster,
+                    ).toJsonObject()
+                }.toJsonList { it },
+    )
 }
 
 fun getDeployMatrixVariables(): Triple<Set<String>, Set<String>, List<Pair<String, String>>> {
@@ -280,29 +303,6 @@ fun Project.erAppModul(): Boolean =
         !name.startsWith("utils-")
 
 fun Project.erIntegrasjonstestModul(): Boolean = name == "integrasjonstest"
-
-fun Task.deployMatrix() {
-    doLast {
-        val (
-            deployableProjects,
-            clusters,
-            exclusions,
-        ) = getDeployMatrixVariables()
-
-        taskOutputJson(
-            "project" to deployableProjects.toJsonList(),
-            "cluster" to clusters.toJsonList(),
-            "exclude" to
-                exclusions
-                    .map { (project, cluster) ->
-                        listOf(
-                            "project" to project,
-                            "cluster" to cluster,
-                        ).toJsonObject()
-                    }.toJsonList { it },
-        )
-    }
-}
 
 fun taskOutputJson(vararg keyValuePairs: Pair<String, String>) {
     keyValuePairs

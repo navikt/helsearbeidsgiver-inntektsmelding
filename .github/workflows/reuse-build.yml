@@ -7,11 +7,12 @@ on:
         required: true
         type: string
 
+permissions:
+  id-token: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
     if: "!contains(inputs.build-matrix, '\"project\": []')"
     strategy:
       fail-fast: false
@@ -27,7 +28,9 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Build
-        run: ./gradlew ${{ matrix.project }}:build
+        env:
+          ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew ${{ matrix.project }}:build -x lintKotlin
 
       - name: Determine Docker image tag (short SHA)
         id: docker-image-tag

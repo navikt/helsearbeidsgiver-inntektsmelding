@@ -4,9 +4,6 @@ on:
   release:
     types: [released]
 
-env:
-  ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
-
 jobs:
   diff-matrix:
     uses: ./.github/workflows/reuse-diff-matrix.yml
@@ -18,6 +15,8 @@ jobs:
     uses: ./.github/workflows/reuse-build.yml
     with:
       build-matrix: ${{ needs.diff-matrix.outputs.build-matrix }}
+    permissions:
+      id-token: write
 
   deploy:
     needs: [diff-matrix, build]
@@ -25,3 +24,5 @@ jobs:
     with:
       env: prod
       deploy-matrix: ${{ needs.diff-matrix.outputs.deploy-matrix }}
+    permissions:
+      id-token: write

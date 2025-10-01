@@ -10,11 +10,12 @@ on:
         required: true
         type: string
 
+permissions:
+  id-token: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
     if: "!contains(inputs.deploy-matrix, '\"project\": []')"
     strategy:
       fail-fast: false

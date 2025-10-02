@@ -223,7 +223,7 @@ fun getBuildableProjects(): List<String> {
 }
 
 fun deployMatrix() {
-    val cluster = "${properties["clusterEnv"].toString()}-gcp"
+    val cluster = "${properties["clusterEnv"]}-gcp"
 
     val deployableProjects =
         getBuildableProjects()

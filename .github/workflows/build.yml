@@ -25,7 +25,6 @@ jobs:
     needs: [diff-matrix, build]
     uses: ./.github/workflows/reuse-deploy.yml
     with:
-      env: dev
       deploy-matrix: ${{ needs.diff-matrix.outputs.deploy-matrix }}
     permissions:
       id-token: write

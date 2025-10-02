@@ -3,9 +3,6 @@ name: Deploy
 on:
   workflow_call:
     inputs:
-      env:
-        required: true
-        type: string
       deploy-matrix:
         required: true
         type: string
@@ -15,13 +12,13 @@ permissions:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
     if: "!contains(inputs.deploy-matrix, '\"project\": []')"
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(inputs.deploy-matrix) }}
     concurrency:
-      group: deploy-${{ inputs.env }}-${{ matrix.project }}
+      group: deploy-${{ matrix.cluster }}-${{ matrix.project }}
     steps:
       - uses: actions/checkout@v5
 

@@ -223,56 +223,20 @@ fun getBuildableProjects(): List<String> {
 }
 
 fun deployMatrix() {
-    val (
-        deployableProjects,
-        clusters,
-        exclusions,
-    ) = getDeployMatrixVariables()
+    val cluster = "${properties["clusterEnv"].toString()}-gcp"
+
+    val deployableProjects =
+        getBuildableProjects()
+            .filterNot { project ->
+                File("config", project)
+                    .listFiles()
+                    ?.filter { it.isFile && it.name == "$cluster.yml" }
+                    .isNullOrEmpty()
+            }
 
     taskOutputJson(
         "project" to deployableProjects.toJsonList(),
-        "cluster" to clusters.toJsonList(),
-        "exclude" to
-            exclusions
-                .map { (project, cluster) ->
-                    listOf(
-                        "project" to project,
-                        "cluster" to cluster,
-                    ).toJsonObject()
-                }.toJsonList { it },
-    )
-}
-
-fun getDeployMatrixVariables(): Triple<Set<String>, Set<String>, List<Pair<String, String>>> {
-    val includeCluster = "${properties["clusterEnv"].toString()}-gcp"
-
-    val clustersByProject =
-        getBuildableProjects()
-            .associateWith { project ->
-                File("config", project)
-                    .listFiles()
-                    ?.filter { it.isFile && it.name.endsWith(".yml") }
-                    ?.map { it.name.removeSuffix(".yml") }
-                    ?.let { clusters ->
-                        setOf(includeCluster).intersect(clusters.toSet())
-                    }?.ifEmpty { null }
-            }.mapNotNull { (key, value) ->
-                value?.let { key to it }
-            }.toMap()
-
-    val allClusters = clustersByProject.values.flatten().toSet()
-
-    val exclusions =
-        clustersByProject.flatMap { (project, clusters) ->
-            allClusters
-                .subtract(clusters)
-                .map { Pair(project, it) }
-        }
-
-    return Triple(
-        clustersByProject.keys,
-        allClusters,
-        exclusions,
+        "cluster" to setOf(cluster).toJsonList(),
     )
 }
 
@@ -308,15 +272,11 @@ fun Project.erIntegrasjonstestModul(): Boolean = name == "integrasjonstest"
 fun taskOutputJson(vararg keyValuePairs: Pair<String, String>) {
     keyValuePairs
         .toList()
-        .toJsonObject { it }
-        .let(::println)
+        .joinToString(prefix = "{", postfix = "}") { (key, value) ->
+            "${key.inQuotes()}: $value"
+        }.let(::print)
 }
 
-fun Iterable<String>.toJsonList(transform: (String) -> String = { it.inQuotes() }): String = joinToString(prefix = "[", postfix = "]", transform = transform)
-
-fun Iterable<Pair<String, String>>.toJsonObject(transformValue: (String) -> String = { it.inQuotes() }): String =
-    joinToString(prefix = "{", postfix = "}") { (key, value) ->
-        "${key.inQuotes()}: ${transformValue(value)}"
-    }
+fun Iterable<String>.toJsonList(): String = joinToString(prefix = "[", postfix = "]", transform = String::inQuotes)
 
 fun String.inQuotes(): String = "\"$this\""

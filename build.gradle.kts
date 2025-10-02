@@ -205,6 +205,7 @@ fun getBuildableProjects(): List<String> {
         }
 
     return subprojects
+        .filter { it.erAppModul() }
         .filterNot { it.erIntegrasjonstestModul() }
         .map { it.name }
         .let { projects ->

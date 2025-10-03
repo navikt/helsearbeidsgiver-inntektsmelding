@@ -35,6 +35,8 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.date.november
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class LagreImSkjemaRiverTest :
@@ -77,7 +79,7 @@ class LagreImSkjemaRiverTest :
                 val innkommendeMelding = innkommendeMelding()
 
                 every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns eksisterendeInntektsmeldingskjema
-                every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any(), any()) } just Runs
+                every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any(), innkommendeMelding.avsenderFnr, any()) } just Runs
 
                 testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -92,6 +94,7 @@ class LagreImSkjemaRiverTest :
                                 Key.FORESPOERSEL_SVAR to innkommendeMelding.forespoersel.toJson(Forespoersel.serializer()),
                                 Key.INNTEKTSMELDING_ID to innkommendeMelding.inntektsmeldingId.toJson(),
                                 Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                                Key.ARBEIDSGIVER_FNR to innkommendeMelding.avsenderFnr.toJson(),
                                 Key.MOTTATT to innkommendeMelding.mottatt.toJson(),
                                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
                             ).toJson(),
@@ -102,6 +105,7 @@ class LagreImSkjemaRiverTest :
                     mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(
                         innkommendeMelding.inntektsmeldingId,
                         innkommendeMelding.skjema,
+                        innkommendeMelding.avsenderFnr,
                         innkommendeMelding.mottatt,
                     )
                 }
@@ -112,7 +116,7 @@ class LagreImSkjemaRiverTest :
             val innkommendeMelding = innkommendeMelding()
 
             every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns innkommendeMelding.skjema
-            every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any(), any()) } just Runs
+            every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any(), innkommendeMelding.avsenderFnr, any()) } just Runs
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -127,6 +131,7 @@ class LagreImSkjemaRiverTest :
                             Key.FORESPOERSEL_SVAR to innkommendeMelding.forespoersel.toJson(Forespoersel.serializer()),
                             Key.INNTEKTSMELDING_ID to innkommendeMelding.inntektsmeldingId.toJson(),
                             Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                            Key.ARBEIDSGIVER_FNR to innkommendeMelding.avsenderFnr.toJson(),
                             Key.MOTTATT to innkommendeMelding.mottatt.toJson(),
                             Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
                         ).toJson(),
@@ -136,7 +141,12 @@ class LagreImSkjemaRiverTest :
                 mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.skjema.forespoerselId)
             }
             verify(exactly = 0) {
-                mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(innkommendeMelding.inntektsmeldingId, innkommendeMelding.skjema, innkommendeMelding.mottatt)
+                mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(
+                    innkommendeMelding.inntektsmeldingId,
+                    innkommendeMelding.skjema,
+                    innkommendeMelding.avsenderFnr,
+                    innkommendeMelding.mottatt,
+                )
             }
         }
 
@@ -164,7 +174,7 @@ class LagreImSkjemaRiverTest :
                 mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any())
             }
             verify(exactly = 0) {
-                mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any(), any())
+                mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any(), innkommendeMelding.avsenderFnr, any())
             }
         }
         context("ignorerer melding") {
@@ -175,8 +185,10 @@ class LagreImSkjemaRiverTest :
                     "hvis den inneholder en fail" to Pair(Key.FAIL, mockFail.toJson(Fail.serializer())),
                 ),
             ) { uoensketKeyMedVerdi ->
+                val innkommendeMelding = innkommendeMelding()
+
                 testRapid.sendJson(
-                    innkommendeMelding()
+                    innkommendeMelding
                         .toMap()
                         .plus(uoensketKeyMedVerdi),
                 )
@@ -185,7 +197,7 @@ class LagreImSkjemaRiverTest :
 
                 verify(exactly = 0) {
                     mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any())
-                    mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any(), any())
+                    mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any(), innkommendeMelding.avsenderFnr, any())
                 }
             }
         }
@@ -195,6 +207,7 @@ private fun innkommendeMelding(): LagreImSkjemaMelding {
     val forespoersel = mockForespoersel()
     val inntektsmeldingId = UUID.randomUUID()
     val skjema = mockSkjemaInntektsmelding()
+    val avsenderFnr = Fnr.genererGyldig()
     val mottatt = 10.november.kl(13, 55, 0, 0)
 
     return LagreImSkjemaMelding(
@@ -206,11 +219,13 @@ private fun innkommendeMelding(): LagreImSkjemaMelding {
                 Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
                 Key.INNTEKTSMELDING_ID to inntektsmeldingId.toJson(),
                 Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
+                Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
                 Key.MOTTATT to mottatt.toJson(),
             ),
         forespoersel = forespoersel,
         inntektsmeldingId = inntektsmeldingId,
         skjema = skjema,
+        avsenderFnr = avsenderFnr,
         mottatt = mottatt,
     )
 }

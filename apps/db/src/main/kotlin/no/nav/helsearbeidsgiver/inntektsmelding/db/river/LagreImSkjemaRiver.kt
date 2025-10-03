@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -33,6 +34,7 @@ data class LagreImSkjemaMelding(
     val forespoersel: Forespoersel,
     val inntektsmeldingId: UUID,
     val skjema: SkjemaInntektsmelding,
+    val avsenderFnr: Fnr,
     val mottatt: LocalDateTime,
 )
 
@@ -55,6 +57,7 @@ class LagreImSkjemaRiver(
                 forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), data),
                 inntektsmeldingId = Key.INNTEKTSMELDING_ID.les(UuidSerializer, data),
                 skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), data),
+                avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), data),
                 mottatt = Key.MOTTATT.les(LocalDateTimeSerializer, data),
             )
         }
@@ -69,7 +72,7 @@ class LagreImSkjemaRiver(
         if (erDuplikat) {
             sikkerLogger.warn("Fant duplikat av inntektsmeldingskjema.")
         } else {
-            repository.lagreInntektsmeldingSkjema(inntektsmeldingId, skjema, mottatt)
+            repository.lagreInntektsmeldingSkjema(inntektsmeldingId, skjema, avsenderFnr, mottatt)
             sikkerLogger.info("Lagret inntektsmeldingskjema.")
         }
 

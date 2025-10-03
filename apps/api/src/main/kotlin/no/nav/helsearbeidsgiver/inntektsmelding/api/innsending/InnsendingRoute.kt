@@ -114,7 +114,7 @@ private suspend fun RoutingContext.lesRequestOrNull(): SkjemaInntektsmelding? =
 
 private fun Producer.sendRequestEvent(
     kontekstId: UUID,
-    arbeidsgiverFnr: Fnr,
+    avsenderFnr: Fnr,
     skjema: SkjemaInntektsmelding,
     mottatt: LocalDateTime,
 ) {
@@ -126,7 +126,7 @@ private fun Producer.sendRequestEvent(
                 Key.KONTEKST_ID to kontekstId.toJson(),
                 Key.DATA to
                     mapOf(
-                        Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
+                        Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
                         Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
                         Key.MOTTATT to mottatt.toJson(),
                     ).toJson(),

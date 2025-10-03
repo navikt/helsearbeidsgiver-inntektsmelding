@@ -5,6 +5,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.SelvbestemtInntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
@@ -31,12 +32,16 @@ class SelvbestemtImRepo(
                 .firstOrNull(SelvbestemtInntektsmeldingEntitet.inntektsmelding)
         }
 
-    fun lagreIm(im: Inntektsmelding) {
+    fun lagreIm(
+        im: Inntektsmelding,
+        avsenderFnr: Fnr,
+    ) {
         transaction(db) {
             SelvbestemtInntektsmeldingEntitet.insert {
                 it[inntektsmeldingId] = im.id
                 it[selvbestemtId] = im.type.id
                 it[inntektsmelding] = im
+                it[this.avsenderFnr] = avsenderFnr.verdi
             }
         }
     }

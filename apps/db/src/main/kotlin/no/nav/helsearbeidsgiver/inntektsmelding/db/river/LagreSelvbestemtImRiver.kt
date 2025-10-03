@@ -20,6 +20,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 data class LagreSelvbestemtImMelding(
@@ -28,6 +29,7 @@ data class LagreSelvbestemtImMelding(
     val kontekstId: UUID,
     val data: Map<Key, JsonElement>,
     val selvbestemtInntektsmelding: Inntektsmelding,
+    val avsenderFnr: Fnr,
 )
 
 class LagreSelvbestemtImRiver(
@@ -48,6 +50,7 @@ class LagreSelvbestemtImRiver(
                 kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
                 selvbestemtInntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
+                avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), data),
             )
         }
 
@@ -64,7 +67,7 @@ class LagreSelvbestemtImRiver(
         val erDuplikat = nyesteIm?.erDuplikatAv(selvbestemtInntektsmelding).orDefault(false)
 
         if (!erDuplikat) {
-            selvbestemtImRepo.lagreIm(selvbestemtInntektsmelding)
+            selvbestemtImRepo.lagreIm(selvbestemtInntektsmelding, avsenderFnr)
 
             "Lagret selvbestemt inntektsmelding.".also {
                 logger.info(it)

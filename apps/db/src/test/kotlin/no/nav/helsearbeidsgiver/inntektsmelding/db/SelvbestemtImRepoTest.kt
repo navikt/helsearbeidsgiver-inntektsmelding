@@ -19,6 +19,8 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.SelvbestemtInntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import no.nav.helsearbeidsgiver.utils.test.date.september
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
@@ -63,9 +65,9 @@ class SelvbestemtImRepoTest :
                             ),
                     )
 
-                selvbestemtImRepo.lagreIm(originalInntektsmelding)
-                selvbestemtImRepo.lagreIm(endretInntektsmelding)
-                selvbestemtImRepo.lagreIm(mockInntektsmeldingV1())
+                selvbestemtImRepo.lagreIm(originalInntektsmelding, Fnr.genererGyldig())
+                selvbestemtImRepo.lagreIm(endretInntektsmelding, Fnr.genererGyldig())
+                selvbestemtImRepo.lagreIm(mockInntektsmeldingV1(), Fnr.genererGyldig())
 
                 selvbestemtImRepo.hentNyesteIm(selvbestemtId) shouldBe endretInntektsmelding
             }
@@ -80,14 +82,14 @@ class SelvbestemtImRepoTest :
                             ),
                     )
 
-                selvbestemtImRepo.lagreIm(inntektsmelding)
-                selvbestemtImRepo.lagreIm(mockInntektsmeldingV1())
+                selvbestemtImRepo.lagreIm(inntektsmelding, Fnr.genererGyldig())
+                selvbestemtImRepo.lagreIm(mockInntektsmeldingV1(), Fnr.genererGyldig())
 
                 selvbestemtImRepo.hentNyesteIm(selvbestemtId) shouldBe inntektsmelding
             }
 
             test("gir 'null' når ingen funnet") {
-                selvbestemtImRepo.lagreIm(mockInntektsmeldingV1())
+                selvbestemtImRepo.lagreIm(mockInntektsmeldingV1(), Fnr.genererGyldig())
 
                 selvbestemtImRepo.hentNyesteIm(UUID.randomUUID()).shouldBeNull()
             }
@@ -99,7 +101,7 @@ class SelvbestemtImRepoTest :
                 lesAlleRader(db) shouldHaveSize 0
 
                 repeat(3) {
-                    selvbestemtImRepo.lagreIm(mockInntektsmeldingV1())
+                    selvbestemtImRepo.lagreIm(mockInntektsmeldingV1(), Fnr.genererGyldig())
                 }
 
                 lesAlleRader(db) shouldHaveSize 3
@@ -108,7 +110,7 @@ class SelvbestemtImRepoTest :
             test("inntektsmelding- og selvbestemt ID stammer fra inntektsmelding") {
                 val inntektsmelding = mockInntektsmeldingV1()
 
-                selvbestemtImRepo.lagreIm(inntektsmelding)
+                selvbestemtImRepo.lagreIm(inntektsmelding, Fnr.genererGyldig())
 
                 val alleRader = lesAlleRader(db)
 
@@ -132,7 +134,7 @@ class SelvbestemtImRepoTest :
                                 ),
                         )
 
-                    selvbestemtImRepo.lagreIm(inntektsmelding)
+                    selvbestemtImRepo.lagreIm(inntektsmelding, Fnr.genererGyldig())
                 }
 
                 lesAlleRader(db) shouldHaveSize 2
@@ -143,10 +145,10 @@ class SelvbestemtImRepoTest :
                 val inntektsmelding1 = mockInntektsmeldingV1().copy(id = inntektsmeldingId)
                 val inntektsmelding2 = mockInntektsmeldingV1().copy(id = inntektsmeldingId)
 
-                selvbestemtImRepo.lagreIm(inntektsmelding1)
+                selvbestemtImRepo.lagreIm(inntektsmelding1, Fnr.genererGyldig())
 
                 shouldThrowExactly<ExposedSQLException> {
-                    selvbestemtImRepo.lagreIm(inntektsmelding2)
+                    selvbestemtImRepo.lagreIm(inntektsmelding2, Fnr.genererGyldig())
                 }
             }
         }
@@ -164,8 +166,8 @@ class SelvbestemtImRepoTest :
                             ),
                     )
 
-                selvbestemtImRepo.lagreIm(inntektsmelding)
-                selvbestemtImRepo.lagreIm(mockInntektsmeldingV1())
+                selvbestemtImRepo.lagreIm(inntektsmelding, Fnr.genererGyldig())
+                selvbestemtImRepo.lagreIm(mockInntektsmeldingV1(), Fnr.genererGyldig())
                 selvbestemtImRepo.oppdaterJournalpostId(inntektsmelding.id, journalpostId)
 
                 val alleRader = lesAlleRader(db)
@@ -201,8 +203,8 @@ class SelvbestemtImRepoTest :
                         id = UUID.randomUUID(),
                     )
 
-                selvbestemtImRepo.lagreIm(originalInntektsmelding)
-                selvbestemtImRepo.lagreIm(endretInntektsmelding)
+                selvbestemtImRepo.lagreIm(originalInntektsmelding, Fnr.genererGyldig())
+                selvbestemtImRepo.lagreIm(endretInntektsmelding, Fnr.genererGyldig())
                 selvbestemtImRepo.oppdaterJournalpostId(originalInntektsmelding.id, journalpostId1)
                 selvbestemtImRepo.oppdaterJournalpostId(endretInntektsmelding.id, journalpostId2)
 
@@ -239,8 +241,8 @@ class SelvbestemtImRepoTest :
                         id = UUID.randomUUID(),
                     )
 
-                selvbestemtImRepo.lagreIm(originalInntektsmelding)
-                selvbestemtImRepo.lagreIm(endretInntektsmelding)
+                selvbestemtImRepo.lagreIm(originalInntektsmelding, Fnr.genererGyldig())
+                selvbestemtImRepo.lagreIm(endretInntektsmelding, Fnr.genererGyldig())
                 selvbestemtImRepo.oppdaterJournalpostId(endretInntektsmelding.id, gammelJournalpostId)
 
                 val alleRaderEtterSetup = lesAlleRader(db)
@@ -284,8 +286,8 @@ class SelvbestemtImRepoTest :
                 val inntektsmelding1 = mockInntektsmeldingV1()
                 val inntektsmelding2 = mockInntektsmeldingV1()
 
-                selvbestemtImRepo.lagreIm(inntektsmelding1)
-                selvbestemtImRepo.lagreIm(inntektsmelding2)
+                selvbestemtImRepo.lagreIm(inntektsmelding1, Fnr.genererGyldig())
+                selvbestemtImRepo.lagreIm(inntektsmelding2, Fnr.genererGyldig())
 
                 selvbestemtImRepo.oppdaterJournalpostId(inntektsmelding1.id, journalpostId)
 
@@ -306,9 +308,9 @@ class SelvbestemtImRepoTest :
                 val inntektsmelding = mockInntektsmeldingV1().copy(type = Inntektsmelding.Type.Selvbestemt(UUID.randomUUID()))
                 val inntektsmeldingIkkeProsessert = mockInntektsmeldingV1().copy(type = Inntektsmelding.Type.Selvbestemt(UUID.randomUUID()))
 
-                selvbestemtImRepo.lagreIm(inntektsmelding)
+                selvbestemtImRepo.lagreIm(inntektsmelding, Fnr.genererGyldig())
                 delay(1.seconds)
-                selvbestemtImRepo.lagreIm(inntektsmeldingIkkeProsessert)
+                selvbestemtImRepo.lagreIm(inntektsmeldingIkkeProsessert, Fnr.genererGyldig())
 
                 selvbestemtImRepo.oppdaterSomProsessert(inntektsmelding.id)
 

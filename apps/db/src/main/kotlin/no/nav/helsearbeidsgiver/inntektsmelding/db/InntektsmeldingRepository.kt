@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsm
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
@@ -99,13 +100,15 @@ class InntektsmeldingRepository(
     fun lagreInntektsmeldingSkjema(
         inntektsmeldingId: UUID,
         inntektsmeldingSkjema: SkjemaInntektsmelding,
+        avsenderFnr: Fnr,
         mottatt: LocalDateTime,
     ) {
         transaction(db) {
             InntektsmeldingEntitet.insert {
                 it[this.inntektsmeldingId] = inntektsmeldingId
-                it[this.forespoerselId] = inntektsmeldingSkjema.forespoerselId
+                it[forespoerselId] = inntektsmeldingSkjema.forespoerselId
                 it[skjema] = inntektsmeldingSkjema
+                it[this.avsenderFnr] = avsenderFnr.verdi
                 it[innsendt] = mottatt
             }
         }

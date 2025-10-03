@@ -18,6 +18,8 @@ import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.mars
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.selectAll
@@ -50,10 +52,11 @@ class InntektsmeldingRepositoryTest :
             }.shouldBeEmpty()
 
             val skjema = mockSkjemaInntektsmelding()
+            val avsenderFnr = Fnr.genererGyldig()
             val mottatt = 9.desember.atStartOfDay()
             val inntektsmelding = mockInntektsmeldingV1().copy(mottatt = mottatt.toOffsetDateTimeOslo())
 
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, mottatt)
+            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, avsenderFnr, mottatt)
             inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding)
 
             val record = testRepo.hentRecordFraInntektsmelding(skjema.forespoerselId).shouldNotBeNull()
@@ -63,6 +66,7 @@ class InntektsmeldingRepositoryTest :
             record.getOrNull(InntektsmeldingEntitet.skjema) shouldBe skjema
             record.getOrNull(InntektsmeldingEntitet.inntektsmelding) shouldBe inntektsmelding
             record.getOrNull(InntektsmeldingEntitet.eksternInntektsmelding) shouldBe null
+            record.getOrNull(InntektsmeldingEntitet.avsenderFnr) shouldBe avsenderFnr.verdi
             record.getOrNull(InntektsmeldingEntitet.avsenderNavn) shouldBe inntektsmelding.avsender.navn
             record.getOrNull(InntektsmeldingEntitet.journalpostId) shouldBe null
             record.getOrNull(InntektsmeldingEntitet.innsendt) shouldBe mottatt
@@ -79,10 +83,10 @@ class InntektsmeldingRepositoryTest :
             val inntektsmeldingId1 = UUID.randomUUID()
             val inntektsmeldingId2 = UUID.randomUUID()
 
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId1, skjema, mottatt)
+            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId1, skjema, Fnr.genererGyldig(), mottatt)
             inntektsmeldingRepo.hentNyesteInntektsmeldingId(skjema.forespoerselId) shouldBe inntektsmeldingId1
 
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId2, skjema, mottatt.plusHours(3))
+            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId2, skjema, Fnr.genererGyldig(), mottatt.plusHours(3))
             inntektsmeldingRepo.hentNyesteInntektsmeldingId(skjema.forespoerselId) shouldBe inntektsmeldingId2
 
             inntektsmeldingRepo.hentNyesteInntektsmeldingId(UUID.randomUUID()) shouldBe null
@@ -98,7 +102,7 @@ class InntektsmeldingRepositoryTest :
             val inntektsmelding = mockInntektsmeldingV1().copy(mottatt = mottatt.toOffsetDateTimeOslo())
             val journalpost = randomDigitString(7)
 
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, mottatt)
+            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, Fnr.genererGyldig(), mottatt)
             inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding)
             inntektsmeldingRepo.oppdaterJournalpostId(inntektsmelding.id, journalpost)
 
@@ -118,8 +122,8 @@ class InntektsmeldingRepositoryTest :
             val inntektsmeldingId2 = UUID.randomUUID()
             val journalpostId = randomDigitString(9)
 
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId1, skjema, mottatt)
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId2, skjema, mottatt.plusHours(3))
+            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId1, skjema, Fnr.genererGyldig(), mottatt)
+            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId2, skjema, Fnr.genererGyldig(), mottatt.plusHours(3))
 
             inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId1))
             inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId2))
@@ -157,8 +161,8 @@ class InntektsmeldingRepositoryTest :
             val gammelJournalpostId = "jp-traust-gevir"
             val nyJournalpostId = "jp-gallant-badehette"
 
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId1, skjema, mottatt)
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId2, skjema, mottatt.plusHours(3))
+            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId1, skjema, Fnr.genererGyldig(), mottatt)
+            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId2, skjema, Fnr.genererGyldig(), mottatt.plusHours(3))
 
             inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId1))
             inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId2))
@@ -215,7 +219,7 @@ class InntektsmeldingRepositoryTest :
             val inntektsmelding = mockInntektsmeldingV1().copy(mottatt = mottatt.toOffsetDateTimeOslo())
             val journalpostId = "jp-slem-fryser"
 
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, mottatt)
+            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, Fnr.genererGyldig(), mottatt)
             inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding)
 
             inntektsmeldingRepo.lagreEksternInntektsmelding(skjema.forespoerselId, mockEksternInntektsmelding().copy(tidspunkt = mottatt.plusHours(1)))
@@ -252,9 +256,9 @@ class InntektsmeldingRepositoryTest :
                 val b = mockEksternInntektsmelding().copy(tidspunkt = mottatt.plusHours(1))
                 val c = mockSkjemaInntektsmelding().copy(forespoerselId = forespoerselId)
 
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), a, mottatt)
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), a, Fnr.genererGyldig(), mottatt)
                 inntektsmeldingRepo.lagreEksternInntektsmelding(forespoerselId, b)
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), c, mottatt.plusHours(2))
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), c, Fnr.genererGyldig(), mottatt.plusHours(2))
 
                 val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(forespoerselId)
 
@@ -270,7 +274,7 @@ class InntektsmeldingRepositoryTest :
                 val skjema = mockSkjemaInntektsmelding()
                 val mottatt = 9.desember.atStartOfDay()
 
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, mottatt)
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, Fnr.genererGyldig(), mottatt)
 
                 val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(skjema.forespoerselId)
 
@@ -288,7 +292,7 @@ class InntektsmeldingRepositoryTest :
                 // Bruk inntektsmelding som er ulikt skjema for å sjekke at hentet skjema ikke stammer fra inntektsmelding
                 val inntektsmelding = mockInntektsmeldingV1().copy(inntekt = null, mottatt = mottatt.toOffsetDateTimeOslo())
 
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, mottatt)
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, Fnr.genererGyldig(), mottatt)
                 inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding)
 
                 val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(skjema.forespoerselId)
@@ -313,7 +317,7 @@ class InntektsmeldingRepositoryTest :
             }
 
             test("tåler at det er ingenting å hente") {
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), mockSkjemaInntektsmelding(), 9.desember.atStartOfDay())
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), mockSkjemaInntektsmelding(), Fnr.genererGyldig(), 9.desember.atStartOfDay())
 
                 val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(UUID.randomUUID())
 
@@ -328,8 +332,8 @@ class InntektsmeldingRepositoryTest :
                 val inntektsmeldingId1 = UUID.randomUUID()
                 val inntektsmeldingId2 = UUID.randomUUID()
 
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId1, skjema, mottatt)
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId2, mockSkjemaInntektsmelding(), mottatt.plusHours(4))
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId1, skjema, Fnr.genererGyldig(), mottatt)
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId2, mockSkjemaInntektsmelding(), Fnr.genererGyldig(), mottatt.plusHours(4))
 
                 inntektsmeldingRepo.oppdaterSomProsessert(inntektsmeldingId1)
 

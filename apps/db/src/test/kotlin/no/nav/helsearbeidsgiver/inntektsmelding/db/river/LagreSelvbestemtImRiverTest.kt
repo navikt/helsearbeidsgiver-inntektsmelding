@@ -31,6 +31,8 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.juli
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class LagreSelvbestemtImRiverTest :
@@ -51,6 +53,7 @@ class LagreSelvbestemtImRiverTest :
 
         context("selvbestemt inntektsmelding lagres") {
             val inntektsmeldingId = UUID.randomUUID()
+            val avsenderFnr = Fnr.genererGyldig()
 
             withData(
                 mapOf(
@@ -63,11 +66,11 @@ class LagreSelvbestemtImRiverTest :
                 ),
             ) { eksisterendeIm ->
                 every { mockSelvbestemtImRepo.hentNyesteIm(any()) } returns eksisterendeIm
-                every { mockSelvbestemtImRepo.lagreIm(any()) } just Runs
+                every { mockSelvbestemtImRepo.lagreIm(any(), avsenderFnr) } just Runs
 
                 val nyInntektsmelding = mockInntektsmeldingV1().copy(id = inntektsmeldingId)
 
-                val innkommendeMelding = innkommendeMelding(nyInntektsmelding)
+                val innkommendeMelding = innkommendeMelding(nyInntektsmelding, avsenderFnr)
 
                 testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -80,19 +83,21 @@ class LagreSelvbestemtImRiverTest :
                         Key.DATA to
                             mapOf(
                                 Key.SELVBESTEMT_INNTEKTSMELDING to nyInntektsmelding.toJson(Inntektsmelding.serializer()),
+                                Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
                                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
                             ).toJson(),
                     )
 
                 verifySequence {
                     mockSelvbestemtImRepo.hentNyesteIm(nyInntektsmelding.type.id)
-                    mockSelvbestemtImRepo.lagreIm(nyInntektsmelding)
+                    mockSelvbestemtImRepo.lagreIm(nyInntektsmelding, avsenderFnr)
                 }
             }
         }
 
         test("duplikat lagres ikke, men svarer OK") {
             val nyInntektsmelding = mockInntektsmeldingV1()
+            val avsenderFnr = Fnr.genererGyldig()
 
             val duplikatIm =
                 nyInntektsmelding.copy(
@@ -107,9 +112,9 @@ class LagreSelvbestemtImRiverTest :
                 )
 
             every { mockSelvbestemtImRepo.hentNyesteIm(any()) } returns duplikatIm
-            every { mockSelvbestemtImRepo.lagreIm(any()) } just Runs
+            every { mockSelvbestemtImRepo.lagreIm(any(), avsenderFnr) } just Runs
 
-            val innkommendeMelding = innkommendeMelding(nyInntektsmelding)
+            val innkommendeMelding = innkommendeMelding(nyInntektsmelding, avsenderFnr)
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -122,6 +127,7 @@ class LagreSelvbestemtImRiverTest :
                     Key.DATA to
                         mapOf(
                             Key.SELVBESTEMT_INNTEKTSMELDING to nyInntektsmelding.toJson(Inntektsmelding.serializer()),
+                            Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
                             Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
                         ).toJson(),
                 )
@@ -130,7 +136,7 @@ class LagreSelvbestemtImRiverTest :
                 mockSelvbestemtImRepo.hentNyesteIm(nyInntektsmelding.type.id)
             }
             verify(exactly = 0) {
-                mockSelvbestemtImRepo.lagreIm(nyInntektsmelding)
+                mockSelvbestemtImRepo.lagreIm(any(), avsenderFnr)
             }
         }
 
@@ -158,7 +164,7 @@ class LagreSelvbestemtImRiverTest :
                 mockSelvbestemtImRepo.hentNyesteIm(any())
             }
             verify(exactly = 0) {
-                mockSelvbestemtImRepo.lagreIm(any())
+                mockSelvbestemtImRepo.lagreIm(any(), innkommendeMelding.avsenderFnr)
             }
         }
 
@@ -170,8 +176,10 @@ class LagreSelvbestemtImRiverTest :
                     "melding med fail" to Pair(Key.FAIL, mockFail.toJson(Fail.serializer())),
                 ),
             ) { uoensketKeyMedVerdi ->
+                val innkommendeMelding = innkommendeMelding()
+
                 testRapid.sendJson(
-                    innkommendeMelding()
+                    innkommendeMelding
                         .toMap()
                         .plus(uoensketKeyMedVerdi),
                 )
@@ -180,13 +188,16 @@ class LagreSelvbestemtImRiverTest :
 
                 verify(exactly = 0) {
                     mockSelvbestemtImRepo.hentNyesteIm(any())
-                    mockSelvbestemtImRepo.lagreIm(any())
+                    mockSelvbestemtImRepo.lagreIm(any(), innkommendeMelding.avsenderFnr)
                 }
             }
         }
     })
 
-private fun innkommendeMelding(selvbestemtInntektsmelding: Inntektsmelding = mockInntektsmeldingV1()): LagreSelvbestemtImMelding =
+private fun innkommendeMelding(
+    selvbestemtInntektsmelding: Inntektsmelding = mockInntektsmeldingV1(),
+    avsenderFnr: Fnr = Fnr.genererGyldig(),
+): LagreSelvbestemtImMelding =
     LagreSelvbestemtImMelding(
         eventName = EventName.SELVBESTEMT_IM_MOTTATT,
         behovType = BehovType.LAGRE_SELVBESTEMT_IM,
@@ -194,8 +205,10 @@ private fun innkommendeMelding(selvbestemtInntektsmelding: Inntektsmelding = moc
         data =
             mapOf(
                 Key.SELVBESTEMT_INNTEKTSMELDING to selvbestemtInntektsmelding.toJson(Inntektsmelding.serializer()),
+                Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
             ),
         selvbestemtInntektsmelding = selvbestemtInntektsmelding,
+        avsenderFnr = avsenderFnr,
     )
 
 private fun LagreSelvbestemtImMelding.toMap(): Map<Key, JsonElement> =

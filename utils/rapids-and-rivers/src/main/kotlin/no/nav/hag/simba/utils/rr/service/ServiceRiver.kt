@@ -62,7 +62,10 @@ class ServiceRiverStateful<S>(
                     sikkerLogger.info("$it\n${json.toPretty()}")
                 }
 
-                val meldingMedRedisData = service.redisStore.lesAlleMellomlagrede(kontekstId).plus(json)
+                val mellomlagrede = service.redisStore.lesAlleMellomlagrede(kontekstId)
+                val utvidetDataMap = mellomlagrede.plus(dataMap).toJson()
+                val meldingMedUtvidetData = json.plus(Key.DATA to utvidetDataMap)
+                val meldingMedRedisData = mellomlagrede.plus(meldingMedUtvidetData)
 
                 service.onData(meldingMedRedisData)
             }
@@ -73,11 +76,14 @@ class ServiceRiverStateful<S>(
                     sikkerLogger.error("$it Utløsende melding er \n${fail.utloesendeMelding.toPretty()}")
                 }
 
+                val mellomlagrede = service.redisStore.lesAlleMellomlagrede(kontekstId)
+
                 val meldingMedRedisData =
-                    service.redisStore.lesAlleMellomlagrede(kontekstId).plus(
+                    mellomlagrede.plus(
                         mapOf(
                             Key.EVENT_NAME to eventName.toJson(),
                             Key.KONTEKST_ID to kontekstId.toJson(),
+                            Key.DATA to mellomlagrede.toJson(),
                         ),
                     )
 

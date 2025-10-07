@@ -44,7 +44,7 @@ jobs:
           echo "changed-files=$changed_files" >> $GITHUB_OUTPUT
           echo Changed files are [$changed_files]
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
 
       - name: Determine projects to build and deploy
         id: set-matrix

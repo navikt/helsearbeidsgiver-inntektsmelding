@@ -14,6 +14,7 @@ import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.felles.test.json.plusData
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
@@ -82,32 +83,40 @@ class ServiceRiverStatefulTest :
             val eksisterendeRedisValues =
                 mockService
                     .mockSteg0Data()
-                    .plus(Key.PERSONER to "mock personer".toJson())
+                    .plus(
+                        mapOf(
+                            Key.PERSONER to "mock personer".toJson(),
+                            Key.FORESPOERSEL_ID to "mock forespoersel_id".toJson(),
+                        ),
+                    )
 
             eksisterendeRedisValues.forEach {
                 mockRedis.store.skrivMellomlagring(kontekstId, it.key, it.value)
             }
 
-            val data =
-                mapOf(
-                    Key.VIRKSOMHETER to virksomhetNavn.toJson(),
-                )
-
-            val innkommendeMelding =
+            val innkommendeMeldingUtenData =
                 mapOf(
                     Key.EVENT_NAME to mockService.eventName.toJson(),
                     Key.KONTEKST_ID to kontekstId.toJson(),
-                    Key.DATA to data.toJson(),
                 )
 
-            testRapid.sendJson(innkommendeMelding)
+            val data =
+                mapOf(
+                    Key.VIRKSOMHETER to virksomhetNavn.toJson(),
+                    Key.EVENT_NAME to "blir overskrevet av rotnivå".toJson(),
+                    Key.FORESPOERSEL_ID to "overskriver Redis-verdi".toJson(),
+                )
 
-            val beriketMelding = eksisterendeRedisValues + data + innkommendeMelding
+            testRapid.sendJson(innkommendeMeldingUtenData.plusData(data))
+
+            // På rotnivå, så forventes det at eksisterende data fra Redis prioriteres under innkommende data, som igjen prioriteres under innkommende felt fra rotnivå
+            // På datanivå, så forventes det at eksisterende data fra Redis prioriteres under innkommende data
+            val forventetBeriketMelding = (eksisterendeRedisValues + data + innkommendeMeldingUtenData).plusData(eksisterendeRedisValues + data)
 
             verifyOrder {
                 mockRedis.store.skrivMellomlagring(kontekstId, Key.VIRKSOMHETER, virksomhetNavn.toJson())
                 mockRedis.store.lesAlleMellomlagrede(kontekstId)
-                mockService.onData(beriketMelding)
+                mockService.onData(forventetBeriketMelding)
             }
             verify(exactly = 0) {
                 mockService.onError(any(), any())
@@ -125,6 +134,12 @@ class ServiceRiverStatefulTest :
             val innkommendeMelding =
                 mapOf(
                     Key.FAIL to mockFail.toJson(Fail.serializer()),
+                    Key.EVENT_NAME to "ignoreres".toJson(),
+                    Key.KONTEKST_ID to "ignoreres".toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.VIRKSOMHETER to "ignoreres".toJson(),
+                        ).toJson(),
                 )
 
             testRapid.sendJson(innkommendeMelding)
@@ -133,6 +148,7 @@ class ServiceRiverStatefulTest :
                 mapOf(
                     Key.EVENT_NAME to mockService.eventName.toJson(),
                     Key.KONTEKST_ID to mockFail.kontekstId.toJson(),
+                    Key.DATA to eksisterendeRedisValues.toJson(),
                 ).plus(eksisterendeRedisValues)
 
             verifyOrder {

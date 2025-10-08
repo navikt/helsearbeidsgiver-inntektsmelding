@@ -17,9 +17,9 @@ spec:
   resources:
     requests:
       cpu: 50m
-      memory: 512Mi
+      memory: 768Mi
     limits:
-      memory: 1024Mi
+      memory: 1536Mi
   replicas:
     min: 2
     max: {{#if replicasMax}}{{ replicasMax }}{{else}}2{{/if}}

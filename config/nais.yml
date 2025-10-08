@@ -14,7 +14,6 @@ metadata:
   labels:
     team: helsearbeidsgiver
 spec:
-  image: {{ image }}
   resources:
     requests:
       cpu: 50m

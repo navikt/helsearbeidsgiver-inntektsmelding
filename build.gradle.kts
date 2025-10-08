@@ -159,6 +159,7 @@ dependencies {
 }
 
 tasks {
+    // Krever -PchangedFiles=<filA,filB,filC,...>
     register("buildMatrix") {
         doLast {
             taskOutputJson(
@@ -167,12 +168,11 @@ tasks {
         }
     }
 
-    register("deployMatrixDev") {
-        deployMatrix(includeCluster = "dev-gcp")
-    }
-
-    register("deployMatrixProd") {
-        deployMatrix(includeCluster = "prod-gcp")
+    // Krever -PclusterEnv=<dev/prod> og -PchangedFiles=<filA,filB,filC,...>
+    register("deployMatrix") {
+        doLast {
+            deployMatrix()
+        }
     }
 
     check {
@@ -184,8 +184,8 @@ fun getBuildableProjects(): List<String> {
     val testfilRegex = Regex("^(?:apps|kontrakt|utils)/[\\w-]+/src/test(?:Fixtures)?.+")
 
     val changedFiles =
-        System
-            .getenv("CHANGED_FILES")
+        properties["changedFiles"]
+            ?.toString()
             ?.takeIf(String::isNotBlank)
             ?.split(",")
             ?.filterNot(testfilRegex::matches)
@@ -205,6 +205,7 @@ fun getBuildableProjects(): List<String> {
         }
 
     return subprojects
+        .filter { it.erAppModul() }
         .filterNot { it.erIntegrasjonstestModul() }
         .map { it.name }
         .let { projects ->
@@ -221,34 +222,21 @@ fun getBuildableProjects(): List<String> {
         }
 }
 
-fun getDeployMatrixVariables(includeCluster: String): Triple<Set<String>, Set<String>, List<Pair<String, String>>> {
-    val clustersByProject =
+fun deployMatrix() {
+    val cluster = "${properties["clusterEnv"]}-gcp"
+
+    val deployableProjects =
         getBuildableProjects()
-            .associateWith { project ->
+            .filterNot { project ->
                 File("config", project)
                     .listFiles()
-                    ?.filter { it.isFile && it.name.endsWith(".yml") }
-                    ?.map { it.name.removeSuffix(".yml") }
-                    ?.let { clusters ->
-                        setOf(includeCluster).intersect(clusters.toSet())
-                    }?.ifEmpty { null }
-            }.mapNotNull { (key, value) ->
-                value?.let { key to it }
-            }.toMap()
+                    ?.filter { it.isFile && it.name == "$cluster.yml" }
+                    .isNullOrEmpty()
+            }
 
-    val allClusters = clustersByProject.values.flatten().toSet()
-
-    val exclusions =
-        clustersByProject.flatMap { (project, clusters) ->
-            allClusters
-                .subtract(clusters)
-                .map { Pair(project, it) }
-        }
-
-    return Triple(
-        clustersByProject.keys,
-        allClusters,
-        exclusions,
+    taskOutputJson(
+        "project" to deployableProjects.toJsonList(),
+        "cluster" to setOf(cluster).toJsonList(),
     )
 }
 
@@ -281,41 +269,14 @@ fun Project.erAppModul(): Boolean =
 
 fun Project.erIntegrasjonstestModul(): Boolean = name == "integrasjonstest"
 
-fun Task.deployMatrix(includeCluster: String) {
-    doLast {
-        val (
-            deployableProjects,
-            clusters,
-            exclusions,
-        ) = getDeployMatrixVariables(includeCluster)
-
-        taskOutputJson(
-            "project" to deployableProjects.toJsonList(),
-            "cluster" to clusters.toJsonList(),
-            "exclude" to
-                exclusions
-                    .map { (project, cluster) ->
-                        listOf(
-                            "project" to project,
-                            "cluster" to cluster,
-                        ).toJsonObject()
-                    }.toJsonList { it },
-        )
-    }
-}
-
 fun taskOutputJson(vararg keyValuePairs: Pair<String, String>) {
     keyValuePairs
         .toList()
-        .toJsonObject { it }
-        .let(::println)
+        .joinToString(prefix = "{", postfix = "}") { (key, value) ->
+            "${key.inQuotes()}: $value"
+        }.let(::print)
 }
 
-fun Iterable<String>.toJsonList(transform: (String) -> String = { it.inQuotes() }): String = joinToString(prefix = "[", postfix = "]", transform = transform)
-
-fun Iterable<Pair<String, String>>.toJsonObject(transformValue: (String) -> String = { it.inQuotes() }): String =
-    joinToString(prefix = "{", postfix = "}") { (key, value) ->
-        "${key.inQuotes()}: ${transformValue(value)}"
-    }
+fun Iterable<String>.toJsonList(): String = joinToString(prefix = "[", postfix = "]", transform = String::inQuotes)
 
 fun String.inQuotes(): String = "\"$this\""

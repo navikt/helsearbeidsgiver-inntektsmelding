@@ -1,0 +1,62 @@
+name: Determine changed projects
+
+on:
+  workflow_call:
+    inputs:
+      env:
+        required: true
+        type: string
+    outputs:
+      build-matrix:
+        value: ${{ jobs.diff-matrix.outputs.build-matrix }}
+      deploy-matrix:
+        value: ${{ jobs.diff-matrix.outputs.deploy-matrix }}
+
+jobs:
+  diff-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      build-matrix: ${{ steps.set-matrix.outputs.build-matrix }}
+      deploy-matrix: ${{ steps.set-matrix.outputs.deploy-matrix }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # Need two commits to compare for inputs.env=dev
+          fetch-depth: 2
+
+        # We fetch tags here because 'fetch-tags'-option on checkout-action doesn't work on release
+      - name: Fetch tags (prod only)
+        if: inputs.env == 'prod'
+        run: git fetch --depth=1 --tags --quiet
+
+      - name: Determine changed files
+        id: git-diff
+        run: |
+          if ${{ inputs.env == 'prod' }}; then
+            previous_tag=$(git tag --sort version:refname | tail -n 2 | head -n 1)
+            echo Previous tag is $previous_tag
+            git_diff=$(git diff-tree --no-commit-id --name-only -r -m $previous_tag $GITHUB_REF)
+          else
+            git_diff=$(git diff-tree --no-commit-id --name-only -r -m $GITHUB_SHA)
+          fi
+
+          changed_files=$(echo "$git_diff" | tr -s '[:space:]' ',' | sed -e 's/,$//' | tr -d '"')
+          echo "changed-files=$changed_files" >> $GITHUB_OUTPUT
+          echo Changed files are [$changed_files]
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Determine projects to build and deploy
+        id: set-matrix
+        env:
+          ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo Determine build matrix
+          build_matrix=$(./gradlew buildMatrix -PchangedFiles=${{ steps.git-diff.outputs.changed-files }} --quiet --console=plain)
+          echo "build-matrix=$build_matrix" >> $GITHUB_OUTPUT
+          echo $build_matrix
+
+          echo Determine deploy matrix
+          deploy_matrix=$(./gradlew deployMatrix -PclusterEnv=${{ inputs.env }} -PchangedFiles=${{ steps.git-diff.outputs.changed-files }} --quiet --console=plain)
+          echo "deploy-matrix=$deploy_matrix" >> $GITHUB_OUTPUT
+          echo $deploy_matrix

@@ -100,7 +100,7 @@ class InntektsmeldingRepository(
     fun lagreInntektsmeldingSkjema(
         inntektsmeldingId: UUID,
         inntektsmeldingSkjema: SkjemaInntektsmelding,
-        avsenderFnr: Fnr,
+        avsenderFnr: Fnr?,
         mottatt: LocalDateTime,
     ) {
         transaction(db) {
@@ -108,7 +108,7 @@ class InntektsmeldingRepository(
                 it[this.inntektsmeldingId] = inntektsmeldingId
                 it[forespoerselId] = inntektsmeldingSkjema.forespoerselId
                 it[skjema] = inntektsmeldingSkjema
-                it[this.avsenderFnr] = avsenderFnr.verdi
+                it[this.avsenderFnr] = avsenderFnr?.verdi
                 it[innsendt] = mottatt
             }
         }

@@ -9,6 +9,7 @@ import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.json.krev
 import no.nav.hag.simba.utils.felles.json.les
+import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.utils.Log
@@ -34,7 +35,7 @@ data class LagreImSkjemaMelding(
     val forespoersel: Forespoersel,
     val inntektsmeldingId: UUID,
     val skjema: SkjemaInntektsmelding,
-    val avsenderFnr: Fnr,
+    val avsenderFnr: Fnr?,
     val mottatt: LocalDateTime,
 )
 
@@ -57,7 +58,7 @@ class LagreImSkjemaRiver(
                 forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), data),
                 inntektsmeldingId = Key.INNTEKTSMELDING_ID.les(UuidSerializer, data),
                 skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), data),
-                avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), data),
+                avsenderFnr = Key.ARBEIDSGIVER_FNR.lesOrNull(Fnr.serializer(), data),
                 mottatt = Key.MOTTATT.les(LocalDateTimeSerializer, data),
             )
         }

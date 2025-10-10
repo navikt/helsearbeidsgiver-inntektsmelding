@@ -153,6 +153,47 @@ class LagreImSkjemaRiverTest :
             }
         }
 
+        test("lagrer skjema selv om fnr for avsender mangler") {
+            val innkommendeMelding =
+                innkommendeMelding().let {
+                    it.copy(
+                        data = it.data.minus(Key.ARBEIDSGIVER_FNR),
+                        avsenderFnr = null,
+                    )
+                }
+
+            every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns null
+            every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any(), null, any()) } just Runs
+
+            testRapid.sendJson(innkommendeMelding.toMap())
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            testRapid.firstMessage().toMap() shouldContainExactly
+                mapOf(
+                    Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
+                    Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.FORESPOERSEL_SVAR to innkommendeMelding.forespoersel.toJson(Forespoersel.serializer()),
+                            Key.INNTEKTSMELDING_ID to innkommendeMelding.inntektsmeldingId.toJson(),
+                            Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                            Key.MOTTATT to innkommendeMelding.mottatt.toJson(),
+                            Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
+                        ).toJson(),
+                )
+
+            verifySequence {
+                mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(innkommendeMelding.skjema.forespoerselId)
+                mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(
+                    innkommendeMelding.inntektsmeldingId,
+                    innkommendeMelding.skjema,
+                    null,
+                    innkommendeMelding.mottatt,
+                )
+            }
+        }
+
         test("håndterer at repo feiler") {
             val innkommendeMelding = innkommendeMelding()
 

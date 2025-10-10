@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.desember
+import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -90,6 +91,22 @@ class InntektsmeldingRepositoryTest :
             inntektsmeldingRepo.hentNyesteInntektsmeldingId(skjema.forespoerselId) shouldBe inntektsmeldingId2
 
             inntektsmeldingRepo.hentNyesteInntektsmeldingId(UUID.randomUUID()) shouldBe null
+        }
+
+        test("lagrer inntektsmeldingskjema uten fnr for avsender") {
+            transaction {
+                InntektsmeldingEntitet.selectAll().toList()
+            }.shouldBeEmpty()
+
+            val inntektsmeldingId = UUID.randomUUID()
+            val skjema = mockSkjemaInntektsmelding()
+
+            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId, skjema, null, 14.juni.atStartOfDay())
+
+            val record = testRepo.hentRecordFraInntektsmelding(skjema.forespoerselId).shouldNotBeNull()
+
+            record.getOrNull(InntektsmeldingEntitet.skjema) shouldBe skjema
+            record.getOrNull(InntektsmeldingEntitet.avsenderFnr) shouldBe null
         }
 
         test("skal oppdatere journalpostId") {

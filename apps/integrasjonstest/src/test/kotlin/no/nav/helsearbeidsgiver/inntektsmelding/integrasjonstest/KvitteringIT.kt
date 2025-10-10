@@ -17,6 +17,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndT
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.desember
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -44,7 +46,7 @@ class KvitteringIT : EndToEndTest() {
                 ),
         )
 
-        imRepository.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, mottatt)
+        imRepository.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, Fnr.genererGyldig(), mottatt)
         imRepository.oppdaterMedInntektsmelding(inntektsmelding)
 
         publish(

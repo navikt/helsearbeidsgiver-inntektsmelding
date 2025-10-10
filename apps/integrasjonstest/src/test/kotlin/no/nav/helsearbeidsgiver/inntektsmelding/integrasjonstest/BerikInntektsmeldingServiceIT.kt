@@ -54,7 +54,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
     fun `skal berike og lagre inntektsmeldinger`() {
         val tidligereInntektsmelding = mockInntektsmeldingV1()
 
-        imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, 10.desember.atStartOfDay())
+        imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, Fnr.genererGyldig(), 10.desember.atStartOfDay())
         imRepository.oppdaterMedInntektsmelding(tidligereInntektsmelding)
 
         coEvery {
@@ -153,7 +153,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
     fun `skal opprette en bakgrunnsjobb som gjenopptar berikelsen av inntektsmeldingen senere dersom oppslaget mot pdl feiler`() {
         val tidligereInntektsmelding = mockInntektsmeldingV1()
 
-        imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, 10.desember.atStartOfDay())
+        imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, Fnr.genererGyldig(), 10.desember.atStartOfDay())
         imRepository.oppdaterMedInntektsmelding(tidligereInntektsmelding)
 
         coEvery {

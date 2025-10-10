@@ -31,6 +31,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.kl
@@ -94,10 +95,11 @@ class LagreImSkjemaRiverTest :
                                 Key.FORESPOERSEL_SVAR to innkommendeMelding.forespoersel.toJson(Forespoersel.serializer()),
                                 Key.INNTEKTSMELDING_ID to innkommendeMelding.inntektsmeldingId.toJson(),
                                 Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.skjema.toJson(SkjemaInntektsmelding.serializer()),
-                                Key.ARBEIDSGIVER_FNR to innkommendeMelding.avsenderFnr.toJson(),
+                                Key.ARBEIDSGIVER_FNR to innkommendeMelding.avsenderFnr?.toJson(),
                                 Key.MOTTATT to innkommendeMelding.mottatt.toJson(),
                                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
-                            ).toJson(),
+                            ).mapValuesNotNull { it }
+                                .toJson(),
                     )
 
                 verifySequence {
@@ -131,10 +133,11 @@ class LagreImSkjemaRiverTest :
                             Key.FORESPOERSEL_SVAR to innkommendeMelding.forespoersel.toJson(Forespoersel.serializer()),
                             Key.INNTEKTSMELDING_ID to innkommendeMelding.inntektsmeldingId.toJson(),
                             Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.skjema.toJson(SkjemaInntektsmelding.serializer()),
-                            Key.ARBEIDSGIVER_FNR to innkommendeMelding.avsenderFnr.toJson(),
+                            Key.ARBEIDSGIVER_FNR to innkommendeMelding.avsenderFnr?.toJson(),
                             Key.MOTTATT to innkommendeMelding.mottatt.toJson(),
                             Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
-                        ).toJson(),
+                        ).mapValuesNotNull { it }
+                            .toJson(),
                 )
 
             verifySequence {

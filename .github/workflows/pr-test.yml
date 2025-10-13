@@ -6,13 +6,13 @@ jobs:
   Test:
     runs-on: ubuntu-latest-16-cores
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
         with:
           java-version: 21
           distribution: temurin
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
 
       - name: Test
         run: ./gradlew test --tests --parallel --build-cache '*Test' jacocoTestReport -Dorg.gradle.jvmargs=-Xmx32g -x :integrasjonstest:test

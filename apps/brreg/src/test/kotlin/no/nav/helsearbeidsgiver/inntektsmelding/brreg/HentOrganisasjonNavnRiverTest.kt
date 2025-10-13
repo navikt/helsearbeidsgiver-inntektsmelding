@@ -72,7 +72,7 @@ class HentOrganisasjonNavnRiverTest :
                 )
 
             coVerifySequence {
-                mockBrregClient.hentOrganisasjonNavn(orgnrMedNavn.keys)
+                mockBrregClient.hentOrganisasjonNavn(orgnrMedNavn.keys.somStrenger())
             }
         }
 
@@ -103,7 +103,7 @@ class HentOrganisasjonNavnRiverTest :
                 )
 
             coVerifySequence {
-                mockBrregClient.hentOrganisasjonNavn(orgnrMedNavn.keys.plus(orgnrUtenNavn))
+                mockBrregClient.hentOrganisasjonNavn(orgnrMedNavn.keys.plus(orgnrUtenNavn).somStrenger())
             }
         }
 
@@ -134,7 +134,7 @@ class HentOrganisasjonNavnRiverTest :
                 )
 
             coVerifySequence {
-                mockBrregClient.hentOrganisasjonNavn(orgnr)
+                mockBrregClient.hentOrganisasjonNavn(orgnr.somStrenger())
             }
         }
 
@@ -157,7 +157,7 @@ class HentOrganisasjonNavnRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             coVerifySequence {
-                mockBrregClient.hentOrganisasjonNavn(innkommendeMelding.orgnr)
+                mockBrregClient.hentOrganisasjonNavn(innkommendeMelding.orgnr.somStrenger())
             }
         }
 
@@ -213,3 +213,5 @@ private object Mock {
 
     val fail = mockFail("failando, failando", EventName.TRENGER_REQUESTED)
 }
+
+private fun Set<Orgnr>.somStrenger(): Set<String> = map { it.verdi }.toSet()

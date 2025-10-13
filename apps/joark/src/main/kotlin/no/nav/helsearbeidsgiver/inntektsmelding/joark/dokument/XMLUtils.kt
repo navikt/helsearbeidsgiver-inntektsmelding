@@ -1,10 +1,10 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
+import jakarta.xml.bind.JAXBContext
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.tilXmlInntektsmelding
 import no.seres.xsd.nav.inntektsmelding_m._20181211.ObjectFactory
 import java.io.StringWriter
-import javax.xml.bind.JAXBContext
 
 val CONTEXT: JAXBContext = JAXBContext.newInstance(ObjectFactory::class.java)
 

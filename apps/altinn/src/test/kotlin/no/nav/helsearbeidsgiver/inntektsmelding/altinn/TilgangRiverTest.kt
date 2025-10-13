@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.data.row
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
@@ -50,8 +49,8 @@ class TilgangRiverTest :
         context("henter tilgang") {
             withData(
                 mapOf(
-                    "har tilgang" to row(true, Tilgang.HAR_TILGANG),
-                    "ikke tilgang" to row(false, Tilgang.IKKE_TILGANG),
+                    "har tilgang" to Pair(true, Tilgang.HAR_TILGANG),
+                    "ikke tilgang" to Pair(false, Tilgang.IKKE_TILGANG),
                 ),
             ) { (altinnSvar, forventetTilgang) ->
                 coEvery { mockAltinn3M2MClient.harTilgangTilOrganisasjon(any(), any()) } returns altinnSvar

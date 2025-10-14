@@ -62,8 +62,9 @@ class HentOrganisasjonNavnRiver(
             if (isPreProd) {
                 brukPreprodOrg(orgnr)
             } else {
+                val orgnrStrenger = orgnr.map { it.verdi }.toSet()
                 runBlocking {
-                    brregClient.hentOrganisasjonNavn(orgnr)
+                    brregClient.hentOrganisasjonNavn(orgnrStrenger)
                 }
             }
 

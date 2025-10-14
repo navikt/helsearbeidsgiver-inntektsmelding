@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
+    id("io.kotest")
     id("org.jmailen.kotlinter")
     id("java")
     id("jacoco")
@@ -104,20 +105,8 @@ subprojects {
     dependencies {
         // Sjekk om disse er nødvendige ved oppgradering av pakker
         constraints {
-            implementation("commons-beanutils:commons-beanutils:1.11.0") {
-                because("helsearbeidsgiver-kontrakt-inntektsmelding")
-            }
             implementation("io.ktor:ktor-client-core-jvm:2.3.13") {
                 because("hag-bakgrunnsjobb")
-            }
-            implementation("org.apache.commons:commons-lang3:3.18.0") {
-                because("helsearbeidsgiver-kontrakt-inntektsmelding")
-            }
-            implementation("org.apache.httpcomponents.client5:httpclient5:5.4.4") {
-                because("brreg-client")
-            }
-            implementation("org.apache.kafka:kafka-clients:3.9.1") {
-                because("rapids-and-rivers")
             }
 
             testImplementation("org.apache.commons:commons-compress:1.26.2") {
@@ -140,7 +129,7 @@ subprojects {
 
         testImplementation(testFixtures("no.nav.helsearbeidsgiver:utils:$utilsVersion"))
         testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
-        testImplementation("io.kotest:kotest-framework-datatest:$kotestVersion")
+        testImplementation("io.kotest:kotest-framework-engine:$kotestVersion")
         testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
         testImplementation("io.mockk:mockk:$mockkVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")

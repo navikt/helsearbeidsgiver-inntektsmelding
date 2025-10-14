@@ -2,8 +2,6 @@ package no.nav.hag.simba.utils.felles.json
 
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.data.Row2
-import io.kotest.data.row
 import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
@@ -64,9 +62,9 @@ class KotlinxUtilsKtTest :
 
         context("les") {
             withData(
-                mapOf<String, Row2<IKey, String>>(
-                    "Key leses" to row(Key.EVENT_NAME, "testevent"),
-                    "TestKey leses" to row(TestKey.EVENT_RSVP, "husk å drikke vann"),
+                mapOf<String, Pair<IKey, String>>(
+                    "Key leses" to Pair(Key.EVENT_NAME, "testevent"),
+                    "TestKey leses" to Pair(TestKey.EVENT_RSVP, "husk å drikke vann"),
                 ),
             ) { (key, expectedValue) ->
                 val jsonMap = mapOf(key to expectedValue.toJson())

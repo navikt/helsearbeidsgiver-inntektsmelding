@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.data.row
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
@@ -17,7 +16,7 @@ class ValideringsUtilsTest :
             withData(
                 mapOf(
                     "inntekt innenfor feilmargin gir OK validering" to
-                        row(
+                        Pair(
                             listOf(
                                 50005.0,
                                 49995.0,
@@ -26,7 +25,7 @@ class ValideringsUtilsTest :
                             emptySet(),
                         ),
                     "blandet null og ikke-null innenfor feilmargin gir OK validering" to
-                        row(
+                        Pair(
                             listOf(
                                 75000.0,
                                 null,
@@ -35,7 +34,7 @@ class ValideringsUtilsTest :
                             emptySet(),
                         ),
                     "inntekt utenfor feilmargin gir valideringsfeil" to
-                        row(
+                        Pair(
                             listOf(
                                 49980.0,
                                 49985.0,
@@ -44,7 +43,7 @@ class ValideringsUtilsTest :
                             setOf(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN),
                         ),
                     "alle a-ordninginntekter er null gir valideringsfeil" to
-                        row(
+                        Pair(
                             listOf(
                                 null,
                                 null,
@@ -53,7 +52,7 @@ class ValideringsUtilsTest :
                             setOf(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN),
                         ),
                     "tom a-ordning map gir valideringsfeil" to
-                        row(
+                        Pair(
                             emptyList(),
                             setOf(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN),
                         ),

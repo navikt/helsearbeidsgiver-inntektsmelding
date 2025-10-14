@@ -264,7 +264,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
     fun `duplikat, endret inntektsmelding lagres, men prosesseres ikke`() {
         val kontekstId: UUID = UUID.randomUUID()
 
-        selvbestemtImRepo.lagreIm(Mock.inntektsmelding)
+        selvbestemtImRepo.lagreIm(Mock.inntektsmelding, Fnr.genererGyldig())
 
         coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Mock.organisasjon)
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer

@@ -15,6 +15,7 @@ object SelvbestemtInntektsmeldingEntitet : Table("selvbestemt_inntektsmelding") 
             jsonConfig = jsonConfig,
             kSerializer = Inntektsmelding.serializer(),
         )
+    val avsenderFnr = varchar("avsender_fnr", 11).nullable()
     val journalpostId = text("journalpost_id").nullable()
     val opprettet = datetime("opprettet")
     val prosessert = datetime("prosessert").nullable()

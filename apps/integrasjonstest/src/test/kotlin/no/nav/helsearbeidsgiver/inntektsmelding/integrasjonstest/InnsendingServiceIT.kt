@@ -46,7 +46,7 @@ class InnsendingServiceIT : EndToEndTest() {
         val kontekstId: UUID = UUID.randomUUID()
         val tidligereInntektsmelding = mockInntektsmeldingV1()
 
-        imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, 9.desember.atStartOfDay())
+        imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, Fnr.genererGyldig(), 9.desember.atStartOfDay())
         imRepository.oppdaterMedInntektsmelding(tidligereInntektsmelding)
 
         mockForespoerselSvarFraHelsebro(

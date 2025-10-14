@@ -37,10 +37,13 @@ spec:
     path: /isalive
   readiness:
     path: /isready
+  secureLogs:
+    enabled: true
   observability:
     logging:
       destinations:
         - id: loki
+        - id: secure_logs
     autoInstrumentation:
       enabled: true
       runtime: java

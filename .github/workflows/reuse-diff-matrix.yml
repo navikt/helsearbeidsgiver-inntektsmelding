@@ -52,7 +52,9 @@ jobs:
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo Determine build matrix
-          build_matrix=$(./gradlew buildMatrix -PchangedFiles=${{ steps.git-diff.outputs.changed-files }} --quiet --console=plain)
+          $(./gradlew -v)
+          
+          build_matrix=$(./gradlew buildMatrix -PchangedFiles=${{ steps.git-diff.outputs.changed-files }} --quiet --console=plain | grep '{')
           echo "build-matrix=$build_matrix" >> $GITHUB_OUTPUT
           echo $build_matrix
 

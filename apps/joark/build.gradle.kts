@@ -13,7 +13,7 @@ tasks {
 
 dependencies {
     implementation(project(":utils-auth"))
-    implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbApiVersion")
+    implementation("javax.xml.bind:jaxb-api:$jaxbApiVersion")
     implementation("no.nav.helsearbeidsgiver:dokarkiv-client:$dokarkivKlientVersion")
     implementation("no.nav.helsearbeidsgiver:helsearbeidsgiver-kontrakt-inntektsmelding:$hagImXmlKontraktVersion")
     implementation("org.apache.pdfbox:pdfbox:$pdfboxVersion")

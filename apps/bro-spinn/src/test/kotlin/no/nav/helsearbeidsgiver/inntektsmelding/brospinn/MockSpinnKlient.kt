@@ -1,20 +1,16 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 
-import io.kotest.core.test.testCoroutineScheduler
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
-import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.mockk.every
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 
-@OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 fun mockSpinnKlient(vararg responses: Pair<HttpStatusCode, String>): SpinnKlient {
     val mockEngine =
         MockEngine.create {
@@ -23,8 +19,7 @@ fun mockSpinnKlient(vararg responses: Pair<HttpStatusCode, String>): SpinnKlient
                 responses.map { (status, content) ->
                     {
                         if (content == "timeout") {
-                            // Skrur den virtuelle klokka fremover, nok til at timeout forårsakes
-                            dispatcher.shouldNotBeNull().testCoroutineScheduler.advanceTimeBy(1)
+                            delay(3100)
                         }
                         respond(
                             content = content,
@@ -36,19 +31,7 @@ fun mockSpinnKlient(vararg responses: Pair<HttpStatusCode, String>): SpinnKlient
             )
         }
 
-    val mockHttpClient =
-        HttpClient(mockEngine) {
-            configure()
-
-            // Overstyr delay for å unngå at testene bruker lang tid
-            install(HttpRequestRetry) {
-                configureRetry()
-                constantDelay(
-                    millis = 1,
-                    randomizationMs = 1,
-                )
-            }
-        }
+    val mockHttpClient = HttpClient(mockEngine) { configure() }
 
     return mockStatic(::createHttpClient) {
         every { createHttpClient() } returns mockHttpClient

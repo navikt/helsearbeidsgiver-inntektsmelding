@@ -175,8 +175,11 @@ abstract class EndToEndTest : ContainerTest() {
 
         coEvery { pdlKlient.personBolk(any()) } returns listOf(bjarneBetjent, maxMekker)
 
-        coEvery { brregClient.hentOrganisasjonNavn(any()) } answers {
-            firstArg<Set<Orgnr>>().associateWith { "Bedrift A/S" }
+        val orgnr = slot<Set<String>>()
+        coEvery { brregClient.hentOrganisasjonNavn(capture(orgnr)) } answers {
+            orgnr.captured
+                .map(::Orgnr)
+                .associateWith { "Bedrift A/S" }
         }
     }
 

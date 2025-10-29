@@ -8,7 +8,7 @@ import org.apache.kafka.clients.admin.NewTopic
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
-import org.testcontainers.kafka.ConfluentKafkaContainer
+import org.testcontainers.kafka.KafkaContainer
 import org.testcontainers.utility.DockerImageName
 import java.util.Properties
 
@@ -16,7 +16,7 @@ import java.util.Properties
 abstract class ContainerTest {
     private val topic = "helsearbeidsgiver.inntektsmelding"
 
-    private val kafkaContainer = ConfluentKafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:8.1.0"))
+    private val kafkaContainer = KafkaContainer(DockerImageName.parse("apache/kafka-native:latest"))
     val redisContainer = RedisContainer(DockerImageName.parse("redis:latest"))
     val postgresContainerOne = postgresContainer()
     val postgresContainerTwo = postgresContainer()
@@ -30,10 +30,7 @@ abstract class ContainerTest {
             .also { it.start() }
             .let {
                 Properties().apply {
-                    setProperty(
-                        AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG,
-                        it.bootstrapServers,
-                    )
+                    setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, it.bootstrapServers)
                 }
             }.let(AdminClient::create)
             .createTopics(listOf(NewTopic(topic, 1, 1.toShort())))

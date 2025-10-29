@@ -25,6 +25,7 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.Mock.toMap
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakUtgaattLevetid
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -67,6 +68,7 @@ class UtgaattForespoerselRiverTest :
                     tidspunkt = null,
                     statusTekst = "Avbrutt av Nav",
                     nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
+                    hardDeleteOm = sakUtgaattLevetid,
                 )
             }
         }
@@ -97,6 +99,7 @@ class UtgaattForespoerselRiverTest :
                     status = SaksStatus.FERDIG,
                     statusTekst = "Avbrutt av Nav",
                     nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
+                    hardDeleteOm = sakUtgaattLevetid,
                 )
             }
         }
@@ -127,6 +130,7 @@ class UtgaattForespoerselRiverTest :
                     status = SaksStatus.FERDIG,
                     statusTekst = "Avbrutt av Nav",
                     nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
+                    hardDeleteOm = sakUtgaattLevetid,
                 )
             }
         }
@@ -187,6 +191,7 @@ class UtgaattForespoerselRiverTest :
                         tidspunkt = null,
                         statusTekst = "Avbrutt av Nav",
                         nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
+                        hardDeleteOm = sakUtgaattLevetid,
                     )
                 }
             }

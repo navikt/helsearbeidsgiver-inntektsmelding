@@ -19,6 +19,7 @@ import kotlin.time.Duration.Companion.days
 
 // 13x30 dager
 val sakLevetid = 390.days
+val sakUtgaattLevetid = 90.days
 
 private val logger = "arbeidsgiver-notifikasjon-klient-utils".logger()
 private val sikkerLogger = sikkerLogger()
@@ -160,6 +161,7 @@ fun ArbeidsgiverNotifikasjonKlient.avbrytSak(
                 status = SaksStatus.FERDIG,
                 statusTekst = NotifikasjonTekst.STATUS_TEKST_AVBRUTT,
                 nyLenke = nyLenke,
+                hardDeleteOm = sakUtgaattLevetid,
             )
         }.onFailure { error ->
             loggWarnIkkeFunnetEllerThrow("Fant ikke sak under avbryting.", error)

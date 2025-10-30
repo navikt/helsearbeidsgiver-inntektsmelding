@@ -322,7 +322,7 @@ class PdfDokumentTest {
     @Test
     fun `generert pdf tittel samsvarer med inntektsmelding type`() {
         val id = im.type.id
-        val forespurtEkstern = Inntektsmelding.Type.ForespurtEkstern(id = id, avsenderSystem = AvsenderSystem(Orgnr.genererGyldig(), "Test system", "1.0"))
+        val forespurtEkstern = Inntektsmelding.Type.ForespurtEkstern(id = id, _avsenderSystem = AvsenderSystem(Orgnr.genererGyldig(), "Test system", "1.0"))
         setOf(
             forespurtEkstern to "Inntektsmelding for sykepenger",
             Inntektsmelding.Type.Forespurt(id) to "Inntektsmelding for sykepenger",

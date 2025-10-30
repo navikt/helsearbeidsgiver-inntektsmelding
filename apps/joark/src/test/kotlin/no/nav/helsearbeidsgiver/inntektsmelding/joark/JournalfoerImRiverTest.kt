@@ -208,7 +208,16 @@ private object Mock {
     val selvbestemtInntektsmelding = mockInntektsmeldingV1().copy(type = Inntektsmelding.Type.Selvbestemt(UUID.randomUUID()))
     val eksternInntektsmelding =
         mockInntektsmeldingV1().copy(
-            type = Inntektsmelding.Type.ForespurtEkstern(UUID.randomUUID(), AvsenderSystem(Orgnr.genererGyldig(), "Slapp Tiger")),
+            type =
+                Inntektsmelding.Type.ForespurtEkstern(
+                    id = UUID.randomUUID(),
+                    _avsenderSystem =
+                        AvsenderSystem(
+                            orgnr = Orgnr.genererGyldig(),
+                            navn = "Slapp Tiger",
+                            versjon = "8.8.8",
+                        ),
+                ),
         )
 
     val fail = mockFail("I don't think we're in Kansas anymore.", EventName.INNTEKTSMELDING_MOTTATT)

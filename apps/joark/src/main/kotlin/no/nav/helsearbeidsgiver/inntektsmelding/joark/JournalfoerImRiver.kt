@@ -117,9 +117,7 @@ class JournalfoerImRiver(
                 is Inntektsmelding.Type.UtenArbeidsforhold,
                 is Inntektsmelding.Type.Behandlingsdager,
                 ->
-                    Log.selvbestemtId(
-                        inntektsmelding.type.id,
-                    )
+                    Log.selvbestemtId(inntektsmelding.type.id)
             },
         )
 
@@ -129,7 +127,7 @@ class JournalfoerImRiver(
             sikkerLogger.info(it)
         }
 
-        val dokarkivKanal = inntektsmelding.type.kanal().tilDokarkivKanal()
+        val dokarkivKanal = inntektsmelding.type.kanal.tilDokarkivKanal()
 
         val response =
             runBlocking {

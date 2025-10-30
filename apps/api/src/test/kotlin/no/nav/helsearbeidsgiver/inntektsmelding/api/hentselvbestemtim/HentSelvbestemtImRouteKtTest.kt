@@ -92,7 +92,8 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
     @Test
     fun `gir OK med inntektsmelding`() =
         testApi {
-            val expectedInntektsmelding = mockInntektsmeldingV1()
+            val expectedInntektsmelding = mockSelvbestemtInntektsmelding()
+
             coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     Mock.successResult(expectedInntektsmelding),
@@ -148,7 +149,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
         testApi {
             coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
-                    Mock.successResult(mockInntektsmeldingV1()),
+                    Mock.successResult(mockSelvbestemtInntektsmelding()),
                     ikkeTilgangResultat,
                 )
 
@@ -233,7 +234,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
     @Test
     fun `ukjent feil gir 500-feil`() =
         testApi {
-            coEvery { mockRedisConnection.get(any()) } returns Mock.successResult(mockInntektsmeldingV1()) andThenThrows NullPointerException()
+            coEvery { mockRedisConnection.get(any()) } returns Mock.successResult(mockSelvbestemtInntektsmelding()) andThenThrows NullPointerException()
 
             val response = get(pathMedId)
 
@@ -303,6 +304,14 @@ private object Mock {
     fun emptyResult(): String = ResultJson().toJson().toString()
 }
 
+private fun mockSelvbestemtInntektsmelding(): Inntektsmelding =
+    mockInntektsmeldingV1().copy(
+        type =
+            Inntektsmelding.Type.Selvbestemt(
+                id = UUID.randomUUID(),
+            ),
+    )
+
 private fun Inntektsmelding.hardcodedJson(): String =
     """
     {
@@ -326,35 +335,7 @@ private fun Inntektsmelding.Type.hardcodedJson(): String =
             """
             {
                 "type": "Forespurt",
-                "id": "$id",
-                "avsenderSystem": ${this.avsenderSystem.hardcodedJson()}
-            }
-            """
-
-        is Inntektsmelding.Type.Selvbestemt ->
-            """
-            {
-                "type": "Selvbestemt",
-                "id": "$id",
-                "avsenderSystem": ${this.avsenderSystem.hardcodedJson()}
-            }
-            """
-
-        is Inntektsmelding.Type.Fisker ->
-            """
-            {
-                "type": "Fisker",
-                "id": "$id",
-                "avsenderSystem": ${this.avsenderSystem.hardcodedJson()}
-            }
-            """
-
-        is Inntektsmelding.Type.UtenArbeidsforhold ->
-            """
-            {
-                "type": "UtenArbeidsforhold",
-                "id": "$id",
-                "avsenderSystem": ${this.avsenderSystem.hardcodedJson()}
+                "id": "$id"
             }
             """
 
@@ -363,7 +344,31 @@ private fun Inntektsmelding.Type.hardcodedJson(): String =
             {
                 "type": "ForespurtEkstern",
                 "id": "$id",
-                "avsenderSystem": ${this.avsenderSystem.hardcodedJson()}
+                "avsenderSystem": ${avsenderSystem.hardcodedJson()}
+            }
+            """
+
+        is Inntektsmelding.Type.Selvbestemt ->
+            """
+            {
+                "type": "Selvbestemt",
+                "id": "$id"
+            }
+            """
+
+        is Inntektsmelding.Type.Fisker ->
+            """
+            {
+                "type": "Fisker",
+                "id": "$id"
+            }
+            """
+
+        is Inntektsmelding.Type.UtenArbeidsforhold ->
+            """
+            {
+                "type": "UtenArbeidsforhold",
+                "id": "$id"
             }
             """
 
@@ -371,8 +376,7 @@ private fun Inntektsmelding.Type.hardcodedJson(): String =
             """
             {
                 "type": "Behandlingsdager",
-                "id": "$id",
-                "avsenderSystem": ${this.avsenderSystem.hardcodedJson()}
+                "id": "$id"
             }
             """
     }

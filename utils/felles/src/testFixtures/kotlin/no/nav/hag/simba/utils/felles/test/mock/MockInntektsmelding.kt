@@ -49,12 +49,13 @@ fun mockInnsending(): Innsending {
         aarsakInnsending = AarsakInnsending.Ny,
         type =
             Inntektsmelding.Type.ForespurtEkstern(
-                skjema.forespoerselId,
-                AvsenderSystem(
-                    orgnr = Orgnr.genererGyldig(),
-                    navn = "Tigersys",
-                    versjon = "3.0.0",
-                ),
+                id = skjema.forespoerselId,
+                _avsenderSystem =
+                    AvsenderSystem(
+                        orgnr = Orgnr.genererGyldig(),
+                        navn = "Tigersys",
+                        versjon = "3.0.0",
+                    ),
             ),
         innsendtTid = OffsetDateTime.now(),
         versjon = 1,

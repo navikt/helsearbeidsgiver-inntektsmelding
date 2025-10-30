@@ -89,10 +89,7 @@ class OppdaterImSomProsessertRiver(
                 is Inntektsmelding.Type.Fisker,
                 is Inntektsmelding.Type.UtenArbeidsforhold,
                 is Inntektsmelding.Type.Behandlingsdager,
-                ->
-                    Log.selvbestemtId(
-                        inntektsmelding.type.id,
-                    )
+                -> Log.selvbestemtId(inntektsmelding.type.id)
             },
         )
 }

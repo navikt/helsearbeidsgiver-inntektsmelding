@@ -118,10 +118,7 @@ private suspend fun hentForespoersel(
 
             HttpStatusCode.OK to response
         } else {
-            val feilmelding =
-                resultatJson.failure
-                    ?.fromJson(String.serializer())
-                    ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
+            val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
 
             "Klarte ikke hente forespørsel.".also {
                 logger.info(it)

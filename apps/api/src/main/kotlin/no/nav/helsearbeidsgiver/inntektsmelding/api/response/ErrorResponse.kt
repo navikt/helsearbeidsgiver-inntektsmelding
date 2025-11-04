@@ -18,11 +18,6 @@ sealed class ErrorResponse {
     abstract val error: String
     abstract val errorId: String
 
-    companion object {
-        /** Bruker kort ID for at den skal være enklere å bruke for arbeidsgiver og NKS */
-        fun errorId(kontekstId: UUID): String = kontekstId.toString().take(8)
-    }
-
     @Serializable
     @SerialName("Unknown")
     data class Unknown(
@@ -91,3 +86,6 @@ sealed class ErrorResponse {
         override val errorId = errorId(kontekstId)
     }
 }
+
+/** Bruker kort ID for at den skal være enklere å bruke for arbeidsgiver og NKS */
+private fun errorId(kontekstId: UUID): String = kontekstId.toString().take(8)

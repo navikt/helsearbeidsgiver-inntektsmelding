@@ -9,7 +9,6 @@ import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.Tekst
-import no.nav.hag.simba.utils.felles.Tekst.TEKNISK_FEIL_FORBIGAAENDE
 import no.nav.hag.simba.utils.felles.Tekst.UGYLDIG_REQUEST
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.kafka.Producer
@@ -109,7 +108,7 @@ private suspend fun RoutingContext.hentForespoersler(
                 respondOk(respons, VedtaksperiodeIdForespoerselIdPar.serializer().list())
             }
         } else {
-            val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: TEKNISK_FEIL_FORBIGAAENDE
+            val feilmelding = resultatJson.failure?.fromJson(String.serializer())
             respondInternalServerError(feilmelding)
         }
     } else {

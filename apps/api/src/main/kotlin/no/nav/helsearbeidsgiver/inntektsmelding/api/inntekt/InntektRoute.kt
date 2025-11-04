@@ -51,7 +51,7 @@ fun Route.inntektRoute(
             producer.sendRequestEvent(kontekstId, request)
 
             val resultatJson = redisPoller.hent(kontekstId)
-            sikkerLogger.info("Hentet inntekt:\n$resultatJson")
+            sikkerLogger.info("Resultat for henting av inntekt:\n$resultatJson")
 
             if (resultatJson != null) {
                 val resultat = resultatJson.success?.fromJson(inntektMapSerializer)

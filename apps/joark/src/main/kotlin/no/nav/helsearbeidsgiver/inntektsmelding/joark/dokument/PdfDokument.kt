@@ -1,5 +1,3 @@
-@file:Suppress("NonAsciiCharacters")
-
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending

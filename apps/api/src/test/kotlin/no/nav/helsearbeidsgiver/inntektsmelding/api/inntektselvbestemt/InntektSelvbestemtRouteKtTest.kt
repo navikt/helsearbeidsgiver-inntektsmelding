@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.inntektselvbestemt
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
@@ -18,12 +19,13 @@ import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.inntektMapSerializer
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.gjennomsnitt
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
+import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.test.date.april
@@ -51,7 +53,7 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
         testApi {
             val expectedInntekt = Mock.inntekt
 
-            coEvery { mockRedisConnection.get(any()) } returnsMany
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     Mock.successResult(expectedInntekt),
@@ -102,16 +104,16 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
         }
 
     @Test
-    fun `manglende tilgang gir 500-feil`() =
+    fun `manglende tilgang gir 403-feil`() =
         testApi {
-            coEvery { mockRedisConnection.get(any()) } returns ikkeTilgangResultat
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns ikkeTilgangResultat
 
             val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
 
-            val actualJson = response.bodyAsText()
+            val error = response.bodyAsText().fromJson(String.serializer())
 
-            response.status shouldBe HttpStatusCode.InternalServerError
-            actualJson shouldBe "\"Error 500: no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException\""
+            response.status shouldBe HttpStatusCode.Forbidden
+            error shouldBe "Du har ikke rettigheter for organisasjon."
 
             verify(exactly = 0) {
                 mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
@@ -123,7 +125,7 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
         testApi {
             val expectedFeilmelding = "Du får vente til freddan'!"
 
-            coEvery { mockRedisConnection.get(any()) } returnsMany
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     Mock.failureResult(expectedFeilmelding),
@@ -142,7 +144,7 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
         testApi {
             val expectedFeilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
 
-            coEvery { mockRedisConnection.get(any()) } returnsMany
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     Mock.emptyResult(),
@@ -159,44 +161,27 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
     @Test
     fun `timeout mot redis gir 500-feil`() =
         testApi {
-            val expectedFeilJson = RedisTimeoutResponse().toJsonStr(RedisTimeoutResponse.serializer())
-
-            coEvery { mockRedisConnection.get(any()) } returns harTilgangResultat andThenThrows RedisPollerTimeoutException(UUID.randomUUID())
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns harTilgangResultat andThen null
 
             val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
 
-            val actualJson = response.bodyAsText()
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
 
             response.status shouldBe HttpStatusCode.InternalServerError
-            actualJson shouldBe expectedFeilJson
-        }
-
-    @Test
-    fun `ukjent feil mot redis gir 500-feil`() =
-        testApi {
-            val expectedFeilJson = "Error 500: java.lang.IllegalStateException".toJsonStr(String.serializer())
-
-            coEvery { mockRedisConnection.get(any()) } returns harTilgangResultat andThenThrows IllegalStateException()
-
-            val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
-
-            val actualJson = response.bodyAsText()
-
-            response.status shouldBe HttpStatusCode.InternalServerError
-            actualJson shouldBe expectedFeilJson
+            error.shouldBeTypeOf<ErrorResponse.RedisTimeout>()
         }
 
     @Test
     fun `ukjent feil gir 500-feil`() =
         testApi {
-            coEvery { mockRedisConnection.get(any()) } throws NullPointerException()
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } throws NullPointerException()
 
             val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
 
-            val actualJson = response.bodyAsText()
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
 
             response.status shouldBe HttpStatusCode.InternalServerError
-            actualJson shouldBe "\"Error 500: java.lang.NullPointerException\""
+            error.shouldBeTypeOf<ErrorResponse.Unknown>()
         }
 }
 
@@ -209,19 +194,17 @@ private object Mock {
             juni(2018) to 24000.0,
         )
 
-    fun successResult(inntekt: Map<YearMonth, Double>): String =
+    fun successResult(inntekt: Map<YearMonth, Double>): ResultJson =
         ResultJson(
             success = inntekt.toJson(inntektMapSerializer),
-        ).toJson()
-            .toString()
+        )
 
-    fun failureResult(feilmelding: String): String =
+    fun failureResult(feilmelding: String): ResultJson =
         ResultJson(
             failure = feilmelding.toJson(),
-        ).toJson()
-            .toString()
+        )
 
-    fun emptyResult(): String = ResultJson().toJson().toString()
+    fun emptyResult(): ResultJson = ResultJson()
 }
 
 fun Map<YearMonth, Double>.successResponseJson(): String =

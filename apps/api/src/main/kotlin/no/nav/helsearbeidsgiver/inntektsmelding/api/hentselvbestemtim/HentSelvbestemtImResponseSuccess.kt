@@ -11,8 +11,3 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 data class HentSelvbestemtImResponseSuccess(
     val selvbestemtInntektsmelding: Inntektsmelding,
 )
-
-@Serializable
-data class HentSelvbestemtImResponseFailure(
-    val error: String,
-)

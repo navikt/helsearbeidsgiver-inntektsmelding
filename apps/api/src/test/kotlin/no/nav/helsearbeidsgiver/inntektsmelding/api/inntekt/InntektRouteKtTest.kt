@@ -15,6 +15,7 @@ import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.inntektMapSerializer
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.gjennomsnitt
+import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
@@ -56,13 +57,12 @@ class InntektRouteKtTest : ApiTest() {
                     historikk = inntekt,
                 )
 
-            coEvery { mockRedisConnection.get(any()) } returnsMany
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     ResultJson(
                         success = inntekt.toJson(inntektMapSerializer),
-                    ).toJson()
-                        .toString(),
+                    ),
                 )
 
             val response = post(path, request, InntektRequest.serializer())

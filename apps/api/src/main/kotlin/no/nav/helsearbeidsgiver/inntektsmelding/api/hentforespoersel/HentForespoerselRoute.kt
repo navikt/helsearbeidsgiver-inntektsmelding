@@ -18,7 +18,6 @@ import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
@@ -104,41 +103,35 @@ private suspend fun hentForespoersel(
         arbeidsgiverFnr = arbeidsgiverFnr,
     )
 
-    val resultatJson =
-        try {
-            redisPoller.hent(kontekstId)
-        } catch (_: RedisPollerTimeoutException) {
-            "Klarte ikke hente forespørsel pga. Redis-timeout.".also {
+    val resultatJson = redisPoller.hent(kontekstId)
+
+    return if (resultatJson != null) {
+        val resultat = resultatJson.success?.fromJson(HentForespoerselResultat.serializer())
+
+        if (resultat != null) {
+            val response = resultat.toResponse().toJson(HentForespoerselResponse.serializer())
+
+            "Forespørsel hentet OK.".also {
                 logger.info(it)
-                sikkerLogger.info(it)
+                sikkerLogger.info("$it\n${response.toPretty()}")
             }
 
-            return HttpStatusCode.InternalServerError to Tekst.REDIS_TIMEOUT_FEILMELDING.toJson()
+            HttpStatusCode.OK to response
+        } else {
+            val feilmelding =
+                resultatJson.failure
+                    ?.fromJson(String.serializer())
+                    ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
+
+            "Klarte ikke hente forespørsel.".also {
+                logger.info(it)
+                sikkerLogger.info("$it Feilmelding: '$feilmelding'.")
+            }
+
+            HttpStatusCode.InternalServerError to feilmelding.toJson()
         }
-
-    val resultat = resultatJson.success?.fromJson(HentForespoerselResultat.serializer())
-
-    return if (resultat != null) {
-        val response = resultat.toResponse().toJson(HentForespoerselResponse.serializer())
-
-        "Forespørsel hentet OK.".also {
-            logger.info(it)
-            sikkerLogger.info("$it\n${response.toPretty()}")
-        }
-
-        HttpStatusCode.OK to response
     } else {
-        val feilmelding =
-            resultatJson.failure
-                ?.fromJson(String.serializer())
-                ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
-
-        "Klarte ikke hente forespørsel.".also {
-            logger.info(it)
-            sikkerLogger.info("$it Feilmelding: '$feilmelding'.")
-        }
-
-        HttpStatusCode.InternalServerError to feilmelding.toJson()
+        HttpStatusCode.InternalServerError to Tekst.REDIS_TIMEOUT_FEILMELDING.toJson()
     }
 }
 

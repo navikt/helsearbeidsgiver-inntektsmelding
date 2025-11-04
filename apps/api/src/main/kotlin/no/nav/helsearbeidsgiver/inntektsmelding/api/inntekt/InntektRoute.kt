@@ -8,7 +8,6 @@ import io.ktor.server.routing.post
 import kotlinx.serialization.builtins.serializer
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.json.inntektMapSerializer
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.gjennomsnitt
@@ -17,12 +16,11 @@ import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
@@ -42,37 +40,38 @@ fun Route.inntektRoute(
 
         val request = call.receive<InntektRequest>()
 
-        tilgangskontroll.validerTilgangTilForespoersel(call.request, request.forespoerselId)
-
-        "Henter oppdatert inntekt for forespørselId: ${request.forespoerselId}".let {
-            logger.info(it)
-            sikkerLogger.info("$it og request:\n$request")
-        }
-
         try {
+            tilgangskontroll.validerTilgangTilForespoersel(call.request, request.forespoerselId)
+
+            "Henter oppdatert inntekt for forespørselId: ${request.forespoerselId}".let {
+                logger.info(it)
+                sikkerLogger.info("$it og request:\n$request")
+            }
+
             producer.sendRequestEvent(kontekstId, request)
 
             val resultatJson = redisPoller.hent(kontekstId)
-            sikkerLogger.info("Fikk inntektresultat:\n$resultatJson")
+            sikkerLogger.info("Hentet inntekt:\n$resultatJson")
 
-            val resultat = resultatJson.success?.fromJson(inntektMapSerializer)
-            if (resultat != null) {
-                val response =
-                    InntektResponse(
-                        gjennomsnitt = resultat.gjennomsnitt(),
-                        historikk = resultat,
-                    ).toJson(InntektResponse.serializer())
+            if (resultatJson != null) {
+                val resultat = resultatJson.success?.fromJson(inntektMapSerializer)
+                if (resultat != null) {
+                    val response =
+                        InntektResponse(
+                            gjennomsnitt = resultat.gjennomsnitt(),
+                            historikk = resultat,
+                        ).toJson(InntektResponse.serializer())
 
-                call.respond(HttpStatusCode.OK, response)
+                    call.respond(HttpStatusCode.OK, response)
+                } else {
+                    val feilmelding = resultatJson.failure?.fromJson(String.serializer())
+                    respondInternalServerError(feilmelding)
+                }
             } else {
-                val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
-                respondInternalServerError(feilmelding, String.serializer())
+                respondInternalServerError(ErrorResponse.RedisTimeout(request.forespoerselId))
             }
         } catch (_: ManglerAltinnRettigheterException) {
-            respondForbidden("Du har ikke rettigheter for organisasjonen.", String.serializer())
-        } catch (_: RedisPollerTimeoutException) {
-            logger.info("Fikk timeout for forespørselId: ${request.forespoerselId}")
-            respondInternalServerError(RedisTimeoutResponse(request.forespoerselId), RedisTimeoutResponse.serializer())
+            respondForbidden("Du har ikke rettigheter for organisasjonen.")
         }
     }
 }

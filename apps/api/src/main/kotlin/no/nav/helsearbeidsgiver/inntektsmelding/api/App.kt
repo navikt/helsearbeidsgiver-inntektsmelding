@@ -14,7 +14,6 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import kotlinx.serialization.builtins.serializer
 import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr.aktiveOrgnrRoute
@@ -27,12 +26,14 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.inntektRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.inntektselvbestemt.inntektSelvbestemtRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.kvittering
 import no.nav.helsearbeidsgiver.inntektsmelding.api.lagreselvbestemtim.lagreSelvbestemtImRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgangorgnr.tilgangOrgnrRoute
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
 import kotlin.time.Duration.Companion.minutes
 
 val logger = "helsearbeidsgiver-im-api".logger()
@@ -94,14 +95,16 @@ fun Application.apiModule(
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            "Ukjent feil.".also {
+            val error = ErrorResponse.Unknown(UUID.randomUUID())
+
+            "${error.error} kontekstId='${error.kontekstId}' errorId='${error.errorId}'".also {
                 logger.error(it)
                 sikkerLogger.error(it, cause)
             }
 
             call.respondText(
-                text = "Error 500: $cause".toJsonStr(String.serializer()),
                 status = HttpStatusCode.InternalServerError,
+                text = error.toJson(ErrorResponse.serializer()).toString(),
             )
         }
     }

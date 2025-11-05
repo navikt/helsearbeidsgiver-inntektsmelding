@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIdListe
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
@@ -16,14 +17,16 @@ import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
+import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
@@ -47,7 +50,7 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
             val mockResultat = Mock.mockResultat()
             val vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)
 
-            coEvery { mockRedisConnection.get(any()) } returnsMany
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     Mock.successResult(mockResultat),
                     harTilgangResultat,
@@ -105,7 +108,7 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
         testApi {
             val mockResultat = emptyMap<UUID, Forespoersel>()
 
-            coEvery { mockRedisConnection.get(any()) } returnsMany
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     Mock.successResult(mockResultat),
                     harTilgangResultat,
@@ -129,7 +132,7 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
         testApi {
             val mockResultat = Mock.mockResultat()
 
-            coEvery { mockRedisConnection.get(any()) } returnsMany
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     Mock.successResult(mockResultat),
                     ikkeTilgangResultat,
@@ -153,7 +156,7 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
         testApi {
             val mockResultat = Mock.mockResultatMedUlikeOrgnr()
 
-            coEvery { mockRedisConnection.get(any()) } returnsMany
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     Mock.successResult(mockResultat),
                     harTilgangResultat,
@@ -177,7 +180,7 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
         testApi {
             val mockResultat = Mock.mockResultat()
 
-            coEvery { mockRedisConnection.get(any()) } returnsMany
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     Mock.successResult(mockResultat),
                     harTilgangResultat,
@@ -229,7 +232,7 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
         testApi {
             val expectedFeilmelding = "Det e itjnå som kjem tå sæ sjøl!"
 
-            coEvery { mockRedisConnection.get(any()) } returnsMany
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     Mock.failureResult(expectedFeilmelding),
                     harTilgangResultat,
@@ -253,7 +256,7 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
         testApi {
             val expectedFeilmelding = "Teknisk feil, prøv igjen senere."
 
-            coEvery { mockRedisConnection.get(any()) } returnsMany
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     Mock.emptyResult(),
                     harTilgangResultat,
@@ -275,9 +278,7 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
     @Test
     fun `timeout mot redis gir 500-feil`() =
         testApi {
-            val expectedFeilobjekt = RedisTimeoutResponse().toJson(RedisTimeoutResponse.serializer())
-
-            coEvery { mockRedisConnection.get(any()) } throws RedisPollerTimeoutException(UUID.randomUUID())
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns null
 
             val response =
                 post(
@@ -289,34 +290,13 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
             val actualJson = response.bodyAsText()
 
             response.status shouldBe HttpStatusCode.InternalServerError
-            actualJson shouldBe "$expectedFeilobjekt".removeJsonWhitespace()
-        }
-
-    @Test
-    fun `ukjent feil mot redis gir 500-feil`() =
-        testApi {
-            val expectedFeilmelding = "Teknisk feil, prøv igjen senere."
-
-            coEvery { mockRedisConnection.get(any()) } throws IllegalStateException()
-
-            val response =
-                post(
-                    path,
-                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
-                    HentForespoerslerRequest.serializer(),
-                )
-
-            val actualJson = response.bodyAsText()
-
-            response.status shouldBe HttpStatusCode.InternalServerError
-            actualJson shouldBe "\"$expectedFeilmelding\""
+            actualJson shouldBe Tekst.REDIS_TIMEOUT_FEILMELDING.toJson().toString()
         }
 
     @Test
     fun `ukjent feil gir 500-feil`() =
         testApi {
-            val expectedFeilmelding = "Teknisk feil, prøv igjen senere."
-            coEvery { mockRedisConnection.get(any()) } returns harTilgangResultat andThenThrows NullPointerException()
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns harTilgangResultat andThenThrows NullPointerException()
 
             val response =
                 post(
@@ -325,10 +305,10 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
                     HentForespoerslerRequest.serializer(),
                 )
 
-            val actualJson = response.bodyAsText()
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
 
             response.status shouldBe HttpStatusCode.InternalServerError
-            actualJson shouldBe "\"$expectedFeilmelding\""
+            error.shouldBeTypeOf<ErrorResponse.Unknown>()
         }
 }
 
@@ -368,17 +348,15 @@ private object Mock {
 
     fun successEmptyResponseJson(): String = """[]""".removeJsonWhitespace()
 
-    fun successResult(resultat: Map<UUID, Forespoersel>): String =
+    fun successResult(resultat: Map<UUID, Forespoersel>): ResultJson =
         ResultJson(
             success = resultat.toJson(MapSerializer(UuidSerializer, Forespoersel.serializer())),
-        ).toJson()
-            .toString()
+        )
 
-    fun failureResult(feilmelding: String): String =
+    fun failureResult(feilmelding: String): ResultJson =
         ResultJson(
             failure = feilmelding.toJson(),
-        ).toJson()
-            .toString()
+        )
 
-    fun emptyResult(): String = ResultJson().toJson().toString()
+    fun emptyResult(): ResultJson = ResultJson()
 }

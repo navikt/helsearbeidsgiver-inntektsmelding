@@ -57,11 +57,6 @@ class ServiceRiverStateful<S>(
                     service.redisStore.skrivMellomlagring(kontekstId, key, data)
                 }
 
-                "Lagret ${dataMap.size} nøkler (med data) i Redis.".also {
-                    logger.info(it)
-                    sikkerLogger.info("$it\n${json.toPretty()}")
-                }
-
                 val mellomlagrede = service.redisStore.lesAlleMellomlagrede(kontekstId)
                 val utvidetDataMap = mellomlagrede.plus(dataMap).toJson()
                 val meldingMedUtvidetData = json.plus(Key.DATA to utvidetDataMap)

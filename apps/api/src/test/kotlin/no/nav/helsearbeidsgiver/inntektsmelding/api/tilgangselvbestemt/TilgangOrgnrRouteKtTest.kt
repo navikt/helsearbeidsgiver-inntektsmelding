@@ -1,20 +1,23 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.tilgangselvbestemt
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
+import kotlinx.serialization.builtins.serializer
+import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 private val pathMedGyldigOrgnr =
     Routes.PREFIX +
@@ -37,7 +40,7 @@ class TilgangOrgnrRouteKtTest : ApiTest() {
     @Test
     fun `gyldig orgnr og tilgang skal gi 200 OK`() =
         testApi {
-            coEvery { mockRedisConnection.get(any()) } returns harTilgangResultat
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns harTilgangResultat
 
             val response = get(pathMedGyldigOrgnr)
 
@@ -50,11 +53,11 @@ class TilgangOrgnrRouteKtTest : ApiTest() {
     @Test
     fun `gyldig orgnr og manglende tilgang skal gi 403 Forbidden`() =
         testApi {
-            coEvery { mockRedisConnection.get(any()) } returns ikkeTilgangResultat
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns ikkeTilgangResultat
 
             val response = get(pathMedGyldigOrgnr)
 
-            val actualJson = response.bodyAsText()
+            val actualJson = response.bodyAsText().fromJson(String.serializer())
 
             response.status shouldBe HttpStatusCode.Forbidden
             actualJson shouldBe "Du har ikke rettigheter for organisasjon."
@@ -65,7 +68,7 @@ class TilgangOrgnrRouteKtTest : ApiTest() {
         testApi {
             val response = get(pathMedUgyldigOrgnr)
 
-            val actualJson = response.bodyAsText()
+            val actualJson = response.bodyAsText().fromJson(String.serializer())
 
             response.status shouldBe HttpStatusCode.BadRequest
             actualJson shouldBe "Ugyldig orgnr"
@@ -79,28 +82,29 @@ class TilgangOrgnrRouteKtTest : ApiTest() {
         }
 
     @Test
-    fun `timeout mot redis gir 500-feil`() =
+    fun `timeout mot redis gir 403-feil`() =
         testApi {
-            coEvery { mockRedisConnection.get(any()) } throws RedisPollerTimeoutException(UUID.randomUUID())
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns null
 
             val response = get(pathMedGyldigOrgnr)
 
-            val actualJson = response.bodyAsText()
+            val actualJson = response.bodyAsText().fromJson(String.serializer())
 
-            response.status shouldBe HttpStatusCode.InternalServerError
-            actualJson shouldBe "Teknisk feil"
+            // bør på sikt gi 500-feil
+            response.status shouldBe HttpStatusCode.Forbidden
+            actualJson shouldBe "Du har ikke rettigheter for organisasjon."
         }
 
     @Test
     fun `ukjent feil gir 500-feil`() =
         testApi {
-            coEvery { mockRedisConnection.get(any()) } throws NullPointerException()
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } throws NullPointerException()
 
             val response = get(pathMedGyldigOrgnr)
 
-            val actualJson = response.bodyAsText()
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
 
             response.status shouldBe HttpStatusCode.InternalServerError
-            actualJson shouldBe "Teknisk feil"
+            error.shouldBeTypeOf<ErrorResponse.Unknown>()
         }
 }

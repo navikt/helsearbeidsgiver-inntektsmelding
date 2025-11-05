@@ -16,11 +16,8 @@ import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.lesFnrFraAuthToken
-import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondNotFound
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -37,32 +34,27 @@ fun Route.aktiveOrgnrRoute(
     post(Routes.AKTIVEORGNR) {
         val kontekstId = UUID.randomUUID()
 
-        try {
-            val request = call.receive<AktiveOrgnrRequest>()
-            val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
+        val request = call.receive<AktiveOrgnrRequest>()
+        val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
 
-            producer.sendRequestEvent(kontekstId, arbeidsgiverFnr = arbeidsgiverFnr, arbeidstakerFnr = request.sykmeldtFnr)
+        producer.sendRequestEvent(kontekstId, arbeidsgiverFnr = arbeidsgiverFnr, arbeidstakerFnr = request.sykmeldtFnr)
 
-            val resultatJson = redisPoller.hent(kontekstId)
-
+        val resultatJson = redisPoller.hent(kontekstId)
+        if (resultatJson != null) {
             val resultat = resultatJson.success?.fromJson(AktiveArbeidsgivere.serializer())
             if (resultat != null) {
                 if (resultat.arbeidsgivere.isEmpty()) {
-                    respondNotFound("Fant ingen arbeidsforhold.", String.serializer())
+                    respondNotFound("Fant ingen arbeidsforhold.")
                 } else {
                     val response = resultat.toResponse()
                     call.respond(HttpStatusCode.OK, response.toJson(AktiveOrgnrResponse.serializer()))
                 }
             } else {
-                val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
-                respondInternalServerError(feilmelding, String.serializer())
+                val feilmelding = resultatJson.failure?.fromJson(String.serializer())
+                respondInternalServerError(feilmelding)
             }
-        } catch (_: RedisPollerTimeoutException) {
-            logger.info("Fikk timeout mot redis ved henting av aktive orgnr")
-            respondInternalServerError(Tekst.TEKNISK_FEIL_FORBIGAAENDE, String.serializer())
-        } catch (e: Exception) {
-            sikkerLogger.error("Feil ved henting av aktive orgnr", e)
-            respondInternalServerError(Tekst.TEKNISK_FEIL_FORBIGAAENDE, String.serializer())
+        } else {
+            respondInternalServerError(Tekst.REDIS_TIMEOUT_FEILMELDING)
         }
     }
 }

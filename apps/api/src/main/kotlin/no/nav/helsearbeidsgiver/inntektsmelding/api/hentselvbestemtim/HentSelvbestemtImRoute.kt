@@ -15,12 +15,10 @@ import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisPermanentErrorResponse
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
@@ -29,7 +27,6 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
-import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 
 fun Route.hentSelvbestemtImRoute(
@@ -51,7 +48,7 @@ fun Route.hentSelvbestemtImRoute(
             "Ugyldig parameter: '${call.parameters["selvbestemtId"]}'.".let {
                 logger.error(it)
                 sikkerLogger.error(it)
-                respondBadRequest(it, String.serializer())
+                respondBadRequest(it)
             }
         } else {
             MdcUtils.withLogFields(
@@ -61,24 +58,30 @@ fun Route.hentSelvbestemtImRoute(
             ) {
                 producer.sendRequestEvent(kontekstId, selvbestemtId)
 
-                runCatching {
-                    redisPoller.hent(kontekstId)
-                }.onSuccess { result ->
+                val result = redisPoller.hent(kontekstId)
+                if (result != null) {
                     val inntektsmelding = result.success?.fromJson(Inntektsmelding.serializer())
 
                     if (inntektsmelding != null) {
                         tilgangskontroll.validerTilgangTilOrg(call.request, inntektsmelding.avsender.orgnr)
                         sendOkResponse(inntektsmelding.fjernNavnHvisIngenArbeidsforhold())
                     } else {
-                        val feilmelding =
-                            result.failure
-                                ?.fromJson(String.serializer())
-                                .orDefault("Ukjent feil.")
+                        val feilmelding = result.failure?.fromJson(String.serializer())
 
-                        sendErrorResponse(feilmelding)
+                        "Klarte ikke hente inntektsmelding pga. feil.".also {
+                            logger.error(it)
+                            sikkerLogger.error("$it Feilmelding: '$feilmelding'")
+                        }
+
+                        respondInternalServerError(ErrorResponse.Unknown(kontekstId))
                     }
-                }.onFailure {
-                    sendRedisErrorResponse(selvbestemtId, it)
+                } else {
+                    respondInternalServerError(
+                        ErrorResponse.RedisTimeout(
+                            kontekstId = kontekstId,
+                            inntektsmeldingTypeId = selvbestemtId,
+                        ),
+                    )
                 }
             }
         }
@@ -119,43 +122,4 @@ private suspend fun RoutingContext.sendOkResponse(inntektsmelding: Inntektsmeldi
     }
 
     respondOk(ResultJson(success = response), ResultJson.serializer())
-}
-
-private suspend fun RoutingContext.sendErrorResponse(feilmelding: String) {
-    "Klarte ikke hente inntektsmelding pga. feil.".also {
-        logger.error(it)
-        sikkerLogger.error("$it Feilmelding: '$feilmelding'")
-    }
-    val response =
-        ResultJson(
-            failure = HentSelvbestemtImResponseFailure(feilmelding).toJson(HentSelvbestemtImResponseFailure.serializer()),
-        )
-    respondInternalServerError(response, ResultJson.serializer())
-}
-
-private suspend fun RoutingContext.sendRedisErrorResponse(
-    selvbestemtId: UUID,
-    error: Throwable,
-) {
-    "Klarte ikke hente inntektsmelding pga. feil i Redis.".also {
-        logger.error(it)
-        sikkerLogger.error(it, error)
-    }
-    when (error) {
-        is RedisPollerTimeoutException -> {
-            val response =
-                ResultJson(
-                    failure = RedisTimeoutResponse(inntektsmeldingTypeId = selvbestemtId).toJson(RedisTimeoutResponse.serializer()),
-                )
-            respondInternalServerError(response, ResultJson.serializer())
-        }
-
-        else -> {
-            val response =
-                ResultJson(
-                    failure = RedisPermanentErrorResponse(selvbestemtId).toJson(RedisPermanentErrorResponse.serializer()),
-                )
-            respondInternalServerError(response, ResultJson.serializer())
-        }
-    }
 }

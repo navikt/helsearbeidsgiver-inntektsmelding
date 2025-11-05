@@ -18,17 +18,11 @@ import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.ArbeidsforholdType
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.lesFnrFraAuthToken
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ArbeidsforholdErrorResponse
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JsonErrorResponse
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisPermanentErrorResponse
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.UkjentErrorResponse
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ValideringErrorResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
@@ -39,7 +33,6 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
-import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.time.LocalDateTime
 import java.util.UUID
@@ -62,7 +55,7 @@ fun Route.lagreSelvbestemtImRoute(
             val skjema = lesRequestOrNull()
             when {
                 skjema == null -> {
-                    respondBadRequest(JsonErrorResponse(), JsonErrorResponse.serializer())
+                    respondBadRequest(ErrorResponse.JsonSerialization(kontekstId))
                 }
 
                 skjema.valider().isNotEmpty() -> {
@@ -73,9 +66,9 @@ fun Route.lagreSelvbestemtImRoute(
                         sikkerLogger.error(it)
                     }
 
-                    val response = ValideringErrorResponse(valideringsfeil)
+                    val response = ErrorResponse.Validering(kontekstId, valideringsfeil)
 
-                    respondBadRequest(response, ValideringErrorResponse.serializer())
+                    respondBadRequest(response)
                 }
 
                 else -> {
@@ -85,12 +78,9 @@ fun Route.lagreSelvbestemtImRoute(
 
                     producer.sendRequestEvent(kontekstId, avsenderFnr, skjema, mottatt)
 
-                    val resultat =
-                        runCatching {
-                            redisPoller.hent(kontekstId)
-                        }
+                    val resultat = redisPoller.hent(kontekstId)
 
-                    sendResponse(resultat)
+                    sendResponse(kontekstId, resultat)
                 }
             }
         }
@@ -151,45 +141,37 @@ private fun Producer.sendRequestEvent(
     )
 }
 
-private suspend fun RoutingContext.sendResponse(result: Result<ResultJson>) {
-    result
-        .onSuccess { resultJson ->
-            val selvbestemtId = resultJson.success?.fromJson(UuidSerializer)
-            if (selvbestemtId != null) {
-                MdcUtils.withLogFields(
-                    Log.selvbestemtId(selvbestemtId),
-                ) {
-                    "Selvbestemt inntektsmelding mottatt OK for ID '$selvbestemtId'.".also {
-                        logger.info(it)
-                        sikkerLogger.info(it)
-                    }
-                }
-                respondOk(LagreSelvbestemtImResponse(selvbestemtId), LagreSelvbestemtImResponse.serializer())
-            } else {
-                val feilmelding = resultJson.failure?.fromJson(String.serializer()).orDefault("Tomt resultat i Redis.")
-
-                "Klarte ikke motta selvbestemt inntektsmelding pga. feil.".also {
-                    logger.error(it)
-                    sikkerLogger.error("$it Feilmelding: '$feilmelding'")
-                }
-
-                if ("Mangler arbeidsforhold i perioden" == feilmelding) {
-                    respondBadRequest(ArbeidsforholdErrorResponse(), ArbeidsforholdErrorResponse.serializer())
-                } else {
-                    respondInternalServerError(UkjentErrorResponse(), UkjentErrorResponse.serializer())
+private suspend fun RoutingContext.sendResponse(
+    kontekstId: UUID,
+    result: ResultJson?,
+) {
+    if (result != null) {
+        val selvbestemtId = result.success?.fromJson(UuidSerializer)
+        if (selvbestemtId != null) {
+            MdcUtils.withLogFields(
+                Log.selvbestemtId(selvbestemtId),
+            ) {
+                "Selvbestemt inntektsmelding mottatt OK for ID '$selvbestemtId'.".also {
+                    logger.info(it)
+                    sikkerLogger.info(it)
                 }
             }
-        }.onFailure { error ->
-            "Klarte ikke hente resultat fra Redis.".also {
+            respondOk(LagreSelvbestemtImResponse(selvbestemtId), LagreSelvbestemtImResponse.serializer())
+        } else {
+            val feilmelding = result.failure?.fromJson(String.serializer())
+
+            "Klarte ikke motta selvbestemt inntektsmelding pga. feil.".also {
                 logger.error(it)
-                sikkerLogger.error(it, error)
+                sikkerLogger.error("$it Feilmelding: '$feilmelding'")
             }
-            when (error) {
-                is RedisPollerTimeoutException ->
-                    respondInternalServerError(RedisTimeoutResponse(), RedisTimeoutResponse.serializer())
 
-                else ->
-                    respondInternalServerError(RedisPermanentErrorResponse(), RedisPermanentErrorResponse.serializer())
+            if (feilmelding == "Mangler arbeidsforhold i perioden") {
+                respondBadRequest(ErrorResponse.Arbeidsforhold(kontekstId))
+            } else {
+                respondInternalServerError(ErrorResponse.Unknown(kontekstId))
             }
         }
+    } else {
+        respondInternalServerError(ErrorResponse.RedisTimeout(kontekstId))
+    }
 }

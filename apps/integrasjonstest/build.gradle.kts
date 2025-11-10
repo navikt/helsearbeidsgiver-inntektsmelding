@@ -79,6 +79,6 @@ dependencies {
     testImplementation("com.redis:testcontainers-redis:$testcontainersRedisVersion")
     testImplementation("io.lettuce:lettuce-core:$lettuceVersion")
     testImplementation("no.nav.helsearbeidsgiver:hag-bakgrunnsjobb:$bakgrunnsjobbVersion")
-    testImplementation("org.testcontainers:kafka:$testcontainersVersion")
-    testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
+    testImplementation("org.testcontainers:testcontainers-kafka:$testcontainersVersion")
+    testImplementation("org.testcontainers:testcontainers-postgresql:$testcontainersVersion")
 }

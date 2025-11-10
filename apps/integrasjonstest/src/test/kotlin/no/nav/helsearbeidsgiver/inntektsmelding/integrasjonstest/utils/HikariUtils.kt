@@ -1,13 +1,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
 import com.zaxxer.hikari.HikariConfig
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
-fun PostgreSQLContainer<Nothing>.toHikariConfig(): HikariConfig =
+fun PostgreSQLContainer.toHikariConfig(): HikariConfig =
     HikariConfig().apply {
         jdbcUrl = this@toHikariConfig.jdbcUrl
         username = this@toHikariConfig.username

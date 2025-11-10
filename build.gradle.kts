@@ -114,10 +114,6 @@ subprojects {
             implementation("org.apache.commons:commons-lang3:3.18.0") {
                 because("helsearbeidsgiver-kontrakt-inntektsmelding")
             }
-
-            testImplementation("org.apache.commons:commons-compress:1.26.2") {
-                because("kafka, testcontainers-redis, postgresql")
-            }
         }
 
         if (erAppModul()) {

@@ -3,7 +3,7 @@ val flywayVersion: String by project
 val hikariVersion: String by project
 val kotestVersion: String by project
 val postgresqlVersion: String by project
-val testcontainersPostgresqlVersion: String by project
+val testcontainersVersion: String by project
 
 plugins {
     id("java-test-fixtures")
@@ -25,5 +25,5 @@ dependencies {
     testFixturesApi("io.kotest:kotest-runner-junit5:$kotestVersion")
 
     testFixturesImplementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
-    testFixturesImplementation("org.testcontainers:postgresql:$testcontainersPostgresqlVersion")
+    testFixturesImplementation("org.testcontainers:testcontainers-postgresql:$testcontainersVersion")
 }

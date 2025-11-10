@@ -7,7 +7,7 @@ import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 import org.jetbrains.exposed.sql.Database as ExposedDatabase
 
 abstract class FunSpecWithDb(
@@ -27,12 +27,12 @@ abstract class FunSpecWithDb(
         body(db.db)
     })
 
-fun postgresContainer(): PostgreSQLContainer<Nothing> =
-    PostgreSQLContainer<Nothing>("postgres:14").apply {
+fun postgresContainer(): PostgreSQLContainer =
+    PostgreSQLContainer("postgres:14").apply {
         setCommand("postgres", "-c", "fsync=off", "-c", "log_statement=all", "-c", "wal_level=logical")
     }
 
-private fun PostgreSQLContainer<Nothing>.setupAndStart(): PostgreSQLContainer<Nothing> =
+private fun PostgreSQLContainer.setupAndStart(): PostgreSQLContainer =
     apply {
         withReuse(true)
         withLabel("app-navn", "test-database")

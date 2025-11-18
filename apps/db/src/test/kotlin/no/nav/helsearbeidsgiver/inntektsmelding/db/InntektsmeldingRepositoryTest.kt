@@ -44,205 +44,6 @@ class InntektsmeldingRepositoryTest :
         val inntektsmeldingRepo = InntektsmeldingRepository(db)
         val testRepo = TestRepo(db)
 
-        test("skal lagre inntektsmeldingskjema og inntektsmelding") {
-            transaction {
-                InntektsmeldingEntitet.selectAll().toList()
-            }.shouldBeEmpty()
-
-            val skjema = mockSkjemaInntektsmelding()
-            val mottatt = 9.desember.atStartOfDay()
-            val inntektsmelding = mockInntektsmeldingV1().copy(mottatt = mottatt.toOffsetDateTimeOslo())
-
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, mottatt)
-            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding)
-
-            val record = testRepo.hentRecordFraInntektsmelding(skjema.forespoerselId).shouldNotBeNull()
-
-            record.getOrNull(InntektsmeldingEntitet.inntektsmeldingId) shouldBe inntektsmelding.id
-            record.getOrNull(InntektsmeldingEntitet.forespoerselId) shouldBe skjema.forespoerselId
-            record.getOrNull(InntektsmeldingEntitet.skjema) shouldBe skjema
-            record.getOrNull(InntektsmeldingEntitet.inntektsmelding) shouldBe inntektsmelding
-            record.getOrNull(InntektsmeldingEntitet.eksternInntektsmelding) shouldBe null
-            record.getOrNull(InntektsmeldingEntitet.avsenderNavn) shouldBe inntektsmelding.avsender.navn
-            record.getOrNull(InntektsmeldingEntitet.journalpostId) shouldBe null
-            record.getOrNull(InntektsmeldingEntitet.innsendt) shouldBe mottatt
-            record.getOrNull(InntektsmeldingEntitet.prosessert) shouldBe null
-        }
-
-        test("skal lagre hvert innsendte skjema, men hente nyeste inntektsmelding-ID") {
-            transaction {
-                InntektsmeldingEntitet.selectAll().toList()
-            }.shouldBeEmpty()
-
-            val skjema = mockSkjemaInntektsmelding()
-            val mottatt = 27.mars.atStartOfDay()
-            val inntektsmeldingId1 = UUID.randomUUID()
-            val inntektsmeldingId2 = UUID.randomUUID()
-
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId1, skjema, mottatt)
-            inntektsmeldingRepo.hentNyesteInntektsmeldingId(skjema.forespoerselId) shouldBe inntektsmeldingId1
-
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId2, skjema, mottatt.plusHours(3))
-            inntektsmeldingRepo.hentNyesteInntektsmeldingId(skjema.forespoerselId) shouldBe inntektsmeldingId2
-
-            inntektsmeldingRepo.hentNyesteInntektsmeldingId(UUID.randomUUID()) shouldBe null
-        }
-
-        test("skal oppdatere journalpostId") {
-            transaction {
-                InntektsmeldingEntitet.selectAll().toList()
-            }.shouldBeEmpty()
-
-            val skjema = mockSkjemaInntektsmelding()
-            val mottatt = 9.desember.atStartOfDay()
-            val inntektsmelding = mockInntektsmeldingV1().copy(mottatt = mottatt.toOffsetDateTimeOslo())
-            val journalpost = randomDigitString(7)
-
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, mottatt)
-            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding)
-            inntektsmeldingRepo.oppdaterJournalpostId(inntektsmelding.id, journalpost)
-
-            val record = testRepo.hentRecordFraInntektsmelding(skjema.forespoerselId)
-
-            record.shouldNotBeNull()
-
-            val journalPostId = record.getOrNull(InntektsmeldingEntitet.journalpostId)
-            journalPostId.shouldNotBeNull()
-        }
-
-        test("skal oppdatere im med journalpostId") {
-            val skjema = mockSkjemaInntektsmelding()
-            val mottatt = 16.mars.atStartOfDay()
-            val inntektsmelding = mockInntektsmeldingV1().copy(mottatt = mottatt.toOffsetDateTimeOslo())
-            val inntektsmeldingId1 = UUID.randomUUID()
-            val inntektsmeldingId2 = UUID.randomUUID()
-            val journalpostId = randomDigitString(9)
-
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId1, skjema, mottatt)
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId2, skjema, mottatt.plusHours(3))
-
-            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId1))
-            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId2))
-
-            // Skal kun oppdatere den andre av de to inntektsmeldingene
-            inntektsmeldingRepo.oppdaterJournalpostId(inntektsmeldingId2, journalpostId)
-
-            val resultat =
-                transaction(db) {
-                    InntektsmeldingEntitet
-                        .selectAll()
-                        .orderBy(InntektsmeldingEntitet.innsendt)
-                        .toList()
-                }
-
-            resultat shouldHaveSize 2
-
-            InntektsmeldingEntitet.apply {
-                resultat[0][innsendt] shouldBeLessThan resultat[1][innsendt]
-
-                resultat[0][this.inntektsmelding].shouldNotBeNull()
-                resultat[0][this.journalpostId].shouldBeNull()
-
-                resultat[1][this.inntektsmelding].shouldNotBeNull()
-                resultat[1][this.journalpostId] shouldBe journalpostId
-            }
-        }
-
-        test("skal oppdatere inntektsmelding med journalpostId selv om den allerede har dette") {
-            val skjema = mockSkjemaInntektsmelding()
-            val mottatt = 5.mars.atStartOfDay()
-            val inntektsmelding = mockInntektsmeldingV1().copy(mottatt = mottatt.toOffsetDateTimeOslo())
-            val inntektsmeldingId1 = UUID.randomUUID()
-            val inntektsmeldingId2 = UUID.randomUUID()
-            val gammelJournalpostId = "jp-traust-gevir"
-            val nyJournalpostId = "jp-gallant-badehette"
-
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId1, skjema, mottatt)
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId2, skjema, mottatt.plusHours(3))
-
-            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId1))
-            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId2))
-
-            inntektsmeldingRepo.oppdaterJournalpostId(inntektsmeldingId2, gammelJournalpostId)
-
-            val resultatFoerNyJournalpostId =
-                transaction(db) {
-                    InntektsmeldingEntitet
-                        .selectAll()
-                        .orderBy(InntektsmeldingEntitet.innsendt)
-                        .toList()
-                }
-
-            resultatFoerNyJournalpostId shouldHaveSize 2
-
-            InntektsmeldingEntitet.apply {
-                resultatFoerNyJournalpostId[0][innsendt] shouldBeLessThan resultatFoerNyJournalpostId[1][innsendt]
-
-                resultatFoerNyJournalpostId[0][this.inntektsmelding].shouldNotBeNull()
-                resultatFoerNyJournalpostId[0][journalpostId].shouldBeNull()
-
-                resultatFoerNyJournalpostId[1][this.inntektsmelding].shouldNotBeNull()
-                resultatFoerNyJournalpostId[1][journalpostId] shouldBe gammelJournalpostId
-            }
-
-            // Oppdater journalpostId
-            inntektsmeldingRepo.oppdaterJournalpostId(inntektsmeldingId2, nyJournalpostId)
-
-            val resultsEtterNyJournalpostId =
-                transaction(db) {
-                    InntektsmeldingEntitet
-                        .selectAll()
-                        .orderBy(InntektsmeldingEntitet.innsendt)
-                        .toList()
-                }
-
-            resultsEtterNyJournalpostId shouldHaveSize 2
-
-            InntektsmeldingEntitet.apply {
-                resultsEtterNyJournalpostId[0][innsendt] shouldBeLessThan resultsEtterNyJournalpostId[1][innsendt]
-
-                resultsEtterNyJournalpostId[0][this.inntektsmelding].shouldNotBeNull()
-                resultsEtterNyJournalpostId[0][journalpostId].shouldBeNull()
-
-                resultsEtterNyJournalpostId[1][this.inntektsmelding].shouldNotBeNull()
-                resultsEtterNyJournalpostId[1][journalpostId] shouldBe nyJournalpostId
-            }
-        }
-
-        test("skal _ikke_ oppdatere journalpostId for ekstern inntektsmelding") {
-            val skjema = mockSkjemaInntektsmelding()
-            val mottatt = 9.desember.atStartOfDay()
-            val inntektsmelding = mockInntektsmeldingV1().copy(mottatt = mottatt.toOffsetDateTimeOslo())
-            val journalpostId = "jp-slem-fryser"
-
-            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, mottatt)
-            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding)
-
-            inntektsmeldingRepo.lagreEksternInntektsmelding(skjema.forespoerselId, mockEksternInntektsmelding().copy(tidspunkt = mottatt.plusHours(1)))
-
-            inntektsmeldingRepo.oppdaterJournalpostId(inntektsmelding.id, journalpostId)
-
-            val resultat =
-                transaction(db) {
-                    InntektsmeldingEntitet
-                        .selectAll()
-                        .orderBy(InntektsmeldingEntitet.innsendt)
-                        .toList()
-                }
-
-            resultat shouldHaveSize 2
-
-            InntektsmeldingEntitet.apply {
-                resultat[0][innsendt] shouldBeLessThan resultat[1][innsendt]
-
-                resultat[0][this.inntektsmelding].shouldNotBeNull()
-                resultat[0][this.journalpostId] shouldBe journalpostId
-
-                resultat[1][eksternInntektsmelding].shouldNotBeNull()
-                resultat[1][this.journalpostId].shouldBeNull()
-            }
-        }
-
         context(InntektsmeldingRepository::hentNyesteInntektsmelding.name) {
 
             test("henter nyeste") {
@@ -318,6 +119,185 @@ class InntektsmeldingRepositoryTest :
                 val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(UUID.randomUUID())
 
                 lagret.shouldBeNull()
+            }
+        }
+
+        test("skal lagre inntektsmeldingskjema og inntektsmelding") {
+            transaction {
+                InntektsmeldingEntitet.selectAll().toList()
+            }.shouldBeEmpty()
+
+            val skjema = mockSkjemaInntektsmelding()
+            val mottatt = 9.desember.atStartOfDay()
+            val inntektsmelding = mockInntektsmeldingV1().copy(mottatt = mottatt.toOffsetDateTimeOslo())
+
+            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, mottatt)
+            inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding)
+
+            val record = testRepo.hentRecordFraInntektsmelding(skjema.forespoerselId).shouldNotBeNull()
+
+            record.getOrNull(InntektsmeldingEntitet.inntektsmeldingId) shouldBe inntektsmelding.id
+            record.getOrNull(InntektsmeldingEntitet.forespoerselId) shouldBe skjema.forespoerselId
+            record.getOrNull(InntektsmeldingEntitet.skjema) shouldBe skjema
+            record.getOrNull(InntektsmeldingEntitet.inntektsmelding) shouldBe inntektsmelding
+            record.getOrNull(InntektsmeldingEntitet.eksternInntektsmelding) shouldBe null
+            record.getOrNull(InntektsmeldingEntitet.avsenderNavn) shouldBe inntektsmelding.avsender.navn
+            record.getOrNull(InntektsmeldingEntitet.journalpostId) shouldBe null
+            record.getOrNull(InntektsmeldingEntitet.innsendt) shouldBe mottatt
+            record.getOrNull(InntektsmeldingEntitet.prosessert) shouldBe null
+        }
+
+        test("skal lagre hvert innsendte skjema, men hente nyeste inntektsmelding-ID") {
+            transaction {
+                InntektsmeldingEntitet.selectAll().toList()
+            }.shouldBeEmpty()
+
+            val skjema = mockSkjemaInntektsmelding()
+            val mottatt = 27.mars.atStartOfDay()
+            val inntektsmeldingId1 = UUID.randomUUID()
+            val inntektsmeldingId2 = UUID.randomUUID()
+
+            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId1, skjema, mottatt)
+            inntektsmeldingRepo.hentNyesteInntektsmeldingId(skjema.forespoerselId) shouldBe inntektsmeldingId1
+
+            inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId2, skjema, mottatt.plusHours(3))
+            inntektsmeldingRepo.hentNyesteInntektsmeldingId(skjema.forespoerselId) shouldBe inntektsmeldingId2
+
+            inntektsmeldingRepo.hentNyesteInntektsmeldingId(UUID.randomUUID()) shouldBe null
+        }
+
+        context(InntektsmeldingRepository::oppdaterMedJournalpostId.name) {
+            test("skal oppdatere inntektsmelding med journalpostId") {
+                val skjema = mockSkjemaInntektsmelding()
+                val mottatt = 16.mars.atStartOfDay()
+                val inntektsmelding = mockInntektsmeldingV1().copy(mottatt = mottatt.toOffsetDateTimeOslo())
+                val inntektsmeldingId1 = UUID.randomUUID()
+                val inntektsmeldingId2 = UUID.randomUUID()
+                val journalpostId = randomDigitString(9)
+
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId1, skjema, mottatt)
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId2, skjema, mottatt.plusHours(3))
+
+                inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId1))
+                inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId2))
+
+                // Skal kun oppdatere den andre av de to inntektsmeldingene
+                inntektsmeldingRepo.oppdaterMedJournalpostId(inntektsmeldingId2, journalpostId)
+
+                val resultat =
+                    transaction(db) {
+                        InntektsmeldingEntitet
+                            .selectAll()
+                            .orderBy(InntektsmeldingEntitet.innsendt)
+                            .toList()
+                    }
+
+                resultat shouldHaveSize 2
+
+                InntektsmeldingEntitet.apply {
+                    resultat[0][innsendt] shouldBeLessThan resultat[1][innsendt]
+
+                    resultat[0][this.inntektsmelding].shouldNotBeNull()
+                    resultat[0][this.journalpostId].shouldBeNull()
+
+                    resultat[1][this.inntektsmelding].shouldNotBeNull()
+                    resultat[1][this.journalpostId] shouldBe journalpostId
+                }
+            }
+
+            test("skal oppdatere inntektsmelding med journalpostId selv om den allerede har dette") {
+                val skjema = mockSkjemaInntektsmelding()
+                val mottatt = 5.mars.atStartOfDay()
+                val inntektsmelding = mockInntektsmeldingV1().copy(mottatt = mottatt.toOffsetDateTimeOslo())
+                val inntektsmeldingId1 = UUID.randomUUID()
+                val inntektsmeldingId2 = UUID.randomUUID()
+                val gammelJournalpostId = "jp-traust-gevir"
+                val nyJournalpostId = "jp-gallant-badehette"
+
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId1, skjema, mottatt)
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId2, skjema, mottatt.plusHours(3))
+
+                inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId1))
+                inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding.copy(id = inntektsmeldingId2))
+
+                inntektsmeldingRepo.oppdaterMedJournalpostId(inntektsmeldingId2, gammelJournalpostId)
+
+                val resultatFoerNyJournalpostId =
+                    transaction(db) {
+                        InntektsmeldingEntitet
+                            .selectAll()
+                            .orderBy(InntektsmeldingEntitet.innsendt)
+                            .toList()
+                    }
+
+                resultatFoerNyJournalpostId shouldHaveSize 2
+
+                InntektsmeldingEntitet.apply {
+                    resultatFoerNyJournalpostId[0][innsendt] shouldBeLessThan resultatFoerNyJournalpostId[1][innsendt]
+
+                    resultatFoerNyJournalpostId[0][this.inntektsmelding].shouldNotBeNull()
+                    resultatFoerNyJournalpostId[0][journalpostId].shouldBeNull()
+
+                    resultatFoerNyJournalpostId[1][this.inntektsmelding].shouldNotBeNull()
+                    resultatFoerNyJournalpostId[1][journalpostId] shouldBe gammelJournalpostId
+                }
+
+                // Oppdater journalpostId
+                inntektsmeldingRepo.oppdaterMedJournalpostId(inntektsmeldingId2, nyJournalpostId)
+
+                val resultsEtterNyJournalpostId =
+                    transaction(db) {
+                        InntektsmeldingEntitet
+                            .selectAll()
+                            .orderBy(InntektsmeldingEntitet.innsendt)
+                            .toList()
+                    }
+
+                resultsEtterNyJournalpostId shouldHaveSize 2
+
+                InntektsmeldingEntitet.apply {
+                    resultsEtterNyJournalpostId[0][innsendt] shouldBeLessThan resultsEtterNyJournalpostId[1][innsendt]
+
+                    resultsEtterNyJournalpostId[0][this.inntektsmelding].shouldNotBeNull()
+                    resultsEtterNyJournalpostId[0][journalpostId].shouldBeNull()
+
+                    resultsEtterNyJournalpostId[1][this.inntektsmelding].shouldNotBeNull()
+                    resultsEtterNyJournalpostId[1][journalpostId] shouldBe nyJournalpostId
+                }
+            }
+
+            test("skal _ikke_ oppdatere journalpostId for ekstern inntektsmelding") {
+                val skjema = mockSkjemaInntektsmelding()
+                val mottatt = 9.desember.atStartOfDay()
+                val inntektsmelding = mockInntektsmeldingV1().copy(mottatt = mottatt.toOffsetDateTimeOslo())
+                val journalpostId = "jp-slem-fryser"
+
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, mottatt)
+                inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding)
+
+                inntektsmeldingRepo.lagreEksternInntektsmelding(skjema.forespoerselId, mockEksternInntektsmelding().copy(tidspunkt = mottatt.plusHours(1)))
+
+                inntektsmeldingRepo.oppdaterMedJournalpostId(inntektsmelding.id, journalpostId)
+
+                val resultat =
+                    transaction(db) {
+                        InntektsmeldingEntitet
+                            .selectAll()
+                            .orderBy(InntektsmeldingEntitet.innsendt)
+                            .toList()
+                    }
+
+                resultat shouldHaveSize 2
+
+                InntektsmeldingEntitet.apply {
+                    resultat[0][innsendt] shouldBeLessThan resultat[1][innsendt]
+
+                    resultat[0][this.inntektsmelding].shouldNotBeNull()
+                    resultat[0][this.journalpostId] shouldBe journalpostId
+
+                    resultat[1][eksternInntektsmelding].shouldNotBeNull()
+                    resultat[1][this.journalpostId].shouldBeNull()
+                }
             }
         }
 

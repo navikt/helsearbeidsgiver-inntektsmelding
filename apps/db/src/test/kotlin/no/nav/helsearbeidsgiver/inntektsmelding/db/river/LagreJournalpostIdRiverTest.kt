@@ -54,7 +54,7 @@ class LagreJournalpostIdRiverTest :
             test("forespurt IM") {
                 val innkommendeMelding = Mock.innkommendeMelding()
 
-                every { mockImRepo.oppdaterJournalpostId(any(), any()) } just Runs
+                every { mockImRepo.oppdaterMedJournalpostId(any(), any()) } just Runs
                 every { mockImRepo.hentNyesteInntektsmeldingId(any()) } returns innkommendeMelding.inntektsmelding.id
 
                 testRapid.sendJson(innkommendeMelding.toMap())
@@ -70,7 +70,7 @@ class LagreJournalpostIdRiverTest :
                     )
 
                 verifySequence {
-                    mockImRepo.oppdaterJournalpostId(innkommendeMelding.inntektsmelding.id, innkommendeMelding.journalpostId)
+                    mockImRepo.oppdaterMedJournalpostId(innkommendeMelding.inntektsmelding.id, innkommendeMelding.journalpostId)
                     mockImRepo.hentNyesteInntektsmeldingId(innkommendeMelding.inntektsmelding.type.id)
                 }
                 verify(exactly = 0) {
@@ -107,13 +107,13 @@ class LagreJournalpostIdRiverTest :
                     mockSelvbestemtImRepo.oppdaterJournalpostId(innkommendeMelding.inntektsmelding.id, innkommendeMelding.journalpostId)
                 }
                 verify(exactly = 0) {
-                    mockImRepo.oppdaterJournalpostId(any(), any())
+                    mockImRepo.oppdaterMedJournalpostId(any(), any())
                 }
             }
         }
 
         test("journalpost-ID lagres i databasen, men blir ikke sendt videre fordi IM ikke er nyeste innsending") {
-            every { mockImRepo.oppdaterJournalpostId(any(), any()) } just Runs
+            every { mockImRepo.oppdaterMedJournalpostId(any(), any()) } just Runs
             every { mockImRepo.hentNyesteInntektsmeldingId(any()) } returns UUID.randomUUID()
 
             val innkommendeMelding = Mock.innkommendeMelding()
@@ -123,7 +123,7 @@ class LagreJournalpostIdRiverTest :
             testRapid.inspektør.size shouldBeExactly 0
 
             verifySequence {
-                mockImRepo.oppdaterJournalpostId(innkommendeMelding.inntektsmelding.id, innkommendeMelding.journalpostId)
+                mockImRepo.oppdaterMedJournalpostId(innkommendeMelding.inntektsmelding.id, innkommendeMelding.journalpostId)
                 mockImRepo.hentNyesteInntektsmeldingId(innkommendeMelding.inntektsmelding.type.id)
             }
             verify(exactly = 0) {
@@ -133,7 +133,7 @@ class LagreJournalpostIdRiverTest :
 
         context("håndterer feil under lagring") {
             test("forespurt IM") {
-                every { mockImRepo.oppdaterJournalpostId(any(), any()) } throws Exception()
+                every { mockImRepo.oppdaterMedJournalpostId(any(), any()) } throws Exception()
 
                 val innkommendeMelding = Mock.innkommendeMelding()
 
@@ -151,7 +151,7 @@ class LagreJournalpostIdRiverTest :
                 testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
                 verifySequence {
-                    mockImRepo.oppdaterJournalpostId(any(), any())
+                    mockImRepo.oppdaterMedJournalpostId(any(), any())
                 }
                 verify(exactly = 0) {
                     mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
@@ -188,7 +188,7 @@ class LagreJournalpostIdRiverTest :
                     mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
                 }
                 verify(exactly = 0) {
-                    mockImRepo.oppdaterJournalpostId(any(), any())
+                    mockImRepo.oppdaterMedJournalpostId(any(), any())
                 }
             }
         }
@@ -211,7 +211,7 @@ class LagreJournalpostIdRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 verify(exactly = 0) {
-                    mockImRepo.oppdaterJournalpostId(any(), any())
+                    mockImRepo.oppdaterMedJournalpostId(any(), any())
                     mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
                 }
             }

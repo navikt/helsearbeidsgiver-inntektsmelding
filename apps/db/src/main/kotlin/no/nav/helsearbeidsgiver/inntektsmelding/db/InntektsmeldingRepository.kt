@@ -43,21 +43,83 @@ class InntektsmeldingRepository(
                     )
                 }
         }.firstOrNull()
-            ?.let { result ->
-                when {
-                    result.skjema != null ->
-                        LagretInntektsmelding.Skjema(
-                            avsenderNavn = result.avsenderNavn,
-                            skjema = result.skjema,
-                            mottatt = result.mottatt,
-                        )
+            ?.tilLagretInntektsmelding()
 
-                    result.eksternInntektsmelding != null -> LagretInntektsmelding.Ekstern(result.eksternInntektsmelding)
-                    else -> null
+    fun hentNyesteInntektsmeldingSkjema(forespoerselId: UUID): SkjemaInntektsmelding? =
+        transaction(db) {
+            InntektsmeldingEntitet
+                .selectAll()
+                .where { InntektsmeldingEntitet.forespoerselId eq forespoerselId }
+                .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
+                .limit(1)
+                .firstOrNull()
+                ?.getOrNull(InntektsmeldingEntitet.skjema)
+        }
+
+    fun hentNyesteInntektsmeldingId(forespoerselId: UUID): UUID? =
+        transaction(db) {
+            InntektsmeldingEntitet
+                .selectAll()
+                .where { (InntektsmeldingEntitet.forespoerselId eq forespoerselId) and InntektsmeldingEntitet.inntektsmeldingId.isNotNull() }
+                .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
+                .limit(1)
+                .firstOrNull()
+                ?.getOrNull(InntektsmeldingEntitet.inntektsmeldingId)
+        }
+
+    fun lagreInntektsmeldingSkjema(
+        inntektsmeldingId: UUID,
+        inntektsmeldingSkjema: SkjemaInntektsmelding,
+        mottatt: LocalDateTime,
+    ) {
+        transaction(db) {
+            InntektsmeldingEntitet.insert {
+                it[this.inntektsmeldingId] = inntektsmeldingId
+                it[this.forespoerselId] = inntektsmeldingSkjema.forespoerselId
+                it[skjema] = inntektsmeldingSkjema
+                it[innsendt] = mottatt
+            }
+        }
+    }
+
+    fun lagreEksternInntektsmelding(
+        forespoerselId: UUID,
+        eksternIm: EksternInntektsmelding,
+    ) {
+        transaction(db) {
+            InntektsmeldingEntitet.insert {
+                it[this.forespoerselId] = forespoerselId
+                it[eksternInntektsmelding] = eksternIm
+                it[innsendt] = eksternIm.tidspunkt
+            }
+        }
+    }
+
+    fun oppdaterMedInntektsmelding(inntektsmelding: Inntektsmelding) {
+        val antallOppdatert =
+            transaction(db) {
+                InntektsmeldingEntitet.update(
+                    where = { InntektsmeldingEntitet.inntektsmeldingId eq inntektsmelding.id },
+                ) {
+                    it[this.inntektsmelding] = inntektsmelding
+                    it[avsenderNavn] = inntektsmelding.avsender.navn
                 }
             }
 
-    fun oppdaterJournalpostId(
+        if (antallOppdatert == 1) {
+            "Lagret inntektsmelding.".also {
+                logger.info(it)
+                sikkerLogger.info(it)
+            }
+        } else {
+            "Oppdaterte uventet antall ($antallOppdatert) rader ved lagring av inntektsmelding.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
+        }
+    }
+
+    fun oppdaterMedJournalpostId(
         inntektsmeldingId: UUID,
         journalpostId: String,
     ) {
@@ -83,89 +145,11 @@ class InntektsmeldingRepository(
         }
     }
 
-    fun lagreEksternInntektsmelding(
-        forespoerselId: UUID,
-        eksternIm: EksternInntektsmelding,
-    ) {
-        transaction(db) {
-            InntektsmeldingEntitet.insert {
-                it[this.forespoerselId] = forespoerselId
-                it[eksternInntektsmelding] = eksternIm
-                it[innsendt] = eksternIm.tidspunkt
-            }
-        }
-    }
-
-    fun lagreInntektsmeldingSkjema(
-        inntektsmeldingId: UUID,
-        inntektsmeldingSkjema: SkjemaInntektsmelding,
-        mottatt: LocalDateTime,
-    ) {
-        transaction(db) {
-            InntektsmeldingEntitet.insert {
-                it[this.inntektsmeldingId] = inntektsmeldingId
-                it[this.forespoerselId] = inntektsmeldingSkjema.forespoerselId
-                it[skjema] = inntektsmeldingSkjema
-                it[innsendt] = mottatt
-            }
-        }
-    }
-
-    fun hentNyesteInntektsmeldingSkjema(forespoerselId: UUID): SkjemaInntektsmelding? =
-        transaction(db) {
-            InntektsmeldingEntitet
-                .selectAll()
-                .where { InntektsmeldingEntitet.forespoerselId eq forespoerselId }
-                .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
-                .limit(1)
-                .firstOrNull()
-                ?.getOrNull(InntektsmeldingEntitet.skjema)
-        }
-
-    fun hentNyesteInntektsmeldingId(forespoerselId: UUID): UUID? =
-        transaction(db) {
-            InntektsmeldingEntitet
-                .selectAll()
-                .where { (InntektsmeldingEntitet.forespoerselId eq forespoerselId) and InntektsmeldingEntitet.inntektsmeldingId.isNotNull() }
-                .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
-                .limit(1)
-                .firstOrNull()
-                ?.getOrNull(InntektsmeldingEntitet.inntektsmeldingId)
-        }
-
-    fun oppdaterMedInntektsmelding(inntektsmelding: Inntektsmelding) {
-        val antallOppdatert =
-            transaction(db) {
-                InntektsmeldingEntitet.update(
-                    where = {
-                        InntektsmeldingEntitet.inntektsmeldingId eq inntektsmelding.id
-                    },
-                ) {
-                    it[this.inntektsmelding] = inntektsmelding
-                    it[avsenderNavn] = inntektsmelding.avsender.navn
-                }
-            }
-
-        if (antallOppdatert == 1) {
-            "Lagret inntektsmelding.".also {
-                logger.info(it)
-                sikkerLogger.info(it)
-            }
-        } else {
-            "Oppdaterte uventet antall ($antallOppdatert) rader ved lagring av inntektsmelding.".also {
-                logger.error(it)
-                sikkerLogger.error(it)
-            }
-        }
-    }
-
     fun oppdaterSomProsessert(inntektsmeldingId: UUID) {
         val antallOppdatert =
             transaction(db) {
                 InntektsmeldingEntitet.update(
-                    where = {
-                        InntektsmeldingEntitet.inntektsmeldingId eq inntektsmeldingId
-                    },
+                    where = { InntektsmeldingEntitet.inntektsmeldingId eq inntektsmeldingId },
                 ) {
                     it[prosessert] = LocalDateTime.now()
                 }
@@ -185,4 +169,17 @@ private class InntektsmeldingResult(
     val eksternInntektsmelding: EksternInntektsmelding?,
     val mottatt: LocalDateTime,
     val avsenderNavn: String?,
-)
+) {
+    fun tilLagretInntektsmelding(): LagretInntektsmelding? =
+        when {
+            skjema != null ->
+                LagretInntektsmelding.Skjema(
+                    avsenderNavn = avsenderNavn,
+                    skjema = skjema,
+                    mottatt = mottatt,
+                )
+
+            eksternInntektsmelding != null -> LagretInntektsmelding.Ekstern(eksternInntektsmelding)
+            else -> null
+        }
+}

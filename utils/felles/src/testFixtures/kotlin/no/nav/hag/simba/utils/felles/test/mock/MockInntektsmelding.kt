@@ -12,10 +12,8 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RefusjonEndring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.AvsenderSystem
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.ArbeidsforholdType
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaAvsender
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
@@ -29,6 +27,8 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.OffsetDateTime
 import java.util.UUID
+import no.nav.hag.simba.utils.felles.domene.InnsendingIntern as Innsending
+import no.nav.hag.simba.utils.felles.domene.SkjemaInntektsmeldingIntern as SkjemaInntektsmelding
 
 fun mockSkjemaInntektsmelding(): SkjemaInntektsmelding {
     val inntektsmelding = mockInntektsmeldingV1()
@@ -49,12 +49,13 @@ fun mockInnsending(): Innsending {
         aarsakInnsending = AarsakInnsending.Ny,
         type =
             Inntektsmelding.Type.ForespurtEkstern(
-                skjema.forespoerselId,
-                AvsenderSystem(
-                    orgnr = Orgnr.genererGyldig(),
-                    navn = "Tigersys",
-                    versjon = "3.0.0",
-                ),
+                id = skjema.forespoerselId,
+                _avsenderSystem =
+                    AvsenderSystem(
+                        orgnr = Orgnr.genererGyldig(),
+                        navn = "Tigersys",
+                        versjon = "3.0.0",
+                    ),
             ),
         innsendtTid = OffsetDateTime.now(),
         versjon = 1,

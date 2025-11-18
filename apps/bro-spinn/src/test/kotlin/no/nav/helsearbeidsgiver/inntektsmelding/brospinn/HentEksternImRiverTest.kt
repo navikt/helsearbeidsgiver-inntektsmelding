@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.data.row
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
@@ -99,12 +98,12 @@ class HentEksternImRiverTest :
             withData(
                 mapOf(
                     "spinn-api feil" to
-                        row(
+                        Pair(
                             SpinnApiException("You spin me round."),
                             "Klarte ikke hente ekstern inntektsmelding via Spinn API: You spin me round.",
                         ),
                     "ukjent feil" to
-                        row(
+                        Pair(
                             IllegalArgumentException("Hæ, Dead Or Alive?"),
                             "Ukjent feil under henting av ekstern inntektsmelding via Spinn API.",
                         ),

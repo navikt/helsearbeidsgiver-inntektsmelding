@@ -8,7 +8,6 @@ import io.ktor.server.routing.post
 import kotlinx.serialization.builtins.serializer
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.json.inntektMapSerializer
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.gjennomsnitt
@@ -17,12 +16,11 @@ import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
@@ -42,38 +40,38 @@ fun Route.inntektSelvbestemtRoute(
 
         val request = call.receive<InntektSelvbestemtRequest>()
 
-        tilgangskontroll.validerTilgangTilOrg(call.request, request.orgnr)
-
-        "Henter oppdatert inntekt for selvbestemt inntektsmelding".let {
-            logger.info(it)
-            sikkerLogger.info("$it og request:\n$request")
-        }
-
         try {
+            tilgangskontroll.validerTilgangTilOrg(call.request, request.orgnr)
+
+            "Henter oppdatert inntekt for selvbestemt inntektsmelding".let {
+                logger.info(it)
+                sikkerLogger.info("$it og request:\n$request")
+            }
+
             producer.sendRequestEvent(kontekstId, request)
 
             val resultatJson = redisPoller.hent(kontekstId)
-            sikkerLogger.info("Fikk inntektsresultat for selvbestemt inntektsmelding:\n$resultatJson")
+            sikkerLogger.info("Resultat for henting av inntekt for selvbestemt inntektsmelding:\n$resultatJson")
 
-            val resultat = resultatJson.success?.fromJson(inntektMapSerializer)
-            if (resultat != null) {
-                val response =
-                    InntektSelvbestemtResponse(
-                        gjennomsnitt = resultat.gjennomsnitt(),
-                        historikk = resultat,
-                    ).toJson(InntektSelvbestemtResponse.serializer())
+            if (resultatJson != null) {
+                val resultat = resultatJson.success?.fromJson(inntektMapSerializer)
+                if (resultat != null) {
+                    val response =
+                        InntektSelvbestemtResponse(
+                            gjennomsnitt = resultat.gjennomsnitt(),
+                            historikk = resultat,
+                        ).toJson(InntektSelvbestemtResponse.serializer())
 
-                call.respond(HttpStatusCode.OK, response)
+                    call.respond(HttpStatusCode.OK, response)
+                } else {
+                    val feilmelding = resultatJson.failure?.fromJson(String.serializer())
+                    respondInternalServerError(feilmelding)
+                }
             } else {
-                val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
-                respondInternalServerError(feilmelding, String.serializer())
+                respondInternalServerError(ErrorResponse.RedisTimeout(kontekstId))
             }
-        } catch (e: ManglerAltinnRettigheterException) {
-            respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
-        } catch (_: RedisPollerTimeoutException) {
-            logger.error("Fikk timeout for inntekt for selvbestemt inntektsmelding.")
-            sikkerLogger.error("Fikk timeout for inntekt for selvbestemt inntektsmelding.")
-            respondInternalServerError(RedisTimeoutResponse(), RedisTimeoutResponse.serializer())
+        } catch (_: ManglerAltinnRettigheterException) {
+            respondForbidden("Du har ikke rettigheter for organisasjon.")
         }
     }
 }

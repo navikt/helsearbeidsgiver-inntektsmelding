@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldContainKey
+import io.kotest.matchers.types.shouldBeTypeOf
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
@@ -17,20 +18,21 @@ import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.test.json.minusData
 import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JsonErrorResponse
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.test.date.mars
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
+import no.nav.hag.simba.utils.felles.domene.SkjemaInntektsmeldingIntern as SkjemaInntektsmelding
 
 class InnsendingRouteKtTest : ApiTest() {
     private val path = Routes.PREFIX + Routes.INNSENDING
@@ -45,13 +47,12 @@ class InnsendingRouteKtTest : ApiTest() {
         testApi {
             val skjema = mockSkjemaInntektsmelding()
 
-            coEvery { mockRedisConnection.get(any()) } returnsMany
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     ResultJson(
                         success = skjema.forespoerselId.toJson(),
-                    ).toJson()
-                        .toString(),
+                    ),
                 )
 
             val response = post(path, skjema, SkjemaInntektsmelding.serializer())
@@ -101,13 +102,12 @@ class InnsendingRouteKtTest : ApiTest() {
         testApi {
             val delvisSkjema = mockSkjemaInntektsmelding().copy(agp = null)
 
-            coEvery { mockRedisConnection.get(any()) } returnsMany
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     ResultJson(
                         success = delvisSkjema.forespoerselId.toJson(),
-                    ).toJson()
-                        .toString(),
+                    ),
                 )
 
             val response = post(path, delvisSkjema, SkjemaInntektsmelding.serializer())
@@ -117,15 +117,50 @@ class InnsendingRouteKtTest : ApiTest() {
         }
 
     @Test
+    fun `gir 500-feil ved skjema ulike naturalytelser på rotnivå og under 'inntekt'-felt`() =
+        testApi {
+            val skjemaMedUlikeNaturalytelser =
+                mockSkjemaInntektsmelding().copy(
+                    naturalytelser =
+                        listOf(
+                            Naturalytelse(
+                                naturalytelse = Naturalytelse.Kode.BEDRIFTSBARNEHAGEPLASS,
+                                verdiBeloep = 999_999.0,
+                                sluttdato = 30.mars,
+                            ),
+                        ),
+                )
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    ResultJson(
+                        success = skjemaMedUlikeNaturalytelser.forespoerselId.toJson(),
+                    ),
+                )
+
+            val response = post(path, skjemaMedUlikeNaturalytelser, SkjemaInntektsmelding.serializer())
+
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            assertEquals(HttpStatusCode.InternalServerError, response.status)
+            error.shouldBeTypeOf<ErrorResponse.Unknown>()
+
+            verify(exactly = 0) {
+                mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
+            }
+        }
+
+    @Test
     fun `gir json-feil ved ugyldig request-json`() =
         testApi {
             val response = post(path, "\"ikke en request\"", String.serializer())
 
-            val feilmelding = response.bodyAsText().fromJson(JsonErrorResponse.serializer())
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
 
             assertEquals(HttpStatusCode.BadRequest, response.status)
-            assertEquals(null, feilmelding.forespoerselId)
-            assertEquals("Feil under serialisering.", feilmelding.error)
+            error.shouldBeTypeOf<ErrorResponse.JsonSerialization>()
+            assertEquals(null, error.forespoerselId)
 
             verify(exactly = 0) {
                 mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
@@ -136,12 +171,13 @@ class InnsendingRouteKtTest : ApiTest() {
     fun `skal returnere feilmelding ved timeout fra Redis`() =
         testApi {
             val skjema = mockSkjemaInntektsmelding()
+            val expectedErrorJson = ErrorResponse.RedisTimeout(skjema.forespoerselId).toJson(ErrorResponse.serializer()).toString()
 
-            coEvery { mockRedisConnection.get(any()) } returns harTilgangResultat andThenThrows RedisPollerTimeoutException(skjema.forespoerselId)
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns harTilgangResultat andThen null
 
             val response = post(path, skjema, SkjemaInntektsmelding.serializer())
 
             assertEquals(HttpStatusCode.InternalServerError, response.status)
-            assertEquals(RedisTimeoutResponse(skjema.forespoerselId).toJsonStr(RedisTimeoutResponse.serializer()), response.bodyAsText())
+            assertEquals(expectedErrorJson, response.bodyAsText())
         }
 }

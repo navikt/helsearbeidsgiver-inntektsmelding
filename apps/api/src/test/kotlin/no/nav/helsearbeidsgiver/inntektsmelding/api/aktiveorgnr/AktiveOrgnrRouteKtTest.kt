@@ -15,6 +15,7 @@ import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -53,11 +54,10 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
                         ),
                 )
 
-            coEvery { mockRedisConnection.get(any()) } returns
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns
                 ResultJson(
                     success = aktivArbeidgiver.toJson(AktiveArbeidsgivere.serializer()),
-                ).toJson()
-                    .toString()
+                )
 
             val response = post(path, request, AktiveOrgnrRequest.serializer())
 
@@ -106,11 +106,10 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
                     arbeidsgivere = emptyList(),
                 )
 
-            coEvery { mockRedisConnection.get(any()) } returns
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns
                 ResultJson(
                     success = resultatUtenArbeidsforhold.toJson(AktiveArbeidsgivere.serializer()),
-                ).toJson()
-                    .toString()
+                )
 
             val response = post(path, AktiveOrgnrRequest(Fnr.genererGyldig()), AktiveOrgnrRequest.serializer())
 

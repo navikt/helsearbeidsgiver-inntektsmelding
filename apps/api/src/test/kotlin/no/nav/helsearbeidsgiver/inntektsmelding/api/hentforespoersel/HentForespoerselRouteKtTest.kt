@@ -26,7 +26,7 @@ import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.gjennomsnitt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
+import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
@@ -62,10 +62,10 @@ class HentForespoerselRouteKtTest : ApiTest() {
     @Test
     fun `henter forespørsel`() =
         testApi {
-            coEvery { mockRedisConnection.get(any()) } returnsMany
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
-                    Mock.resultat.tilSuksessJson(),
+                    Mock.resultat.tilSuksess(),
                 )
 
             val forespoerselId = UUID.randomUUID()
@@ -122,10 +122,10 @@ class HentForespoerselRouteKtTest : ApiTest() {
                             ),
                     )
 
-            coEvery { mockRedisConnection.get(any()) } returnsMany
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
-                    resultatMedForrigeInntekt.tilSuksessJson(),
+                    resultatMedForrigeInntekt.tilSuksess(),
                 )
 
             val response = get(pathMedId)
@@ -146,10 +146,10 @@ class HentForespoerselRouteKtTest : ApiTest() {
                         inntekt = null,
                     )
 
-            coEvery { mockRedisConnection.get(any()) } returnsMany
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
-                    resultatMedNullVerdier.tilSuksessJson(),
+                    resultatMedNullVerdier.tilSuksess(),
                 )
 
             val response = get(pathMedId)
@@ -161,7 +161,7 @@ class HentForespoerselRouteKtTest : ApiTest() {
     @Test
     fun `gir 500-feil hvis Redis timer ut`() =
         testApi {
-            coEvery { mockRedisConnection.get(any()) } returns harTilgangResultat andThenThrows RedisPollerTimeoutException(UUID.randomUUID())
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns harTilgangResultat andThen null
 
             val response = get(pathMedId)
 
@@ -188,7 +188,7 @@ class HentForespoerselRouteKtTest : ApiTest() {
     @Test
     fun `gir Forbidden-feil hvis mangler tilgang`() =
         testApi {
-            coEvery { mockRedisConnection.get(any()) } returns ikkeTilgangResultat
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns ikkeTilgangResultat
 
             val response = get(pathMedId)
             assertEquals(HttpStatusCode.Forbidden, response.status)
@@ -201,11 +201,10 @@ class HentForespoerselRouteKtTest : ApiTest() {
     @Test
     fun `gir Forbidden-feil hvis problemer under henting av tilgang`() =
         testApi {
-            coEvery { mockRedisConnection.get(any()) } returns
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns
                 ResultJson(
                     failure = "Noe er riv ruskende galt!".toJson(),
-                ).toJson()
-                    .toString()
+                )
 
             val response = get(pathMedId)
             assertEquals(HttpStatusCode.Forbidden, response.status)
@@ -255,11 +254,10 @@ private object Mock {
         )
 }
 
-private fun HentForespoerselResultat.tilSuksessJson(): String =
+private fun HentForespoerselResultat.tilSuksess(): ResultJson =
     ResultJson(
         success = toJson(HentForespoerselResultat.serializer()),
-    ).toJson()
-        .toString()
+    )
 
 fun HentForespoerselResultat.tilResponseJson(): String =
     """

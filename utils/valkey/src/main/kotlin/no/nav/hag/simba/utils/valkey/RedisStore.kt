@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.utils.collection.mapKeysNotNull
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
@@ -56,7 +55,6 @@ class RedisStore(
             ?.parseJson()
 
     private fun String.skriv(value: JsonElement) {
-        sikkerLogger.debug("Skriver til redis:\n$this -> ${value.toPretty()}")
         redis.set(this, value.toString())
     }
 

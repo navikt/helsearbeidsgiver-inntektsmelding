@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.data.row
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 import no.nav.hag.simba.utils.felles.domene.Person
@@ -47,8 +46,8 @@ class ArbeidsgiverNotifikasjonKlientUtilsTest :
         context("Generer riktig periode tekst for oppgave varsel tekst") {
             withData(
                 mapOf(
-                    "en periode" to row(listOf(1.januar til 31.januar), "01.01.2018 - 31.01.2018"),
-                    "to perioder" to row(listOf(1.januar til 31.januar, 1.februar til 28.februar), "01.01.2018 - [...] - 28.02.2018"),
+                    "en periode" to Pair(listOf(1.januar til 31.januar), "01.01.2018 - 31.01.2018"),
+                    "to perioder" to Pair(listOf(1.januar til 31.januar, 1.februar til 28.februar), "01.01.2018 - [...] - 28.02.2018"),
                 ),
             ) { (perioder, forventet) ->
                 perioder.tilKortFormat() shouldBe forventet

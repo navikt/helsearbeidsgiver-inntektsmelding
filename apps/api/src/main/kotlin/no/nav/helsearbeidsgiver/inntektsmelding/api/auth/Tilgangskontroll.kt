@@ -74,10 +74,11 @@ class Tilgangskontroll(
 
                     publish(kontekstId, innloggerFnr)
 
+                    // TODO burde ikke kaste exception hvis redisPoller.hent gir null
                     val tilgang =
                         redisPoller
                             .hent(kontekstId)
-                            .success
+                            ?.success
                             ?.fromJson(Tilgang.serializer())
 
                     tilgang ?: throw ManglerAltinnRettigheterException()

@@ -17,36 +17,37 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.KSerializer
 import no.nav.hag.simba.kontrakt.resultat.tilgang.Tilgang
 import no.nav.hag.simba.utils.felles.domene.ResultJson
-import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.kafka.Producer
-import no.nav.hag.simba.utils.valkey.RedisConnection
+import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.apiModule
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.mock.mockConstructor
 
 val harTilgangResultat =
     ResultJson(
         success = Tilgang.HAR_TILGANG.toJson(Tilgang.serializer()),
-    ).toJson().toString()
+    )
 
 val ikkeTilgangResultat =
     ResultJson(
         success = Tilgang.IKKE_TILGANG.toJson(Tilgang.serializer()),
-    ).toJson().toString()
+    )
 
 abstract class ApiTest : MockAuthToken() {
     val mockProducer = mockk<Producer>(relaxed = true)
-    val mockRedisConnection = mockk<RedisConnection>()
 
     fun testApi(block: suspend TestClient.() -> Unit): Unit =
         testApplication {
             application {
-                apiModule(mockProducer, mockRedisConnection)
+                apiModule(mockProducer, mockk())
             }
 
             val testClient = TestClient(this, ::mockAuthToken)
 
-            testClient.block()
+            mockConstructor(RedisPoller::class) {
+                testClient.block()
+            }
         }
 }
 

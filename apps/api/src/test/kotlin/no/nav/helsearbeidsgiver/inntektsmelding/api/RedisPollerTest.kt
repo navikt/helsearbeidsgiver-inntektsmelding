@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.every
@@ -8,7 +9,6 @@ import io.mockk.mockk
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 class RedisPollerTest :
@@ -37,9 +37,7 @@ class RedisPollerTest :
         test("skal ikke finne etter maks forsøk") {
             every { mockRedisStore.lesResultat(any()) } returnsMany answers(answerOnAttemptNo = 16, answer = etSlagsResultat)
 
-            assertThrows<RedisPollerTimeoutException> {
-                redisPoller.hent(key)
-            }
+            redisPoller.hent(key).shouldBeNull()
         }
     })
 

@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIdListe
 
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.post
@@ -9,7 +8,7 @@ import kotlinx.serialization.builtins.serializer
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.Tekst.TEKNISK_FEIL_FORBIGAAENDE
+import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.Tekst.UGYLDIG_REQUEST
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.kafka.Producer
@@ -17,18 +16,16 @@ import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.receive
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respond
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
@@ -52,24 +49,18 @@ fun Route.hentForespoerselIdListe(
                 loggErrorSikkerOgUsikker(
                     "Stopper forsøk på å hente forespørsler for mer enn $MAKS_ANTALL_VEDTAKSPERIODE_IDER vedtaksperiode-IDer på en gang.",
                 )
-                respondBadRequest(UGYLDIG_REQUEST, String.serializer())
+                respondBadRequest(UGYLDIG_REQUEST)
             } else {
                 try {
                     hentForespoersler(producer, tilgangskontroll, redisPoller, request)
                 } catch (_: ManglerAltinnRettigheterException) {
-                    respondForbidden("Mangler rettigheter for organisasjon.", String.serializer())
-                } catch (e: RedisPollerTimeoutException) {
-                    loggErrorSikkerOgUsikker("Fikk timeout ved henting av forespørselIDer for vedtaksperiodeIDene: ${request.vedtaksperiodeIdListe}", e)
-                    respondInternalServerError(RedisTimeoutResponse(), RedisTimeoutResponse.serializer())
-                } catch (e: Exception) {
-                    loggErrorSikkerOgUsikker("Ukjent feil ved henting av forespørselIDer for vedtaksperiodeIDene: ${request.vedtaksperiodeIdListe}", e)
-                    respondInternalServerError(TEKNISK_FEIL_FORBIGAAENDE, String.serializer())
+                    respondForbidden("Mangler rettigheter for organisasjon.")
                 }
             }
         }.onFailure {
             "Klarte ikke lese request.".let { feilMelding ->
                 loggErrorSikkerOgUsikker(feilMelding, it)
-                respondBadRequest(feilMelding, String.serializer())
+                respondBadRequest(feilMelding)
             }
         }
     }
@@ -91,43 +82,37 @@ private suspend fun RoutingContext.hentForespoersler(
 
     sikkerLogger.info("Hentet forespørslene: $resultatJson")
 
-    when (val resultat = resultatJson.success?.fromJson(MapSerializer(UuidSerializer, Forespoersel.serializer()))) {
-        null -> {
-            val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: TEKNISK_FEIL_FORBIGAAENDE
-            respondInternalServerError(feilmelding, String.serializer())
-        }
+    if (resultatJson != null) {
+        val resultat = resultatJson.success?.fromJson(MapSerializer(UuidSerializer, Forespoersel.serializer()))
 
-        else -> {
+        if (resultat != null) {
             val orgnrSet = resultat.map { (_, forespoersel) -> forespoersel.orgnr }.toSet()
 
-            when {
-                orgnrSet.size > 1 -> {
-                    "Stopper forsøk på å hente forespørsler for vedtaksperioder, fordi de tilhører ulike arbeidsgivere.".also {
-                        logger.error(it)
-                        sikkerLogger.error(it)
+            if (orgnrSet.size > 1) {
+                "Stopper forsøk på å hente forespørsler for vedtaksperioder, fordi de tilhører ulike arbeidsgivere.".also {
+                    logger.error(it)
+                    sikkerLogger.error(it)
+                }
+                respondBadRequest(UGYLDIG_REQUEST)
+            } else {
+                orgnrSet.firstOrNull()?.also { orgnr -> tilgangskontroll.validerTilgangTilOrg(call.request, orgnr) }
+
+                val respons =
+                    resultat.map { (id, forespoersel) ->
+                        VedtaksperiodeIdForespoerselIdPar(
+                            forespoerselId = id,
+                            vedtaksperiodeId = forespoersel.vedtaksperiodeId,
+                        )
                     }
-                    respondBadRequest(UGYLDIG_REQUEST, String.serializer())
-                }
 
-                else -> {
-                    orgnrSet.firstOrNull()?.also { orgnr -> tilgangskontroll.validerTilgangTilOrg(call.request, orgnr) }
-
-                    val respons =
-                        resultat.map { (id, forespoersel) ->
-                            VedtaksperiodeIdForespoerselIdPar(
-                                forespoerselId = id,
-                                vedtaksperiodeId = forespoersel.vedtaksperiodeId,
-                            )
-                        }
-
-                    respond(
-                        HttpStatusCode.OK,
-                        respons,
-                        VedtaksperiodeIdForespoerselIdPar.serializer().list(),
-                    )
-                }
+                respondOk(respons, VedtaksperiodeIdForespoerselIdPar.serializer().list())
             }
+        } else {
+            val feilmelding = resultatJson.failure?.fromJson(String.serializer())
+            respondInternalServerError(feilmelding)
         }
+    } else {
+        respondInternalServerError(Tekst.REDIS_TIMEOUT_FEILMELDING)
     }
 }
 

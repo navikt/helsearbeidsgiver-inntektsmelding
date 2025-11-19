@@ -23,6 +23,7 @@ data class LagreEksternImMelding(
     val eventName: EventName,
     val kontekstId: UUID,
     val forespoerselId: UUID,
+    val inntektsmeldingId: UUID,
     val eksternInntektsmelding: EksternInntektsmelding,
 )
 
@@ -42,25 +43,39 @@ class LagreEksternImRiver(
                 eventName = Key.EVENT_NAME.krev(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT, EventName.serializer(), json),
                 kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
+                inntektsmeldingId = Key.INNTEKTSMELDING_ID.les(UuidSerializer, data),
                 eksternInntektsmelding = Key.EKSTERN_INNTEKTSMELDING.les(EksternInntektsmelding.serializer(), data),
             )
         }
 
     override fun LagreEksternImMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
 
-    override fun LagreEksternImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        imRepo.lagreEksternInntektsmelding(forespoerselId, eksternInntektsmelding)
+    override fun LagreEksternImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
+        val eksisterendeIm = imRepo.hentInntektsmelding(inntektsmeldingId)
+        return if (eksisterendeIm == null) {
+            imRepo.lagreEksternInntektsmelding(inntektsmeldingId, forespoerselId, eksternInntektsmelding)
 
-        "Lagret ekstern inntektsmelding med arkiv referanse ${eksternInntektsmelding.arkivreferanse} i database.".also {
-            logger.info(it)
-            sikkerLogger.info(it)
+            "Lagret ekstern IM med arkivreferanse ${eksternInntektsmelding.arkivreferanse} i database.".also {
+                logger.info(it)
+                sikkerLogger.info(it)
+            }
+
+            mapOf(
+                Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_LAGRET.toJson(),
+                Key.KONTEKST_ID to kontekstId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.INNTEKTSMELDING_ID to inntektsmeldingId.toJson(),
+            )
+        } else {
+            // Logger dette midlertidig for å se at det fungerer. Det er kun IM-er mottatt via LPS-appen som skal ende opp her.
+            "Lagret _ikke_ ekstern IM med arkivreferanse ${eksternInntektsmelding.arkivreferanse} i database pga. eksisterende IM med ID '$inntektsmeldingId'."
+                .also {
+                    logger.info(it)
+                    sikkerLogger.info(it)
+                }
+
+            null
         }
-
-        return mapOf(
-            Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_LAGRET.toJson(),
-            Key.KONTEKST_ID to kontekstId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-        )
     }
 
     override fun LagreEksternImMelding.haandterFeil(

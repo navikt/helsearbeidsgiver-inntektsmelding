@@ -23,6 +23,26 @@ class InntektsmeldingRepository(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
+    fun hentInntektsmelding(inntektsmeldingId: UUID): LagretInntektsmelding? =
+        transaction(db) {
+            InntektsmeldingEntitet
+                .select(
+                    InntektsmeldingEntitet.skjema,
+                    InntektsmeldingEntitet.eksternInntektsmelding,
+                    InntektsmeldingEntitet.innsendt,
+                    InntektsmeldingEntitet.avsenderNavn,
+                ).where { InntektsmeldingEntitet.inntektsmeldingId eq inntektsmeldingId }
+                .map {
+                    InntektsmeldingResult(
+                        it[InntektsmeldingEntitet.skjema],
+                        it[InntektsmeldingEntitet.eksternInntektsmelding],
+                        it[InntektsmeldingEntitet.innsendt],
+                        it[InntektsmeldingEntitet.avsenderNavn],
+                    )
+                }
+        }.firstOrNull()
+            ?.tilLagretInntektsmelding()
+
     fun hentNyesteInntektsmelding(forespoerselId: UUID): LagretInntektsmelding? =
         transaction(db) {
             InntektsmeldingEntitet
@@ -83,11 +103,13 @@ class InntektsmeldingRepository(
     }
 
     fun lagreEksternInntektsmelding(
+        inntektsmeldingId: UUID,
         forespoerselId: UUID,
         eksternIm: EksternInntektsmelding,
     ) {
         transaction(db) {
             InntektsmeldingEntitet.insert {
+                it[this.inntektsmeldingId] = inntektsmeldingId
                 it[this.forespoerselId] = forespoerselId
                 it[eksternInntektsmelding] = eksternIm
                 it[innsendt] = eksternIm.tidspunkt

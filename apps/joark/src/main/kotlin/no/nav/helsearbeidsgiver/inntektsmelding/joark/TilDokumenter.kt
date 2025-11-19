@@ -48,7 +48,7 @@ private fun ByteArray.encode(): String = base64.encodeToString(this)
 fun Inntektsmelding.tilDokumentbeskrivelse(): String {
     val arbeidsforhold =
         when (this.type) {
-            is Inntektsmelding.Type.UtenArbeidsforhold -> " (Uten arbeidsforhold)"
+            is Inntektsmelding.Type.UtenArbeidsforhold -> " (Unntatt registrering i Aa-registeret)"
             is Inntektsmelding.Type.Fisker -> " (Fisker m/hyre)"
             is Inntektsmelding.Type.Behandlingsdager -> " (Behandlingsdager)"
             else -> ""

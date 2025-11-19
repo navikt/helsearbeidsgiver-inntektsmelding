@@ -60,6 +60,7 @@ class HentEksternImRiverTest :
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
+                            Key.INNTEKTSMELDING_ID to innkommendeMelding.spinnImId.toJson(),
                             Key.EKSTERN_INNTEKTSMELDING to mockEksternInntektsmelding().toJson(EksternInntektsmelding.serializer()),
                         ).toJson(),
                 )

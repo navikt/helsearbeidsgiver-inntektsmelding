@@ -55,7 +55,7 @@ class LagreJournalpostIdRiver(
 
         when (inntektsmelding.type) {
             is Inntektsmelding.Type.Forespurt, is Inntektsmelding.Type.ForespurtEkstern -> {
-                imRepo.oppdaterJournalpostId(inntektsmelding.id, journalpostId)
+                imRepo.oppdaterMedJournalpostId(inntektsmelding.id, journalpostId)
 
                 if (imRepo.hentNyesteInntektsmeldingId(inntektsmelding.type.id) != inntektsmelding.id) {
                     "Inntektsmelding journalført, men ikke distribuert pga. nyere innsending.".also {

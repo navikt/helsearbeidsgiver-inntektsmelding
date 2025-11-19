@@ -64,6 +64,7 @@ class HentEksternImRiver(
                 Key.DATA to
                     mapOf(
                         Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                        Key.INNTEKTSMELDING_ID to spinnImId.toJson(),
                         Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
                     ).toJson(),
             )

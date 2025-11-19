@@ -6,7 +6,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Feilregistrert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferie
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferietrekk
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.InntektEndringAarsak
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStilling
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStillingsprosent
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Nyansatt
@@ -18,6 +17,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
 import no.nav.helsearbeidsgiver.utils.date.tilNorskFormat
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
+import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 
 private const val FORKLARING_ENDRING = "Endringsårsak"
 
@@ -327,13 +327,13 @@ class PdfDokument(
 
     private fun addNaturalytelser() {
         addSection("Bortfall av naturalytelser")
-        if (inntektsmelding.inntekt?.naturalytelser.isNullOrEmpty()) {
+        if (inntektsmelding.naturalytelser.isEmpty()) {
             addLabel("Nei")
         } else {
             addLabel("Naturalytelser", x = naturalytelse1, linefeed = false)
             addLabel("Dato naturalytelse bortfaller", x = naturalytelse2, linefeed = false)
             addLabel("Verdi naturalytelse - kr/måned", x = naturalytelse3)
-            inntektsmelding.inntekt?.naturalytelser?.forEach {
+            inntektsmelding.naturalytelser.forEach {
                 addText(it.naturalytelse.name, naturalytelse1, linefeed = false)
                 addText(it.sluttdato.tilNorskFormat(), naturalytelse2, linefeed = false)
                 addText(it.verdiBeloep.tilNorskFormat(), naturalytelse3)

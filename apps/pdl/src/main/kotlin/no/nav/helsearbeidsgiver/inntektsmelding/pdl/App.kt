@@ -6,7 +6,7 @@ import no.nav.hag.simba.utils.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.pdl.Behandlingsgrunnlag
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
-import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
 
 fun main() {
     ObjectRiver.connectToRapid {
@@ -24,7 +24,7 @@ fun buildClient(): PdlClient {
     return PdlClient(
         url = Env.pdlUrl,
         behandlingsgrunnlag = Behandlingsgrunnlag.INNTEKTSMELDING,
-        cacheConfig = LocalCache.Config(1.days, 10_000),
+        cacheConfig = LocalCache.Config(3.hours, 1_200),
         getAccessToken = tokenGetter,
     )
 }

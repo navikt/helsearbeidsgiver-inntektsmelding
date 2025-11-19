@@ -23,7 +23,6 @@ import no.nav.hag.simba.utils.rr.service.ServiceMed3Steg
 import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.ArbeidsforholdType
 import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
@@ -40,6 +39,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.collections.orEmpty
+import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 import no.nav.hag.simba.utils.felles.domene.SkjemaInntektsmeldingSelvbestemtIntern as SkjemaInntektsmeldingSelvbestemt
 
 data class Steg0(
@@ -408,6 +408,7 @@ fun tilInntektsmelding(
         agp = skjema.agp,
         inntekt = skjema.inntekt,
         refusjon = skjema.refusjon,
+        naturalytelser = skjema.naturalytelser,
         aarsakInnsending = aarsakInnsending,
         mottatt = mottatt.toOffsetDateTimeOslo(),
         // TODO: Fjerne "?: skjema.vedtaksperiodeId" etter frontend har implementert arbeidsforholdType

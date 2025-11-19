@@ -7,11 +7,11 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.utils.json.serializer.OffsetDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import java.time.OffsetDateTime
 import java.util.UUID
+import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable

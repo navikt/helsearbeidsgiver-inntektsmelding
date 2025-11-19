@@ -14,7 +14,6 @@ import no.nav.hag.simba.utils.db.exposed.test.FunSpecWithDb
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
 import no.nav.hag.simba.utils.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.SelvbestemtInntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
@@ -27,6 +26,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
+import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 
 class SelvbestemtImRepoTest :
     FunSpecWithDb(listOf(SelvbestemtInntektsmeldingEntitet), { db ->

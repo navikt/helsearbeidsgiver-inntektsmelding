@@ -5,12 +5,12 @@ import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 import no.nav.hag.simba.utils.felles.domene.Person
 import no.nav.hag.simba.utils.felles.utils.tilKortFormat
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
+import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 
 class ArbeidsgiverNotifikasjonKlientUtilsTest :
     FunSpec({

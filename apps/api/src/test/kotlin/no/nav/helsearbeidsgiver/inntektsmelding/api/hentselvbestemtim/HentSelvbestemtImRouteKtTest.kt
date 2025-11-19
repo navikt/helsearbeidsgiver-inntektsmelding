@@ -24,7 +24,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferie
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferietrekk
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.InntektEndringAarsak
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStilling
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStillingsprosent
@@ -53,6 +52,7 @@ import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
+import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 
 private val pathMedId =
     Routes.PREFIX +
@@ -285,6 +285,7 @@ private fun Inntektsmelding.hardcodedJson(): String =
         "agp": ${agp?.hardcodedJson()},
         "inntekt": ${inntekt?.hardcodedJson()},
         "refusjon": ${refusjon?.hardcodedJson()},
+        "naturalytelser": [${naturalytelser.joinToString(transform = Naturalytelse::hardcodedJson)}],
         "aarsakInnsending": "$aarsakInnsending",
         "mottatt": "$mottatt",
         "vedtaksperiodeId": "$vedtaksperiodeId"

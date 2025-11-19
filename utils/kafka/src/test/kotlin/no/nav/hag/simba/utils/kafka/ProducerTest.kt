@@ -14,7 +14,6 @@ import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
 import no.nav.hag.simba.utils.felles.test.mock.randomDigitString
 import no.nav.hag.simba.utils.kafka.test.mockRecordMetadata
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.JournalfoertInntektsmelding
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -22,6 +21,7 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.errors.TimeoutException
 import java.util.UUID
+import no.nav.hag.simba.utils.felles.domene.JournalfoertInntektsmeldingIntern as JournalfoertInntektsmelding
 
 private const val TEST_TOPIC = "test-topic"
 

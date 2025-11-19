@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Feilregistrert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferie
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferietrekk
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.InntektEndringAarsak
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStilling
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStillingsprosent
@@ -30,6 +29,7 @@ import no.seres.xsd.nav.inntektsmelding_m._20181211.Kontaktinformasjon
 import no.seres.xsd.nav.inntektsmelding_m._20181211.NaturalytelseDetaljer
 import no.seres.xsd.nav.inntektsmelding_m._20181211.Skjemainnhold
 import no.seres.xsd.nav.inntektsmelding_m._20181211.SykepengerIArbeidsgiverperioden
+import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 import no.seres.xsd.nav.inntektsmelding_m._20181211.Inntekt as InntektXml
 import no.seres.xsd.nav.inntektsmelding_m._20181211.Periode as PeriodeXml
 import no.seres.xsd.nav.inntektsmelding_m._20181211.Refusjon as RefusjonXml
@@ -51,7 +51,7 @@ private fun tilSkjemainnhold(im: Inntektsmelding): Skjemainnhold =
                 it.systemnavn = "NAV_NO"
                 it.systemversjon = "1.0"
             }
-        skjema.opphoerAvNaturalytelseListe = im.inntekt?.naturalytelser?.map(Naturalytelse::map)
+        skjema.opphoerAvNaturalytelseListe = im.naturalytelser.map(Naturalytelse::map)
         skjema.refusjon = im.refusjon.map()
         skjema.sykepengerIArbeidsgiverperioden = im.agp.map()
         skjema.ytelse = "Sykepenger"

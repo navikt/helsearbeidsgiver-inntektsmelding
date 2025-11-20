@@ -90,7 +90,7 @@ class KvitteringIT : EndToEndTest() {
                 ),
         )
 
-        imRepository.lagreEksternInntektsmelding(forespoerselId, eksternIm)
+        imRepository.lagreEksternInntektsmelding(UUID.randomUUID(), forespoerselId, eksternIm)
 
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),

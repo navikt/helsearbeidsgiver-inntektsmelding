@@ -59,7 +59,7 @@ class TilDokumenterKtTest {
 
         setOf(
             im.copy(type = Inntektsmelding.Type.Fisker(id)) to "$standardBeskrivelse (Fisker m/hyre)",
-            im.copy(type = Inntektsmelding.Type.UtenArbeidsforhold(id)) to "$standardBeskrivelse (Uten arbeidsforhold)",
+            im.copy(type = Inntektsmelding.Type.UtenArbeidsforhold(id)) to "$standardBeskrivelse (Unntatt registrering i Aa-registeret)",
             im.copy(type = Inntektsmelding.Type.Forespurt(id)) to standardBeskrivelse,
             im.copy(type = Inntektsmelding.Type.Selvbestemt(id)) to standardBeskrivelse,
         ).forEach { (im, forventet) ->

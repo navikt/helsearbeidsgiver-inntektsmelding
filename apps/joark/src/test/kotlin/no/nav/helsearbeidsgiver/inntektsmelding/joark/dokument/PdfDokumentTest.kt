@@ -328,7 +328,7 @@ class PdfDokumentTest {
             Inntektsmelding.Type.Forespurt(id) to "Inntektsmelding for sykepenger",
             Inntektsmelding.Type.Selvbestemt(id) to "Inntektsmelding for sykepenger",
             Inntektsmelding.Type.Fisker(id) to "Inntektsmelding (Fisker m/hyre) for sykepenger",
-            Inntektsmelding.Type.UtenArbeidsforhold(id) to "Inntektsmelding (Uten arbeidsforhold) for sykepenger",
+            Inntektsmelding.Type.UtenArbeidsforhold(id) to "Inntektsmelding (Unntatt registrering i Aa-registeret) for sykepenger",
         ).forEach { (imType, forventetTittel) ->
             val inntektsmelding = im.copy(type = imType)
             val pdfTekst = pdfTekstFraIm(inntektsmelding)

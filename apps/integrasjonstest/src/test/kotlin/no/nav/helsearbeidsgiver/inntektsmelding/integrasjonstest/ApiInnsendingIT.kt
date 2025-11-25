@@ -13,12 +13,13 @@ import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespurtData
 import no.nav.hag.simba.kontrakt.kafkatopic.pri.Pri
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.domene.ApiInnsendingIntern
 import no.nav.hag.simba.utils.felles.json.les
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
-import no.nav.hag.simba.utils.felles.test.mock.mockInnsending
+import no.nav.hag.simba.utils.felles.test.mock.mockApiInnsending
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.InntektUtenNaturalytelser
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -76,7 +77,7 @@ class ApiInnsendingIT : EndToEndTest() {
             Key.KONTEKST_ID to UUID.randomUUID().toJson(),
             Key.DATA to
                 mapOf(
-                    Key.INNSENDING to Mock.innsending.toJson(Innsending.serializer()),
+                    Key.INNSENDING to Mock.innsending.toJson(ApiInnsendingIntern.serializer()),
                     Key.MOTTATT to Mock.mottatt.toJson(),
                 ).toJson(),
         )
@@ -166,8 +167,8 @@ class ApiInnsendingIT : EndToEndTest() {
 
         val inntektBeloep = 544.6
         val inntektsDato = 1.januar
-        val inntekt = Inntekt(beloep = inntektBeloep, inntektsdato = inntektsDato, naturalytelser = emptyList(), endringAarsaker = emptyList())
-        val innsending = mockInnsending().medInntekt(inntekt)
+        val inntekt = InntektUtenNaturalytelser(beloep = inntektBeloep, inntektsdato = inntektsDato, endringAarsaker = emptyList())
+        val innsending = mockApiInnsending().medInntekt(inntekt)
         val forespoerselId = innsending.skjema.forespoerselId
 
         val forespoersel =
@@ -202,4 +203,4 @@ class ApiInnsendingIT : EndToEndTest() {
     }
 }
 
-fun Innsending.medInntekt(inntekt: Inntekt): Innsending = this.copy(skjema = this.skjema.copy(inntekt = inntekt))
+fun ApiInnsendingIntern.medInntekt(inntekt: InntektUtenNaturalytelser): ApiInnsendingIntern = this.copy(skjema = this.skjema.copy(inntekt = inntekt))

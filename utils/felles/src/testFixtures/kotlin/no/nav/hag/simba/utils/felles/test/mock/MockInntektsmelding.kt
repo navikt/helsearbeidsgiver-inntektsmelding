@@ -1,9 +1,12 @@
 package no.nav.hag.simba.utils.felles.test.mock
 
+import no.nav.hag.simba.utils.felles.domene.ApiInnsendingIntern
+import no.nav.hag.simba.utils.felles.domene.ApiSkjemaInntektsmeldingIntern
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.InntektUtenNaturalytelser
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStillingsprosent
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
@@ -38,6 +41,26 @@ fun mockSkjemaInntektsmelding(): SkjemaInntektsmelding {
         agp = inntektsmelding.agp,
         inntekt = inntektsmelding.inntekt,
         refusjon = inntektsmelding.refusjon,
+    )
+}
+
+fun mockApiInnsending(): ApiInnsendingIntern {
+    val innsending = mockInnsending()
+    val skjema = mockSkjemaInntektsmelding()
+    return ApiInnsendingIntern(
+        innsendingId = innsending.innsendingId,
+        skjema =
+            ApiSkjemaInntektsmeldingIntern(
+                forespoerselId = innsending.innsendingId,
+                avsenderTlf = skjema.avsenderTlf,
+                agp = skjema.agp,
+                inntekt = skjema.inntekt?.let { InntektUtenNaturalytelser(skjema.inntekt.beloep, skjema.inntekt.inntektsdato, skjema.inntekt.endringAarsaker) },
+                refusjon = skjema.refusjon,
+            ),
+        aarsakInnsending = innsending.aarsakInnsending,
+        type = innsending.type,
+        innsendtTid = innsending.innsendtTid,
+        versjon = innsending.versjon,
     )
 }
 

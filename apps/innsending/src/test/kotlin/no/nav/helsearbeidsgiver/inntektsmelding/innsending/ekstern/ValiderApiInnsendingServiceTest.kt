@@ -14,21 +14,23 @@ import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.toJson
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.domene.ApiInnsendingIntern
 import no.nav.hag.simba.utils.felles.json.inntektMapSerializer
 import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.test.json.lesBehov
 import no.nav.hag.simba.utils.felles.test.json.plusData
+import no.nav.hag.simba.utils.felles.test.mock.mockApiInnsending
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
-import no.nav.hag.simba.utils.felles.test.mock.mockInnsending
+import no.nav.hag.simba.utils.felles.utils.InnsendingUtils
 import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
 import no.nav.hag.simba.utils.rr.test.message
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.InntektUtenNaturalytelser
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
@@ -86,7 +88,7 @@ class ValiderApiInnsendingServiceTest :
                 Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
 
                 val data = it[Key.DATA]?.toMap().orEmpty()
-                Key.INNSENDING.lesOrNull(Innsending.serializer(), data) shouldBe Mock.innsending
+                Key.INNSENDING.lesOrNull(Innsending.serializer(), data) shouldBe Mock.innsendingGammel
                 Key.FORESPOERSEL_SVAR.lesOrNull(Forespoersel.serializer(), data) shouldBe Mock.forespoersel
             }
         }
@@ -116,7 +118,7 @@ class ValiderApiInnsendingServiceTest :
             )
 
             testRapid.inspektør.size shouldBeExactly 2
-            val forventetNoekkel = Mock.innsending.skjema.forespoerselId
+            val forventetNoekkel = Mock.innsendingApi.skjema.forespoerselId
             val forventetRecord =
                 ProducerRecord(
                     testTopic,
@@ -129,21 +131,22 @@ class ValiderApiInnsendingServiceTest :
 
         test("dersom inntektsmeldingen inneholder en årsak til endring, sendes den rett videre til api-innsending tjenesten") {
             val kontekstId = UUID.randomUUID()
-            val inntekt = Inntekt(beloep = Mock.inntektBeloep, inntektsdato = Mock.inntektsDato, naturalytelser = emptyList(), endringAarsaker = listOf(Bonus))
-            val innsendingMedEndringAarsak = Mock.innsending.medInntekt(inntekt)
+            val inntekt = InntektUtenNaturalytelser(beloep = Mock.inntektBeloep, inntektsdato = Mock.inntektsDato, endringAarsaker = listOf(Bonus))
+            val innsendingMedEndringAarsak = Mock.innsendingApi.medInntekt(inntekt)
 
             testRapid.sendJson(
                 Mock.steg0(kontekstId).plusData(
-                    Key.INNSENDING to innsendingMedEndringAarsak.toJson(Innsending.serializer()),
+                    Key.INNSENDING to innsendingMedEndringAarsak.toJson(ApiInnsendingIntern.serializer()),
                 ),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.message(0).lesBehov() shouldBe BehovType.HENT_TRENGER_IM
 
+            val innsendingMedEndringAarsakGammeltFormat = InnsendingUtils.oversett(innsendingMedEndringAarsak)
             testRapid.sendJson(
                 Mock.steg1(kontekstId).plusData(
-                    Key.INNSENDING to innsendingMedEndringAarsak.toJson(Innsending.serializer()),
+                    Key.INNSENDING to innsendingMedEndringAarsakGammeltFormat.toJson(Innsending.serializer()),
                 ),
             )
 
@@ -153,7 +156,7 @@ class ValiderApiInnsendingServiceTest :
                 Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
 
                 val data = it[Key.DATA]?.toMap().orEmpty()
-                Key.INNSENDING.lesOrNull(Innsending.serializer(), data) shouldBe innsendingMedEndringAarsak
+                Key.INNSENDING.lesOrNull(Innsending.serializer(), data) shouldBe innsendingMedEndringAarsakGammeltFormat
                 Key.FORESPOERSEL_SVAR.lesOrNull(Forespoersel.serializer(), data) shouldBe Mock.forespoersel
             }
         }
@@ -172,14 +175,15 @@ class ValiderApiInnsendingServiceTest :
         }
     }) {
     companion object {
-        fun Innsending.medInntekt(inntekt: Inntekt): Innsending = this.copy(skjema = this.skjema.copy(inntekt = inntekt))
+        fun ApiInnsendingIntern.medInntekt(inntekt: InntektUtenNaturalytelser): ApiInnsendingIntern = this.copy(skjema = this.skjema.copy(inntekt = inntekt))
     }
 
     private object Mock {
         val inntektBeloep = 544.6
         val inntektsDato = 1.januar
-        val inntekt = Inntekt(beloep = inntektBeloep, inntektsdato = inntektsDato, naturalytelser = emptyList(), endringAarsaker = emptyList())
-        val innsending = mockInnsending().medInntekt(inntekt)
+        val inntekt = InntektUtenNaturalytelser(beloep = inntektBeloep, inntektsdato = inntektsDato, endringAarsaker = emptyList())
+        val innsendingApi = mockApiInnsending().medInntekt(inntekt)
+        val innsendingGammel = InnsendingUtils.oversett(innsendingApi)
         val forespoersel = mockForespoersel()
 
         val inntektFraAordningen =
@@ -197,7 +201,7 @@ class ValiderApiInnsendingServiceTest :
                 Key.KONTEKST_ID to kontekstId.toJson(),
                 Key.DATA to
                     mapOf(
-                        Key.INNSENDING to innsending.toJson(Innsending.serializer()),
+                        Key.INNSENDING to innsendingApi.toJson(ApiInnsendingIntern.serializer()),
                         Key.MOTTATT to mottatt.toJson(),
                     ).toJson(),
             )
@@ -215,7 +219,7 @@ class ValiderApiInnsendingServiceTest :
         fun avvistMelding(kontekstId: UUID): Map<InnsendingKey, JsonElement> {
             val avvistInntektsmelding =
                 AvvistInntektsmelding(
-                    inntektsmeldingId = innsending.innsendingId,
+                    inntektsmeldingId = innsendingApi.innsendingId,
                     feilkode = Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN,
                 )
             return mapOf(

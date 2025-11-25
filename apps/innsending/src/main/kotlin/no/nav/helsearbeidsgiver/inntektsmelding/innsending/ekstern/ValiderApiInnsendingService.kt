@@ -10,6 +10,7 @@ import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.json.inntektMapSerializer
 import no.nav.hag.simba.utils.felles.json.les
 import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.felles.utils.InnsendingUtils
 import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.rr.KafkaKey
@@ -27,6 +28,7 @@ import java.time.YearMonth
 import java.util.UUID
 import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.EventName as InnsendingEventName
 import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.Key as InnsendingKey
+import no.nav.hag.simba.utils.felles.domene.ApiInnsendingIntern as ApiInnsending
 import no.nav.hag.simba.utils.felles.domene.InnsendingIntern as Innsending
 
 data class ValideringsSteg0(
@@ -56,7 +58,7 @@ class ValiderApiInnsendingService(
     override fun lesSteg0(melding: Map<Key, JsonElement>): ValideringsSteg0 =
         ValideringsSteg0(
             kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
-            innsending = Key.INNSENDING.les(Innsending.serializer(), melding),
+            innsending = InnsendingUtils.oversett(Key.INNSENDING.les(ApiInnsending.serializer(), melding)),
             mottatt = Key.MOTTATT.les(LocalDateTimeSerializer, melding),
         )
 
@@ -134,7 +136,6 @@ class ValiderApiInnsendingService(
         steg2: ValideringsSteg2,
     ) {
         val inntekt = steg0.innsending.skjema.inntekt
-
         val feilkoder =
             if (inntekt == null || steg2.unnlatHentingAvInntekt) {
                 emptySet()

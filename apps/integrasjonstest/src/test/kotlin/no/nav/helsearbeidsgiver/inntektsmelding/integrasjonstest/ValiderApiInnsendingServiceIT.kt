@@ -18,8 +18,9 @@ import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.test.json.lesBehov
-import no.nav.hag.simba.utils.felles.test.mock.mockInnsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
+import no.nav.hag.simba.utils.felles.test.mock.mockApiInnsending
+import no.nav.hag.simba.utils.felles.utils.InnsendingUtils
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.InntektUtenNaturalytelser
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.AvvistInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.Feilkode
@@ -44,6 +45,7 @@ import org.junit.jupiter.api.TestInstance
 import java.util.UUID
 import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.EventName as InnsendingEventName
 import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.Key as InnsendingKey
+import no.nav.hag.simba.utils.felles.domene.ApiInnsendingIntern as ApiInnsending
 import no.nav.hag.simba.utils.felles.domene.InnsendingIntern as Innsending
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -74,7 +76,7 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
             Key.KONTEKST_ID to Mock.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.INNSENDING to Mock.innsending.toJson(Innsending.serializer()),
+                    Key.INNSENDING to Mock.apiInnsending.toJson(ApiInnsending.serializer()),
                     Key.MOTTATT to Mock.mottatt.toJson(),
                 ).toJson(),
         )
@@ -139,7 +141,7 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
 
                     data[Key.INNSENDING]
                         .shouldNotBeNull()
-                        .fromJson(Innsending.serializer()) shouldBe Mock.innsending
+                        .fromJson(Innsending.serializer()) shouldBe Mock.innsendingGammel
 
                     data[Key.FORESPOERSEL_SVAR]
                         .shouldNotBeNull()
@@ -173,7 +175,7 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
             Key.KONTEKST_ID to Mock.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.INNSENDING to Mock.innsending.toJson(Innsending.serializer()),
+                    Key.INNSENDING to Mock.apiInnsending.toJson(ApiInnsending.serializer()),
                     Key.MOTTATT to Mock.mottatt.toJson(),
                 ).toJson(),
         )
@@ -270,14 +272,14 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.INNSENDING to Mock.innsending.toJson(Innsending.serializer()),
+                    Key.INNSENDING to Mock.apiInnsending.toJson(ApiInnsending.serializer()),
                     Key.MOTTATT to Mock.mottatt.toJson(),
                 ).toJson(),
         )
 
         val avvistInntektsmelding =
             AvvistInntektsmelding(
-                inntektsmeldingId = Mock.innsending.innsendingId,
+                inntektsmeldingId = Mock.innsendingGammel.innsendingId,
                 feilkode = Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN,
             )
 
@@ -313,9 +315,10 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
 
         val inntektBeloep = 544.6
         val inntektsDato = 1.januar
-        val inntekt = Inntekt(beloep = inntektBeloep, inntektsdato = inntektsDato, naturalytelser = emptyList(), endringAarsaker = emptyList())
-        val innsending = mockInnsending().medInntekt(inntekt)
-        val forespoerselId = innsending.skjema.forespoerselId
+        val inntekt = InntektUtenNaturalytelser(beloep = inntektBeloep, inntektsdato = inntektsDato, endringAarsaker = emptyList())
+        val apiInnsending = mockApiInnsending().medInntekt(inntekt)
+        val innsendingGammel = InnsendingUtils.oversett(apiInnsending)
+        val forespoerselId = innsendingGammel.skjema.forespoerselId
 
         val inntektFraAordningen =
             mapOf(

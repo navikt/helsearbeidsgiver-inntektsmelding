@@ -46,16 +46,22 @@ fun mockSkjemaInntektsmelding(): SkjemaInntektsmelding {
 
 fun mockApiInnsending(): ApiInnsendingIntern {
     val innsending = mockInnsending()
-    val skjema = mockSkjemaInntektsmelding()
     return ApiInnsendingIntern(
         innsendingId = innsending.innsendingId,
         skjema =
             ApiSkjemaInntektsmeldingIntern(
-                forespoerselId = innsending.innsendingId,
-                avsenderTlf = skjema.avsenderTlf,
-                agp = skjema.agp,
-                inntekt = skjema.inntekt?.let { InntektUtenNaturalytelser(skjema.inntekt.beloep, skjema.inntekt.inntektsdato, skjema.inntekt.endringAarsaker) },
-                refusjon = skjema.refusjon,
+                forespoerselId = innsending.type.id,
+                avsenderTlf = innsending.skjema.avsenderTlf,
+                agp = innsending.skjema.agp,
+                inntekt =
+                    innsending.skjema.inntekt?.let {
+                        InntektUtenNaturalytelser(
+                            innsending.skjema.inntekt.beloep,
+                            innsending.skjema.inntekt.inntektsdato,
+                            innsending.skjema.inntekt.endringAarsaker,
+                        )
+                    },
+                refusjon = innsending.skjema.refusjon,
             ),
         aarsakInnsending = innsending.aarsakInnsending,
         type = innsending.type,

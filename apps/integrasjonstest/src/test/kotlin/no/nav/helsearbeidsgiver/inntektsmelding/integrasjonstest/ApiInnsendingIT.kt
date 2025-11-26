@@ -87,7 +87,7 @@ class ApiInnsendingIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
-                data[Key.INNSENDING]?.fromJson(Innsending.serializer()) shouldBe Mock.innsending
+                data[Key.INNSENDING]?.fromJson(Innsending.serializer()) shouldBe Mock.innsendingGammeltFormat
                 data[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel
             }
 
@@ -169,6 +169,7 @@ class ApiInnsendingIT : EndToEndTest() {
         val inntektsDato = 1.januar
         val inntekt = InntektUtenNaturalytelser(beloep = inntektBeloep, inntektsdato = inntektsDato, endringAarsaker = emptyList())
         val innsending = mockApiInnsending().medInntekt(inntekt)
+        val innsendingGammeltFormat = innsending.tilGammeltFormat()
         val forespoerselId = innsending.skjema.forespoerselId
 
         val forespoersel =

@@ -19,7 +19,6 @@ import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.test.json.lesBehov
 import no.nav.hag.simba.utils.felles.test.mock.mockApiInnsending
-import no.nav.hag.simba.utils.felles.utils.InnsendingUtils
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.InntektUtenNaturalytelser
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.AvvistInntektsmelding
@@ -141,7 +140,7 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
 
                     data[Key.INNSENDING]
                         .shouldNotBeNull()
-                        .fromJson(Innsending.serializer()) shouldBe Mock.innsendingGammel
+                        .fromJson(Innsending.serializer()) shouldBe Mock.innsendingGammeltFormat
 
                     data[Key.FORESPOERSEL_SVAR]
                         .shouldNotBeNull()
@@ -279,7 +278,7 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
 
         val avvistInntektsmelding =
             AvvistInntektsmelding(
-                inntektsmeldingId = Mock.innsendingGammel.innsendingId,
+                inntektsmeldingId = Mock.innsendingGammeltFormat.innsendingId,
                 feilkode = Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN,
             )
 
@@ -317,8 +316,8 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
         val inntektsDato = 1.januar
         val inntekt = InntektUtenNaturalytelser(beloep = inntektBeloep, inntektsdato = inntektsDato, endringAarsaker = emptyList())
         val apiInnsending = mockApiInnsending().medInntekt(inntekt)
-        val innsendingGammel = InnsendingUtils.oversett(apiInnsending)
-        val forespoerselId = innsendingGammel.skjema.forespoerselId
+        val innsendingGammeltFormat = apiInnsending.tilGammeltFormat()
+        val forespoerselId = innsendingGammeltFormat.skjema.forespoerselId
 
         val inntektFraAordningen =
             mapOf(

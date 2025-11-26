@@ -7,6 +7,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.utils.json.serializer.OffsetDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import java.time.OffsetDateTime
@@ -23,4 +24,30 @@ data class ApiInnsendingIntern(
     val innsendtTid: OffsetDateTime,
     @EncodeDefault
     val versjon: Int = 1,
-)
+) {
+    fun tilGammeltFormat(): InnsendingIntern =
+        InnsendingIntern(
+            innsendingId = this.innsendingId,
+            skjema =
+                SkjemaInntektsmeldingIntern(
+                    forespoerselId = skjema.forespoerselId,
+                    avsenderTlf = skjema.avsenderTlf,
+                    agp = skjema.agp,
+                    inntekt =
+                        skjema.inntekt?.let {
+                            Inntekt(
+                                beloep = it.beloep,
+                                inntektsdato = it.inntektsdato,
+                                naturalytelser = skjema.naturalytelser,
+                                endringAarsaker = it.endringAarsaker,
+                            )
+                        },
+                    refusjon = skjema.refusjon,
+                    naturalytelser = skjema.naturalytelser,
+                ),
+            aarsakInnsending = aarsakInnsending,
+            type = type,
+            innsendtTid = innsendtTid,
+            versjon = versjon,
+        )
+}

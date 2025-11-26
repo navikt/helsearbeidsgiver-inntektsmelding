@@ -23,7 +23,6 @@ import no.nav.hag.simba.utils.felles.test.json.lesBehov
 import no.nav.hag.simba.utils.felles.test.json.plusData
 import no.nav.hag.simba.utils.felles.test.mock.mockApiInnsending
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
-import no.nav.hag.simba.utils.felles.utils.InnsendingUtils
 import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
 import no.nav.hag.simba.utils.rr.test.message
@@ -88,7 +87,7 @@ class ValiderApiInnsendingServiceTest :
                 Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
 
                 val data = it[Key.DATA]?.toMap().orEmpty()
-                Key.INNSENDING.lesOrNull(Innsending.serializer(), data) shouldBe Mock.innsendingGammel
+                Key.INNSENDING.lesOrNull(Innsending.serializer(), data) shouldBe Mock.innsendingGammeltFormat
                 Key.FORESPOERSEL_SVAR.lesOrNull(Forespoersel.serializer(), data) shouldBe Mock.forespoersel
             }
         }
@@ -143,7 +142,7 @@ class ValiderApiInnsendingServiceTest :
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.message(0).lesBehov() shouldBe BehovType.HENT_TRENGER_IM
 
-            val innsendingMedEndringAarsakGammeltFormat = InnsendingUtils.oversett(innsendingMedEndringAarsak)
+            val innsendingMedEndringAarsakGammeltFormat = innsendingMedEndringAarsak.tilGammeltFormat()
             testRapid.sendJson(
                 Mock.steg1(kontekstId).plusData(
                     Key.INNSENDING to innsendingMedEndringAarsakGammeltFormat.toJson(Innsending.serializer()),
@@ -183,7 +182,7 @@ class ValiderApiInnsendingServiceTest :
         val inntektsDato = 1.januar
         val inntekt = InntektUtenNaturalytelser(beloep = inntektBeloep, inntektsdato = inntektsDato, endringAarsaker = emptyList())
         val innsendingApi = mockApiInnsending().medInntekt(inntekt)
-        val innsendingGammel = InnsendingUtils.oversett(innsendingApi)
+        val innsendingGammeltFormat = innsendingApi.tilGammeltFormat()
         val forespoersel = mockForespoersel()
 
         val inntektFraAordningen =

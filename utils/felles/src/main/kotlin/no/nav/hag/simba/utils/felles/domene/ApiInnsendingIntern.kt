@@ -16,6 +16,7 @@ import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmel
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
+@Deprecated("Skal erstattes med im-domene 0.5.0")
 data class ApiInnsendingIntern(
     val innsendingId: UUID,
     val skjema: ApiSkjemaInntektsmeldingIntern,

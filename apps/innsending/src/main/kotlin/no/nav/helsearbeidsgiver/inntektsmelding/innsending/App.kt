@@ -22,9 +22,6 @@ fun main() {
             password = Env.redisPassword,
         )
 
-    // TODO: Enable i prod når vi kobler til nytt kafka-topic
-    val isDev = "dev-gcp".equals(System.getenv()["NAIS_CLUSTER_NAME"], ignoreCase = true)
-
     ObjectRiver.connectToRapid(
         onShutdown = { redisConnection.close() },
     ) {
@@ -32,7 +29,6 @@ fun main() {
             publisher = it,
             redisConnection = redisConnection,
             producer = producer,
-            taImotEksternInnsending = isDev,
         )
     }
 }
@@ -41,7 +37,6 @@ fun createInnsendingServices(
     publisher: Publisher,
     redisConnection: RedisConnection,
     producer: Producer,
-    taImotEksternInnsending: Boolean,
 ): List<ObjectRiver.Simba<*>> {
     val innsendingServiceRiver =
         ServiceRiverStateless(
@@ -50,24 +45,16 @@ fun createInnsendingServices(
                 redisStore = RedisStore(redisConnection, RedisPrefix.Innsending),
             ),
         )
+
     val valideringsServiceRiver =
-        if (taImotEksternInnsending) {
             ServiceRiverStateless(
                 ValiderApiInnsendingService(
                     publisher = publisher,
                     producer = producer,
                 ),
             )
-        } else {
-            null
-        }
 
-    val apiInnsendingServiceRiver =
-        if (taImotEksternInnsending) {
-            ServiceRiverStateless(ApiInnsendingService(publisher = publisher))
-        } else {
-            null
-        }
+    val apiInnsendingServiceRiver = ServiceRiverStateless(ApiInnsendingService(publisher = publisher))
 
     val kvitteringServiceRiver =
         ServiceRiverStateful(
@@ -77,7 +64,7 @@ fun createInnsendingServices(
             ),
         )
 
-    return listOfNotNull(
+    return listOf(
         innsendingServiceRiver,
         apiInnsendingServiceRiver,
         valideringsServiceRiver,

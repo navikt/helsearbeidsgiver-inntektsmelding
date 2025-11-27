@@ -98,64 +98,61 @@ class ValiderApiInnsendingServiceTest :
             val innsendingMedEndringAarsak =
                 """
                 {
-                    "innsendingId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-                    "skjema": {
-                      "forespoerselId": "3fa85f64-5717-4562-b3fc-2c963f66afa7",
-                      "avsenderTlf":"12345678",
-                      "agp": {
-                        "perioder": [
-                          {
-                            "fom": "2025-11-27",
-                            "tom": "2025-11-27"
-                          }
-                        ],
-                        "egenmeldinger": [
-                          {
-                            "fom": "2025-11-27",
-                            "tom": "2025-11-27"
-                          }
-                        ],
-                        "redusertLoennIAgp": {
-                          "beloep": 0.1,
-                          "begrunnelse": "ArbeidOpphoert"
-                        }
-                      },
-                      "refusjon": {
-                        "beloepPerMaaned": 0.1,
-                        "endringer": [
-                          {
-                            "beloep": 0.1,
-                            "startdato": "2025-11-27"
-                          }
-                        ]
-                      },
-                    "naturalytelser": [
-                         {
-                              "naturalytelse": "AKSJERGRUNNFONDSBEVISTILUNDERKURS",
-                              "verdiBeloep": 0.1,
-                              "sluttdato": "2025-11-27"
-                        }
-                    ],
-
-                    "inntekt": {
-                    "beloep": 102.00,
-                    "inntektsdato": "2018-01-01",
-                    "endringAarsaker": [
+                  "innsendingId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                  "skjema": {
+                    "forespoerselId": "3fa85f64-5717-4562-b3fc-2c963f66afa7",
+                    "avsenderTlf": "12345678",
+                    "agp": {
+                      "perioder": [
                         {
-                            "aarsak": "Bonus"
+                          "fom": "2025-11-27",
+                          "tom": "2025-11-27"
                         }
-                     ]
+                      ],
+                      "egenmeldinger": [
+                        {
+                          "fom": "2025-11-27",
+                          "tom": "2025-11-27"
+                        }
+                      ],
+                      "redusertLoennIAgp": {
+                        "beloep": 0.1,
+                        "begrunnelse": "ArbeidOpphoert"
+                      }
+                    },
+                    "refusjon": {
+                      "beloepPerMaaned": 0.1,
+                      "endringer": [
+                        {
+                          "beloep": 0.1,
+                          "startdato": "2025-11-27"
+                        }
+                      ]
+                    },
+                    "naturalytelser": [
+                      {
+                        "naturalytelse": "AKSJERGRUNNFONDSBEVISTILUNDERKURS",
+                        "verdiBeloep": 0.1,
+                        "sluttdato": "2025-11-27"
+                      }
+                    ],
+                    "inntekt": {
+                      "beloep": 102.00,
+                      "inntektsdato": "2018-01-01",
+                      "endringAarsaker": [
+                        {
+                          "aarsak": "Bonus"
+                        }
+                      ]
                     }
-                },
-
-                    "type": {
-                        "type": "Forespurt",
-                        "id": "3fa85f64-5717-4562-b3fc-2c963f66afa7"
-                        },
-
-                    "aarsakInnsending": "Ny",
-                    "innsendtTid": "2025-11-27T12:00:00Z",
-                    "versjon": 1
+                  },
+                  "type": {
+                    "type": "Forespurt",
+                    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa7"
+                  },
+                  "aarsakInnsending": "Ny",
+                  "innsendtTid": "2025-11-27T12:00:00Z",
+                  "versjon": 1
                 }
                 """.trimIndent().fromJson(JsonElement.serializer())
             testRapid.sendJson(

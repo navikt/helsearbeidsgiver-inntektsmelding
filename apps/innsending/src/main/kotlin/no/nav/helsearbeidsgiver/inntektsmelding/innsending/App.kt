@@ -47,12 +47,12 @@ fun createInnsendingServices(
         )
 
     val valideringsServiceRiver =
-            ServiceRiverStateless(
-                ValiderApiInnsendingService(
-                    publisher = publisher,
-                    producer = producer,
-                ),
-            )
+        ServiceRiverStateless(
+            ValiderApiInnsendingService(
+                publisher = publisher,
+                producer = producer,
+            ),
+        )
 
     val apiInnsendingServiceRiver = ServiceRiverStateless(ApiInnsendingService(publisher = publisher))
 

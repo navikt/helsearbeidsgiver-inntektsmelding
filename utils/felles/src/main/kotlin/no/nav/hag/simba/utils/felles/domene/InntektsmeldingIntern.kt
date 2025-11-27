@@ -10,7 +10,6 @@ import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Kanal
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
@@ -31,7 +30,7 @@ data class InntektsmeldingIntern(
     val avsender: Avsender,
     val sykmeldingsperioder: List<Periode>,
     val agp: Arbeidsgiverperiode?,
-    val inntekt: Inntekt?,
+    val inntekt: InntektIntern?,
     val refusjon: Refusjon?,
     @EncodeDefault
     val naturalytelser: List<Naturalytelse> = inntekt?.naturalytelser.orEmpty(),

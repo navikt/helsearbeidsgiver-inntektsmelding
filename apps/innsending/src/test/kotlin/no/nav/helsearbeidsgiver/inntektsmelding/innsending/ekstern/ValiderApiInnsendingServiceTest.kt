@@ -28,7 +28,6 @@ import no.nav.hag.simba.utils.rr.test.message
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
@@ -43,6 +42,7 @@ import java.util.UUID
 import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.EventName as InnsendingEventName
 import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.Key as InnsendingKey
 import no.nav.hag.simba.utils.felles.domene.InnsendingIntern as Innsending
+import no.nav.hag.simba.utils.felles.domene.InntektIntern as Inntekt
 
 class ValiderApiInnsendingServiceTest :
     FunSpec({

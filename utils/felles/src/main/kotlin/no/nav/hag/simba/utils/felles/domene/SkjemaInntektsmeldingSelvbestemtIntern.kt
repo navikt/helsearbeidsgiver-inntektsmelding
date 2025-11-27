@@ -7,7 +7,6 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon
@@ -26,7 +25,7 @@ data class SkjemaInntektsmeldingSelvbestemtIntern(
     val avsender: SkjemaAvsender,
     val sykmeldingsperioder: List<Periode>,
     val agp: Arbeidsgiverperiode?,
-    val inntekt: Inntekt,
+    val inntekt: InntektIntern,
     val refusjon: Refusjon?,
     @EncodeDefault
     val naturalytelser: List<Naturalytelse> = inntekt.naturalytelser,
@@ -47,7 +46,7 @@ data class SkjemaInntektsmeldingSelvbestemtIntern(
             avsender,
             sykmeldingsperioder,
             agp,
-            inntekt,
+            inntekt.tilGammeltFormat(),
             refusjon,
             vedtaksperiodeId,
             arbeidsforholdType,

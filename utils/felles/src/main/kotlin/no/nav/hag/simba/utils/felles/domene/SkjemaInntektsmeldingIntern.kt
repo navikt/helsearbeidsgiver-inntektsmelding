@@ -7,7 +7,6 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
@@ -20,7 +19,7 @@ data class SkjemaInntektsmeldingIntern(
     val forespoerselId: UUID,
     val avsenderTlf: String,
     val agp: Arbeidsgiverperiode?,
-    val inntekt: Inntekt?,
+    val inntekt: InntektIntern?,
     val refusjon: Refusjon?,
     @EncodeDefault
     val naturalytelser: List<Naturalytelse> = inntekt?.naturalytelser.orEmpty(),
@@ -33,7 +32,7 @@ data class SkjemaInntektsmeldingIntern(
                 "Beløp må være større enn 0"
             }
 
-        return SkjemaInntektsmelding(forespoerselId, avsenderTlf, agp, inntekt, refusjon)
+        return SkjemaInntektsmelding(forespoerselId, avsenderTlf, agp, inntekt?.tilGammeltFormat(), refusjon)
             .valider()
             .plus(naturalytelserFeilmelding)
             .mapNotNull { it }

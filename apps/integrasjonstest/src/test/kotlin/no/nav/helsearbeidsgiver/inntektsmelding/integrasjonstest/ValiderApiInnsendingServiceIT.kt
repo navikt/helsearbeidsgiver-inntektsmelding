@@ -19,7 +19,6 @@ import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.test.json.lesBehov
 import no.nav.hag.simba.utils.felles.test.mock.mockInnsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.AvvistInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.Feilkode
@@ -45,6 +44,7 @@ import java.util.UUID
 import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.EventName as InnsendingEventName
 import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.Key as InnsendingKey
 import no.nav.hag.simba.utils.felles.domene.InnsendingIntern as Innsending
+import no.nav.hag.simba.utils.felles.domene.InntektIntern as Inntekt
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ValiderApiInnsendingServiceIT : EndToEndTest() {

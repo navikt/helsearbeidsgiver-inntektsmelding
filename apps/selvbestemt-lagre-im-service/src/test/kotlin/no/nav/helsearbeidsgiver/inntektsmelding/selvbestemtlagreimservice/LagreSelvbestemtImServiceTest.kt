@@ -39,7 +39,6 @@ import no.nav.hag.simba.utils.valkey.test.MockRedis
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferietrekk
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon
@@ -61,6 +60,7 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.OffsetDateTime
 import java.util.UUID
+import no.nav.hag.simba.utils.felles.domene.InntektIntern as Inntekt
 import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 import no.nav.hag.simba.utils.felles.domene.SkjemaInntektsmeldingSelvbestemtIntern as SkjemaInntektsmeldingSelvbestemt
 

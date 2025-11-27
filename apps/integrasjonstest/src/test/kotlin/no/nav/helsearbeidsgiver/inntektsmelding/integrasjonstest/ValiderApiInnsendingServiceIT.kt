@@ -313,7 +313,8 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
 
         val inntektBeloep = 544.6
         val inntektsDato = 1.januar
-        val inntekt = Inntekt(beloep = inntektBeloep, inntektsdato = inntektsDato, naturalytelser = emptyList(), endringAarsaker = emptyList())
+        val n = mockInnsending().skjema.naturalytelser
+        val inntekt = Inntekt(beloep = inntektBeloep, inntektsdato = inntektsDato, naturalytelser = n, endringAarsaker = emptyList())
         val innsending = mockInnsending().medInntekt(inntekt)
         val forespoerselId = innsending.skjema.forespoerselId
 

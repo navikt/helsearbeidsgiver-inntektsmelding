@@ -166,7 +166,8 @@ class ApiInnsendingIT : EndToEndTest() {
 
         val inntektBeloep = 544.6
         val inntektsDato = 1.januar
-        val inntekt = Inntekt(beloep = inntektBeloep, inntektsdato = inntektsDato, naturalytelser = emptyList(), endringAarsaker = emptyList())
+        val naturalytelser = mockInnsending().skjema.naturalytelser
+        val inntekt = Inntekt(beloep = inntektBeloep, inntektsdato = inntektsDato, naturalytelser = naturalytelser, endringAarsaker = emptyList())
         val innsending = mockInnsending().medInntekt(inntekt)
         val forespoerselId = innsending.skjema.forespoerselId
 

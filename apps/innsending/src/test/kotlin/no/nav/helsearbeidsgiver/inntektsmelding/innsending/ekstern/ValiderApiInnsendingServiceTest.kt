@@ -22,6 +22,7 @@ import no.nav.hag.simba.utils.felles.test.json.lesBehov
 import no.nav.hag.simba.utils.felles.test.json.plusData
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
 import no.nav.hag.simba.utils.felles.test.mock.mockInnsending
+import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
 import no.nav.hag.simba.utils.rr.test.message
@@ -29,6 +30,7 @@ import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
@@ -91,6 +93,81 @@ class ValiderApiInnsendingServiceTest :
             }
         }
 
+        test("API-format (uten inntekt.naturalytelser) av inntektsmeldingskjema valideres OK og transformeres og sendes videre til api-innsending tjenesten") {
+            val kontekstId = UUID.randomUUID()
+            val innsendingMedEndringAarsak =
+                """
+                {
+                    "innsendingId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "skjema": {
+                      "forespoerselId": "3fa85f64-5717-4562-b3fc-2c963f66afa7",
+                      "avsenderTlf":"12345678",
+                      "agp": {
+                        "perioder": [
+                          {
+                            "fom": "2025-11-27",
+                            "tom": "2025-11-27"
+                          }
+                        ],
+                        "egenmeldinger": [
+                          {
+                            "fom": "2025-11-27",
+                            "tom": "2025-11-27"
+                          }
+                        ],
+                        "redusertLoennIAgp": {
+                          "beloep": 0.1,
+                          "begrunnelse": "ArbeidOpphoert"
+                        }
+                      },
+                      "refusjon": {
+                        "beloepPerMaaned": 0.1,
+                        "endringer": [
+                          {
+                            "beloep": 0.1,
+                            "startdato": "2025-11-27"
+                          }
+                        ]
+                      },
+                    "naturalytelser": [
+                         {
+                              "naturalytelse": "AKSJERGRUNNFONDSBEVISTILUNDERKURS",
+                              "verdiBeloep": 0.1,
+                              "sluttdato": "2025-11-27"
+                        }
+                    ],
+
+                    "inntekt": {
+                    "beloep": 102.00,
+                    "inntektsdato": "2018-01-01",
+                    "endringAarsaker": [
+                        {
+                            "aarsak": "Bonus"
+                        }
+                     ]
+                    }
+                },
+
+                    "type": {
+                        "type": "Forespurt",
+                        "id": "3fa85f64-5717-4562-b3fc-2c963f66afa7"
+                        },
+
+                    "aarsakInnsending": "Ny",
+                    "innsendtTid": "2025-11-27T12:00:00Z",
+                    "versjon": 1
+                }
+                """.trimIndent().fromJson(JsonElement.serializer())
+            testRapid.sendJson(
+                Mock.steg0(kontekstId).plusData(
+                    Key.INNSENDING to innsendingMedEndringAarsak.toJson(JsonElement.serializer()),
+                ),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 1
+            testRapid.message(0).lesBehov() shouldBe BehovType.HENT_TRENGER_IM
+        }
+
         test("dersom inntekten ikke stemmer overens med a-ordningen, avvises inntektsmeldingen") {
             val kontekstId = UUID.randomUUID()
 
@@ -129,7 +206,8 @@ class ValiderApiInnsendingServiceTest :
 
         test("dersom inntektsmeldingen inneholder en årsak til endring, sendes den rett videre til api-innsending tjenesten") {
             val kontekstId = UUID.randomUUID()
-            val inntekt = Inntekt(beloep = Mock.inntektBeloep, inntektsdato = Mock.inntektsDato, naturalytelser = emptyList(), endringAarsaker = listOf(Bonus))
+            val naturalytelser = mockSkjemaInntektsmelding().naturalytelser
+            val inntekt = Inntekt(beloep = Mock.inntektBeloep, inntektsdato = Mock.inntektsDato, naturalytelser = naturalytelser, endringAarsaker = listOf(Bonus))
             val innsendingMedEndringAarsak = Mock.innsending.medInntekt(inntekt)
 
             testRapid.sendJson(
@@ -178,7 +256,8 @@ class ValiderApiInnsendingServiceTest :
     private object Mock {
         val inntektBeloep = 544.6
         val inntektsDato = 1.januar
-        val inntekt = Inntekt(beloep = inntektBeloep, inntektsdato = inntektsDato, naturalytelser = emptyList(), endringAarsaker = emptyList())
+        val naturalytelser = mockSkjemaInntektsmelding().inntekt?.naturalytelser.orEmpty()
+        val inntekt = Inntekt(beloep = inntektBeloep, inntektsdato = inntektsDato, naturalytelser = naturalytelser, endringAarsaker = emptyList())
         val innsending = mockInnsending().medInntekt(inntekt)
         val forespoersel = mockForespoersel()
 

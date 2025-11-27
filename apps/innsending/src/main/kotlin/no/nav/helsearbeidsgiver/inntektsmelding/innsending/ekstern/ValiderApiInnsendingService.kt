@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern
 
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.jsonObject
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.toJson
 import no.nav.hag.simba.utils.felles.BehovType
@@ -56,7 +57,7 @@ class ValiderApiInnsendingService(
     override fun lesSteg0(melding: Map<Key, JsonElement>): ValideringsSteg0 =
         ValideringsSteg0(
             kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
-            innsending = Key.INNSENDING.les(Innsending.serializer(), melding),
+            innsending = Key.INNSENDING.les(JsonElement.serializer(), melding).tilGammeltFormat(),
             mottatt = Key.MOTTATT.les(LocalDateTimeSerializer, melding),
         )
 
@@ -134,7 +135,6 @@ class ValiderApiInnsendingService(
         steg2: ValideringsSteg2,
     ) {
         val inntekt = steg0.innsending.skjema.inntekt
-
         val feilkoder =
             if (inntekt == null || steg2.unnlatHentingAvInntekt) {
                 emptySet()
@@ -215,5 +215,21 @@ class ValiderApiInnsendingService(
                 sikkerLogger.info("$it\n${publisert.toPretty()}")
             }
         }
+    }
+
+    fun JsonElement.kopierNaturalytelserTilInntekt(): JsonElement {
+        val skjema = this.jsonObject["skjema"]?.jsonObject ?: return this
+        val naturalytelser = skjema["naturalytelser"] ?: return this
+        val inntekt = skjema["inntekt"]?.jsonObject ?: return this
+        val nyInntekt = inntekt + ("naturalytelser" to naturalytelser)
+        val nySkjema = skjema + ("inntekt" to kotlinx.serialization.json.JsonObject(nyInntekt))
+        val nyRoot = this.jsonObject + ("skjema" to kotlinx.serialization.json.JsonObject(nySkjema))
+        return kotlinx.serialization.json.JsonObject(nyRoot)
+    }
+
+    fun JsonElement.tilGammeltFormat(): Innsending {
+        val jsonMedNaturalytelser = this.kopierNaturalytelserTilInntekt()
+        return kotlinx.serialization.json.Json
+            .decodeFromJsonElement(Innsending.serializer(), jsonMedNaturalytelser)
     }
 }

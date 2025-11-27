@@ -207,7 +207,8 @@ class ValiderApiInnsendingServiceTest :
         test("dersom inntektsmeldingen inneholder en årsak til endring, sendes den rett videre til api-innsending tjenesten") {
             val kontekstId = UUID.randomUUID()
             val naturalytelser = mockSkjemaInntektsmelding().naturalytelser
-            val inntekt = Inntekt(beloep = Mock.inntektBeloep, inntektsdato = Mock.inntektsDato, naturalytelser = naturalytelser, endringAarsaker = listOf(Bonus))
+            val inntekt =
+                Inntekt(beloep = Mock.inntektBeloep, inntektsdato = Mock.inntektsDato, naturalytelser = naturalytelser, endringAarsaker = listOf(Bonus))
             val innsendingMedEndringAarsak = Mock.innsending.medInntekt(inntekt)
 
             testRapid.sendJson(

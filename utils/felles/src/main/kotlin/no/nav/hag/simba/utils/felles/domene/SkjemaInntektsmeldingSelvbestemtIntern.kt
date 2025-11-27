@@ -20,6 +20,7 @@ import java.util.UUID
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
+@Deprecated("Skal erstattes med im-domene 0.5.0")
 data class SkjemaInntektsmeldingSelvbestemtIntern(
     val selvbestemtId: UUID?,
     val sykmeldtFnr: Fnr,

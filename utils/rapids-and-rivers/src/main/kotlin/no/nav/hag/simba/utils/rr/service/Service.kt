@@ -75,10 +75,10 @@ abstract class ServiceMed1Steg<S0, S1> : Service {
             medLoggfelt(it.second) {
                 utfoerSteg0(it.first, it.second)
             }
-        }.onFailure {
+        }.onFailure { exception ->
             "Klarte ikke lese startdata for service.".also {
                 logger.error(it)
-                sikkerLogger.error("$it\n${melding.toPretty()}")
+                sikkerLogger.error("$it\n${melding.toPretty()}", exception)
             }
         }
     }

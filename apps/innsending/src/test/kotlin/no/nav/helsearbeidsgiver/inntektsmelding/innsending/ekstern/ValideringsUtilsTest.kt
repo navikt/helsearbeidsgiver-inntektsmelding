@@ -3,9 +3,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import java.time.LocalDate
 import java.time.YearMonth
+import no.nav.hag.simba.utils.felles.domene.InntektIntern as Inntekt
 
 class ValideringsUtilsTest :
     FunSpec({

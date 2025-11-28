@@ -20,6 +20,7 @@ import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.test.json.lesBehov
 import no.nav.hag.simba.utils.felles.test.mock.mockInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.AvvistInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.Feilkode
@@ -44,7 +45,6 @@ import org.junit.jupiter.api.TestInstance
 import java.util.UUID
 import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.EventName as InnsendingEventName
 import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.Key as InnsendingKey
-import no.nav.hag.simba.utils.felles.domene.InnsendingIntern as Innsending
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ValiderApiInnsendingServiceIT : EndToEndTest() {
@@ -313,7 +313,7 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
 
         val inntektBeloep = 544.6
         val inntektsDato = 1.januar
-        val inntekt = Inntekt(beloep = inntektBeloep, inntektsdato = inntektsDato, naturalytelser = emptyList(), endringAarsaker = emptyList())
+        val inntekt = Inntekt(beloep = inntektBeloep, inntektsdato = inntektsDato, endringAarsaker = emptyList())
         val innsending = mockInnsending().medInntekt(inntekt)
         val forespoerselId = innsending.skjema.forespoerselId
 

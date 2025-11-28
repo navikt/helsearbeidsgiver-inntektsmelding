@@ -132,7 +132,7 @@ class HentDataTilSakOgOppgaveService(
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                    Key.FORESPOERSEL to steg0.forespoersel.toJson(Forespoersel.serializer()),
+                    Key.FORESPOERSEL to steg0.forespoersel.toJson(),
                     Key.SYKMELDT to sykmeldt.toJson(Person.serializer()),
                     Key.VIRKSOMHET to orgNavn.toJson(),
                     Key.SKAL_HA_PAAMINNELSE to steg0.skalHaPaaminnelse.toJson(Boolean.serializer()),

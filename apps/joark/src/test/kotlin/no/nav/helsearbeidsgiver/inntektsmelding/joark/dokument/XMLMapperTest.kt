@@ -1,12 +1,12 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.tilXmlInntektsmelding
 import org.junit.jupiter.api.Test
 import java.io.StringReader
 import javax.xml.XMLConstants
 import javax.xml.validation.SchemaFactory
-import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 
 class XMLMapperTest {
     @Test
@@ -41,10 +41,7 @@ private fun mockInntektsmeldingDokumentMedTommeLister(): Inntektsmelding =
                     perioder = emptyList(),
                     egenmeldinger = emptyList(),
                 ),
-            inntekt =
-                it.inntekt?.copy(
-                    naturalytelser = emptyList(),
-                ),
+            naturalytelser = emptyList(),
             refusjon =
                 it.refusjon?.copy(
                     endringer = emptyList(),

@@ -154,7 +154,7 @@ private object MockKvittering {
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
+                    Key.FORESPOERSEL_SVAR to forespoersel.toJson(),
                 ).toJson(),
         )
 

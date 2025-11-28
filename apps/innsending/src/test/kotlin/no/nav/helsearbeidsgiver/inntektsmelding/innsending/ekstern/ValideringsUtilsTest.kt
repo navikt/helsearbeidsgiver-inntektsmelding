@@ -9,7 +9,12 @@ import java.time.YearMonth
 
 class ValideringsUtilsTest :
     FunSpec({
-        val testInntekt = Inntekt(beloep = 50000.0, inntektsdato = LocalDate.now(), naturalytelser = emptyList(), endringAarsaker = emptyList())
+        val testInntekt =
+            Inntekt(
+                beloep = 50000.0,
+                inntektsdato = LocalDate.now(),
+                endringAarsaker = emptyList(),
+            )
         val testAar = 2024
 
         context(Inntekt::validerInntektMotAordningen.name) {

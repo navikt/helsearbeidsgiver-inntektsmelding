@@ -1,6 +1,5 @@
 kafkaPool: nav-dev
 replicasMax: 5
-strategyType: Recreate
 database:
   name: inntektsmelding
   tier: db-custom-1-3840

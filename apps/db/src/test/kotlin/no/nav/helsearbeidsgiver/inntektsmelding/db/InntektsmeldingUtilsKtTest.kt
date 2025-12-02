@@ -11,12 +11,12 @@ import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.hag.simba.utils.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RefusjonEndring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.november
-import no.nav.hag.simba.utils.felles.domene.InntektIntern as Inntekt
 
 class InntektsmeldingUtilsKtTest :
     FunSpec({
@@ -116,7 +116,6 @@ private val nyInntekt =
     Inntekt(
         beloep = 7707.7,
         inntektsdato = 30.november,
-        naturalytelser = emptyList(),
         endringAarsaker = listOf(Bonus),
     )
 

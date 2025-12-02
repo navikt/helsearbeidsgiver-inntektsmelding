@@ -3,13 +3,18 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import java.time.LocalDate
 import java.time.YearMonth
-import no.nav.hag.simba.utils.felles.domene.InntektIntern as Inntekt
 
 class ValideringsUtilsTest :
     FunSpec({
-        val testInntekt = Inntekt(beloep = 50000.0, inntektsdato = LocalDate.now(), naturalytelser = emptyList(), endringAarsaker = emptyList())
+        val testInntekt =
+            Inntekt(
+                beloep = 50000.0,
+                inntektsdato = LocalDate.now(),
+                endringAarsaker = emptyList(),
+            )
         val testAar = 2024
 
         context(Inntekt::validerInntektMotAordningen.name) {

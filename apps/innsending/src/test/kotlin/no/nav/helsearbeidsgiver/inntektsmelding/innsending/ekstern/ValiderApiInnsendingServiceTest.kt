@@ -28,6 +28,8 @@ import no.nav.hag.simba.utils.rr.test.message
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
@@ -41,8 +43,6 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import java.util.UUID
 import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.EventName as InnsendingEventName
 import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.Key as InnsendingKey
-import no.nav.hag.simba.utils.felles.domene.InnsendingIntern as Innsending
-import no.nav.hag.simba.utils.felles.domene.InntektIntern as Inntekt
 
 class ValiderApiInnsendingServiceTest :
     FunSpec({
@@ -129,7 +129,7 @@ class ValiderApiInnsendingServiceTest :
 
         test("dersom inntektsmeldingen inneholder en årsak til endring, sendes den rett videre til api-innsending tjenesten") {
             val kontekstId = UUID.randomUUID()
-            val inntekt = Inntekt(beloep = Mock.inntektBeloep, inntektsdato = Mock.inntektsDato, naturalytelser = emptyList(), endringAarsaker = listOf(Bonus))
+            val inntekt = Inntekt(beloep = Mock.inntektBeloep, inntektsdato = Mock.inntektsDato, endringAarsaker = listOf(Bonus))
             val innsendingMedEndringAarsak = Mock.innsending.medInntekt(inntekt)
 
             testRapid.sendJson(
@@ -178,7 +178,7 @@ class ValiderApiInnsendingServiceTest :
     private object Mock {
         val inntektBeloep = 544.6
         val inntektsDato = 1.januar
-        val inntekt = Inntekt(beloep = inntektBeloep, inntektsdato = inntektsDato, naturalytelser = emptyList(), endringAarsaker = emptyList())
+        val inntekt = Inntekt(beloep = inntektBeloep, inntektsdato = inntektsDato, endringAarsaker = emptyList())
         val innsending = mockInnsending().medInntekt(inntekt)
         val forespoersel = mockForespoersel()
 
@@ -204,7 +204,7 @@ class ValiderApiInnsendingServiceTest :
 
         fun steg1(kontekstId: UUID): Map<Key, JsonElement> =
             steg0(kontekstId).plusData(
-                Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
+                Key.FORESPOERSEL_SVAR to forespoersel.toJson(),
             )
 
         fun steg2(kontekstId: UUID): Map<Key, JsonElement> =

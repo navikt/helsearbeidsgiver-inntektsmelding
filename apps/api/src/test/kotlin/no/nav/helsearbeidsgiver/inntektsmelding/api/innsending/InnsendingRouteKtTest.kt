@@ -18,7 +18,7 @@ import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.test.json.minusData
 import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
@@ -27,12 +27,10 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
-import no.nav.helsearbeidsgiver.utils.test.date.mars
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
-import no.nav.hag.simba.utils.felles.domene.SkjemaInntektsmeldingIntern as SkjemaInntektsmelding
 
 class InnsendingRouteKtTest : ApiTest() {
     private val path = Routes.PREFIX + Routes.INNSENDING
@@ -114,41 +112,6 @@ class InnsendingRouteKtTest : ApiTest() {
 
             assertEquals(HttpStatusCode.Created, response.status)
             assertEquals(InnsendingResponse(delvisSkjema.forespoerselId).toJsonStr(InnsendingResponse.serializer()), response.bodyAsText())
-        }
-
-    @Test
-    fun `gir 500-feil ved skjema ulike naturalytelser på rotnivå og under 'inntekt'-felt`() =
-        testApi {
-            val skjemaMedUlikeNaturalytelser =
-                mockSkjemaInntektsmelding().copy(
-                    naturalytelser =
-                        listOf(
-                            Naturalytelse(
-                                naturalytelse = Naturalytelse.Kode.BEDRIFTSBARNEHAGEPLASS,
-                                verdiBeloep = 999_999.0,
-                                sluttdato = 30.mars,
-                            ),
-                        ),
-                )
-
-            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
-                listOf(
-                    harTilgangResultat,
-                    ResultJson(
-                        success = skjemaMedUlikeNaturalytelser.forespoerselId.toJson(),
-                    ),
-                )
-
-            val response = post(path, skjemaMedUlikeNaturalytelser, SkjemaInntektsmelding.serializer())
-
-            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
-
-            assertEquals(HttpStatusCode.InternalServerError, response.status)
-            error.shouldBeTypeOf<ErrorResponse.Unknown>()
-
-            verify(exactly = 0) {
-                mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
-            }
         }
 
     @Test

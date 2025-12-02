@@ -5,9 +5,9 @@ import io.kotest.matchers.maps.shouldContainExactly
 import kotlinx.serialization.json.JsonNull
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
-import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 
 class FailTest :
     FunSpec({

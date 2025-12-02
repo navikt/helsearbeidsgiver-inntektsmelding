@@ -18,6 +18,8 @@ import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.test.mock.mockInnsending
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -35,8 +37,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
-import no.nav.hag.simba.utils.felles.domene.InnsendingIntern as Innsending
-import no.nav.hag.simba.utils.felles.domene.InntektIntern as Inntekt
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ApiInnsendingIT : EndToEndTest() {
@@ -166,7 +166,7 @@ class ApiInnsendingIT : EndToEndTest() {
 
         val inntektBeloep = 544.6
         val inntektsDato = 1.januar
-        val inntekt = Inntekt(beloep = inntektBeloep, inntektsdato = inntektsDato, naturalytelser = emptyList(), endringAarsaker = emptyList())
+        val inntekt = Inntekt(beloep = inntektBeloep, inntektsdato = inntektsDato, endringAarsaker = emptyList())
         val innsending = mockInnsending().medInntekt(inntekt)
         val forespoerselId = innsending.skjema.forespoerselId
 

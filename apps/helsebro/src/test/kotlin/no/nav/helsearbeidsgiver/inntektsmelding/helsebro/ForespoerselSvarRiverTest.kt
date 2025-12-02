@@ -7,7 +7,6 @@ import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.JsonElement
-import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.kafkatopic.pri.Pri
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
@@ -82,7 +81,7 @@ fun mockSvar(forespoerselSvar: ForespoerselSvar): Map<Key, JsonElement> {
                             forespoerselSvar.resultat
                                 .shouldNotBeNull()
                                 .toForespoersel()
-                                .toJson(Forespoersel.serializer()),
+                                .toJson(),
                     ),
                 ).toJson(),
     ).mapValuesNotNull { it }

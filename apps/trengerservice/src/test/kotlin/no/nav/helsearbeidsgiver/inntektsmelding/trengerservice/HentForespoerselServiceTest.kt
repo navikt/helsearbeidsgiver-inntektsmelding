@@ -9,7 +9,6 @@ import io.mockk.clearAllMocks
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
-import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.hag.simba.kontrakt.resultat.forespoersel.HentForespoerselResultat
 import no.nav.hag.simba.utils.felles.BehovType
@@ -179,7 +178,7 @@ private object Mock {
         steg0(kontekstId).plus(
             Key.DATA to
                 mapOf(
-                    Key.FORESPOERSEL_SVAR to resultat.forespoersel.toJson(Forespoersel.serializer()),
+                    Key.FORESPOERSEL_SVAR to resultat.forespoersel.toJson(),
                 ).toJson(),
         )
 

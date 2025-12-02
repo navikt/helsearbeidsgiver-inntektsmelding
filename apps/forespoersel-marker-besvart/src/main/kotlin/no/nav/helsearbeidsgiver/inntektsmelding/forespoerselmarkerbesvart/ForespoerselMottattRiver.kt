@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.ForespoerselFraBro
-import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.kafkatopic.pri.Pri
 import no.nav.hag.simba.kontrakt.kafkatopic.pri.toPretty
 import no.nav.hag.simba.utils.felles.EventName
@@ -54,7 +53,7 @@ class ForespoerselMottattRiver : ObjectRiver.PriTopic<MottattMelding>() {
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.FORESPOERSEL to forespoerselFraBro.toForespoersel().toJson(Forespoersel.serializer()),
+                    Key.FORESPOERSEL to forespoerselFraBro.toForespoersel().toJson(),
                     Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
                 ).toJson(),
         )

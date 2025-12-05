@@ -146,6 +146,9 @@ class ValiderApiInnsendingService(
             val avvistInntektsmelding =
                 AvvistInntektsmelding(
                     inntektsmeldingId = steg0.innsending.innsendingId,
+                    forespoerselId = steg0.innsending.type.id,
+                    vedtaksperiodeId = steg1.forespoersel.vedtaksperiodeId,
+                    orgnr = steg1.forespoersel.orgnr,
                     feilkode = feilkoder.first(),
                 )
             producer.send(

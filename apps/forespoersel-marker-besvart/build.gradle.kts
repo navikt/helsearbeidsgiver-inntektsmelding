@@ -1,7 +1,6 @@
 dependencies {
-    implementation(project(":kontrakt-domene-bro-forespoersel"))
-    implementation(project(":kontrakt-domene-forespoersel"))
+    implementation("no.nav.helsearbeidsgiver:domene-inntektsmelding")
     implementation(project(":utils-kafka"))
 
-    testImplementation(testFixtures(project(":kontrakt-domene-forespoersel")))
+    testImplementation(testFixtures("no.nav.helsearbeidsgiver:domene-inntektsmelding"))
 }

@@ -1,8 +1,8 @@
 package no.nav.hag.simba.kontrakt.resultat.kvittering
 
 import kotlinx.serialization.Serializable
-import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
+import no.nav.helsearbeidsgiver.domene.forespoersel.Forespoersel
 
 @Serializable
 data class KvitteringResultat(

@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock
 
-import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.ForespoerselFraBro
-import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespurtData
+import no.nav.helsearbeidsgiver.domene.forespoersel.ForespoerselFraBro
+import no.nav.helsearbeidsgiver.domene.forespoersel.test.mockForespurtData
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig

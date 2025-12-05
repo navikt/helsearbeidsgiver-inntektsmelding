@@ -25,7 +25,8 @@ dependencies {
     implementation("no.nav.security:token-client-core:$tokenSupportVersion")
     implementation("no.nav.security:token-validation-ktor-v3:$tokenSupportVersion")
 
-    testImplementation(testFixtures(project(":kontrakt-domene-forespoersel")))
+    testImplementation("no.nav.helsearbeidsgiver:domene-inntektsmelding")
+    testImplementation(testFixtures("no.nav.helsearbeidsgiver:domene-inntektsmelding"))
     testImplementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     testImplementation("io.ktor:ktor-client-core:$ktorVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")

@@ -41,6 +41,7 @@ val arbeidsgiverNotifikasjonKlientVersion: String by props
 val bakgrunnsjobbVersion: String by props
 val brregKlientVersion: String by props
 val dokarkivKlientVersion: String by props
+val hagDomeneInntektsmeldingVersion: String by project
 val inntektKlientVersion: String by props
 val lettuceVersion: String by project
 val pdlKlientVersion: String by props
@@ -53,15 +54,14 @@ dependencies {
     }
 
     testImplementation(project(":kontrakt-domene-arbeidsgiver"))
-    testImplementation(project(":kontrakt-domene-forespoersel"))
     testImplementation(project(":kontrakt-domene-inntektsmelding"))
-    testImplementation(project(":kontrakt-domene-bro-forespoersel"))
     testImplementation(project(":kontrakt-resultat-forespoersel"))
     testImplementation(project(":kontrakt-resultat-tilgang"))
+    testImplementation("no.nav.helsearbeidsgiver:domene-inntektsmelding")
     testImplementation(project(":utils-db-exposed"))
     testImplementation(project(":utils-kafka"))
     testImplementation(project(":utils-valkey"))
-    testImplementation(testFixtures(project(":kontrakt-domene-forespoersel")))
+    testImplementation(testFixtures("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion"))
     testImplementation(testFixtures(project(":kontrakt-domene-inntektsmelding")))
     testImplementation(testFixtures(project(":utils-db-exposed")))
     testImplementation(testFixtures(project(":utils-kafka")))

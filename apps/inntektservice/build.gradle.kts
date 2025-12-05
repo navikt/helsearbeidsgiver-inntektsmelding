@@ -1,4 +1,4 @@
 dependencies {
-    implementation(project(":kontrakt-domene-forespoersel"))
+    implementation("no.nav.helsearbeidsgiver:domene-inntektsmelding")
     implementation(project(":utils-valkey"))
 }

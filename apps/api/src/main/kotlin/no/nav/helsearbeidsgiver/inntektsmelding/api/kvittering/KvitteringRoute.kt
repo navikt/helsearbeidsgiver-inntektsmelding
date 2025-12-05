@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import kotlinx.serialization.builtins.serializer
-import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
 import no.nav.hag.simba.kontrakt.resultat.kvittering.KvitteringResultat
 import no.nav.hag.simba.utils.felles.EventName
@@ -13,6 +12,7 @@ import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.RedisStore
+import no.nav.helsearbeidsgiver.domene.forespoersel.Forespoersel
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller

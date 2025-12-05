@@ -1,3 +1,3 @@
 dependencies {
-    api(project(":kontrakt-domene-forespoersel"))
+    api("no.nav.helsearbeidsgiver:domene-inntektsmelding")
 }

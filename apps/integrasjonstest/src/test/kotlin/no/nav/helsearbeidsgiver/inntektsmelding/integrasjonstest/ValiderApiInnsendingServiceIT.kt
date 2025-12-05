@@ -278,6 +278,9 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
         val avvistInntektsmelding =
             AvvistInntektsmelding(
                 inntektsmeldingId = Mock.innsending.innsendingId,
+                forespoerselId = Mock.innsending.type.id,
+                vedtaksperiodeId = Mock.forespoersel.vedtaksperiodeId,
+                orgnr = Mock.forespoersel.orgnr,
                 feilkode = Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN,
             )
 

@@ -216,6 +216,9 @@ class ValiderApiInnsendingServiceTest :
             val avvistInntektsmelding =
                 AvvistInntektsmelding(
                     inntektsmeldingId = innsending.innsendingId,
+                    forespoerselId = innsending.type.id,
+                    vedtaksperiodeId = forespoersel.vedtaksperiodeId,
+                    orgnr = forespoersel.orgnr,
                     feilkode = Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN,
                 )
             return mapOf(

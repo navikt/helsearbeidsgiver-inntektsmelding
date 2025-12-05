@@ -9,8 +9,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
-import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
@@ -24,6 +22,8 @@ import no.nav.hag.simba.utils.rr.test.message
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.hag.simba.utils.valkey.RedisStore
+import no.nav.helsearbeidsgiver.domene.forespoersel.Forespoersel
+import no.nav.helsearbeidsgiver.domene.forespoersel.test.mockForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.MockHent.forespoersler
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson

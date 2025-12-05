@@ -8,8 +8,6 @@ import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
-import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
-import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.test.mockEksternInntektsmelding
 import no.nav.hag.simba.kontrakt.resultat.kvittering.KvitteringResultat
@@ -31,6 +29,8 @@ import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.test.MockRedis
+import no.nav.helsearbeidsgiver.domene.forespoersel.Forespoersel
+import no.nav.helsearbeidsgiver.domene.forespoersel.test.mockForespoersel
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.november
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr

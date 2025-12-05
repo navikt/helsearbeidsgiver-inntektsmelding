@@ -9,7 +9,6 @@ import io.mockk.clearAllMocks
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
-import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.hag.simba.kontrakt.resultat.forespoersel.HentForespoerselResultat
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
@@ -31,6 +30,7 @@ import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.test.MockRedis
+import no.nav.helsearbeidsgiver.domene.forespoersel.test.mockForespoersel
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.juni

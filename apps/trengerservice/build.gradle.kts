@@ -1,8 +1,8 @@
 dependencies {
-    implementation(project(":kontrakt-domene-forespoersel"))
+    implementation("no.nav.helsearbeidsgiver:domene-inntektsmelding")
     implementation(project(":kontrakt-resultat-forespoersel"))
     implementation(project(":utils-valkey"))
 
-    testImplementation(testFixtures(project(":kontrakt-domene-forespoersel")))
+    testImplementation(testFixtures("no.nav.helsearbeidsgiver:domene-inntektsmelding:"))
     testImplementation(testFixtures(project(":utils-valkey")))
 }

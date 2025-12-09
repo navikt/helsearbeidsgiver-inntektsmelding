@@ -6,10 +6,12 @@ import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.verifySequence
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
+import no.nav.hag.simba.kontrakt.domene.forespoersel.test.utenPaakrevdAGP
+import no.nav.hag.simba.kontrakt.resultat.lagreim.LagreImError
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
@@ -28,12 +30,11 @@ import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
-import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -60,44 +61,19 @@ class InnsendingServiceTest :
 
         test("nytt inntektsmeldingskjema lagres og sendes videre til beriking") {
             val kontekstId = UUID.randomUUID()
+            val skjema = mockSkjemaInntektsmelding()
 
-            val nyttSkjema =
-                Mock.skjema.let { skjema ->
-                    skjema.copy(
-                        agp =
-                            skjema.agp?.let { agp ->
-                                Arbeidsgiverperiode(
-                                    perioder = agp.perioder,
-                                    egenmeldinger = listOf(13.juli til 31.juli),
-                                    redusertLoennIAgp = agp.redusertLoennIAgp,
-                                )
-                            },
-                    )
-                }
-
-            testRapid.sendJson(
-                Mock.steg0(kontekstId).plusData(
-                    Key.SKJEMA_INNTEKTSMELDING to nyttSkjema.toJson(SkjemaInntektsmelding.serializer()),
-                ),
-            )
+            testRapid.sendJson(Mock.steg0(kontekstId, skjema))
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.message(0).lesBehov() shouldBe BehovType.HENT_TRENGER_IM
 
-            testRapid.sendJson(
-                Mock.steg1(kontekstId).plusData(
-                    Key.SKJEMA_INNTEKTSMELDING to nyttSkjema.toJson(SkjemaInntektsmelding.serializer()),
-                ),
-            )
+            testRapid.sendJson(Mock.steg1(kontekstId, skjema))
 
             testRapid.inspektør.size shouldBeExactly 2
             testRapid.message(1).lesBehov() shouldBe BehovType.LAGRE_IM_SKJEMA
 
-            testRapid.sendJson(
-                Mock.steg2(kontekstId).plusData(
-                    Key.SKJEMA_INNTEKTSMELDING to nyttSkjema.toJson(SkjemaInntektsmelding.serializer()),
-                ),
-            )
+            testRapid.sendJson(Mock.steg2(kontekstId, skjema))
 
             testRapid.inspektør.size shouldBeExactly 3
             testRapid.message(2).toMap().also {
@@ -106,14 +82,54 @@ class InnsendingServiceTest :
 
                 val data = it[Key.DATA]?.toMap().orEmpty()
                 Key.ARBEIDSGIVER_FNR.lesOrNull(Fnr.serializer(), data) shouldBe Mock.avsender.fnr
-                Key.SKJEMA_INNTEKTSMELDING.lesOrNull(SkjemaInntektsmelding.serializer(), data) shouldBe nyttSkjema
+                Key.SKJEMA_INNTEKTSMELDING.lesOrNull(SkjemaInntektsmelding.serializer(), data) shouldBe skjema
             }
 
-            verify {
+            verifySequence {
                 mockRedisStore.skrivResultat(
                     kontekstId,
                     ResultJson(
-                        success = nyttSkjema.forespoerselId.toJson(),
+                        success = skjema.forespoerselId.toJson(),
+                    ),
+                )
+            }
+        }
+
+        test("avviser inntektsmeldingskjema dersom ikke-forespurt AGP er ugyldig") {
+            val kontekstId = UUID.randomUUID()
+            val forespoersel = mockForespoersel().utenPaakrevdAGP()
+            val skjemaMedUgyldigAgp =
+                mockSkjemaInntektsmelding().copy(
+                    agp =
+                        forespoersel.sykmeldingsperioder.minOf { it.fom }.let {
+                            Arbeidsgiverperiode(
+                                perioder =
+                                    listOf(
+                                        Periode(
+                                            fom = it,
+                                            tom = it.plusDays(15),
+                                        ),
+                                    ),
+                                egenmeldinger = emptyList(),
+                                redusertLoennIAgp = null,
+                            )
+                        },
+                )
+
+            testRapid.sendJson(
+                Mock.steg1(kontekstId, skjemaMedUgyldigAgp).plusData(
+                    Key.FORESPOERSEL_SVAR to forespoersel.toJson(),
+                ),
+            )
+
+            verifySequence {
+                mockRedisStore.skrivResultat(
+                    kontekstId,
+                    ResultJson(
+                        failure =
+                            LagreImError(
+                                feiletValidering = "Arbeidsgiverperioden må indikere at sykmeldt arbeidet i starten av sykmeldingsperioden.",
+                            ).toJson(LagreImError.serializer()),
                     ),
                 )
             }
@@ -121,36 +137,37 @@ class InnsendingServiceTest :
 
         test("duplikat skjema sendes _ikke_ videre til beriking") {
             val kontekstId = UUID.randomUUID()
+            val skjema = mockSkjemaInntektsmelding()
 
-            testRapid.sendJson(Mock.steg0(kontekstId))
+            testRapid.sendJson(Mock.steg0(kontekstId, skjema))
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.message(0).lesBehov() shouldBe BehovType.HENT_TRENGER_IM
 
-            testRapid.sendJson(Mock.steg1(kontekstId))
+            testRapid.sendJson(Mock.steg1(kontekstId, skjema))
 
             testRapid.inspektør.size shouldBeExactly 2
             testRapid.message(1).lesBehov() shouldBe BehovType.LAGRE_IM_SKJEMA
 
             testRapid.sendJson(
-                Mock.steg2(kontekstId).plusData(
+                Mock.steg2(kontekstId, skjema).plusData(
                     Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
                 ),
             )
 
             testRapid.inspektør.size shouldBeExactly 2
 
-            verify {
+            verifySequence {
                 mockRedisStore.skrivResultat(
                     kontekstId,
                     ResultJson(
-                        success = Mock.skjema.forespoerselId.toJson(),
+                        success = skjema.forespoerselId.toJson(),
                     ),
                 )
             }
         }
 
-        test("svar med feilmelding ved feil") {
+        test("svar med tomt feilobjekt ved mottatt feil") {
             val fail =
                 mockFail(
                     feilmelding = "Databasen er smekk full.",
@@ -158,17 +175,17 @@ class InnsendingServiceTest :
                     behovType = BehovType.HENT_TRENGER_IM,
                 )
 
-            testRapid.sendJson(Mock.steg0(fail.kontekstId))
+            testRapid.sendJson(Mock.steg0(fail.kontekstId, mockSkjemaInntektsmelding()))
 
             testRapid.sendJson(fail.tilMelding())
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            verify {
+            verifySequence {
                 mockRedisStore.skrivResultat(
                     fail.kontekstId,
                     ResultJson(
-                        failure = fail.feilmelding.toJson(),
+                        failure = LagreImError().toJson(LagreImError.serializer()),
                     ),
                 )
             }
@@ -182,10 +199,10 @@ private object Mock {
             navn = "Skrue McDuck",
         )
 
-    val skjema = mockSkjemaInntektsmelding()
-    val mottatt = 15.august.kl(12, 0, 0, 0)
-
-    fun steg0(kontekstId: UUID): Map<Key, JsonElement> =
+    fun steg0(
+        kontekstId: UUID,
+        skjema: SkjemaInntektsmelding,
+    ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.KONTEKST_ID to kontekstId.toJson(),
@@ -193,17 +210,23 @@ private object Mock {
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
-                    Key.MOTTATT to mottatt.toJson(),
+                    Key.MOTTATT to 15.august.kl(12, 0, 0, 0).toJson(),
                 ).toJson(),
         )
 
-    fun steg1(kontekstId: UUID): Map<Key, JsonElement> =
-        steg0(kontekstId).plusData(
+    fun steg1(
+        kontekstId: UUID,
+        skjema: SkjemaInntektsmelding,
+    ): Map<Key, JsonElement> =
+        steg0(kontekstId, skjema).plusData(
             Key.FORESPOERSEL_SVAR to mockForespoersel().toJson(),
         )
 
-    fun steg2(kontekstId: UUID): Map<Key, JsonElement> =
-        steg1(kontekstId).plusData(
+    fun steg2(
+        kontekstId: UUID,
+        skjema: SkjemaInntektsmelding,
+    ): Map<Key, JsonElement> =
+        steg1(kontekstId, skjema).plusData(
             mapOf(
                 Key.INNTEKTSMELDING_ID to UUID.randomUUID().toJson(),
                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),

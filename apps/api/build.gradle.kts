@@ -11,8 +11,9 @@ tasks {
 
 dependencies {
     implementation(project(":kontrakt-domene-arbeidsgiver"))
-    implementation(project(":kontrakt-resultat-kvittering"))
     implementation(project(":kontrakt-resultat-forespoersel"))
+    implementation(project(":kontrakt-resultat-kvittering"))
+    implementation(project(":kontrakt-resultat-lagre-im"))
     implementation(project(":kontrakt-resultat-tilgang"))
     implementation(project(":utils-kafka"))
     implementation(project(":utils-valkey"))

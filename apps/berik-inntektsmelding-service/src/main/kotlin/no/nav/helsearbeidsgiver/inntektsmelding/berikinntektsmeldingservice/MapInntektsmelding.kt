@@ -22,38 +22,22 @@ fun mapInntektsmelding(
     mottatt: LocalDateTime,
     innsending: Innsending? = null, // TODO: kanskje heller en separat mapping for api-innsending?
 ): Inntektsmelding {
-    val agp =
-        if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
-            skjema.agp
-        } else {
-            null
-        }
-
     val inntekt =
-        if (forespoersel.forespurtData.inntekt.paakrevd) {
-            if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
-                skjema.inntekt
-            } else {
-                skjema.inntekt?.copy(
-                    inntektsdato = forespoersel.forslagInntektsdato(),
-                )
-            }
+        if (skjema.agp != null) {
+            skjema.inntekt
         } else {
-            null
+            skjema.inntekt?.copy(
+                inntektsdato = forespoersel.forslagInntektsdato(),
+            )
         }
 
-    val refusjon =
-        if (forespoersel.forespurtData.refusjon.paakrevd) {
-            skjema.refusjon
-        } else {
-            null
-        }
     return Inntektsmelding(
         id = innsending?.innsendingId ?: inntektsmeldingId,
         type =
             innsending?.type
                 ?: Inntektsmelding.Type.Forespurt(
                     id = skjema.forespoerselId,
+                    erAgpForespurt = forespoersel.forespurtData.arbeidsgiverperiode.paakrevd,
                 ),
         sykmeldt =
             Sykmeldt(
@@ -68,10 +52,10 @@ fun mapInntektsmelding(
                 tlf = skjema.avsenderTlf,
             ),
         sykmeldingsperioder = forespoersel.sykmeldingsperioder,
-        agp = agp,
+        agp = skjema.agp,
         inntekt = inntekt,
-        refusjon = refusjon,
         naturalytelser = skjema.naturalytelser,
+        refusjon = skjema.refusjon,
         aarsakInnsending = innsending?.aarsakInnsending ?: aarsakInnsending,
         mottatt = mottatt.toOffsetDateTimeOslo(),
         vedtaksperiodeId = forespoersel.vedtaksperiodeId,

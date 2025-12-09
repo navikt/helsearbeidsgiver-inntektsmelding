@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test
 import java.io.File
 import java.io.FileOutputStream
 import java.time.LocalDate
+import java.util.UUID
 
 class PdfDokumentTest {
     private val dag = LocalDate.of(2022, 12, 24)
@@ -321,17 +322,23 @@ class PdfDokumentTest {
 
     @Test
     fun `generert pdf tittel samsvarer med inntektsmelding type`() {
-        val id = im.type.id
-        val forespurtEkstern = Inntektsmelding.Type.ForespurtEkstern(id = id, _avsenderSystem = AvsenderSystem(Orgnr.genererGyldig(), "Test system", "1.0"))
-        setOf(
-            forespurtEkstern to "Inntektsmelding for sykepenger",
-            Inntektsmelding.Type.Forespurt(id) to "Inntektsmelding for sykepenger",
-            Inntektsmelding.Type.Selvbestemt(id) to "Inntektsmelding for sykepenger",
-            Inntektsmelding.Type.Fisker(id) to "Inntektsmelding (Fisker m/hyre) for sykepenger",
-            Inntektsmelding.Type.UtenArbeidsforhold(id) to "Inntektsmelding (Unntatt registrering i Aa-registeret) for sykepenger",
-        ).forEach { (imType, forventetTittel) ->
+        val id = UUID.randomUUID()
+        val avsenderSystem = AvsenderSystem(Orgnr.genererGyldig(), "TestSys", "1.0")
+
+        listOf(
+            Inntektsmelding.Type.Selvbestemt(id) to null,
+            Inntektsmelding.Type.Fisker(id) to " (Fisker m/hyre)",
+            Inntektsmelding.Type.UtenArbeidsforhold(id) to " (Unntatt registrering i Aa-registeret)",
+            Inntektsmelding.Type.Behandlingsdager(id) to " (Behandlingsdager)",
+            Inntektsmelding.Type.Forespurt(id, true) to null,
+            Inntektsmelding.Type.Forespurt(id, false) to " (Arbeidsgiverperiode – ikke forespurt)",
+            Inntektsmelding.Type.ForespurtEkstern(id, true, avsenderSystem) to null,
+            Inntektsmelding.Type.ForespurtEkstern(id, false, avsenderSystem) to " (Arbeidsgiverperiode – ikke forespurt)",
+        ).forEach { (imType, forventetTillegg) ->
             val inntektsmelding = im.copy(type = imType)
             val pdfTekst = pdfTekstFraIm(inntektsmelding)
+
+            val forventetTittel = "Inntektsmelding for sykepenger – endring" + forventetTillegg.orEmpty()
             pdfTekst shouldContain forventetTittel
         }
     }

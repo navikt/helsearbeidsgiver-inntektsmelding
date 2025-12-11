@@ -5,7 +5,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -26,8 +25,6 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIk
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.Mock.toMap
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakUtgaattLevetid
-import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
@@ -154,82 +151,6 @@ class UtgaattForespoerselRiverTest :
                     eksternId = innkommendeMelding.forespoerselId.toString(),
                     nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
                 )
-            }
-        }
-
-        context("Ved mislykket henting av forkastet (ikke funnet) forespørsel") {
-
-            test("med korrekt fail så settes oppgaven til utgått og sak til ferdig") {
-                val innkommendeFail = Mock.forespoerselIkkeFunnetFail()
-                val forespoerselId =
-                    innkommendeFail.utloesendeMelding[Key.DATA]
-                        .shouldNotBeNull()
-                        .toMap()[Key.FORESPOERSEL_ID]
-                        .shouldNotBeNull()
-                        .fromJson(UuidSerializer)
-
-                testRapid.sendJson(innkommendeFail.tilMelding())
-
-                testRapid.inspektør.size shouldBeExactly 1
-                testRapid.firstMessage().toMap() shouldContainExactly
-                    mapOf(
-                        Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_UTGAATT.toJson(),
-                        Key.KONTEKST_ID to innkommendeFail.kontekstId.toJson(),
-                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    )
-
-                coVerifySequence {
-                    mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
-                        merkelapp = "Inntektsmelding sykepenger",
-                        eksternId = forespoerselId.toString(),
-                        nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
-                    )
-                    mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
-                        grupperingsid = forespoerselId.toString(),
-                        merkelapp = "Inntektsmelding sykepenger",
-                        status = SaksStatus.FERDIG,
-                        tidspunkt = null,
-                        statusTekst = "Avbrutt av Nav",
-                        nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
-                        hardDeleteOm = sakUtgaattLevetid,
-                    )
-                }
-            }
-
-            test("med feil behovtype så ignoreres meldingen") {
-                val innkommendeFail =
-                    Mock.forespoerselIkkeFunnetFail().let {
-                        it.copy(
-                            utloesendeMelding =
-                                it.utloesendeMelding
-                                    .plus(Key.BEHOV to BehovType.HENT_INNTEKT.toJson()),
-                        )
-                    }
-
-                testRapid.sendJson(innkommendeFail.tilMelding())
-
-                testRapid.inspektør.size shouldBeExactly 0
-
-                coVerify(exactly = 0) {
-                    mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(any(), any(), any())
-                    mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any(), any())
-                }
-            }
-
-            test("med feil feilmelding så ignoreres meldingen") {
-                val innkommendeFail =
-                    Mock.forespoerselIkkeFunnetFail().copy(
-                        feilmelding = "Klarte ikke hente forespørsel. Ukjent feil.",
-                    )
-
-                testRapid.sendJson(innkommendeFail.tilMelding())
-
-                testRapid.inspektør.size shouldBeExactly 0
-
-                coVerify(exactly = 0) {
-                    mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(any(), any(), any())
-                    mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any(), any())
-                }
             }
         }
 

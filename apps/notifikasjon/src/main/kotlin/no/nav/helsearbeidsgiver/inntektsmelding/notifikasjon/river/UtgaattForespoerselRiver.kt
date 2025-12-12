@@ -1,15 +1,12 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
 import kotlinx.serialization.json.JsonElement
-import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.json.krev
 import no.nav.hag.simba.utils.felles.json.les
-import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toJson
-import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.json.toPretty
 import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.rr.KafkaKey
@@ -38,40 +35,14 @@ class UtgaattForespoerselRiver(
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): UtgaattForespoerselMelding? =
-        // Obs!: Ignorerer ikke fail blankt så lenge vi vil sette sak og oppgave til utgått for forespørsler som ikke ble funnet.
-        if (setOf(Key.BEHOV, Key.DATA).any(json::containsKey)) {
+        if (setOf(Key.BEHOV, Key.DATA, Key.FAIL).any(json::containsKey)) {
             null
         } else {
-            val fail = Key.FAIL.lesOrNull(Fail.serializer(), json)
-            if (fail == null) {
-                // Forespørsler som ble forkastet nylig matcher her
-                UtgaattForespoerselMelding(
-                    eventName = Key.EVENT_NAME.krev(EventName.FORESPOERSEL_FORKASTET, EventName.serializer(), json),
-                    kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
-                    forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json),
-                )
-            } else {
-                // Forespørsler som ble forkastet for lenge siden matcher her dersom noen prøver å hente dem
-                val eventName = Key.EVENT_NAME.les(EventName.serializer(), fail.utloesendeMelding)
-                val behovType = Key.BEHOV.les(BehovType.serializer(), fail.utloesendeMelding)
-
-                if (
-                    behovType != BehovType.HENT_TRENGER_IM ||
-                    fail.feilmelding != "Klarte ikke hente forespørsel. Feilet med kode 'FORESPOERSEL_IKKE_FUNNET'."
-                ) {
-                    null
-                } else {
-                    val data = fail.utloesendeMelding[Key.DATA]?.toMap().orEmpty()
-                    val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data)
-
-                    "Setter sak og oppgave til utgått for forespørsel '$forespoerselId' som ikke ble funnet.".also {
-                        logger.info(it)
-                        sikkerLogger.info(it)
-                    }
-
-                    UtgaattForespoerselMelding(eventName, fail.kontekstId, forespoerselId)
-                }
-            }
+            UtgaattForespoerselMelding(
+                eventName = Key.EVENT_NAME.krev(EventName.FORESPOERSEL_FORKASTET, EventName.serializer(), json),
+                kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
+                forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json),
+            )
         }
 
     override fun UtgaattForespoerselMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)

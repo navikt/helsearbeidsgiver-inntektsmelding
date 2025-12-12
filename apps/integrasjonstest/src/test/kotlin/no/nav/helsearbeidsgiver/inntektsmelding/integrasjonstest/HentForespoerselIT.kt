@@ -9,7 +9,6 @@ import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.ResultJson
-import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess
@@ -128,51 +127,5 @@ class HentForespoerselIT : EndToEndTest() {
             inntekt.shouldNotBeNull()
             forespoersel.shouldNotBeNull()
         }
-    }
-
-    @Test
-    fun `dersom forespørsel ikke blir funnet så settes sak og oppgave til utgått`() {
-        val kontekstId: UUID = UUID.randomUUID()
-        val forespoerselId: UUID = UUID.randomUUID()
-
-        mockForespoerselSvarFraHelsebro(
-            forespoerselId = forespoerselId,
-            forespoerselSvar = null,
-        )
-
-        publish(
-            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.KONTEKST_ID to kontekstId.toJson(UuidSerializer),
-            Key.DATA to
-                mapOf(
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer),
-                    Key.ARBEIDSGIVER_FNR to Fnr.genererGyldig().toJson(),
-                ).toJson(),
-        )
-
-        messages
-            .filter(EventName.TRENGER_REQUESTED)
-            .filter(BehovType.HENT_TRENGER_IM)
-            .firstAsMap()
-            .let {
-                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
-            }
-
-        messages
-            .filter(EventName.SAK_OG_OPPGAVE_UTGAATT)
-            .firstAsMap()
-            .let {
-                Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
-                Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe forespoerselId
-            }
-
-        val resultJson =
-            redisConnection
-                .get(RedisPrefix.HentForespoersel, kontekstId)
-                ?.fromJson(ResultJson.serializer())
-                .shouldNotBeNull()
-
-        resultJson.success.shouldBeNull()
-        resultJson.failure.shouldNotBeNull()
     }
 }

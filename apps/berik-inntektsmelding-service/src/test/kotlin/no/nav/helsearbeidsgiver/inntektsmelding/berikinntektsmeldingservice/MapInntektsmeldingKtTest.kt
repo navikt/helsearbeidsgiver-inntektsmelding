@@ -8,8 +8,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.utenPaakrevdAGP
-import no.nav.hag.simba.kontrakt.domene.forespoersel.test.utenPaakrevdInntekt
-import no.nav.hag.simba.kontrakt.domene.forespoersel.test.utenPaakrevdRefusjon
 import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
@@ -56,6 +54,7 @@ class MapInntektsmeldingKtTest :
                     type shouldBe
                         Inntektsmelding.Type.Forespurt(
                             id = skjema.forespoerselId,
+                            erAgpForespurt = true,
                         )
 
                     sykmeldt shouldBe
@@ -118,7 +117,7 @@ class MapInntektsmeldingKtTest :
                 inntektsmelding.refusjon.shouldBeNull()
             }
 
-            test("fjerner AGP dersom AGP _ikke_ er påkrevd") {
+            test("setter AGP som ikke forespurt dersom AGP _ikke_ er påkrevd") {
                 val forespoersel = mockForespoersel().utenPaakrevdAGP()
                 val skjema = mockSkjemaInntektsmelding()
 
@@ -135,30 +134,11 @@ class MapInntektsmeldingKtTest :
                     )
 
                 skjema.agp.shouldNotBeNull()
-                inntektsmelding.agp.shouldBeNull()
+                inntektsmelding.agp.shouldNotBeNull()
+                (inntektsmelding.type as? Inntektsmelding.Type.Forespurt)?.erAgpForespurt shouldBe false
             }
 
-            test("fjerner inntekt dersom inntekt _ikke_ er påkrevd") {
-                val forespoersel = mockForespoersel().utenPaakrevdInntekt()
-                val skjema = mockSkjemaInntektsmelding()
-
-                val inntektsmelding =
-                    mapInntektsmelding(
-                        inntektsmeldingId = UUID.randomUUID(),
-                        forespoersel = forespoersel,
-                        skjema = skjema,
-                        aarsakInnsending = AarsakInnsending.Endring,
-                        virksomhetNavn = "Skrekkinngytende smaker LLC",
-                        sykmeldtNavn = "Runar fra Regnskap",
-                        avsenderNavn = "Hege fra HR",
-                        mottatt = 6.desember.atStartOfDay(),
-                    )
-
-                skjema.inntekt.shouldNotBeNull()
-                inntektsmelding.inntekt.shouldBeNull()
-            }
-
-            test("bruker innsendt inntektsdato dersom AGP er påkrevd") {
+            test("bruker innsendt inntektsdato dersom skjema inneholder AGP") {
                 val forespoersel = mockForespoersel()
                 val skjema =
                     mockSkjemaInntektsmelding().let {
@@ -189,11 +169,12 @@ class MapInntektsmeldingKtTest :
                 }
             }
 
-            test("overser innsendt inntektsdato og bruker forslag (fra Spleis) dersom AGP _ikke_ er påkrevd") {
-                val forespoersel = mockForespoersel().utenPaakrevdAGP()
+            test("overser innsendt inntektsdato og bruker forslag (fra Spleis) dersom skjema _ikke_ inneholder AGP") {
+                val forespoersel = mockForespoersel()
                 val skjema =
                     mockSkjemaInntektsmelding().let {
                         it.copy(
+                            agp = null,
                             inntekt =
                                 it.inntekt?.copy(
                                     inntektsdato = 14.desember,
@@ -220,9 +201,11 @@ class MapInntektsmeldingKtTest :
                 }
             }
 
-            test("bruker beregnet bestemmende fraværsdag som inntektsdato dersom forslag (fra Spleis) til inntektsdato mangler og AGP _ikke_ er påkrevd") {
+            test(
+                "bruker beregnet bestemmende fraværsdag som inntektsdato dersom forslag (fra Spleis) til inntektsdato mangler og skjema _ikke_ inneholder AGP",
+            ) {
                 val forespoersel =
-                    mockForespoersel().utenPaakrevdAGP().copy(
+                    mockForespoersel().copy(
                         sykmeldingsperioder =
                             listOf(
                                 4.juli til 28.juli,
@@ -232,6 +215,7 @@ class MapInntektsmeldingKtTest :
                 val skjema =
                     mockSkjemaInntektsmelding().let {
                         it.copy(
+                            agp = null,
                             inntekt =
                                 it.inntekt?.copy(
                                     inntektsdato = 3.august,
@@ -257,26 +241,6 @@ class MapInntektsmeldingKtTest :
                     it.inntektsdato shouldBe forespoersel.forslagInntektsdato()
                     it.inntektsdato shouldBe 4.juli
                 }
-            }
-
-            test("bruker tom refusjon dersom refusjon _ikke_ er påkrevd") {
-                val forespoersel = mockForespoersel().utenPaakrevdRefusjon()
-                val skjema = mockSkjemaInntektsmelding()
-
-                val inntektsmelding =
-                    mapInntektsmelding(
-                        inntektsmeldingId = UUID.randomUUID(),
-                        forespoersel = forespoersel,
-                        skjema = skjema,
-                        aarsakInnsending = AarsakInnsending.Endring,
-                        virksomhetNavn = "Skrekkinngytende smaker LLC",
-                        sykmeldtNavn = "Runar fra Regnskap",
-                        avsenderNavn = "Hege fra HR",
-                        mottatt = 6.desember.atStartOfDay(),
-                    )
-
-                skjema.refusjon.shouldNotBeNull()
-                inntektsmelding.refusjon.shouldBeNull()
             }
         }
     })

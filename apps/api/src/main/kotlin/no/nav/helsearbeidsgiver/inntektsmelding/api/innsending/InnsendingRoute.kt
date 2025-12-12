@@ -5,7 +5,7 @@ import io.ktor.server.request.receiveText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.post
-import kotlinx.serialization.builtins.serializer
+import no.nav.hag.simba.kontrakt.resultat.lagreim.LagreImError
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.json.toJson
@@ -76,8 +76,14 @@ fun Route.innsending(
                     if (resultatJson.success != null) {
                         respond(HttpStatusCode.Created, InnsendingResponse(skjema.forespoerselId), InnsendingResponse.serializer())
                     } else {
-                        val feilmelding = resultatJson.failure?.fromJson(String.serializer())
-                        respondInternalServerError(feilmelding)
+                        val error = resultatJson.failure?.fromJson(LagreImError.serializer())
+
+                        val feiletValidering = error?.feiletValidering
+                        if (feiletValidering != null) {
+                            respondBadRequest(ErrorResponse.Validering(kontekstId, setOf(feiletValidering)))
+                        } else {
+                            respondInternalServerError(ErrorResponse.Unknown(kontekstId))
+                        }
                     }
                 } else {
                     respondInternalServerError(ErrorResponse.RedisTimeout(skjema.forespoerselId))

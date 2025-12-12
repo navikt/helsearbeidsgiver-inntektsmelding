@@ -165,6 +165,8 @@ class BerikInntektsmeldingService(
                 mottatt = steg0.mottatt,
             )
 
+        loggHvisIkkeForespurtAgp(inntektsmelding)
+
         publisher
             .publish(
                 key = steg0.skjema.forespoerselId,
@@ -234,6 +236,27 @@ class BerikInntektsmeldingService(
             "Publiserte melding med behov $behovType.".let {
                 logger.info(it)
                 sikkerLogger.info("$it\n${publisert.toPretty()}")
+            }
+        }
+    }
+
+    private fun loggHvisIkkeForespurtAgp(inntektsmelding: Inntektsmelding) {
+        val imType = inntektsmelding.type
+        val erAgpForespurt =
+            when (imType) {
+                is Inntektsmelding.Type.Forespurt -> imType.erAgpForespurt
+                is Inntektsmelding.Type.ForespurtEkstern -> imType.erAgpForespurt
+                is Inntektsmelding.Type.Selvbestemt,
+                is Inntektsmelding.Type.Fisker,
+                is Inntektsmelding.Type.UtenArbeidsforhold,
+                is Inntektsmelding.Type.Behandlingsdager,
+                -> true
+            }
+
+        if (!erAgpForespurt && inntektsmelding.agp != null) {
+            "Inntektsmelding inneholder ikke-forespurt AGP. Dette forventes å skje særdeles sjeldent.".also {
+                logger.warn(it)
+                sikkerLogger.warn(it)
             }
         }
     }

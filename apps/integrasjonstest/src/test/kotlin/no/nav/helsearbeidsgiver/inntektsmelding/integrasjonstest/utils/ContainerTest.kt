@@ -10,13 +10,14 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 import org.testcontainers.kafka.KafkaContainer
 import org.testcontainers.utility.DockerImageName
+import java.time.Duration
 import java.util.Properties
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class ContainerTest {
     private val topic = "helsearbeidsgiver.inntektsmelding"
 
-    private val kafkaContainer = KafkaContainer(DockerImageName.parse("apache/kafka-native:latest"))
+    private val kafkaContainer = KafkaContainer(DockerImageName.parse("apache/kafka-native:latest")).withStartupTimeout(Duration.ofSeconds(150L))
     val redisContainer = RedisContainer(DockerImageName.parse("redis:latest"))
     val postgresContainerOne = postgresContainer()
     val postgresContainerTwo = postgresContainer()

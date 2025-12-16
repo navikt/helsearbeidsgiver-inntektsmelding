@@ -12,7 +12,6 @@ import io.mockk.coVerifySequence
 import io.mockk.mockk
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
@@ -28,11 +27,11 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveDuplikatException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakLevetid
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
-import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 
 class OpprettForespoerselSakOgOppgaveRiverTest :
     FunSpec({
@@ -274,7 +273,7 @@ private fun OpprettForespoerselSakOgOppgaveMelding.toMap() =
                 Key.SYKMELDT to sykmeldt.toJson(Person.serializer()),
                 Key.VIRKSOMHET to orgNavn.toJson(),
                 Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
-                Key.FORESPOERSEL to forespoersel.toJson(Forespoersel.serializer()),
+                Key.FORESPOERSEL to forespoersel.toJson(),
             ).toJson(),
     )
 

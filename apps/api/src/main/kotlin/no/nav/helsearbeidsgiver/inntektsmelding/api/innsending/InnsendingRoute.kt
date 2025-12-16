@@ -5,7 +5,7 @@ import io.ktor.server.request.receiveText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.post
-import kotlinx.serialization.builtins.serializer
+import no.nav.hag.simba.kontrakt.resultat.lagreim.LagreImError
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.json.toJson
@@ -13,6 +13,7 @@ import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.RedisStore
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
@@ -30,7 +31,6 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.time.LocalDateTime
 import java.util.UUID
-import no.nav.hag.simba.utils.felles.domene.SkjemaInntektsmeldingIntern as SkjemaInntektsmelding
 
 fun Route.innsending(
     producer: Producer,
@@ -47,14 +47,6 @@ fun Route.innsending(
         when {
             skjema == null -> {
                 respondBadRequest(ErrorResponse.JsonSerialization(kontekstId))
-            }
-
-            skjema.inntekt?.naturalytelser.orEmpty() != skjema.naturalytelser -> {
-                "Naturalytelser på rotnivå og under 'inntekt' stemmer ikke overens. Inntektsmelding avvises.".also {
-                    logger.error(it)
-                    sikkerLogger.error(it)
-                }
-                respondInternalServerError(ErrorResponse.Unknown(kontekstId))
             }
 
             skjema.valider().isNotEmpty() -> {
@@ -84,8 +76,14 @@ fun Route.innsending(
                     if (resultatJson.success != null) {
                         respond(HttpStatusCode.Created, InnsendingResponse(skjema.forespoerselId), InnsendingResponse.serializer())
                     } else {
-                        val feilmelding = resultatJson.failure?.fromJson(String.serializer())
-                        respondInternalServerError(feilmelding)
+                        val error = resultatJson.failure?.fromJson(LagreImError.serializer())
+
+                        val feiletValidering = error?.feiletValidering
+                        if (feiletValidering != null) {
+                            respondBadRequest(ErrorResponse.Validering(kontekstId, setOf(feiletValidering)))
+                        } else {
+                            respondInternalServerError(ErrorResponse.Unknown(kontekstId))
+                        }
                     }
                 } else {
                     respondInternalServerError(ErrorResponse.RedisTimeout(skjema.forespoerselId))

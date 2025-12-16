@@ -4,6 +4,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStillingsprosent
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
@@ -11,8 +12,11 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RefusjonEndring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.AvsenderSystem
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.ArbeidsforholdType
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaAvsender
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.utils.test.date.kl
@@ -25,10 +29,6 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.OffsetDateTime
 import java.util.UUID
-import no.nav.hag.simba.utils.felles.domene.InnsendingIntern as Innsending
-import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
-import no.nav.hag.simba.utils.felles.domene.SkjemaInntektsmeldingIntern as SkjemaInntektsmelding
-import no.nav.hag.simba.utils.felles.domene.SkjemaInntektsmeldingSelvbestemtIntern as SkjemaInntektsmeldingSelvbestemt
 
 fun mockSkjemaInntektsmelding(): SkjemaInntektsmelding {
     val inntektsmelding = mockInntektsmeldingV1()
@@ -37,6 +37,7 @@ fun mockSkjemaInntektsmelding(): SkjemaInntektsmelding {
         avsenderTlf = inntektsmelding.avsender.tlf,
         agp = inntektsmelding.agp,
         inntekt = inntektsmelding.inntekt,
+        naturalytelser = inntektsmelding.naturalytelser,
         refusjon = inntektsmelding.refusjon,
     )
 }
@@ -76,6 +77,7 @@ fun mockSkjemaInntektsmeldingSelvbestemt(): SkjemaInntektsmeldingSelvbestemt {
         sykmeldingsperioder = inntektsmelding.sykmeldingsperioder,
         agp = inntektsmelding.agp,
         inntekt = inntektsmelding.inntekt!!,
+        naturalytelser = inntektsmelding.naturalytelser,
         refusjon = inntektsmelding.refusjon,
         vedtaksperiodeId = vedtaksperiodeId,
         arbeidsforholdType =
@@ -111,6 +113,7 @@ fun mockInntektsmeldingV1(): Inntektsmelding =
             ),
         agp = mockArbeidsgiverperiode(),
         inntekt = mockInntekt(),
+        naturalytelser = mockNaturalytelser(),
         refusjon = mockRefusjon(),
         aarsakInnsending = AarsakInnsending.Endring,
         mottatt = 14.mars.kl(14, 41, 42, 0).toOffsetDateTimeOslo(),
@@ -140,25 +143,26 @@ fun mockInntekt(): Inntekt =
     Inntekt(
         beloep = 544.6,
         inntektsdato = 28.september,
-        naturalytelser =
-            listOf(
-                Naturalytelse(
-                    naturalytelse = Naturalytelse.Kode.BEDRIFTSBARNEHAGEPLASS,
-                    verdiBeloep = 52.5,
-                    sluttdato = 10.oktober,
-                ),
-                Naturalytelse(
-                    naturalytelse = Naturalytelse.Kode.BIL,
-                    verdiBeloep = 434.0,
-                    sluttdato = 12.oktober,
-                ),
-            ),
         endringAarsaker =
             listOf(
                 NyStillingsprosent(
                     gjelderFra = 16.oktober,
                 ),
             ),
+    )
+
+fun mockNaturalytelser(): List<Naturalytelse> =
+    listOf(
+        Naturalytelse(
+            naturalytelse = Naturalytelse.Kode.BEDRIFTSBARNEHAGEPLASS,
+            verdiBeloep = 52.5,
+            sluttdato = 10.oktober,
+        ),
+        Naturalytelse(
+            naturalytelse = Naturalytelse.Kode.BIL,
+            verdiBeloep = 434.0,
+            sluttdato = 12.oktober,
+        ),
     )
 
 fun mockRefusjon(): Refusjon =

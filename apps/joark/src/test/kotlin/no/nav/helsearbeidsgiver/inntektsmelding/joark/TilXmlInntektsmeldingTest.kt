@@ -65,7 +65,6 @@ class TilXmlInntektsmeldingTest {
                     Inntekt(
                         beloep = 1.0,
                         inntektsdato = 20.oktober,
-                        naturalytelser = emptyList(),
                         endringAarsaker = emptyList(),
                     ),
             )

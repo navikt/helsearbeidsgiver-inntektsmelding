@@ -116,7 +116,6 @@ private val nyInntekt =
     Inntekt(
         beloep = 7707.7,
         inntektsdato = 30.november,
-        naturalytelser = emptyList(),
         endringAarsaker = listOf(Bonus),
     )
 

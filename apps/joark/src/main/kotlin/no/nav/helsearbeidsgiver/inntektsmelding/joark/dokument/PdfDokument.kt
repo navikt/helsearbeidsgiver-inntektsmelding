@@ -6,6 +6,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Feilregistrert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferie
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferietrekk
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.InntektEndringAarsak
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStilling
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStillingsprosent
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Nyansatt
@@ -15,9 +16,9 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Permittering
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykefravaer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.tittelTillegg
 import no.nav.helsearbeidsgiver.utils.date.tilNorskFormat
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
-import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 
 private const val FORKLARING_ENDRING = "Endringsårsak"
 
@@ -110,28 +111,27 @@ class PdfDokument(
         }
     }
 
-    private fun Inntektsmelding.Type.genererTittel(): String =
-        when (this) {
-            is Inntektsmelding.Type.Fisker -> "Inntektsmelding (Fisker m/hyre) for sykepenger"
-            is Inntektsmelding.Type.UtenArbeidsforhold -> "Inntektsmelding (Unntatt registrering i Aa-registeret) for sykepenger"
-            is Inntektsmelding.Type.Behandlingsdager -> "Inntektsmelding (Behandlingsdager) for sykepenger"
-            is Inntektsmelding.Type.Selvbestemt,
-            is Inntektsmelding.Type.Forespurt,
-            is Inntektsmelding.Type.ForespurtEkstern,
-            -> "Inntektsmelding for sykepenger"
-        }
-
     private fun addHeader() {
         pdf.addTitle(
-            title =
-                when (inntektsmelding.aarsakInnsending) {
-                    AarsakInnsending.Ny -> inntektsmelding.type.genererTittel()
-                    AarsakInnsending.Endring -> "${inntektsmelding.type.genererTittel()} - endring"
-                },
+            title = inntektsmelding.tittel(),
             x = 0,
             y = y,
         )
         moveCursorBy(pdf.titleSize * 2)
+    }
+
+    private fun Inntektsmelding.tittel(): String {
+        val endringTillegg =
+            when (inntektsmelding.aarsakInnsending) {
+                AarsakInnsending.Ny -> null
+                AarsakInnsending.Endring -> "– endring"
+            }
+
+        return listOfNotNull(
+            "Inntektsmelding for sykepenger",
+            endringTillegg,
+            tittelTillegg(),
+        ).joinToString(separator = " ")
     }
 
     private fun addAnsatt() {

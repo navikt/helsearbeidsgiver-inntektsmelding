@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import kotlinx.serialization.json.JsonElement
-import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.kafkatopic.pri.Pri
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
@@ -63,7 +62,7 @@ class ForespoerselSvarRiver : ObjectRiver.PriTopic<ForespoerselSvarMelding>() {
                         .plus(
                             mapOf(
                                 Key.FORESPOERSEL_ID to forespoerselSvar.forespoerselId.toJson(),
-                                Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
+                                Key.FORESPOERSEL_SVAR to forespoersel.toJson(),
                             ),
                         ).toJson(),
             )

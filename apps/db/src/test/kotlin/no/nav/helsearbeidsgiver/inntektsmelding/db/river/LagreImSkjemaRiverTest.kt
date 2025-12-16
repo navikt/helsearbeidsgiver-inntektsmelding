@@ -14,7 +14,6 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
@@ -28,6 +27,7 @@ import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -35,7 +35,6 @@ import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.date.november
 import java.util.UUID
-import no.nav.hag.simba.utils.felles.domene.SkjemaInntektsmeldingIntern as SkjemaInntektsmelding
 
 class LagreImSkjemaRiverTest :
     FunSpec({
@@ -89,7 +88,7 @@ class LagreImSkjemaRiverTest :
                         Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                         Key.DATA to
                             mapOf(
-                                Key.FORESPOERSEL_SVAR to innkommendeMelding.forespoersel.toJson(Forespoersel.serializer()),
+                                Key.FORESPOERSEL_SVAR to innkommendeMelding.forespoersel.toJson(),
                                 Key.INNTEKTSMELDING_ID to innkommendeMelding.inntektsmeldingId.toJson(),
                                 Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.skjema.toJson(SkjemaInntektsmelding.serializer()),
                                 Key.MOTTATT to innkommendeMelding.mottatt.toJson(),
@@ -124,7 +123,7 @@ class LagreImSkjemaRiverTest :
                     Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
-                            Key.FORESPOERSEL_SVAR to innkommendeMelding.forespoersel.toJson(Forespoersel.serializer()),
+                            Key.FORESPOERSEL_SVAR to innkommendeMelding.forespoersel.toJson(),
                             Key.INNTEKTSMELDING_ID to innkommendeMelding.inntektsmeldingId.toJson(),
                             Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.skjema.toJson(SkjemaInntektsmelding.serializer()),
                             Key.MOTTATT to innkommendeMelding.mottatt.toJson(),
@@ -203,7 +202,7 @@ private fun innkommendeMelding(): LagreImSkjemaMelding {
         kontekstId = UUID.randomUUID(),
         data =
             mapOf(
-                Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
+                Key.FORESPOERSEL_SVAR to forespoersel.toJson(),
                 Key.INNTEKTSMELDING_ID to inntektsmeldingId.toJson(),
                 Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
                 Key.MOTTATT to mottatt.toJson(),

@@ -9,7 +9,6 @@ import io.mockk.clearAllMocks
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.ForespoerselFraBro
-import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespurtData
 import no.nav.hag.simba.kontrakt.kafkatopic.pri.Pri
 import no.nav.hag.simba.utils.felles.EventName
@@ -59,7 +58,7 @@ class ForespoerselMottattRiverTest :
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
-                            Key.FORESPOERSEL to innkommendeMelding.forespoerselFraBro.toForespoersel().toJson(Forespoersel.serializer()),
+                            Key.FORESPOERSEL to innkommendeMelding.forespoerselFraBro.toForespoersel().toJson(),
                             Key.SKAL_HA_PAAMINNELSE to innkommendeMelding.skalHaPaaminnelse.toJson(Boolean.serializer()),
                         ).toJson(),
                 )

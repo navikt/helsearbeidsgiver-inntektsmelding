@@ -1,12 +1,16 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.AvsenderSystem
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
+import java.util.UUID
 
 class TilDokumenterKtTest {
     @Test
@@ -53,17 +57,22 @@ class TilDokumenterKtTest {
 
     @Test
     fun `tilDokumentbeskrivelse returnerer det som er forventet for forskjellige typer`() {
-        val im = mockInntektsmeldingV1()
-        val id = im.type.id
-        val standardBeskrivelse = "Inntektsmelding-05.10.2018 - [...] - 22.10.2018"
+        val id = UUID.randomUUID()
+        val avsenderSystem = AvsenderSystem(Orgnr.genererGyldig(), "TestSys", "1.0")
 
-        setOf(
-            im.copy(type = Inntektsmelding.Type.Fisker(id)) to "$standardBeskrivelse (Fisker m/hyre)",
-            im.copy(type = Inntektsmelding.Type.UtenArbeidsforhold(id)) to "$standardBeskrivelse (Unntatt registrering i Aa-registeret)",
-            im.copy(type = Inntektsmelding.Type.Forespurt(id)) to standardBeskrivelse,
-            im.copy(type = Inntektsmelding.Type.Selvbestemt(id)) to standardBeskrivelse,
-        ).forEach { (im, forventet) ->
-            assertEquals(forventet, im.tilDokumentbeskrivelse())
+        listOf(
+            Inntektsmelding.Type.Selvbestemt(id) to null,
+            Inntektsmelding.Type.Fisker(id) to " (Fisker m/hyre)",
+            Inntektsmelding.Type.UtenArbeidsforhold(id) to " (Unntatt registrering i Aa-registeret)",
+            Inntektsmelding.Type.Behandlingsdager(id) to " (Behandlingsdager)",
+            Inntektsmelding.Type.Forespurt(id, true) to null,
+            Inntektsmelding.Type.Forespurt(id, false) to " (Arbeidsgiverperiode – ikke forespurt)",
+            Inntektsmelding.Type.ForespurtEkstern(id, true, avsenderSystem) to null,
+            Inntektsmelding.Type.ForespurtEkstern(id, false, avsenderSystem) to " (Arbeidsgiverperiode – ikke forespurt)",
+        ).forEach { (imType, forventetTillegg) ->
+            val beskrivelse = mockInntektsmeldingV1().copy(type = imType).tilDokumentbeskrivelse()
+            val forventetBeskrivelse = "Inntektsmelding-05.10.2018 - [...] - 22.10.2018" + forventetTillegg.orEmpty()
+            assertEquals(forventetBeskrivelse, beskrivelse)
         }
     }
 

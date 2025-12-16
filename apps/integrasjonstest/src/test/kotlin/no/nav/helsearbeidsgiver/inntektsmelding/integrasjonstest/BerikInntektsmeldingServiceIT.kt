@@ -20,6 +20,8 @@ import no.nav.hag.simba.utils.felles.test.json.lesBehov
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
 import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
@@ -40,8 +42,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
-import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
-import no.nav.hag.simba.utils.felles.domene.SkjemaInntektsmeldingIntern as SkjemaInntektsmelding
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BerikInntektsmeldingServiceIT : EndToEndTest() {
@@ -73,7 +73,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
-                    Key.FORESPOERSEL_SVAR to Mock.forespoersel.toJson(Forespoersel.serializer()),
+                    Key.FORESPOERSEL_SVAR to Mock.forespoersel.toJson(),
                     Key.INNTEKTSMELDING_ID to UUID.randomUUID().toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
                     Key.MOTTATT to Mock.mottatt.toJson(),
@@ -178,7 +178,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             Key.DATA to
                 mapOf(
                     Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
-                    Key.FORESPOERSEL_SVAR to Mock.forespoersel.toJson(Forespoersel.serializer()),
+                    Key.FORESPOERSEL_SVAR to Mock.forespoersel.toJson(),
                     Key.INNTEKTSMELDING_ID to UUID.randomUUID().toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
                     Key.MOTTATT to Mock.mottatt.toJson(),

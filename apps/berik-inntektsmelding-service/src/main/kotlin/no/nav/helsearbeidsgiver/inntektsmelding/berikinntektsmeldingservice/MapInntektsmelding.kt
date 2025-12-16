@@ -3,13 +3,13 @@ package no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
 import java.time.LocalDateTime
 import java.util.UUID
-import no.nav.hag.simba.utils.felles.domene.InnsendingIntern as Innsending
-import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
-import no.nav.hag.simba.utils.felles.domene.SkjemaInntektsmeldingIntern as SkjemaInntektsmelding
 
 fun mapInntektsmelding(
     inntektsmeldingId: UUID,
@@ -22,38 +22,22 @@ fun mapInntektsmelding(
     mottatt: LocalDateTime,
     innsending: Innsending? = null, // TODO: kanskje heller en separat mapping for api-innsending?
 ): Inntektsmelding {
-    val agp =
-        if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
-            skjema.agp
-        } else {
-            null
-        }
-
     val inntekt =
-        if (forespoersel.forespurtData.inntekt.paakrevd) {
-            if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
-                skjema.inntekt
-            } else {
-                skjema.inntekt?.copy(
-                    inntektsdato = forespoersel.forslagInntektsdato(),
-                )
-            }
+        if (skjema.agp != null) {
+            skjema.inntekt
         } else {
-            null
+            skjema.inntekt?.copy(
+                inntektsdato = forespoersel.forslagInntektsdato(),
+            )
         }
 
-    val refusjon =
-        if (forespoersel.forespurtData.refusjon.paakrevd) {
-            skjema.refusjon
-        } else {
-            null
-        }
     return Inntektsmelding(
         id = innsending?.innsendingId ?: inntektsmeldingId,
         type =
             innsending?.type
                 ?: Inntektsmelding.Type.Forespurt(
                     id = skjema.forespoerselId,
+                    erAgpForespurt = forespoersel.forespurtData.arbeidsgiverperiode.paakrevd,
                 ),
         sykmeldt =
             Sykmeldt(
@@ -68,10 +52,10 @@ fun mapInntektsmelding(
                 tlf = skjema.avsenderTlf,
             ),
         sykmeldingsperioder = forespoersel.sykmeldingsperioder,
-        agp = agp,
+        agp = skjema.agp,
         inntekt = inntekt,
-        refusjon = refusjon,
         naturalytelser = skjema.naturalytelser,
+        refusjon = skjema.refusjon,
         aarsakInnsending = innsending?.aarsakInnsending ?: aarsakInnsending,
         mottatt = mottatt.toOffsetDateTimeOslo(),
         vedtaksperiodeId = forespoersel.vedtaksperiodeId,

@@ -5,6 +5,8 @@ import java.text.DecimalFormat
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
+private const val MAX_LINJELENGDE = 36
+
 fun OffsetDateTime.tilNorskFormat(): String = this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy ' kl. ' HH.mm.ss"))
 
 fun Double.tilNorskFormat(): String {
@@ -39,8 +41,6 @@ fun RedusertLoennIAgp.Begrunnelse.tilTekst(): String =
         RedusertLoennIAgp.Begrunnelse.TidligereVirksomhet -> "Arbeidsgiverperioden er helt eller delvis gjennomført hos tidligere virksomhet"
     }
 
-private const val MAX_LINJELENGDE = 36
-
 fun String.delOppLangeNavn(): List<String> =
     when {
         this.length < MAX_LINJELENGDE -> listOf(this)
@@ -51,19 +51,17 @@ fun String.delOppLangeNavn(): List<String> =
                 .fold(emptyList()) { result, word ->
                     val lastString = result.lastOrNull()
                     if (lastString != null && lastString.length + word.length < MAX_LINJELENGDE) {
-                        result.dropLastIfNotEmpty() + "$lastString $word"
+                        result.dropLast(1) + "$lastString $word"
                     } else {
                         result.plus(word)
                     }
                 }
     }
 
-fun <T> List<T>.dropLastIfNotEmpty(): List<T> = if (isNotEmpty()) dropLast(1) else this
-
-fun String.formaterTelefonnummer(): String {
+fun String.formaterTelefonnummer(): String =
     if (this.length > 8) {
         val start = this.length - 8
-        return this.substring(0, start) + " " + this.substring(start)
+        this.substring(0, start) + " " + this.substring(start)
+    } else {
+        this
     }
-    return this
-}

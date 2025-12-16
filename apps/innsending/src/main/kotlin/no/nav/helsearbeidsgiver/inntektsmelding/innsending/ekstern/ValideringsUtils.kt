@@ -6,11 +6,9 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.time.YearMonth
 import kotlin.math.abs
 
-const val FEILMARGIN_INNTEKT_A_ORDNING_KRONER: Double = 10.0
+private const val FEILMARGIN_INNTEKT_A_ORDNING_KRONER: Double = 10.0
 
-/**
- * Validerer om inntekten i inntektsmeldingen avviker fra inntekten i a-ordningen
- */
+/** Validerer om inntekten i inntektsmeldingen avviker fra inntekten i a-ordningen. */
 fun Inntekt.validerInntektMotAordningen(aordningInntekt: Map<YearMonth, Double?>): Set<Feilkode> {
     val aordningSnittInntekt = aordningInntekt.gjennomsnitt()
 

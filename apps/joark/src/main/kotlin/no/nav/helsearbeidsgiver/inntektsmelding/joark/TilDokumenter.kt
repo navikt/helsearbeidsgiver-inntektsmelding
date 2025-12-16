@@ -3,11 +3,11 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark
 import no.nav.hag.simba.utils.felles.utils.tilKortFormat
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Dokument
 import no.nav.helsearbeidsgiver.dokarkiv.domene.DokumentVariant
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.PdfDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.transformToXML
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.Base64
-import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 
 private val base64 = Base64.getEncoder()
 
@@ -46,13 +46,7 @@ fun tilDokumenter(inntektsmelding: Inntektsmelding): List<Dokument> =
 private fun ByteArray.encode(): String = base64.encodeToString(this)
 
 fun Inntektsmelding.tilDokumentbeskrivelse(): String {
-    val arbeidsforhold =
-        when (this.type) {
-            is Inntektsmelding.Type.UtenArbeidsforhold -> " (Unntatt registrering i Aa-registeret)"
-            is Inntektsmelding.Type.Fisker -> " (Fisker m/hyre)"
-            is Inntektsmelding.Type.Behandlingsdager -> " (Behandlingsdager)"
-            else -> ""
-        }
+    val arbeidsforhold = tittelTillegg()?.let { " $it" }.orEmpty()
     val agp =
         this.agp
             ?.perioder

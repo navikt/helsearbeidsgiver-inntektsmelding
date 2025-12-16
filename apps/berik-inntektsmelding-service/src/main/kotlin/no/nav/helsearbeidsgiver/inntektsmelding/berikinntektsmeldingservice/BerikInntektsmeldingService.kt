@@ -18,6 +18,9 @@ import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.Publisher
 import no.nav.hag.simba.utils.rr.service.ServiceMed3Steg
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -29,9 +32,6 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDateTime
 import java.util.UUID
-import no.nav.hag.simba.utils.felles.domene.InnsendingIntern as Innsending
-import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
-import no.nav.hag.simba.utils.felles.domene.SkjemaInntektsmeldingIntern as SkjemaInntektsmelding
 
 private const val UKJENT_NAVN = "Ukjent navn"
 private const val UKJENT_VIRKSOMHET = "Ukjent virksomhet"
@@ -165,6 +165,8 @@ class BerikInntektsmeldingService(
                 mottatt = steg0.mottatt,
             )
 
+        loggHvisIkkeForespurtAgp(inntektsmelding)
+
         publisher
             .publish(
                 key = steg0.skjema.forespoerselId,
@@ -234,6 +236,27 @@ class BerikInntektsmeldingService(
             "Publiserte melding med behov $behovType.".let {
                 logger.info(it)
                 sikkerLogger.info("$it\n${publisert.toPretty()}")
+            }
+        }
+    }
+
+    private fun loggHvisIkkeForespurtAgp(inntektsmelding: Inntektsmelding) {
+        val imType = inntektsmelding.type
+        val erAgpForespurt =
+            when (imType) {
+                is Inntektsmelding.Type.Forespurt -> imType.erAgpForespurt
+                is Inntektsmelding.Type.ForespurtEkstern -> imType.erAgpForespurt
+                is Inntektsmelding.Type.Selvbestemt,
+                is Inntektsmelding.Type.Fisker,
+                is Inntektsmelding.Type.UtenArbeidsforhold,
+                is Inntektsmelding.Type.Behandlingsdager,
+                -> true
+            }
+
+        if (!erAgpForespurt && inntektsmelding.agp != null) {
+            "Inntektsmelding inneholder ikke-forespurt AGP. Dette forventes å skje særdeles sjeldent.".also {
+                logger.warn(it)
+                sikkerLogger.warn(it)
             }
         }
     }

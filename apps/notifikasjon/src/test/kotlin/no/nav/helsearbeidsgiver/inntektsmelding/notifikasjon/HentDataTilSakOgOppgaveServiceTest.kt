@@ -7,7 +7,6 @@ import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
@@ -66,7 +65,7 @@ class HentDataTilSakOgOppgaveServiceTest :
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                            Key.FORESPOERSEL to Mock.forespoersel.toJson(Forespoersel.serializer()),
+                            Key.FORESPOERSEL to Mock.forespoersel.toJson(),
                             Key.SYKMELDT to
                                 Mock.personer.values
                                     .first()
@@ -114,7 +113,7 @@ private object Mock {
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.FORESPOERSEL to forespoersel.toJson(Forespoersel.serializer()),
+                    Key.FORESPOERSEL to forespoersel.toJson(),
                     Key.SKAL_HA_PAAMINNELSE to SKAL_HA_PAAMINNELSE.toJson(Boolean.serializer()),
                 ).toJson(),
         )

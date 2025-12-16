@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
+import no.nav.hag.simba.kontrakt.resultat.lagreim.LagreImError
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
@@ -14,6 +15,7 @@ import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.rr.Publisher
 import no.nav.hag.simba.utils.rr.service.ServiceMed2Steg
 import no.nav.hag.simba.utils.valkey.RedisStore
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -24,7 +26,6 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.time.LocalDateTime
 import java.util.UUID
-import no.nav.hag.simba.utils.felles.domene.SkjemaInntektsmeldingIntern as SkjemaInntektsmelding
 
 data class Steg0(
     val kontekstId: UUID,
@@ -95,18 +96,38 @@ class InnsendingService(
         // Oppretter unik ID for hver inntektsmelding
         val inntektsmeldingId = UUID.randomUUID()
 
-        publisher
-            .publish(
-                key = steg0.skjema.forespoerselId,
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.LAGRE_IM_SKJEMA.toJson(),
-                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
-                Key.DATA to
-                    data
-                        .plus(
-                            Key.INNTEKTSMELDING_ID to inntektsmeldingId.toJson(),
-                        ).toJson(),
-            ).also { loggBehovPublisert(BehovType.LAGRE_IM_SKJEMA, it) }
+        val agp = steg0.skjema.agp
+        if (agp == null ||
+            agp.erGyldigHvisIkkeForespurt(steg1.forespoersel.forespurtData.arbeidsgiverperiode.paakrevd, steg1.forespoersel.sykmeldingsperioder)
+        ) {
+            publisher
+                .publish(
+                    key = steg0.skjema.forespoerselId,
+                    Key.EVENT_NAME to eventName.toJson(),
+                    Key.BEHOV to BehovType.LAGRE_IM_SKJEMA.toJson(),
+                    Key.KONTEKST_ID to steg0.kontekstId.toJson(),
+                    Key.DATA to
+                        data
+                            .plus(
+                                Key.INNTEKTSMELDING_ID to inntektsmeldingId.toJson(),
+                            ).toJson(),
+                ).also { loggBehovPublisert(BehovType.LAGRE_IM_SKJEMA, it) }
+        } else {
+            "Avviser inntektsmelding som inneholder ikke-forespurt AGP som er ugyldig.".also {
+                logger.warn(it)
+                sikkerLogger.warn(it)
+            }
+
+            val resultJson =
+                ResultJson(
+                    failure =
+                        LagreImError(
+                            feiletValidering = "Arbeidsgiverperioden må indikere at sykmeldt arbeidet i starten av sykmeldingsperioden.",
+                        ).toJson(LagreImError.serializer()),
+                )
+
+            redisStore.skrivResultat(steg0.kontekstId, resultJson)
+        }
     }
 
     override fun utfoerSteg2(
@@ -131,7 +152,7 @@ class InnsendingService(
                     Key.DATA to
                         mapOf(
                             Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
-                            Key.FORESPOERSEL_SVAR to steg1.forespoersel.toJson(Forespoersel.serializer()),
+                            Key.FORESPOERSEL_SVAR to steg1.forespoersel.toJson(),
                             Key.INNTEKTSMELDING_ID to steg2.inntektsmeldingId.toJson(),
                             Key.SKJEMA_INNTEKTSMELDING to steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
                             Key.MOTTATT to steg0.mottatt.toJson(),
@@ -151,7 +172,15 @@ class InnsendingService(
         melding: Map<Key, JsonElement>,
         fail: Fail,
     ) {
-        val resultJson = ResultJson(failure = fail.feilmelding.toJson())
+        "Klarte ikke lagre inntektsmelding.".also {
+            logger.error(it)
+            sikkerLogger.error(it)
+        }
+
+        val resultJson =
+            ResultJson(
+                failure = LagreImError().toJson(LagreImError.serializer()),
+            )
 
         redisStore.skrivResultat(fail.kontekstId, resultJson)
     }

@@ -37,37 +37,29 @@ fun createInnsendingServices(
     publisher: Publisher,
     redisConnection: RedisConnection,
     producer: Producer,
-): List<ObjectRiver.Simba<*>> {
-    val innsendingServiceRiver =
+): List<ObjectRiver.Simba<*>> =
+    listOf(
         ServiceRiverStateless(
             InnsendingService(
                 publisher = publisher,
                 redisStore = RedisStore(redisConnection, RedisPrefix.Innsending),
             ),
-        )
-
-    val valideringsServiceRiver =
+        ),
+        ServiceRiverStateless(
+            ApiInnsendingService(
+                publisher = publisher,
+            ),
+        ),
         ServiceRiverStateless(
             ValiderApiInnsendingService(
                 publisher = publisher,
                 producer = producer,
             ),
-        )
-
-    val apiInnsendingServiceRiver = ServiceRiverStateless(ApiInnsendingService(publisher = publisher))
-
-    val kvitteringServiceRiver =
+        ),
         ServiceRiverStateful(
             KvitteringService(
                 publisher = publisher,
                 redisStore = RedisStore(redisConnection, RedisPrefix.Kvittering),
             ),
-        )
-
-    return listOf(
-        innsendingServiceRiver,
-        apiInnsendingServiceRiver,
-        valideringsServiceRiver,
-        kvitteringServiceRiver,
+        ),
     )
-}

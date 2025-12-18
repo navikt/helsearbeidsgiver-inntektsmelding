@@ -58,6 +58,7 @@ fun mockInnsending(): Innsending {
                         versjon = "3.0.0",
                     ),
             ),
+        kontaktinformasjon = "Arbeidsgiveren",
         innsendtTid = OffsetDateTime.now(),
         versjon = 1,
     )

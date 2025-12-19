@@ -22,6 +22,7 @@ import no.nav.hag.simba.utils.felles.test.json.lesData
 import no.nav.hag.simba.utils.felles.test.json.lesEventName
 import no.nav.hag.simba.utils.felles.test.json.plusData
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
+import no.nav.hag.simba.utils.felles.test.mock.mockInnsending
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
 import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
@@ -29,6 +30,7 @@ import no.nav.hag.simba.utils.rr.test.message
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
@@ -129,10 +131,51 @@ class BerikInntektsmeldingServiceTest :
 
             testRapid.inspektør.size shouldBeExactly 0
         }
+
+        test(
+            "Api-innsendt skjema berikes og lagres, kontaktinformasjon fra innsending lagres i Inntektsmelding.avsender.navn og IM sendes videre til journalføring",
+        ) {
+            val kontekstId = UUID.randomUUID()
+            testRapid.sendJson(Mock.apiSteg0(kontekstId))
+
+            // Melding med forventet behov og data sendt for å hente virksomhetsnavn
+            testRapid.inspektør.size shouldBeExactly 1
+            testRapid.message(0).also {
+                it.lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
+
+                val data = it.lesData()
+                Key.ORGNR_UNDERENHETER.lesOrNull(Orgnr.serializer().set(), data) shouldNotBe null
+            }
+
+            testRapid.sendJson(Mock.apiSteg1(kontekstId))
+
+            // Melding med forventet behov og data sendt for å hente personnavn
+            testRapid.inspektør.size shouldBeExactly 2
+            testRapid.message(1).also {
+                it.lesBehov() shouldBe BehovType.HENT_PERSONER
+
+                val data = it.lesData()
+                Key.FNR_LISTE.lesOrNull(Fnr.serializer().set(), data) shouldNotBe null
+            }
+
+            testRapid.sendJson(Mock.apiSteg2(kontekstId))
+
+            // Melding med forventet behov og data sendt for å lagre inntektsmelding
+            testRapid.inspektør.size shouldBeExactly 3
+            testRapid.message(2).also {
+                it.lesBehov() shouldBe BehovType.LAGRE_IM
+
+                val data = it.lesData()
+                val inntektsmelding = Key.INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), data)
+                inntektsmelding shouldNotBe null
+                inntektsmelding?.avsender?.navn shouldBe mockInnsending().kontaktinformasjon
+            }
+        }
     })
 
 private object Mock {
     val skjema = mockSkjemaInntektsmelding()
+    val innsending = mockInnsending()
 
     private val forespoersel = mockForespoersel()
 
@@ -186,5 +229,17 @@ private object Mock {
                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
                 Key.INNTEKTSMELDING to mockInntektsmeldingV1().toJson(Inntektsmelding.serializer()),
             ),
+        )
+
+    fun apiSteg0(kontekstId: UUID): Map<Key, JsonElement> = steg0(kontekstId).plusData(Pair(Key.INNSENDING, innsending.toJson(Innsending.serializer())))
+
+    fun apiSteg1(kontekstId: UUID): Map<Key, JsonElement> =
+        apiSteg0(kontekstId).plusData(
+            Key.VIRKSOMHETER to orgnrMedNavn.toJson(orgMapSerializer),
+        )
+
+    fun apiSteg2(kontekstId: UUID): Map<Key, JsonElement> =
+        apiSteg1(kontekstId).plusData(
+            Key.PERSONER to mapOf(sykmeldt.fnr to sykmeldt).toJson(personMapSerializer),
         )
 }

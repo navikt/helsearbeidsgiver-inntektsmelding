@@ -149,8 +149,9 @@ class BerikInntektsmeldingService(
     ) {
         val orgNavn = steg1.orgnrMedNavn[steg0.forespoersel.orgnr] ?: UKJENT_VIRKSOMHET
         val sykmeldtNavn = steg2.personer[steg0.forespoersel.fnr]?.navn ?: UKJENT_NAVN
-        val avsenderNavn = steg2.personer[steg0.avsenderFnr]?.navn ?: UKJENT_NAVN
-        val aarsakInnsending = if (steg0.forespoersel.erBesvart) AarsakInnsending.Endring else AarsakInnsending.Ny // !!! hmm
+        val avsenderNavn = steg2.personer[steg0.avsenderFnr]?.navn ?: steg0.innsending?.kontaktinformasjon ?: UKJENT_NAVN // API sender ikke avsenderFnr,
+        // sender kontaktinformasjon direkte i Innsending
+        val aarsakInnsending = if (steg0.forespoersel.erBesvart) AarsakInnsending.Endring else AarsakInnsending.Ny // !!! hmm..
 
         val inntektsmelding =
             mapInntektsmelding(

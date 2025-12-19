@@ -168,7 +168,7 @@ class BerikInntektsmeldingServiceTest :
                 val data = it.lesData()
                 val inntektsmelding = Key.INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), data)
                 inntektsmelding shouldNotBe null
-                inntektsmelding?.avsender?.navn shouldBe mockInnsending().kontaktinformasjon
+                inntektsmelding?.avsender?.navn shouldBe mockInnsending().kontaktinfo
             }
         }
     })

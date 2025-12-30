@@ -65,6 +65,7 @@ class LagreJournalpostIdRiver(
                     return null
                 }
             }
+
             is Inntektsmelding.Type.Selvbestemt,
             is Inntektsmelding.Type.Fisker,
             is Inntektsmelding.Type.UtenArbeidsforhold,
@@ -112,6 +113,7 @@ class LagreJournalpostIdRiver(
                 is Inntektsmelding.Type.Forespurt,
                 is Inntektsmelding.Type.ForespurtEkstern,
                 -> Log.forespoerselId(inntektsmelding.type.id)
+
                 is Inntektsmelding.Type.Selvbestemt,
                 is Inntektsmelding.Type.Fisker,
                 is Inntektsmelding.Type.UtenArbeidsforhold,

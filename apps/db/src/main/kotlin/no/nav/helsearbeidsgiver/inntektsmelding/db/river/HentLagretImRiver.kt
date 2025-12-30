@@ -108,10 +108,12 @@ class HentLagretImRiver(
                 logger.info("Fant lagret inntektsmeldingsskjema.")
                 sikkerLogger.info("Fant lagret inntektsmeldingsskjema.\n${lagret.skjema.toJson(SkjemaInntektsmelding.serializer()).toPretty()}")
             }
+
             is LagretInntektsmelding.Ekstern -> {
                 logger.info("Fant lagret ekstern inntektsmelding.")
                 sikkerLogger.info("Fant lagret ekstern inntektsmelding.\n${lagret.ekstern.toJson(EksternInntektsmelding.serializer()).toPretty()}")
             }
+
             null -> {
                 "Fant _ikke_ lagret inntektsmeldingsskjema eller ekstern inntektsmelding.".also {
                     logger.info(it)

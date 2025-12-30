@@ -23,29 +23,78 @@ fun Boolean.tilNorskFormat(): String =
 
 fun RedusertLoennIAgp.Begrunnelse.tilTekst(): String =
     when (this) {
-        RedusertLoennIAgp.Begrunnelse.ArbeidOpphoert -> "Arbeidsforholdet er avsluttet"
-        RedusertLoennIAgp.Begrunnelse.BeskjedGittForSent -> "Beskjed om fravær gitt for sent eller sykmeldingen er ikke sendt i tide"
-        RedusertLoennIAgp.Begrunnelse.BetvilerArbeidsufoerhet -> "Vi betviler at ansatt er ute av stand til å jobbe"
-        RedusertLoennIAgp.Begrunnelse.FerieEllerAvspasering ->
+        RedusertLoennIAgp.Begrunnelse.ArbeidOpphoert -> {
+            "Arbeidsforholdet er avsluttet"
+        }
+
+        RedusertLoennIAgp.Begrunnelse.BeskjedGittForSent -> {
+            "Beskjed om fravær gitt for sent eller sykmeldingen er ikke sendt i tide"
+        }
+
+        RedusertLoennIAgp.Begrunnelse.BetvilerArbeidsufoerhet -> {
+            "Vi betviler at ansatt er ute av stand til å jobbe"
+        }
+
+        RedusertLoennIAgp.Begrunnelse.FerieEllerAvspasering -> {
             "Mindre enn 16 dager siden arbeidet ble gjenopptatt på grunn av lovpålagt ferie eller avspasering"
-        RedusertLoennIAgp.Begrunnelse.FiskerMedHyre -> "Ansatt er fisker med hyre på blad B"
-        RedusertLoennIAgp.Begrunnelse.FravaerUtenGyldigGrunn -> "Ikke lovlig fravær"
-        RedusertLoennIAgp.Begrunnelse.IkkeFravaer -> "Ansatt har ikke hatt fravær fra jobb"
-        RedusertLoennIAgp.Begrunnelse.IkkeFullStillingsandel -> "Ansatt har ikke gjenopptatt full stilling etter forrige arbeidsgiverperiode"
-        RedusertLoennIAgp.Begrunnelse.IkkeLoenn -> "Det er ikke avtale om videre arbeid"
-        RedusertLoennIAgp.Begrunnelse.LovligFravaer -> "Lovlig fravær uten lønn"
-        RedusertLoennIAgp.Begrunnelse.ManglerOpptjening -> "Det er ikke fire ukers opptjeningstid"
-        RedusertLoennIAgp.Begrunnelse.Permittering -> "Ansatt er helt eller delvis permittert"
-        RedusertLoennIAgp.Begrunnelse.Saerregler -> "Ansatt skal være donor eller skal til kontrollundersøkelse som varer i mer enn 24 timer"
-        RedusertLoennIAgp.Begrunnelse.StreikEllerLockout -> "Streik eller lockout"
-        RedusertLoennIAgp.Begrunnelse.TidligereVirksomhet -> "Arbeidsgiverperioden er helt eller delvis gjennomført hos tidligere virksomhet"
+        }
+
+        RedusertLoennIAgp.Begrunnelse.FiskerMedHyre -> {
+            "Ansatt er fisker med hyre på blad B"
+        }
+
+        RedusertLoennIAgp.Begrunnelse.FravaerUtenGyldigGrunn -> {
+            "Ikke lovlig fravær"
+        }
+
+        RedusertLoennIAgp.Begrunnelse.IkkeFravaer -> {
+            "Ansatt har ikke hatt fravær fra jobb"
+        }
+
+        RedusertLoennIAgp.Begrunnelse.IkkeFullStillingsandel -> {
+            "Ansatt har ikke gjenopptatt full stilling etter forrige arbeidsgiverperiode"
+        }
+
+        RedusertLoennIAgp.Begrunnelse.IkkeLoenn -> {
+            "Det er ikke avtale om videre arbeid"
+        }
+
+        RedusertLoennIAgp.Begrunnelse.LovligFravaer -> {
+            "Lovlig fravær uten lønn"
+        }
+
+        RedusertLoennIAgp.Begrunnelse.ManglerOpptjening -> {
+            "Det er ikke fire ukers opptjeningstid"
+        }
+
+        RedusertLoennIAgp.Begrunnelse.Permittering -> {
+            "Ansatt er helt eller delvis permittert"
+        }
+
+        RedusertLoennIAgp.Begrunnelse.Saerregler -> {
+            "Ansatt skal være donor eller skal til kontrollundersøkelse som varer i mer enn 24 timer"
+        }
+
+        RedusertLoennIAgp.Begrunnelse.StreikEllerLockout -> {
+            "Streik eller lockout"
+        }
+
+        RedusertLoennIAgp.Begrunnelse.TidligereVirksomhet -> {
+            "Arbeidsgiverperioden er helt eller delvis gjennomført hos tidligere virksomhet"
+        }
     }
 
 fun String.delOppLangeNavn(): List<String> =
     when {
-        this.length < MAX_LINJELENGDE -> listOf(this)
-        !this.contains(" ") -> this.chunked(MAX_LINJELENGDE)
-        else ->
+        this.length < MAX_LINJELENGDE -> {
+            listOf(this)
+        }
+
+        !this.contains(" ") -> {
+            this.chunked(MAX_LINJELENGDE)
+        }
+
+        else -> {
             this
                 .split(" ")
                 .fold(emptyList()) { result, word ->
@@ -56,6 +105,7 @@ fun String.delOppLangeNavn(): List<String> =
                         result.plus(word)
                     }
                 }
+        }
     }
 
 fun String.formaterTelefonnummer(): String =

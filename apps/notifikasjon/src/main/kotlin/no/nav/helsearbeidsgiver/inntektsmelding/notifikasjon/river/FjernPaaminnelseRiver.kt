@@ -89,7 +89,9 @@ class FjernPaaminnelseRiver(
                     sikkerLogger.warn(it.message)
                 }
 
-                else -> throw it
+                else -> {
+                    throw it
+                }
             }
         }
     }

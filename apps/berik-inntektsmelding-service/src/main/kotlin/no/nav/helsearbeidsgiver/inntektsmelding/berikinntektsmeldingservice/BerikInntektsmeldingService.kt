@@ -245,7 +245,9 @@ class BerikInntektsmeldingService(
         val erAgpForespurt =
             when (imType) {
                 is Inntektsmelding.Type.Forespurt -> imType.erAgpForespurt
+
                 is Inntektsmelding.Type.ForespurtEkstern -> imType.erAgpForespurt
+
                 is Inntektsmelding.Type.Selvbestemt,
                 is Inntektsmelding.Type.Fisker,
                 is Inntektsmelding.Type.UtenArbeidsforhold,

@@ -136,13 +136,8 @@ sealed class ServiceRiver : ObjectRiver.Simba<ServiceMelding>() {
     ): Map<Key, JsonElement>? {
         val feilmelding =
             when (this) {
-                is DataMelding -> {
-                    "Noe gikk galt under håndtering av melding med data."
-                }
-
-                is FailMelding -> {
-                    "Noe gikk galt under håndtering av melding med feil."
-                }
+                is DataMelding -> "Noe gikk galt under håndtering av melding med data."
+                is FailMelding -> "Noe gikk galt under håndtering av melding med feil."
             }
 
         logger.error(feilmelding)

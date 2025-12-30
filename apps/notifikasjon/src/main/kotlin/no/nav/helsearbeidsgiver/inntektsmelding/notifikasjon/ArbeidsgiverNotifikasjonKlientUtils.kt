@@ -58,15 +58,11 @@ object NotifikasjonTekst {
             is Inntektsmelding.Type.ForespurtEkstern,
             is Inntektsmelding.Type.Selvbestemt,
             is Inntektsmelding.Type.Behandlingsdager,
-            -> {
-                "Inntektsmelding for ${sykmeldt.navn}: f. ${sykmeldt.fnr.lesFoedselsdato()}"
-            }
+            -> "Inntektsmelding for ${sykmeldt.navn}: f. ${sykmeldt.fnr.lesFoedselsdato()}"
 
             is Inntektsmelding.Type.UtenArbeidsforhold,
             is Inntektsmelding.Type.Fisker,
-            -> {
-                "Inntektsmelding for Ukjent Navn: f. ${sykmeldt.fnr.lesFoedselsdato()}"
-            }
+            -> "Inntektsmelding for Ukjent Navn: f. ${sykmeldt.fnr.lesFoedselsdato()}"
         }
 
     fun sakTilleggsinfo(sykmeldingsperioder: List<Periode>): String = "Sykmeldingsperiode ${sykmeldingsperioder.tilKortFormat()}"

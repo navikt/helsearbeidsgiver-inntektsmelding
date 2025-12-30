@@ -59,6 +59,7 @@ fun mockInnsending(): Innsending {
                     ),
             ),
         innsendtTid = OffsetDateTime.now(),
+        kontaktinfo = "Ella LPS",
         versjon = 1,
     )
 }

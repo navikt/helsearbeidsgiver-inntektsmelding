@@ -194,14 +194,20 @@ private class InntektsmeldingResult(
 ) {
     fun tilLagretInntektsmelding(): LagretInntektsmelding? =
         when {
-            skjema != null ->
+            skjema != null -> {
                 LagretInntektsmelding.Skjema(
                     avsenderNavn = avsenderNavn,
                     skjema = skjema,
                     mottatt = mottatt,
                 )
+            }
 
-            eksternInntektsmelding != null -> LagretInntektsmelding.Ekstern(eksternInntektsmelding)
-            else -> null
+            eksternInntektsmelding != null -> {
+                LagretInntektsmelding.Ekstern(eksternInntektsmelding)
+            }
+
+            else -> {
+                null
+            }
         }
 }

@@ -294,15 +294,16 @@ private fun Inntektsmelding.hardcodedJson(): String =
 
 private fun Inntektsmelding.Type.hardcodedJson(): String =
     when (this) {
-        is Inntektsmelding.Type.Forespurt ->
+        is Inntektsmelding.Type.Forespurt -> {
             """
             {
                 "type": "Forespurt",
                 "id": "$id"
             }
             """
+        }
 
-        is Inntektsmelding.Type.ForespurtEkstern ->
+        is Inntektsmelding.Type.ForespurtEkstern -> {
             """
             {
                 "type": "ForespurtEkstern",
@@ -310,38 +311,43 @@ private fun Inntektsmelding.Type.hardcodedJson(): String =
                 "avsenderSystem": ${avsenderSystem.hardcodedJson()}
             }
             """
+        }
 
-        is Inntektsmelding.Type.Selvbestemt ->
+        is Inntektsmelding.Type.Selvbestemt -> {
             """
             {
                 "type": "Selvbestemt",
                 "id": "$id"
             }
             """
+        }
 
-        is Inntektsmelding.Type.Fisker ->
+        is Inntektsmelding.Type.Fisker -> {
             """
             {
                 "type": "Fisker",
                 "id": "$id"
             }
             """
+        }
 
-        is Inntektsmelding.Type.UtenArbeidsforhold ->
+        is Inntektsmelding.Type.UtenArbeidsforhold -> {
             """
             {
                 "type": "UtenArbeidsforhold",
                 "id": "$id"
             }
             """
+        }
 
-        is Inntektsmelding.Type.Behandlingsdager ->
+        is Inntektsmelding.Type.Behandlingsdager -> {
             """
             {
                 "type": "Behandlingsdager",
                 "id": "$id"
             }
             """
+        }
     }
 
 private fun Sykmeldt.hardcodedJson(): String =

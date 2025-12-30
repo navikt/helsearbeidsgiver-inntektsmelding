@@ -221,32 +221,41 @@ class PdfDokument(
                 }
 
             when (endringAarsak) {
-                is Bonus, is Feilregistrert, is Nyansatt, is Ferietrekk ->
+                is Bonus, is Feilregistrert, is Nyansatt, is Ferietrekk -> {
                     addLabel(forklaringEndring, endringAarsak.beskrivelse())
+                }
 
-                is Ferie ->
+                is Ferie -> {
                     addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.ferier)
+                }
 
-                is Permisjon ->
+                is Permisjon -> {
                     addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.permisjoner)
+                }
 
-                is Permittering ->
+                is Permittering -> {
                     addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.permitteringer)
+                }
 
-                is Sykefravaer ->
+                is Sykefravaer -> {
                     addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.sykefravaer)
+                }
 
-                is NyStilling ->
+                is NyStilling -> {
                     addNyStilling(forklaringEndring, endringAarsak)
+                }
 
-                is Tariffendring ->
+                is Tariffendring -> {
                     addTariffendring(forklaringEndring, endringAarsak)
+                }
 
-                is VarigLoennsendring ->
+                is VarigLoennsendring -> {
                     addVarigLonnsendring(forklaringEndring, endringAarsak)
+                }
 
-                is NyStillingsprosent ->
+                is NyStillingsprosent -> {
                     addNyStillingsprosent(forklaringEndring, endringAarsak)
+                }
             }
         }
     }

@@ -9,16 +9,15 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 import org.testcontainers.kafka.KafkaContainer
-import org.testcontainers.utility.DockerImageName
-import java.time.Duration
+import org.testcontainers.lifecycle.Startables
 import java.util.Properties
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class ContainerTest {
     private val topic = "helsearbeidsgiver.inntektsmelding"
 
-    private val kafkaContainer = KafkaContainer(DockerImageName.parse("apache/kafka-native:latest")).withStartupTimeout(Duration.ofSeconds(150L))
-    val redisContainer = RedisContainer(DockerImageName.parse("redis:latest"))
+    private val kafkaContainer = KafkaContainer("apache/kafka-native:latest").withStartupAttempts(3)
+    val redisContainer = RedisContainer("redis:latest")
     val postgresContainerOne = postgresContainer()
     val postgresContainerTwo = postgresContainer()
 
@@ -26,22 +25,21 @@ abstract class ContainerTest {
     fun startContainers() {
         println("Starter containerne...")
 
-        println("Starter Kafka...")
+        Startables
+            .deepStart(
+                kafkaContainer,
+                redisContainer,
+                postgresContainerOne,
+                postgresContainerTwo,
+            ).join()
+
         kafkaContainer
-            .also { it.start() }
             .let {
                 Properties().apply {
                     setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, it.bootstrapServers)
                 }
             }.let(AdminClient::create)
             .createTopics(listOf(NewTopic(topic, 1, 1.toShort())))
-
-        println("Starter Redis...")
-        redisContainer.start()
-
-        println("Starter Postgres...")
-        postgresContainerOne.start()
-        postgresContainerTwo.start()
 
         println("Containerne er klare!")
     }

@@ -232,7 +232,10 @@ private object Mock {
             ),
         )
 
-    fun apiSteg0(kontekstId: UUID): Map<Key, JsonElement> = steg0(kontekstId).plusData(Pair(Key.INNSENDING, innsending.toJson(Innsending.serializer())))
+    fun apiSteg0(kontekstId: UUID): Map<Key, JsonElement> =
+        steg0(kontekstId)
+            .plusData(Key.INNSENDING to innsending.toJson(Innsending.serializer()))
+            .minus(Key.ARBEIDSGIVER_FNR)
 
     fun apiSteg1(kontekstId: UUID): Map<Key, JsonElement> =
         apiSteg0(kontekstId).plusData(

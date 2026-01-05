@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.clearAllMocks
@@ -167,8 +168,8 @@ class BerikInntektsmeldingServiceTest :
 
                 val data = it.lesData()
                 val inntektsmelding = Key.INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), data)
-                inntektsmelding shouldNotBe null
-                inntektsmelding?.avsender?.navn shouldBe mockInnsending().kontaktinfo
+                inntektsmelding.shouldNotBeNull()
+                inntektsmelding.avsender.navn shouldBe mockInnsending().kontaktinfo
             }
         }
     })

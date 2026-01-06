@@ -103,7 +103,7 @@ fun mockInntektsmeldingV1(): Inntektsmelding =
         avsender =
             Avsender(
                 orgnr = Orgnr.genererGyldig(),
-                orgNavn = "Skumle bakverk A/S",
+                orgNavn = "Skumle bakverk AS",
                 navn = "Nifs Krumkake",
                 tlf = randomDigitString(8),
             ),

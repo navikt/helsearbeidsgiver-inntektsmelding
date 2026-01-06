@@ -116,17 +116,29 @@ private fun Periode.map(): PeriodeXml =
 
 fun InntektEndringAarsak.tilTekst(): String =
     when (this) {
-        is Bonus -> "Bonus" // Beløp og dato ikke implementert i frontend
+        // Beløp og dato ikke implementert i frontend
+        is Bonus -> "Bonus"
+
         is Feilregistrert -> "Mangelfull eller uriktig rapportering til A-ordningen"
+
         is Ferie -> "Ferie: ${ferier.lesbar()}"
+
         is Ferietrekk -> "Ferietrekk"
+
         is NyStilling -> "Ny stilling: fra $gjelderFra"
+
         is NyStillingsprosent -> "Ny stillingsprosent: fra $gjelderFra"
+
         is Nyansatt -> "Nyansatt"
+
         is Permisjon -> "Permisjon: ${permisjoner.lesbar()}"
+
         is Permittering -> "Permittering: ${permitteringer.lesbar()}"
+
         is Sykefravaer -> "Sykefravær: ${sykefravaer.lesbar()}"
+
         is Tariffendring -> "Tariffendring: fra $gjelderFra"
+
         is VarigLoennsendring -> "Varig lønnsendring: fra $gjelderFra"
     }
 

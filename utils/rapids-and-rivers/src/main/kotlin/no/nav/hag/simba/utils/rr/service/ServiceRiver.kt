@@ -136,11 +136,8 @@ sealed class ServiceRiver : ObjectRiver.Simba<ServiceMelding>() {
     ): Map<Key, JsonElement>? {
         val feilmelding =
             when (this) {
-                is DataMelding ->
-                    "Noe gikk galt under håndtering av melding med data."
-
-                is FailMelding ->
-                    "Noe gikk galt under håndtering av melding med feil."
+                is DataMelding -> "Noe gikk galt under håndtering av melding med data."
+                is FailMelding -> "Noe gikk galt under håndtering av melding med feil."
             }
 
         logger.error(feilmelding)
@@ -152,17 +149,19 @@ sealed class ServiceRiver : ObjectRiver.Simba<ServiceMelding>() {
     final override fun ServiceMelding.loggfelt(): Map<String, String> =
         mapOf(Log.klasse(service)).plus(
             when (this) {
-                is DataMelding ->
+                is DataMelding -> {
                     mapOf(
                         Log.event(eventName),
                         Log.kontekstId(kontekstId),
                     )
+                }
 
-                is FailMelding ->
+                is FailMelding -> {
                     mapOf(
                         Log.event(eventName),
                         Log.kontekstId(kontekstId),
                     )
+                }
             },
         )
 }

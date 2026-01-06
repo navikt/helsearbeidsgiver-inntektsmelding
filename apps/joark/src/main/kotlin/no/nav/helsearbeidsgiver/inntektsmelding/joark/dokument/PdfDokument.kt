@@ -221,32 +221,15 @@ class PdfDokument(
                 }
 
             when (endringAarsak) {
-                is Bonus, is Feilregistrert, is Nyansatt, is Ferietrekk ->
-                    addLabel(forklaringEndring, endringAarsak.beskrivelse())
-
-                is Ferie ->
-                    addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.ferier)
-
-                is Permisjon ->
-                    addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.permisjoner)
-
-                is Permittering ->
-                    addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.permitteringer)
-
-                is Sykefravaer ->
-                    addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.sykefravaer)
-
-                is NyStilling ->
-                    addNyStilling(forklaringEndring, endringAarsak)
-
-                is Tariffendring ->
-                    addTariffendring(forklaringEndring, endringAarsak)
-
-                is VarigLoennsendring ->
-                    addVarigLonnsendring(forklaringEndring, endringAarsak)
-
-                is NyStillingsprosent ->
-                    addNyStillingsprosent(forklaringEndring, endringAarsak)
+                is Bonus, is Feilregistrert, is Nyansatt, is Ferietrekk -> addLabel(forklaringEndring, endringAarsak.beskrivelse())
+                is Ferie -> addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.ferier)
+                is Permisjon -> addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.permisjoner)
+                is Permittering -> addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.permitteringer)
+                is Sykefravaer -> addInntektEndringPerioder(forklaringEndring, endringAarsak.beskrivelse(), endringAarsak.sykefravaer)
+                is NyStilling -> addNyStilling(forklaringEndring, endringAarsak)
+                is Tariffendring -> addTariffendring(forklaringEndring, endringAarsak)
+                is VarigLoennsendring -> addVarigLonnsendring(forklaringEndring, endringAarsak)
+                is NyStillingsprosent -> addNyStillingsprosent(forklaringEndring, endringAarsak)
             }
         }
     }

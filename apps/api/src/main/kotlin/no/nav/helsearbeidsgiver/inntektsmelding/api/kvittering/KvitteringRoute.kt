@@ -78,8 +78,9 @@ fun Route.kvittering(
                                 respondOk(eksternResponse, KvitteringResponse.serializer())
                             }
 
-                            null ->
+                            null -> {
                                 respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId")
+                            }
                         }
                     } else {
                         val feilmelding = resultatJson.failure?.fromJson(String.serializer())

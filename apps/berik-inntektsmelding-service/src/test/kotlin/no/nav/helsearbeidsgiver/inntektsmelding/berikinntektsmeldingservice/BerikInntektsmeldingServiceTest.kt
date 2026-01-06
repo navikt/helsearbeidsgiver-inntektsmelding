@@ -21,6 +21,7 @@ import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.test.json.lesBehov
 import no.nav.hag.simba.utils.felles.test.json.lesData
 import no.nav.hag.simba.utils.felles.test.json.lesEventName
+import no.nav.hag.simba.utils.felles.test.json.minusData
 import no.nav.hag.simba.utils.felles.test.json.plusData
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
 import no.nav.hag.simba.utils.felles.test.mock.mockInnsending
@@ -235,7 +236,7 @@ private object Mock {
     fun apiSteg0(kontekstId: UUID): Map<Key, JsonElement> =
         steg0(kontekstId)
             .plusData(Key.INNSENDING to innsending.toJson(Innsending.serializer()))
-            .minus(Key.ARBEIDSGIVER_FNR)
+            .minusData(Key.ARBEIDSGIVER_FNR)
 
     fun apiSteg1(kontekstId: UUID): Map<Key, JsonElement> =
         apiSteg0(kontekstId).plusData(

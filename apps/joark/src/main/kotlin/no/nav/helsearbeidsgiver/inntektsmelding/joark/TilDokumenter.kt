@@ -46,12 +46,12 @@ fun tilDokumenter(inntektsmelding: Inntektsmelding): List<Dokument> =
 private fun ByteArray.encode(): String = base64.encodeToString(this)
 
 fun Inntektsmelding.tilDokumentbeskrivelse(): String {
-    val arbeidsforhold = tittelTillegg()?.let { " $it" }.orEmpty()
     val agp =
-        this.agp
+        agp
             ?.perioder
             ?.ifEmpty { null }
             ?.tilKortFormat()
-            .orDefault("(ingen agp)")
-    return "Inntektsmelding-$agp$arbeidsforhold"
+            .orDefault("ingen AGP")
+
+    return "${tittel()} – $agp"
 }

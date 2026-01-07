@@ -23,7 +23,7 @@ class TilDokumenterKtTest {
         assertEquals(2, dokumenter[0].dokumentVarianter.size)
         assertEquals("XML", dokumenter[0].dokumentVarianter[0].filtype)
         assertEquals("PDFA", dokumenter[0].dokumentVarianter[1].filtype)
-        assertEquals("Inntektsmelding-05.10.2018 - [...] - 22.10.2018", dokumenter[0].tittel)
+        assertEquals("Inntektsmelding for sykepenger (endring) – 05.10.18–[…]–22.10.18", dokumenter[0].tittel)
     }
 
     @Test
@@ -35,7 +35,7 @@ class TilDokumenterKtTest {
                     20.oktober til 22.oktober,
                 ),
             )
-        assertEquals("Inntektsmelding-04.10.2018 - [...] - 22.10.2018", im.tilDokumentbeskrivelse())
+        assertEquals("Inntektsmelding for sykepenger (endring) – 04.10.18–[…]–22.10.18", im.tilDokumentbeskrivelse())
     }
 
     @Test
@@ -46,13 +46,13 @@ class TilDokumenterKtTest {
                     1.oktober til 16.oktober,
                 ),
             )
-        assertEquals("Inntektsmelding-01.10.2018 - 16.10.2018", im.tilDokumentbeskrivelse())
+        assertEquals("Inntektsmelding for sykepenger (endring) – 01.10.18–16.10.18", im.tilDokumentbeskrivelse())
     }
 
     @Test
     fun `tilDokumentbeskrivelse returnerer forventet med ingen perioder`() {
         val im = mockInntekstmeldingMedPerioder(emptyList())
-        assertEquals("Inntektsmelding-(ingen agp)", im.tilDokumentbeskrivelse())
+        assertEquals("Inntektsmelding for sykepenger (endring) – ingen AGP", im.tilDokumentbeskrivelse())
     }
 
     @Test
@@ -62,16 +62,16 @@ class TilDokumenterKtTest {
 
         listOf(
             Inntektsmelding.Type.Selvbestemt(id) to null,
-            Inntektsmelding.Type.Fisker(id) to " (Fisker m/hyre)",
-            Inntektsmelding.Type.UtenArbeidsforhold(id) to " (Unntatt registrering i Aa-registeret)",
-            Inntektsmelding.Type.Behandlingsdager(id) to " (Behandlingsdager)",
+            Inntektsmelding.Type.Fisker(id) to ", fisker med hyre",
+            Inntektsmelding.Type.UtenArbeidsforhold(id) to ", unntatt registrering i Aa-registeret",
+            Inntektsmelding.Type.Behandlingsdager(id) to ", behandlingsdager",
             Inntektsmelding.Type.Forespurt(id, true) to null,
-            Inntektsmelding.Type.Forespurt(id, false) to " (Arbeidsgiverperiode – ikke forespurt)",
+            Inntektsmelding.Type.Forespurt(id, false) to ", arbeidsgiverperiode – ikke forespurt",
             Inntektsmelding.Type.ForespurtEkstern(id, true, avsenderSystem) to null,
-            Inntektsmelding.Type.ForespurtEkstern(id, false, avsenderSystem) to " (Arbeidsgiverperiode – ikke forespurt)",
+            Inntektsmelding.Type.ForespurtEkstern(id, false, avsenderSystem) to ", arbeidsgiverperiode – ikke forespurt",
         ).forEach { (imType, forventetTillegg) ->
             val beskrivelse = mockInntektsmeldingV1().copy(type = imType).tilDokumentbeskrivelse()
-            val forventetBeskrivelse = "Inntektsmelding-05.10.2018 - [...] - 22.10.2018" + forventetTillegg.orEmpty()
+            val forventetBeskrivelse = "Inntektsmelding for sykepenger (endring${forventetTillegg.orEmpty()}) – 05.10.18–[…]–22.10.18"
             assertEquals(forventetBeskrivelse, beskrivelse)
         }
     }

@@ -14,10 +14,10 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
+import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 
 class TilXmlInntektsmeldingTest {
     @Test
@@ -74,8 +74,8 @@ class TilXmlInntektsmeldingTest {
 
     @Test
     fun `årsak til inntektsendring mappes korrekt`() {
-        val gjelderFra = LocalDate.of(2020, 1, 1)
-        val gjelderTil = LocalDate.of(2020, 1, 3)
+        val gjelderFra = 1.januar(2020)
+        val gjelderTil = 3.januar(2020)
         val tariffendring = Tariffendring(gjelderFra, gjelderFra)
         Assertions.assertEquals("Tariffendring: fra $gjelderFra", tariffendring.tilTekst())
 

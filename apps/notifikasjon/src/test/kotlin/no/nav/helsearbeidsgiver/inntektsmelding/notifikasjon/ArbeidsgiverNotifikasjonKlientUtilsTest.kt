@@ -46,8 +46,8 @@ class ArbeidsgiverNotifikasjonKlientUtilsTest :
         context("Generer riktig periode tekst for oppgave varsel tekst") {
             withData(
                 mapOf(
-                    "en periode" to Pair(listOf(1.januar til 31.januar), "01.01.2018 - 31.01.2018"),
-                    "to perioder" to Pair(listOf(1.januar til 31.januar, 1.februar til 28.februar), "01.01.2018 - [...] - 28.02.2018"),
+                    "en periode" to Pair(listOf(1.januar til 31.januar), "01.01.18–31.01.18"),
+                    "to perioder" to Pair(listOf(1.januar til 31.januar, 1.februar til 28.februar), "01.01.18–[…]–28.02.18"),
                 ),
             ) { (perioder, forventet) ->
                 perioder.tilKortFormat() shouldBe forventet

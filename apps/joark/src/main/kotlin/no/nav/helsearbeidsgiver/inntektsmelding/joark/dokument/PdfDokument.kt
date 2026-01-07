@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Feilregistrert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferie
@@ -16,7 +15,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Permittering
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykefravaer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
-import no.nav.helsearbeidsgiver.inntektsmelding.joark.tittelTillegg
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.tittel
 import no.nav.helsearbeidsgiver.utils.date.tilNorskFormat
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 
@@ -118,20 +117,6 @@ class PdfDokument(
             y = y,
         )
         moveCursorBy(pdf.titleSize * 2)
-    }
-
-    private fun Inntektsmelding.tittel(): String {
-        val endringTillegg =
-            when (inntektsmelding.aarsakInnsending) {
-                AarsakInnsending.Ny -> null
-                AarsakInnsending.Endring -> "– endring"
-            }
-
-        return listOfNotNull(
-            "Inntektsmelding for sykepenger",
-            endringTillegg,
-            tittelTillegg(),
-        ).joinToString(separator = " ")
     }
 
     private fun addAnsatt() {

@@ -24,6 +24,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykefravaer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.AvsenderSystem
+import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.apache.pdfbox.pdmodel.PDDocument
@@ -31,11 +32,10 @@ import org.apache.pdfbox.text.PDFTextStripper
 import org.junit.jupiter.api.Test
 import java.io.File
 import java.io.FileOutputStream
-import java.time.LocalDate
 import java.util.UUID
 
 class PdfDokumentTest {
-    private val dag = LocalDate.of(2022, 12, 24)
+    private val dag = 24.desember(2022)
     private val im = mockInntektsmeldingV1()
     private val endringAarsaker = endringAarsakMap().values.toList()
 
@@ -327,18 +327,19 @@ class PdfDokumentTest {
 
         listOf(
             Inntektsmelding.Type.Selvbestemt(id) to null,
-            Inntektsmelding.Type.Fisker(id) to " (Fisker m/hyre)",
-            Inntektsmelding.Type.UtenArbeidsforhold(id) to " (Unntatt registrering i Aa-registeret)",
-            Inntektsmelding.Type.Behandlingsdager(id) to " (Behandlingsdager)",
+            Inntektsmelding.Type.Fisker(id) to ", fisker med hyre",
+            Inntektsmelding.Type.UtenArbeidsforhold(id) to ", unntatt registrering i Aa-registeret",
+            Inntektsmelding.Type.Behandlingsdager(id) to ", behandlingsdager",
             Inntektsmelding.Type.Forespurt(id, true) to null,
-            Inntektsmelding.Type.Forespurt(id, false) to " (Arbeidsgiverperiode – ikke forespurt)",
+            Inntektsmelding.Type.Forespurt(id, false) to ", arbeidsgiverperiode – ikke forespurt",
             Inntektsmelding.Type.ForespurtEkstern(id, true, avsenderSystem) to null,
-            Inntektsmelding.Type.ForespurtEkstern(id, false, avsenderSystem) to " (Arbeidsgiverperiode – ikke forespurt)",
+            Inntektsmelding.Type.ForespurtEkstern(id, false, avsenderSystem) to ", arbeidsgiverperiode – ikke forespurt",
         ).forEach { (imType, forventetTillegg) ->
             val inntektsmelding = im.copy(type = imType)
             val pdfTekst = pdfTekstFraIm(inntektsmelding)
 
-            val forventetTittel = "Inntektsmelding for sykepenger – endring" + forventetTillegg.orEmpty()
+            val forventetTittel = "Inntektsmelding for sykepenger (endring${forventetTillegg.orEmpty()})"
+
             pdfTekst shouldContain forventetTittel
         }
     }

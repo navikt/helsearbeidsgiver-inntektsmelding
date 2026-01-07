@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.arveAvsender
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -46,7 +47,7 @@ class InnsendingServiceIT : EndToEndTest() {
         val kontekstId: UUID = UUID.randomUUID()
         val tidligereInntektsmelding = mockInntektsmeldingV1()
 
-        imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, 9.desember.atStartOfDay())
+        imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, arveAvsender.navn.fulltNavn(), 9.desember.atStartOfDay())
         imRepository.oppdaterMedInntektsmelding(tidligereInntektsmelding)
 
         mockForespoerselSvarFraHelsebro(

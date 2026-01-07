@@ -8,6 +8,7 @@ import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
 import no.nav.hag.simba.kontrakt.resultat.kvittering.KvitteringResultat
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.valkey.RedisConnection
@@ -132,7 +133,7 @@ private fun lagResponse(
                     Avsender(
                         orgnr = forespoersel.orgnr,
                         orgNavn = orgNavn,
-                        navn = lagret.avsenderNavn ?: "Ukjent navn",
+                        navn = lagret.avsenderNavn ?: Tekst.UKJENT_NAVN,
                         tlf = lagret.skjema.avsenderTlf,
                     ),
                 sykmeldingsperioder = forespoersel.sykmeldingsperioder,

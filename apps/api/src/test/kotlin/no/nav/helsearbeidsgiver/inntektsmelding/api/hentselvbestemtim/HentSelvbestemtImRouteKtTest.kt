@@ -13,6 +13,7 @@ import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
@@ -86,7 +87,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
             val response = get(pathMedId)
             val responseJson = response.bodyAsText()
             val responseIm = responseJson.fromJson(ResultJson.serializer()).success?.fromJson(HentSelvbestemtImResponseSuccess.serializer())
-            responseIm?.selvbestemtInntektsmelding?.sykmeldt?.navn shouldBe "Ukjent navn"
+            responseIm?.selvbestemtInntektsmelding?.sykmeldt?.navn shouldBe Tekst.UKJENT_NAVN
         }
 
     @Test

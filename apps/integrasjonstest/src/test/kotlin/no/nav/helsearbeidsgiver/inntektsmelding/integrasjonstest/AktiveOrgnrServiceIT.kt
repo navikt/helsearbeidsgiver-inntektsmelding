@@ -25,8 +25,8 @@ import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.helsearbeidsgiver.aareg.Periode
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.maxMekker
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.arveAvsender
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.sigridSykmeldt
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
@@ -263,8 +263,8 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             """
             {
                 "success": {
-                    "sykmeldtNavn": "Bjarne Betjent",
-                    "avsenderNavn": "Max Mekker",
+                    "sykmeldtNavn": "${sigridSykmeldt.navn.fulltNavn()}",
+                    "avsenderNavn": "${arveAvsender.navn.fulltNavn()}",
                     "arbeidsgivere": [{"orgnr": "$orgnr", "orgNavn": "$orgNavn"}]
                 }
             }
@@ -274,8 +274,8 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             ResultJson(
                 success =
                     AktiveArbeidsgivere(
-                        sykmeldtNavn = "Bjarne Betjent",
-                        avsenderNavn = "Max Mekker",
+                        sykmeldtNavn = sigridSykmeldt.navn.fulltNavn(),
+                        avsenderNavn = arveAvsender.navn.fulltNavn(),
                         arbeidsgivere = emptyList(),
                     ).toJson(AktiveArbeidsgivere.serializer()),
             ).toJson()
@@ -298,8 +298,8 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         val personer =
             listOf(
-                bjarneBetjent.copy(ident = fnr.verdi),
-                maxMekker.copy(ident = fnrAg.verdi),
+                sigridSykmeldt.copy(ident = fnr.verdi),
+                arveAvsender.copy(ident = fnrAg.verdi),
             )
     }
 }

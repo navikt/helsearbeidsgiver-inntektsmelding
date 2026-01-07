@@ -24,8 +24,8 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.maxMekker
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.arveAvsender
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.sigridSykmeldt
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -54,7 +54,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
     fun `skal berike og lagre inntektsmeldinger`() {
         val tidligereInntektsmelding = mockInntektsmeldingV1()
 
-        imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, 10.desember.atStartOfDay())
+        imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, arveAvsender.navn.fulltNavn(), 10.desember.atStartOfDay())
         imRepository.oppdaterMedInntektsmelding(tidligereInntektsmelding)
 
         coEvery {
@@ -153,7 +153,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
     fun `skal opprette en bakgrunnsjobb som gjenopptar berikelsen av inntektsmeldingen senere dersom oppslaget mot pdl feiler`() {
         val tidligereInntektsmelding = mockInntektsmeldingV1()
 
-        imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, 10.desember.atStartOfDay())
+        imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, arveAvsender.navn.fulltNavn(), 10.desember.atStartOfDay())
         imRepository.oppdaterMedInntektsmelding(tidligereInntektsmelding)
 
         coEvery {
@@ -168,8 +168,8 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
         coEvery { pdlKlient.personBolk(any()) } throws RuntimeException("Fy fasan!") andThen
             listOf(
-                bjarneBetjent,
-                maxMekker,
+                sigridSykmeldt,
+                arveAvsender,
             )
 
         publish(
@@ -303,7 +303,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         val forespoersel =
             Forespoersel(
                 orgnr = orgnr,
-                fnr = bjarneBetjent.ident!!.let(::Fnr),
+                fnr = sigridSykmeldt.ident!!.let(::Fnr),
                 vedtaksperiodeId = UUID.randomUUID(),
                 sykmeldingsperioder =
                     listOf(

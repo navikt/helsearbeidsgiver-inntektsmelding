@@ -23,7 +23,8 @@ import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.arveAvsender
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.sigridSykmeldt
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -131,7 +132,7 @@ class InnsendingIT : EndToEndTest() {
 
     @Test
     fun `skal ikke lagre duplikat inntektsmeldingskjema`() {
-        imRepository.lagreInntektsmeldingSkjema(UUID.randomUUID(), Mock.skjema, 13.august.atStartOfDay())
+        imRepository.lagreInntektsmeldingSkjema(UUID.randomUUID(), Mock.skjema, arveAvsender.navn.fulltNavn(), 13.august.atStartOfDay())
 
         mockForespoerselSvarFraHelsebro(
             forespoerselId = Mock.forespoerselId,
@@ -196,7 +197,7 @@ class InnsendingIT : EndToEndTest() {
         val forespoersel =
             Forespoersel(
                 orgnr = orgnr,
-                fnr = bjarneBetjent.ident!!.let(::Fnr),
+                fnr = sigridSykmeldt.ident!!.let(::Fnr),
                 vedtaksperiodeId = UUID.randomUUID(),
                 sykmeldingsperioder =
                     listOf(

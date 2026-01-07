@@ -2,13 +2,13 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.json.krev
 import no.nav.hag.simba.utils.felles.json.les
+import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.utils.Log
@@ -30,9 +30,10 @@ data class LagreImSkjemaMelding(
     val behovType: BehovType,
     val kontekstId: UUID,
     val data: Map<Key, JsonElement>,
-    val forespoersel: Forespoersel,
     val inntektsmeldingId: UUID,
     val skjema: SkjemaInntektsmelding,
+    /** `null` for ekstern inntektsmelding fra LPS-API. */
+    val avsenderNavn: String?,
     val mottatt: LocalDateTime,
 )
 
@@ -52,9 +53,9 @@ class LagreImSkjemaRiver(
                 behovType = Key.BEHOV.krev(BehovType.LAGRE_IM_SKJEMA, BehovType.serializer(), json),
                 kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
-                forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), data),
                 inntektsmeldingId = Key.INNTEKTSMELDING_ID.les(UuidSerializer, data),
                 skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), data),
+                avsenderNavn = Key.AVSENDER_NAVN.lesOrNull(String.serializer(), data),
                 mottatt = Key.MOTTATT.les(LocalDateTimeSerializer, data),
             )
         }
@@ -64,12 +65,12 @@ class LagreImSkjemaRiver(
     override fun LagreImSkjemaMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val sisteImSkjema = repository.hentNyesteInntektsmeldingSkjema(skjema.forespoerselId)
 
-        val erDuplikat = sisteImSkjema?.erDuplikatAv(skjema, forespoersel) ?: false
+        val erDuplikat = sisteImSkjema?.erDuplikatAv(skjema) ?: false
 
         if (erDuplikat) {
             sikkerLogger.warn("Fant duplikat av inntektsmeldingskjema.")
         } else {
-            repository.lagreInntektsmeldingSkjema(inntektsmeldingId, skjema, mottatt)
+            repository.lagreInntektsmeldingSkjema(inntektsmeldingId, skjema, avsenderNavn, mottatt)
             sikkerLogger.info("Lagret inntektsmeldingskjema.")
         }
 

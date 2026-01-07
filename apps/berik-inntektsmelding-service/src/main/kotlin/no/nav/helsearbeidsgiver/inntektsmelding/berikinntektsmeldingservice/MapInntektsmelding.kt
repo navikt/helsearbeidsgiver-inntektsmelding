@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice
 
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
+import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
@@ -18,7 +19,7 @@ fun mapInntektsmelding(
     aarsakInnsending: AarsakInnsending,
     virksomhetNavn: String,
     sykmeldtNavn: String,
-    avsenderNavn: String,
+    avsenderNavn: String?,
     mottatt: LocalDateTime,
     innsending: Innsending? = null, // TODO: kanskje heller en separat mapping for api-innsending?
 ): Inntektsmelding {
@@ -48,7 +49,7 @@ fun mapInntektsmelding(
             Avsender(
                 orgnr = forespoersel.orgnr,
                 orgNavn = virksomhetNavn,
-                navn = avsenderNavn,
+                navn = avsenderNavn ?: Tekst.UKJENT_NAVN,
                 tlf = skjema.avsenderTlf,
             ),
         sykmeldingsperioder = forespoersel.sykmeldingsperioder,

@@ -14,6 +14,7 @@ import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.arveAvsender
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.desember
@@ -44,7 +45,7 @@ class KvitteringIT : EndToEndTest() {
                 ),
         )
 
-        imRepository.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, mottatt)
+        imRepository.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, arveAvsender.navn.fulltNavn(), mottatt)
         imRepository.oppdaterMedInntektsmelding(inntektsmelding)
 
         publish(

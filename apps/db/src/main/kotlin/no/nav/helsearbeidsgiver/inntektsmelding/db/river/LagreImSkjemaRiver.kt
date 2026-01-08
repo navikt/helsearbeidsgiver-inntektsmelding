@@ -32,7 +32,6 @@ data class LagreImSkjemaMelding(
     val data: Map<Key, JsonElement>,
     val inntektsmeldingId: UUID,
     val skjema: SkjemaInntektsmelding,
-    /** `null` for ekstern inntektsmelding fra LPS-API. */
     val avsenderNavn: String?,
     val mottatt: LocalDateTime,
 )
@@ -55,6 +54,7 @@ class LagreImSkjemaRiver(
                 data = data,
                 inntektsmeldingId = Key.INNTEKTSMELDING_ID.les(UuidSerializer, data),
                 skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), data),
+                // TODO bytt til `les` etter overgangsperiode
                 avsenderNavn = Key.AVSENDER_NAVN.lesOrNull(String.serializer(), data),
                 mottatt = Key.MOTTATT.les(LocalDateTimeSerializer, data),
             )

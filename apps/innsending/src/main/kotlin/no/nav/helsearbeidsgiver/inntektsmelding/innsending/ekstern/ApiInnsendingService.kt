@@ -74,6 +74,7 @@ class ApiInnsendingService(
                             mapOf(
                                 Key.INNTEKTSMELDING_ID to steg0.innsending.innsendingId.toJson(),
                                 Key.SKJEMA_INNTEKTSMELDING to steg0.innsending.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                                Key.AVSENDER_NAVN to steg0.innsending.kontaktinfo.toJson(),
                             ),
                         ).toJson(),
             ).also { loggBehovPublisert(BehovType.LAGRE_IM_SKJEMA, it) }

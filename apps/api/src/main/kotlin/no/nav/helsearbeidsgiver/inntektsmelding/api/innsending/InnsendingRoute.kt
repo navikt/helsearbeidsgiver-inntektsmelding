@@ -67,7 +67,7 @@ fun Route.innsending(
 
                 val avsenderFnr = call.request.lesFnrFraAuthToken()
 
-                producer.sendRequestEvent(kontekstId, avsenderFnr, skjema, mottatt)
+                producer.sendRequestEvent(kontekstId, skjema, avsenderFnr, mottatt)
 
                 val resultatJson = redisPoller.hent(kontekstId)
                 if (resultatJson != null) {
@@ -114,8 +114,8 @@ private suspend fun RoutingContext.lesRequestOrNull(): SkjemaInntektsmelding? =
 
 private fun Producer.sendRequestEvent(
     kontekstId: UUID,
-    arbeidsgiverFnr: Fnr,
     skjema: SkjemaInntektsmelding,
+    arbeidsgiverFnr: Fnr,
     mottatt: LocalDateTime,
 ) {
     send(
@@ -126,8 +126,8 @@ private fun Producer.sendRequestEvent(
                 Key.KONTEKST_ID to kontekstId.toJson(),
                 Key.DATA to
                     mapOf(
-                        Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
                         Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
+                        Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
                         Key.MOTTATT to mottatt.toJson(),
                     ).toJson(),
             ),

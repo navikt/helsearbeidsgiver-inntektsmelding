@@ -14,6 +14,7 @@ enum class Key : IKey {
     // Egendefinerte
     ANSETTELSESPERIODER,
     ARBEIDSGIVER_FNR,
+    AVSENDER_NAVN,
     DATA,
     EKSTERN_INNTEKTSMELDING,
     ER_DUPLIKAT_IM,

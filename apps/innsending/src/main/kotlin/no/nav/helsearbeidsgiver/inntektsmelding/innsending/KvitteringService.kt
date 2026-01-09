@@ -7,6 +7,7 @@ import no.nav.hag.simba.kontrakt.resultat.kvittering.KvitteringResultat
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.domene.Person
 import no.nav.hag.simba.utils.felles.domene.ResultJson
@@ -30,9 +31,6 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
-
-private const val UKJENT_NAVN = "Ukjent navn"
-private const val UKJENT_VIRKSOMHET = "Ukjent virksomhet"
 
 class KvitteringService(
     private val publisher: Publisher,
@@ -169,8 +167,8 @@ class KvitteringService(
         steg2: Steg2,
     ) {
         if (steg2 is Steg2.Komplett) {
-            val sykmeldtNavn = steg2.personer[steg1.forespoersel.fnr]?.navn ?: UKJENT_NAVN
-            val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr] ?: UKJENT_VIRKSOMHET
+            val sykmeldtNavn = steg2.personer[steg1.forespoersel.fnr]?.navn ?: Tekst.UKJENT_NAVN
+            val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr] ?: Tekst.UKJENT_VIRKSOMHET
 
             val resultJson =
                 ResultJson(

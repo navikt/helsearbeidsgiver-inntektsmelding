@@ -5,6 +5,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
 import no.nav.hag.simba.utils.felles.domene.Person
@@ -177,7 +178,7 @@ class LagreSelvbestemtImService(
         if (steg1 is Steg1.Komplett) {
             val sykmeldtNavn = steg1.personer[steg0.skjema.sykmeldtFnr]?.navn.orEmpty()
             val avsenderNavn = steg1.personer[steg0.avsenderFnr]?.navn.orEmpty()
-            val orgNavn = steg1.orgnrMedNavn[steg0.skjema.avsender.orgnr] ?: "Ukjent virksomhet"
+            val orgNavn = steg1.orgnrMedNavn[steg0.skjema.avsender.orgnr] ?: Tekst.UKJENT_VIRKSOMHET
 
             val inntektsmelding =
                 tilInntektsmelding(

@@ -76,24 +76,24 @@ import java.util.UUID
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 
-val bjarneBetjent =
+val sigridSykmeldt =
     FullPerson(
         navn =
             PersonNavn(
-                fornavn = "Bjarne",
+                fornavn = "Sigrid",
                 mellomnavn = null,
-                etternavn = "Betjent",
+                etternavn = "Sykmeldt",
             ),
         foedselsdato = 28.mai,
         ident = Fnr.genererGyldig().verdi,
     )
-val maxMekker =
+val arveAvsender =
     FullPerson(
         navn =
             PersonNavn(
-                fornavn = "Max",
+                fornavn = "Arve",
                 mellomnavn = null,
-                etternavn = "Mekker",
+                etternavn = "Avsender",
             ),
         foedselsdato = 6.august,
         ident = Fnr.genererGyldig().verdi,
@@ -173,7 +173,11 @@ abstract class EndToEndTest : ContainerTest() {
         imTestRapid.reset()
         clearAllMocks()
 
-        coEvery { pdlKlient.personBolk(any()) } returns listOf(bjarneBetjent, maxMekker)
+        coEvery { pdlKlient.personBolk(any()) } answers {
+            listOf(sigridSykmeldt, arveAvsender).filter {
+                it.ident in firstArg<List<String>>()
+            }
+        }
 
         val orgnr = slot<Set<String>>()
         coEvery { brregClient.hentOrganisasjonNavn(capture(orgnr)) } answers {

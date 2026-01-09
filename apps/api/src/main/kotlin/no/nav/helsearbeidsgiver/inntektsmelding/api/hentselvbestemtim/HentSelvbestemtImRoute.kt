@@ -6,6 +6,7 @@ import io.ktor.server.routing.get
 import kotlinx.serialization.builtins.serializer
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.Log
@@ -90,7 +91,7 @@ fun Route.hentSelvbestemtImRoute(
 
 private fun Inntektsmelding.fjernNavnHvisIngenArbeidsforhold() =
     if (type is Inntektsmelding.Type.Fisker || type is Inntektsmelding.Type.UtenArbeidsforhold) {
-        copy(sykmeldt = sykmeldt.copy(navn = "Ukjent navn"))
+        copy(sykmeldt = sykmeldt.copy(navn = Tekst.UKJENT_NAVN))
     } else {
         this
     }

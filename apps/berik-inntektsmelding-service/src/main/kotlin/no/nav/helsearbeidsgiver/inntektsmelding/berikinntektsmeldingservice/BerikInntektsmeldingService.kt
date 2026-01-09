@@ -6,6 +6,7 @@ import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.domene.Person
 import no.nav.hag.simba.utils.felles.json.les
@@ -33,16 +34,17 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDateTime
 import java.util.UUID
 
-private const val UKJENT_NAVN = "Ukjent navn"
-private const val UKJENT_VIRKSOMHET = "Ukjent virksomhet"
-
 data class Steg0(
     val kontekstId: UUID,
+    // TODO fjern etter overgangsperiode
     val avsenderFnr: Fnr?, // TODO: trenger ikke nullable når / om vi lager egen service for API-innsendt
     val forespoersel: Forespoersel,
     val inntektsmeldingId: UUID,
     val skjema: SkjemaInntektsmelding,
-    val innsending: Innsending?, // TODO: Kan dele opp API-innsending-berik i egen service
+    // TODO: Kan dele opp API-innsending-berik i egen service
+    val innsending: Innsending?,
+    /** `null` for ekstern inntektsmelding fra LPS-API. */
+    val avsenderNavn: String?,
     val mottatt: LocalDateTime,
 )
 
@@ -75,6 +77,7 @@ class BerikInntektsmeldingService(
             inntektsmeldingId = Key.INNTEKTSMELDING_ID.les(UuidSerializer, melding),
             skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding),
             innsending = Key.INNSENDING.lesOrNull(Innsending.serializer(), melding),
+            avsenderNavn = Key.AVSENDER_NAVN.lesOrNull(String.serializer(), melding),
             mottatt = Key.MOTTATT.les(LocalDateTimeSerializer, melding),
         )
 
@@ -132,7 +135,7 @@ class BerikInntektsmeldingService(
                             mapOf(
                                 Key.SVAR_KAFKA_KEY to KafkaKey(steg0.skjema.forespoerselId).toJson(),
                                 Key.FNR_LISTE to
-                                    listOfNotNull(
+                                    setOfNotNull(
                                         steg0.forespoersel.fnr,
                                         steg0.avsenderFnr,
                                     ).toJson(Fnr.serializer()),
@@ -147,10 +150,10 @@ class BerikInntektsmeldingService(
         steg1: Steg1,
         steg2: Steg2,
     ) {
-        val orgNavn = steg1.orgnrMedNavn[steg0.forespoersel.orgnr] ?: UKJENT_VIRKSOMHET
-        val sykmeldtNavn = steg2.personer[steg0.forespoersel.fnr]?.navn ?: UKJENT_NAVN
+        val orgNavn = steg1.orgnrMedNavn[steg0.forespoersel.orgnr] ?: Tekst.UKJENT_VIRKSOMHET
+        val sykmeldtNavn = steg2.personer[steg0.forespoersel.fnr]?.navn ?: Tekst.UKJENT_NAVN
         // LPS-API har ikke avsenderFnr, sender i stedet kontaktinfo direkte i Innsending.kontaktinfo
-        val avsenderNavn = steg2.personer[steg0.avsenderFnr]?.navn ?: steg0.innsending?.kontaktinfo ?: UKJENT_NAVN
+        val avsenderNavn = steg2.personer[steg0.avsenderFnr]?.navn ?: steg0.avsenderNavn ?: steg0.innsending?.kontaktinfo
         val aarsakInnsending = if (steg0.forespoersel.erBesvart) AarsakInnsending.Endring else AarsakInnsending.Ny // !!! hmm..
 
         val inntektsmelding =

@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import kotlinx.coroutines.runBlocking
+import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.domene.Person
 import no.nav.hag.simba.utils.felles.utils.tilKortFormat
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
@@ -52,18 +53,22 @@ object NotifikasjonTekst {
     fun sakTittel(
         inntektsmeldingType: Inntektsmelding.Type,
         sykmeldt: Person,
-    ): String =
-        when (inntektsmeldingType) {
-            is Inntektsmelding.Type.Forespurt,
-            is Inntektsmelding.Type.ForespurtEkstern,
-            is Inntektsmelding.Type.Selvbestemt,
-            is Inntektsmelding.Type.Behandlingsdager,
-            -> "Inntektsmelding for ${sykmeldt.navn}: f. ${sykmeldt.fnr.lesFoedselsdato()}"
+    ): String {
+        val navn =
+            when (inntektsmeldingType) {
+                is Inntektsmelding.Type.Forespurt,
+                is Inntektsmelding.Type.ForespurtEkstern,
+                is Inntektsmelding.Type.Selvbestemt,
+                is Inntektsmelding.Type.Behandlingsdager,
+                -> sykmeldt.navn
 
-            is Inntektsmelding.Type.UtenArbeidsforhold,
-            is Inntektsmelding.Type.Fisker,
-            -> "Inntektsmelding for Ukjent Navn: f. ${sykmeldt.fnr.lesFoedselsdato()}"
-        }
+                is Inntektsmelding.Type.UtenArbeidsforhold,
+                is Inntektsmelding.Type.Fisker,
+                -> Tekst.UKJENT_NAVN
+            }
+
+        return "Inntektsmelding for $navn: f. ${sykmeldt.fnr.lesFoedselsdato()}"
+    }
 
     fun sakTilleggsinfo(sykmeldingsperioder: List<Periode>): String = "Sykmeldingsperiode ${sykmeldingsperioder.tilKortFormat()}"
 

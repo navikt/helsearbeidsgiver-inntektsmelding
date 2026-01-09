@@ -368,7 +368,7 @@ private object Mock {
 
     fun failureResult(feilmelding: String): ResultJson =
         ResultJson(
-            failure = feilmelding.toJson(String.serializer()),
+            failure = feilmelding.toJson(),
         )
 
     fun emptyResult(): ResultJson = ResultJson()

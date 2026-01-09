@@ -7,13 +7,17 @@ import no.nav.hag.simba.kontrakt.resultat.lagreim.LagreImError
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.domene.Fail
+import no.nav.hag.simba.utils.felles.domene.Person
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.les
+import no.nav.hag.simba.utils.felles.json.personMapSerializer
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.Log
+import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.Publisher
-import no.nav.hag.simba.utils.rr.service.ServiceMed2Steg
+import no.nav.hag.simba.utils.rr.service.ServiceMed3Steg
 import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
@@ -29,8 +33,8 @@ import java.util.UUID
 
 data class Steg0(
     val kontekstId: UUID,
-    val avsenderFnr: Fnr,
     val skjema: SkjemaInntektsmelding,
+    val avsenderFnr: Fnr,
     val mottatt: LocalDateTime,
 )
 
@@ -39,6 +43,10 @@ data class Steg1(
 )
 
 data class Steg2(
+    val personer: Map<Fnr, Person>,
+)
+
+data class Steg3(
     val inntektsmeldingId: UUID,
     val erDuplikat: Boolean,
 )
@@ -46,7 +54,7 @@ data class Steg2(
 class InnsendingService(
     private val publisher: Publisher,
     private val redisStore: RedisStore,
-) : ServiceMed2Steg<Steg0, Steg1, Steg2>() {
+) : ServiceMed3Steg<Steg0, Steg1, Steg2, Steg3>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
@@ -67,6 +75,11 @@ class InnsendingService(
 
     override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 =
         Steg2(
+            personer = Key.PERSONER.les(personMapSerializer, melding),
+        )
+
+    override fun lesSteg3(melding: Map<Key, JsonElement>): Steg3 =
+        Steg3(
             inntektsmeldingId = Key.INNTEKTSMELDING_ID.les(UuidSerializer, melding),
             erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
         )
@@ -93,8 +106,32 @@ class InnsendingService(
         steg0: Steg0,
         steg1: Steg1,
     ) {
+        publisher
+            .publish(
+                key = steg0.skjema.forespoerselId,
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
+                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
+                Key.DATA to
+                    data
+                        .plus(
+                            mapOf(
+                                Key.SVAR_KAFKA_KEY to KafkaKey(steg0.skjema.forespoerselId).toJson(),
+                                Key.FNR_LISTE to setOf(steg0.avsenderFnr).toJson(Fnr.serializer()),
+                            ),
+                        ).toJson(),
+            ).also { loggBehovPublisert(BehovType.HENT_PERSONER, it) }
+    }
+
+    override fun utfoerSteg2(
+        data: Map<Key, JsonElement>,
+        steg0: Steg0,
+        steg1: Steg1,
+        steg2: Steg2,
+    ) {
         // Oppretter unik ID for hver inntektsmelding
         val inntektsmeldingId = UUID.randomUUID()
+        val avsenderNavn = steg2.personer[steg0.avsenderFnr]?.navn ?: Tekst.UKJENT_NAVN
 
         val agp = steg0.skjema.agp
         if (agp == null ||
@@ -109,7 +146,10 @@ class InnsendingService(
                     Key.DATA to
                         data
                             .plus(
-                                Key.INNTEKTSMELDING_ID to inntektsmeldingId.toJson(),
+                                mapOf(
+                                    Key.INNTEKTSMELDING_ID to inntektsmeldingId.toJson(),
+                                    Key.AVSENDER_NAVN to avsenderNavn.toJson(),
+                                ),
                             ).toJson(),
                 ).also { loggBehovPublisert(BehovType.LAGRE_IM_SKJEMA, it) }
         } else {
@@ -130,11 +170,12 @@ class InnsendingService(
         }
     }
 
-    override fun utfoerSteg2(
+    override fun utfoerSteg3(
         data: Map<Key, JsonElement>,
         steg0: Steg0,
         steg1: Steg1,
         steg2: Steg2,
+        steg3: Steg3,
     ) {
         val resultJson =
             ResultJson(
@@ -143,7 +184,9 @@ class InnsendingService(
 
         redisStore.skrivResultat(steg0.kontekstId, resultJson)
 
-        if (!steg2.erDuplikat) {
+        if (!steg3.erDuplikat) {
+            val avsenderNavn = steg2.personer[steg0.avsenderFnr]?.navn ?: Tekst.UKJENT_NAVN
+
             val publisert =
                 publisher.publish(
                     key = steg0.skjema.forespoerselId,
@@ -151,10 +194,12 @@ class InnsendingService(
                     Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
+                            // TODO fjern etter overgangsperiode
                             Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
                             Key.FORESPOERSEL_SVAR to steg1.forespoersel.toJson(),
-                            Key.INNTEKTSMELDING_ID to steg2.inntektsmeldingId.toJson(),
+                            Key.INNTEKTSMELDING_ID to steg3.inntektsmeldingId.toJson(),
                             Key.SKJEMA_INNTEKTSMELDING to steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                            Key.AVSENDER_NAVN to avsenderNavn.toJson(),
                             Key.MOTTATT to steg0.mottatt.toJson(),
                         ).toJson(),
                 )

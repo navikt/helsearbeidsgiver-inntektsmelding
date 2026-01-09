@@ -16,6 +16,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
 import no.nav.hag.simba.utils.felles.domene.Person
 import no.nav.hag.simba.utils.felles.domene.ResultJson
@@ -301,7 +302,7 @@ class LagreSelvbestemtImServiceTest :
                             ),
                         avsender =
                             it.avsender.copy(
-                                orgNavn = "Ukjent virksomhet",
+                                orgNavn = Tekst.UKJENT_VIRKSOMHET,
                                 navn = "",
                             ),
                         aarsakInnsending = AarsakInnsending.Endring,

@@ -194,8 +194,6 @@ class InnsendingService(
                     Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                     Key.DATA to
                         mapOf(
-                            // TODO fjern etter overgangsperiode
-                            Key.ARBEIDSGIVER_FNR to steg0.avsenderFnr.toJson(),
                             Key.FORESPOERSEL_SVAR to steg1.forespoersel.toJson(),
                             Key.INNTEKTSMELDING_ID to steg3.inntektsmeldingId.toJson(),
                             Key.SKJEMA_INNTEKTSMELDING to steg0.skjema.toJson(SkjemaInntektsmelding.serializer()),

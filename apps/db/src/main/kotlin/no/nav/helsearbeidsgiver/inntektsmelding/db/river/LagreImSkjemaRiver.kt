@@ -8,7 +8,6 @@ import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.json.krev
 import no.nav.hag.simba.utils.felles.json.les
-import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.utils.Log
@@ -32,7 +31,7 @@ data class LagreImSkjemaMelding(
     val data: Map<Key, JsonElement>,
     val inntektsmeldingId: UUID,
     val skjema: SkjemaInntektsmelding,
-    val avsenderNavn: String?,
+    val avsenderNavn: String,
     val mottatt: LocalDateTime,
 )
 
@@ -54,8 +53,7 @@ class LagreImSkjemaRiver(
                 data = data,
                 inntektsmeldingId = Key.INNTEKTSMELDING_ID.les(UuidSerializer, data),
                 skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), data),
-                // TODO bytt til `les` etter overgangsperiode
-                avsenderNavn = Key.AVSENDER_NAVN.lesOrNull(String.serializer(), data),
+                avsenderNavn = Key.AVSENDER_NAVN.les(String.serializer(), data),
                 mottatt = Key.MOTTATT.les(LocalDateTimeSerializer, data),
             )
         }

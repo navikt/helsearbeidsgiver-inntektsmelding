@@ -29,7 +29,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
-import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.kl
@@ -69,17 +68,11 @@ class LagreImSkjemaRiverTest :
         context("inntektsmeldingskjema lagres") {
             withData(
                 mapOf(
-                    "hvis ingen andre inntektsmeldingskjemaer er mottatt" to Pair(true, null),
-                    "hvis ikke duplikat av siste inntektsmeldingskjema" to Pair(true, inntektsmeldingSkjemaMedEndredeEgenmeldinger),
-                    "selv om avsendernavn er 'null'" to Pair(false, null),
+                    "hvis ingen andre inntektsmeldingskjemaer er mottatt" to null,
+                    "hvis ikke duplikat av siste inntektsmeldingskjema" to inntektsmeldingSkjemaMedEndredeEgenmeldinger,
                 ),
-            ) { (medAvsenderNavn, eksisterendeInntektsmeldingSkjema) ->
-                val innkommendeMelding =
-                    if (medAvsenderNavn) {
-                        innkommendeMelding()
-                    } else {
-                        innkommendeMelding(avsenderNavn = null)
-                    }
+            ) { eksisterendeInntektsmeldingSkjema ->
+                val innkommendeMelding = innkommendeMelding()
 
                 every { mockInntektsmeldingRepo.hentNyesteInntektsmeldingSkjema(any()) } returns eksisterendeInntektsmeldingSkjema
                 every { mockInntektsmeldingRepo.lagreInntektsmeldingSkjema(any(), any(), any(), any()) } just Runs
@@ -96,11 +89,10 @@ class LagreImSkjemaRiverTest :
                             mapOf(
                                 Key.INNTEKTSMELDING_ID to innkommendeMelding.inntektsmeldingId.toJson(),
                                 Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.skjema.toJson(SkjemaInntektsmelding.serializer()),
-                                Key.AVSENDER_NAVN to innkommendeMelding.avsenderNavn?.toJson(),
+                                Key.AVSENDER_NAVN to innkommendeMelding.avsenderNavn.toJson(),
                                 Key.MOTTATT to innkommendeMelding.mottatt.toJson(),
                                 Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
-                            ).mapValuesNotNull { it }
-                                .toJson(),
+                            ).toJson(),
                     )
 
                 verifySequence {
@@ -133,11 +125,10 @@ class LagreImSkjemaRiverTest :
                         mapOf(
                             Key.INNTEKTSMELDING_ID to innkommendeMelding.inntektsmeldingId.toJson(),
                             Key.SKJEMA_INNTEKTSMELDING to innkommendeMelding.skjema.toJson(SkjemaInntektsmelding.serializer()),
-                            Key.AVSENDER_NAVN to innkommendeMelding.avsenderNavn?.toJson(),
+                            Key.AVSENDER_NAVN to innkommendeMelding.avsenderNavn.toJson(),
                             Key.MOTTATT to innkommendeMelding.mottatt.toJson(),
                             Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
-                        ).mapValuesNotNull { it }
-                            .toJson(),
+                        ).toJson(),
                 )
 
             verifySequence {
@@ -205,9 +196,10 @@ class LagreImSkjemaRiverTest :
         }
     })
 
-private fun innkommendeMelding(avsenderNavn: String? = "Sheik Ben Redic Fy Fazan"): LagreImSkjemaMelding {
+private fun innkommendeMelding(): LagreImSkjemaMelding {
     val inntektsmeldingId = UUID.randomUUID()
     val skjema = mockSkjemaInntektsmelding()
+    val avsenderNavn = "Sheik Ben Redic Fy Fazan"
     val mottatt = 10.november.kl(13, 55, 0, 0)
 
     return LagreImSkjemaMelding(
@@ -218,9 +210,9 @@ private fun innkommendeMelding(avsenderNavn: String? = "Sheik Ben Redic Fy Fazan
             mapOf(
                 Key.INNTEKTSMELDING_ID to inntektsmeldingId.toJson(),
                 Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
-                Key.AVSENDER_NAVN to avsenderNavn?.toJson(),
+                Key.AVSENDER_NAVN to avsenderNavn.toJson(),
                 Key.MOTTATT to mottatt.toJson(),
-            ).mapValuesNotNull { it },
+            ),
         inntektsmeldingId = inntektsmeldingId,
         skjema = skjema,
         avsenderNavn = avsenderNavn,

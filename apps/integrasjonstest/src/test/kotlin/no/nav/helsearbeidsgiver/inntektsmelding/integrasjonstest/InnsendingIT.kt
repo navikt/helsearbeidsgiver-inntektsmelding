@@ -70,8 +70,8 @@ class InnsendingIT : EndToEndTest() {
             Key.KONTEKST_ID to UUID.randomUUID().toJson(),
             Key.DATA to
                 mapOf(
-                    Key.ARBEIDSGIVER_FNR to Fnr.genererGyldig().toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                    Key.ARBEIDSGIVER_FNR to Fnr.genererGyldig().toJson(),
                     Key.MOTTATT to Mock.mottatt.toJson(),
                 ).toJson(),
         )
@@ -144,9 +144,8 @@ class InnsendingIT : EndToEndTest() {
             Key.KONTEKST_ID to UUID.randomUUID().toJson(),
             Key.DATA to
                 mapOf(
-                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                    Key.ARBEIDSGIVER_FNR to Fnr.genererGyldig().toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                    Key.ARBEIDSGIVER_FNR to Fnr.genererGyldig().toJson(),
                     Key.MOTTATT to Mock.mottatt.toJson(),
                 ).toJson(),
         )

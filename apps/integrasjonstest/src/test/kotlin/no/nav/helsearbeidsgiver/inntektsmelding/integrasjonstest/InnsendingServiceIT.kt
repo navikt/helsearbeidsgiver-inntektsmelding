@@ -24,6 +24,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.arveAvsender
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
@@ -83,9 +84,8 @@ class InnsendingServiceIT : EndToEndTest() {
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.FORESPOERSEL_ID to Mock.skjema.forespoerselId.toJson(),
-                    Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to nyInnsending.toJson(SkjemaInntektsmelding.serializer()),
+                    Key.ARBEIDSGIVER_FNR to arveAvsender.ident.shouldNotBeNull().toJson(),
                     Key.MOTTATT to Mock.mottatt.toJson(),
                 ).toJson(),
         )
@@ -126,10 +126,6 @@ class InnsendingServiceIT : EndToEndTest() {
                         .shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
-                    data[Key.ARBEIDSGIVER_FNR]
-                        .shouldNotBeNull()
-                        .fromJson(Fnr.serializer())
-
                     data[Key.FORESPOERSEL_SVAR]
                         .shouldNotBeNull()
                         .fromJson(Forespoersel.serializer())
@@ -141,6 +137,14 @@ class InnsendingServiceIT : EndToEndTest() {
                     data[Key.SKJEMA_INNTEKTSMELDING]
                         .shouldNotBeNull()
                         .fromJson(SkjemaInntektsmelding.serializer())
+
+                    data[Key.AVSENDER_NAVN]
+                        .shouldNotBeNull()
+                        .fromJson(String.serializer())
+
+                    data[Key.MOTTATT]
+                        .shouldNotBeNull()
+                        .fromJson(LocalDateTimeSerializer)
                 }
             }
 
@@ -175,7 +179,6 @@ class InnsendingServiceIT : EndToEndTest() {
         val skjema = mockSkjemaInntektsmelding()
 
         val orgnr = Orgnr.genererGyldig()
-        val fnrAg = Fnr.genererGyldig()
         val vedtaksperiodeId: UUID = UUID.randomUUID()
         val mottatt = 6.september.kl(22, 18, 0, 0)
 

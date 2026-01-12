@@ -2,7 +2,6 @@ package no.nav.hag.simba.kontrakt.domene.forespoersel.test
 
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.domene.forespoersel.ForespurtData
-import no.nav.hag.simba.kontrakt.domene.forespoersel.ForslagRefusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -40,30 +39,18 @@ fun Forespoersel.utenPaakrevdAGP(): Forespoersel =
             ),
     )
 
-fun Forespoersel.utenPaakrevdInntekt(): Forespoersel =
-    copy(
-        forespurtData =
-            forespurtData.copy(
-                inntekt =
-                    ForespurtData.Inntekt(
-                        paakrevd = false,
-                        forslag = null,
-                    ),
+fun mockForespurtData(): ForespurtData =
+    ForespurtData(
+        arbeidsgiverperiode =
+            ForespurtData.Arbeidsgiverperiode(
+                paakrevd = true,
             ),
-    )
-
-fun Forespoersel.utenPaakrevdRefusjon(): Forespoersel =
-    copy(
-        forespurtData =
-            forespurtData.copy(
-                refusjon =
-                    ForespurtData.Refusjon(
-                        paakrevd = false,
-                        forslag =
-                            ForslagRefusjon(
-                                perioder = emptyList(),
-                                opphoersdato = null,
-                            ),
-                    ),
+        inntekt =
+            ForespurtData.Inntekt(
+                paakrevd = true,
+            ),
+        refusjon =
+            ForespurtData.Refusjon(
+                paakrevd = true,
             ),
     )

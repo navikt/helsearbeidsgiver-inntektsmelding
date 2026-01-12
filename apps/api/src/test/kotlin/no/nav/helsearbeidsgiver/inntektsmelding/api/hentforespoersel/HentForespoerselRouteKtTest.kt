@@ -13,11 +13,7 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.domene.forespoersel.ForespurtData
-import no.nav.hag.simba.kontrakt.domene.forespoersel.ForrigeInntekt
-import no.nav.hag.simba.kontrakt.domene.forespoersel.ForslagInntekt
-import no.nav.hag.simba.kontrakt.domene.forespoersel.ForslagRefusjon
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespurtData
-import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespurtDataMedForrigeInntekt
 import no.nav.hag.simba.kontrakt.resultat.forespoersel.HentForespoerselResultat
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
@@ -108,30 +104,6 @@ class HentForespoerselRouteKtTest : ApiTest() {
                         },
                 )
             }
-        }
-
-    @Test
-    fun `henter forespørsel med forslag til forrige inntekt`() =
-        testApi {
-            val resultatMedForrigeInntekt =
-                Mock.resultat
-                    .copy(
-                        forespoersel =
-                            Mock.forespoersel.copy(
-                                forespurtData = mockForespurtDataMedForrigeInntekt(),
-                            ),
-                    )
-
-            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
-                listOf(
-                    harTilgangResultat,
-                    resultatMedForrigeInntekt.tilSuksess(),
-                )
-
-            val response = get(pathMedId)
-
-            response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe resultatMedForrigeInntekt.tilResponseJson()
         }
 
     @Test
@@ -299,44 +271,10 @@ private fun ForespurtData.hardcodedJson(): String =
             "paakrevd": ${arbeidsgiverperiode.paakrevd}
         },
         "inntekt": {
-            "paakrevd": ${inntekt.paakrevd},
-            "forslag": ${inntekt.forslag?.hardcodedJson()}
+            "paakrevd": ${inntekt.paakrevd}
         },
         "refusjon": {
-            "paakrevd": ${refusjon.paakrevd},
-            "forslag": ${refusjon.forslag.hardcodedJson()}
+            "paakrevd": ${refusjon.paakrevd}
         }
-    }
-    """
-
-private fun ForslagInntekt.hardcodedJson(): String =
-    """
-    {
-        "forrigeInntekt": ${forrigeInntekt?.hardcodedJson()}
-    }
-    """
-
-private fun ForrigeInntekt.hardcodedJson(): String =
-    """
-    {
-        "skjæringstidspunkt": "$skjæringstidspunkt",
-        "kilde": "$kilde",
-        "beløp": $beløp
-    }
-    """
-
-private fun ForslagRefusjon.hardcodedJson(): String =
-    """
-    {
-        "perioder": [${perioder.joinToString(transform = ForslagRefusjon.Periode::hardcodedJson)}],
-        "opphoersdato": ${opphoersdato.jsonStrOrNull()}
-    }
-    """
-
-private fun ForslagRefusjon.Periode.hardcodedJson(): String =
-    """
-    {
-        "fom": "$fom",
-        "beloep": $beloep
     }
     """

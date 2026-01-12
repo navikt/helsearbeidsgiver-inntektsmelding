@@ -72,7 +72,6 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             Key.KONTEKST_ID to Mock.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
                     Key.FORESPOERSEL_SVAR to Mock.forespoersel.toJson(),
                     Key.INNTEKTSMELDING_ID to UUID.randomUUID().toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
@@ -177,7 +176,6 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             Key.KONTEKST_ID to Mock.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
                     Key.FORESPOERSEL_SVAR to Mock.forespoersel.toJson(),
                     Key.INNTEKTSMELDING_ID to UUID.randomUUID().toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
@@ -291,7 +289,6 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         }
 
     private object Mock {
-        val fnrAg = Fnr.genererGyldig()
         val orgnr = Orgnr.genererGyldig()
         val kontekstId: UUID = UUID.randomUUID()
         val mottatt = 19.august.kl(19, 5, 0, 0)

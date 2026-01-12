@@ -39,7 +39,6 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.date.november
-import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
@@ -181,12 +180,6 @@ private object Mock {
 
     private val forespoersel = mockForespoersel()
 
-    private val avsender =
-        Person(
-            fnr = Fnr.genererGyldig(),
-            navn = "Skrue McDuck",
-        )
-
     private val sykmeldt =
         Person(
             fnr = forespoersel.fnr,
@@ -197,7 +190,6 @@ private object Mock {
 
     private val personer =
         mapOf(
-            avsender.fnr to avsender,
             sykmeldt.fnr to sykmeldt,
         )
 
@@ -207,10 +199,10 @@ private object Mock {
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
                     Key.FORESPOERSEL_SVAR to forespoersel.toJson(),
                     Key.INNTEKTSMELDING_ID to UUID.randomUUID().toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
+                    Key.AVSENDER_NAVN to "Skrue McDuck".toJson(),
                     Key.MOTTATT to 13.november.kl(15, 10, 0, 0).toJson(),
                 ).toJson(),
         )
@@ -235,8 +227,9 @@ private object Mock {
 
     fun apiSteg0(kontekstId: UUID): Map<Key, JsonElement> =
         steg0(kontekstId)
-            .plusData(Key.INNSENDING to innsending.toJson(Innsending.serializer()))
-            .minusData(Key.ARBEIDSGIVER_FNR)
+            .plusData(
+                Key.INNSENDING to innsending.toJson(Innsending.serializer()),
+            ).minusData(Key.AVSENDER_NAVN)
 
     fun apiSteg1(kontekstId: UUID): Map<Key, JsonElement> =
         apiSteg0(kontekstId).plusData(

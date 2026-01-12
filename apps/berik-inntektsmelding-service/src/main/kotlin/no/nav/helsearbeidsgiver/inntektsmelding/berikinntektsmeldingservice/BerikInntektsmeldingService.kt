@@ -36,8 +36,6 @@ import java.util.UUID
 
 data class Steg0(
     val kontekstId: UUID,
-    // TODO fjern etter overgangsperiode
-    val avsenderFnr: Fnr?, // TODO: trenger ikke nullable når / om vi lager egen service for API-innsendt
     val forespoersel: Forespoersel,
     val inntektsmeldingId: UUID,
     val skjema: SkjemaInntektsmelding,
@@ -72,7 +70,6 @@ class BerikInntektsmeldingService(
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
             kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
-            avsenderFnr = Key.ARBEIDSGIVER_FNR.lesOrNull(Fnr.serializer(), melding),
             forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding),
             inntektsmeldingId = Key.INNTEKTSMELDING_ID.les(UuidSerializer, melding),
             skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding),
@@ -134,11 +131,7 @@ class BerikInntektsmeldingService(
                         .plus(
                             mapOf(
                                 Key.SVAR_KAFKA_KEY to KafkaKey(steg0.skjema.forespoerselId).toJson(),
-                                Key.FNR_LISTE to
-                                    setOfNotNull(
-                                        steg0.forespoersel.fnr,
-                                        steg0.avsenderFnr,
-                                    ).toJson(Fnr.serializer()),
+                                Key.FNR_LISTE to setOf(steg0.forespoersel.fnr).toJson(Fnr.serializer()),
                             ),
                         ).toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_PERSONER, it) }
@@ -152,8 +145,8 @@ class BerikInntektsmeldingService(
     ) {
         val orgNavn = steg1.orgnrMedNavn[steg0.forespoersel.orgnr] ?: Tekst.UKJENT_VIRKSOMHET
         val sykmeldtNavn = steg2.personer[steg0.forespoersel.fnr]?.navn ?: Tekst.UKJENT_NAVN
-        // LPS-API har ikke avsenderFnr, sender i stedet kontaktinfo direkte i Innsending.kontaktinfo
-        val avsenderNavn = steg2.personer[steg0.avsenderFnr]?.navn ?: steg0.avsenderNavn ?: steg0.innsending?.kontaktinfo
+        // IM fra LPS-API har avsendernavn i eget felt
+        val avsenderNavn = steg0.avsenderNavn ?: steg0.innsending?.kontaktinfo ?: Tekst.UKJENT_NAVN
         val aarsakInnsending = if (steg0.forespoersel.erBesvart) AarsakInnsending.Endring else AarsakInnsending.Ny // !!! hmm..
 
         val inntektsmelding =

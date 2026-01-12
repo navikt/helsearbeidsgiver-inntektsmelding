@@ -143,13 +143,13 @@ class InntektsmeldingRepositoryTest :
                 val skjema = mockSkjemaInntektsmelding()
                 val mottatt = 9.desember.atStartOfDay()
 
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, null, mottatt)
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, AVSENDER_NAVN, mottatt)
 
                 val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(skjema.forespoerselId)
 
                 lagret shouldBe
                     LagretInntektsmelding.Skjema(
-                        avsenderNavn = null,
+                        avsenderNavn = AVSENDER_NAVN,
                         skjema = skjema,
                         mottatt = mottatt,
                     )
@@ -168,7 +168,7 @@ class InntektsmeldingRepositoryTest :
 
                 lagret shouldBe
                     LagretInntektsmelding.Skjema(
-                        avsenderNavn = inntektsmelding.avsender.navn,
+                        avsenderNavn = AVSENDER_NAVN,
                         skjema = skjema,
                         mottatt = mottatt,
                     )
@@ -256,30 +256,6 @@ class InntektsmeldingRepositoryTest :
                 record.getOrNull(InntektsmeldingEntitet.inntektsmelding) shouldBe null
                 record.getOrNull(InntektsmeldingEntitet.eksternInntektsmelding) shouldBe null
                 record.getOrNull(InntektsmeldingEntitet.avsenderNavn) shouldBe AVSENDER_NAVN
-                record.getOrNull(InntektsmeldingEntitet.journalpostId) shouldBe null
-                record.getOrNull(InntektsmeldingEntitet.innsendt) shouldBe mottatt
-                record.getOrNull(InntektsmeldingEntitet.prosessert) shouldBe null
-            }
-
-            test("lagrer inntektsmeldingsskjema uten avsendernavn") {
-                transaction {
-                    InntektsmeldingEntitet.selectAll().toList()
-                }.shouldBeEmpty()
-
-                val inntektsmeldingId = UUID.randomUUID()
-                val skjema = mockSkjemaInntektsmelding()
-                val mottatt = 11.januar.atStartOfDay()
-
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId, skjema, null, mottatt)
-
-                val record = testRepo.hentRecordFraInntektsmelding(skjema.forespoerselId).shouldNotBeNull()
-
-                record.getOrNull(InntektsmeldingEntitet.inntektsmeldingId) shouldBe inntektsmeldingId
-                record.getOrNull(InntektsmeldingEntitet.forespoerselId) shouldBe skjema.forespoerselId
-                record.getOrNull(InntektsmeldingEntitet.skjema) shouldBe skjema
-                record.getOrNull(InntektsmeldingEntitet.inntektsmelding) shouldBe null
-                record.getOrNull(InntektsmeldingEntitet.eksternInntektsmelding) shouldBe null
-                record.getOrNull(InntektsmeldingEntitet.avsenderNavn) shouldBe null
                 record.getOrNull(InntektsmeldingEntitet.journalpostId) shouldBe null
                 record.getOrNull(InntektsmeldingEntitet.innsendt) shouldBe mottatt
                 record.getOrNull(InntektsmeldingEntitet.prosessert) shouldBe null
@@ -380,7 +356,7 @@ class InntektsmeldingRepositoryTest :
                 record.getOrNull(InntektsmeldingEntitet.skjema) shouldBe skjema
                 record.getOrNull(InntektsmeldingEntitet.inntektsmelding) shouldBe inntektsmelding
                 record.getOrNull(InntektsmeldingEntitet.eksternInntektsmelding) shouldBe null
-                record.getOrNull(InntektsmeldingEntitet.avsenderNavn) shouldBe inntektsmelding.avsender.navn
+                record.getOrNull(InntektsmeldingEntitet.avsenderNavn) shouldBe AVSENDER_NAVN
                 record.getOrNull(InntektsmeldingEntitet.journalpostId) shouldBe null
                 record.getOrNull(InntektsmeldingEntitet.innsendt) shouldBe mottatt
                 record.getOrNull(InntektsmeldingEntitet.prosessert) shouldBe null

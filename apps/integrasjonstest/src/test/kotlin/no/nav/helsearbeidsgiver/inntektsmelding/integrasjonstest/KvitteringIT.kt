@@ -68,7 +68,7 @@ class KvitteringIT : EndToEndTest() {
                 success.shouldNotBeNull()
                 success.fromJson(LagretInntektsmelding.serializer()) shouldBe
                     LagretInntektsmelding.Skjema(
-                        avsenderNavn = inntektsmelding.avsender.navn,
+                        avsenderNavn = arveAvsender.navn.fulltNavn(),
                         skjema = skjema,
                         mottatt = mottatt,
                     )

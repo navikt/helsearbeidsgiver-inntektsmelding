@@ -90,7 +90,6 @@ class InnsendingServiceTest :
                 Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
 
                 val data = it[Key.DATA]?.toMap().orEmpty()
-                Key.ARBEIDSGIVER_FNR.lesOrNull(Fnr.serializer(), data) shouldBe Mock.avsender.fnr
                 Key.FORESPOERSEL_SVAR.lesOrNull(Forespoersel.serializer(), data).shouldNotBeNull()
                 Key.SKJEMA_INNTEKTSMELDING.lesOrNull(SkjemaInntektsmelding.serializer(), data) shouldBe skjema
                 Key.INNTEKTSMELDING_ID.lesOrNull(UuidSerializer, data).shouldNotBeNull()
@@ -226,8 +225,8 @@ private object Mock {
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
-                    Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
                     Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
+                    Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
                     Key.MOTTATT to 15.august.kl(12, 0, 0, 0).toJson(),
                 ).toJson(),
         )

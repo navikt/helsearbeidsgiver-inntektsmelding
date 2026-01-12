@@ -90,7 +90,7 @@ class InntektsmeldingRepository(
     fun lagreInntektsmeldingSkjema(
         inntektsmeldingId: UUID,
         inntektsmeldingSkjema: SkjemaInntektsmelding,
-        avsenderNavn: String?,
+        avsenderNavn: String,
         mottatt: LocalDateTime,
     ) {
         transaction(db) {
@@ -126,7 +126,6 @@ class InntektsmeldingRepository(
                     where = { InntektsmeldingEntitet.inntektsmeldingId eq inntektsmelding.id },
                 ) {
                     it[this.inntektsmelding] = inntektsmelding
-                    it[avsenderNavn] = inntektsmelding.avsender.navn
                 }
             }
 

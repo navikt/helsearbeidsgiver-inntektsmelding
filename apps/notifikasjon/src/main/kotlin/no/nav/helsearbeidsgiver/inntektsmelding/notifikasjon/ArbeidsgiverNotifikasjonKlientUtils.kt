@@ -18,8 +18,8 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 import kotlin.time.Duration.Companion.days
 
-// 13x30 dager
-val sakLevetid = 390.days
+/** 2x365 dager */
+val sakLevetid = 730.days
 val sakUtgaattLevetid = 90.days
 
 private val logger = "arbeidsgiver-notifikasjon-klient-utils".logger()

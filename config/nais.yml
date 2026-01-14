@@ -49,8 +49,10 @@ spec:
     autoInstrumentation:
       enabled: true
       runtime: java
+  {{ #if tokenxEnabled}}
   tokenx:
-    enabled: { { #if tokenxEnabled}}true{{else}}false{{/if}}
+    enabled: {{ tokenxEnabled}}
+  {{/if}}
   {{#if ingress}}
   ingresses:
     - {{ ingress }}

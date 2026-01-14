@@ -39,8 +39,6 @@ spec:
     path: /isalive
   readiness:
     path: /isready
-  secureLogs:
-    enabled: true
   observability:
     logging:
       destinations:

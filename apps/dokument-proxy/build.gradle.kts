@@ -16,6 +16,7 @@ dependencies {
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
+
     implementation(project(":utils-auth"))
 
     testImplementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")

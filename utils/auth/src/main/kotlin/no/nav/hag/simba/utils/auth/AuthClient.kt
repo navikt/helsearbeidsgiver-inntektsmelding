@@ -65,7 +65,7 @@ class AuthClient {
             e.logAndRethrow()
         }
 
-    internal suspend fun introspect(
+    suspend fun introspect(
         provider: IdentityProvider,
         accessToken: String,
     ): TokenIntrospectionResponse =

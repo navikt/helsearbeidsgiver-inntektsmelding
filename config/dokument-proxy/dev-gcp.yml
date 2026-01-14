@@ -1,0 +1,4 @@
+idportenEnabled: true
+tokenxEnabled: true
+ingress: https://dokument-proxy.ekstern.dev.nav.no
+

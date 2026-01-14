@@ -6,7 +6,7 @@ import kotlinx.serialization.json.JsonNames
 
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
-internal data class TokenResponse(
+data class TokenResponse(
     @JsonNames("access_token")
     val accessToken: String,
     @JsonNames("expires_in")
@@ -14,14 +14,14 @@ internal data class TokenResponse(
 )
 
 @Serializable
-internal data class TokenIntrospectionResponse(
+data class TokenIntrospectionResponse(
     val active: Boolean,
     val error: String? = null,
 )
 
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
-internal data class ErrorResponse(
+data class ErrorResponse(
     val error: String,
     @JsonNames("error_description")
     val errorDescription: String,

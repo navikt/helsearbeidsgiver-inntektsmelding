@@ -43,7 +43,6 @@ spec:
     logging:
       destinations:
         - id: loki
-        - id: secure_logs
     autoInstrumentation:
       enabled: true
       runtime: java

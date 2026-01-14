@@ -22,6 +22,7 @@ fun AuthenticationConfig.texas(
 ) {
     register(TexasAuthenticationProvider.Config(name).apply(configure).build())
 }
+
 class TexasAuthenticationProvider(
     config: Config,
 ) : AuthenticationProvider(config) {
@@ -30,14 +31,14 @@ class TexasAuthenticationProvider(
     ) : AuthenticationProvider.Config(name) {
         lateinit var client: AuthClient
         var logger: Logger = logger()
-        //var ingress: String = ""
+        // var ingress: String = ""
 
         internal fun build() = TexasAuthenticationProvider(this)
     }
 
     private val client = config.client
     private val logger = config.logger
-    //private val ingress = config.ingress
+    // private val ingress = config.ingress
 
     override suspend fun onAuthenticate(context: AuthenticationContext) {
         val applicationCall = context.call
@@ -75,7 +76,6 @@ class TexasAuthenticationProvider(
         )
     }
 
-
     private fun AuthenticationContext.loginChallenge(cause: AuthenticationFailedCause) {
         challenge("Texas", cause) { authenticationProcedureChallenge, call ->
             val target = call.loginUrl()
@@ -91,15 +91,15 @@ class TexasAuthenticationProvider(
      */
     private fun ApplicationCall.loginUrl(): String {
         val host =
-    //        ingress.ifEmpty(defaultValue = {
-                "${this.request.local.scheme}://${this.request.host()}"
-      //      })
+            //        ingress.ifEmpty(defaultValue = {
+            "${this.request.local.scheme}://${this.request.host()}"
+        //      })
 
         return "$host/oauth2/login?redirect=${this.request.uri}"
     }
 }
 
 data class TexasPrincipal(
-    //val claims: Map<String, Any?>,TODO skal claims være definert her?
+    // val claims: Map<String, Any?>,TODO skal claims være definert her?
     val token: String,
 )

@@ -51,7 +51,7 @@ spec:
       runtime: java
   {{ #if tokenxEnabled}}
   tokenx:
-    enabled: {{ tokenxEnabled}}
+    enabled: {{ tokenxEnabled }}
   {{/if}}
   {{#if ingress}}
   ingresses:

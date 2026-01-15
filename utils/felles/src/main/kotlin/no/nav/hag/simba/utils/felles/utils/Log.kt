@@ -2,6 +2,7 @@ package no.nav.hag.simba.utils.felles.utils
 
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import java.util.UUID
 
 object Log {
@@ -22,4 +23,11 @@ object Log {
     fun selvbestemtId(value: UUID) = "hag_selvbestemt_id" to value.toString()
 
     fun apiRoute(value: String) = "hag_api_route" to value
+
+    fun inntektsmeldingTypeId(type: Inntektsmelding.Type) =
+        if (type.erForespurt()) {
+            forespoerselId(type.id)
+        } else {
+            selvbestemtId(type.id)
+        }
 }

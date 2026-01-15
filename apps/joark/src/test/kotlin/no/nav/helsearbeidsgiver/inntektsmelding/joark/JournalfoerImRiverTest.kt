@@ -19,6 +19,7 @@ import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
+import no.nav.hag.simba.utils.felles.test.mock.mockAvsenderSystem
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
 import no.nav.hag.simba.utils.felles.test.mock.randomDigitString
@@ -31,11 +32,8 @@ import no.nav.helsearbeidsgiver.dokarkiv.domene.GjelderPerson
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Kanal
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.AvsenderSystem
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
 import java.util.UUID
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender as KlientAvsender
@@ -211,12 +209,7 @@ private object Mock {
             type =
                 Inntektsmelding.Type.ForespurtEkstern(
                     id = UUID.randomUUID(),
-                    _avsenderSystem =
-                        AvsenderSystem(
-                            orgnr = Orgnr.genererGyldig(),
-                            navn = "Slapp Tiger",
-                            versjon = "8.8.8",
-                        ),
+                    _avsenderSystem = mockAvsenderSystem(),
                 ),
         )
 

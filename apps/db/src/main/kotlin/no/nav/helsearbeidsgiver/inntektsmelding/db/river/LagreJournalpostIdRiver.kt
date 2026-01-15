@@ -10,6 +10,7 @@ import no.nav.hag.simba.utils.felles.json.les
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toPretty
 import no.nav.hag.simba.utils.felles.utils.Log
+import no.nav.hag.simba.utils.felles.utils.erForespurt
 import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
@@ -53,26 +54,18 @@ class LagreJournalpostIdRiver(
         logger.info("Mottok melding.")
         sikkerLogger.info("Mottok melding:\n${json.toPretty()}")
 
-        when (inntektsmelding.type) {
-            is Inntektsmelding.Type.Forespurt, is Inntektsmelding.Type.ForespurtEkstern -> {
-                imRepo.oppdaterMedJournalpostId(inntektsmelding.id, journalpostId)
+        if (inntektsmelding.type.erForespurt()) {
+            imRepo.oppdaterMedJournalpostId(inntektsmelding.id, journalpostId)
 
-                if (imRepo.hentNyesteInntektsmeldingId(inntektsmelding.type.id) != inntektsmelding.id) {
-                    "Inntektsmelding journalført, men ikke distribuert pga. nyere innsending.".also {
-                        logger.info(it)
-                        sikkerLogger.info(it)
-                    }
-                    return null
+            if (imRepo.hentNyesteInntektsmeldingId(inntektsmelding.type.id) != inntektsmelding.id) {
+                "Inntektsmelding journalført, men ikke distribuert pga. nyere innsending.".also {
+                    logger.info(it)
+                    sikkerLogger.info(it)
                 }
+                return null
             }
-
-            is Inntektsmelding.Type.Selvbestemt,
-            is Inntektsmelding.Type.Fisker,
-            is Inntektsmelding.Type.UtenArbeidsforhold,
-            is Inntektsmelding.Type.Behandlingsdager,
-            -> {
-                selvbestemtImRepo.oppdaterJournalpostId(inntektsmelding.id, journalpostId)
-            }
+        } else {
+            selvbestemtImRepo.oppdaterJournalpostId(inntektsmelding.id, journalpostId)
         }
 
         return mapOf(
@@ -109,16 +102,6 @@ class LagreJournalpostIdRiver(
             Log.event(eventName),
             Log.kontekstId(kontekstId),
             Log.inntektsmeldingId(inntektsmelding.id),
-            when (inntektsmelding.type) {
-                is Inntektsmelding.Type.Forespurt,
-                is Inntektsmelding.Type.ForespurtEkstern,
-                -> Log.forespoerselId(inntektsmelding.type.id)
-
-                is Inntektsmelding.Type.Selvbestemt,
-                is Inntektsmelding.Type.Fisker,
-                is Inntektsmelding.Type.UtenArbeidsforhold,
-                is Inntektsmelding.Type.Behandlingsdager,
-                -> Log.selvbestemtId(inntektsmelding.type.id)
-            },
+            Log.inntektsmeldingTypeId(inntektsmelding.type),
         )
 }

@@ -18,6 +18,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.hag.simba.utils.auth.AuthClient
+import no.nav.hag.simba.utils.auth.IdentityProvider
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -77,6 +78,7 @@ fun Application.apiModule(authClient: AuthClient) {
                         call.respond(HttpStatusCode.Unauthorized, "missing principal")
                         return@get
                     }
+                    val tokenxToken = authClient.exchange(IdentityProvider.TOKEN_X, Env.lpsApiScope,principal.token)
                     call.respond("")
                 }
             }

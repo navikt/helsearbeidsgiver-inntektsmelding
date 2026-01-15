@@ -13,6 +13,7 @@ import io.mockk.mockk
 import no.nav.hag.simba.utils.auth.AuthClient
 import no.nav.hag.simba.utils.auth.IdentityProvider
 import no.nav.hag.simba.utils.auth.TokenIntrospectionResponse
+import no.nav.hag.simba.utils.auth.TokenResponse
 import org.junit.jupiter.api.Test
 
 class AppTest {
@@ -84,6 +85,8 @@ class AppTest {
         mockk<AuthClient>().apply {
             coEvery { introspect(IdentityProvider.IDPORTEN, any()) } returns
                 TokenIntrospectionResponse(active = true)
+            coEvery { exchange(IdentityProvider.TOKEN_X, any(), any()) } returns
+                TokenResponse(accessToken = "exchanged-token", expiresInSeconds = 3600)
         }
 
     private fun mockUgyldigToken(): AuthClient =

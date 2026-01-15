@@ -1,4 +1,6 @@
 idportenEnabled: true
 tokenxEnabled: true
 ingress: https://dokument-proxy.ekstern.dev.nav.no
-
+env:
+  - name: LPS_API_SCOPE
+    value: api://dev-gcp.fager.arbeidsgiver-altinn-tilganger/.default

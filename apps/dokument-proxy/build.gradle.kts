@@ -4,8 +4,7 @@ val tokenSupportVersion: String by project
 
 tasks {
     test {
-        environment("IDPORTEN_WELL_KNOWN_URL", "http://localhost:6666/idporten-issuer/.well-known/openid-configuration")
-        environment("IDPORTEN_AUDIENCE", "aud-localhost")
+        environment("LPS_API_SCOPE", "api://dev-gcp.helsearbeidsgiver.sykepenger-im-lps-api/.default")
     }
 }
 

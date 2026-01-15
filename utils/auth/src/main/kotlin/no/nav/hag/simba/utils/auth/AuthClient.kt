@@ -45,7 +45,7 @@ class AuthClient {
             e.logAndRethrow()
         }
 
-    internal suspend fun exchange(
+    suspend fun exchange(
         provider: IdentityProvider,
         target: String,
         userToken: String,

@@ -136,17 +136,18 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
 }
 
 fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(
-    nyLenke: String,
-    forespoerselId: UUID,
+    nyLenke: String?,
+    inntektsmeldingTypeId: UUID,
 ) {
     runBlocking {
         runCatching {
             nyStatusSakByGrupperingsid(
-                grupperingsid = forespoerselId.toString(),
+                grupperingsid = inntektsmeldingTypeId.toString(),
                 merkelapp = NotifikasjonTekst.MERKELAPP,
                 status = SaksStatus.FERDIG,
                 statusTekst = NotifikasjonTekst.STATUS_TEKST_FERDIG,
                 nyLenke = nyLenke,
+                hardDeleteOm = sakLevetid,
             )
         }.onFailure { error ->
             loggWarnIkkeFunnetEllerThrow("Fant ikke sak under ferdigstilling.", error)

@@ -21,6 +21,7 @@ import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
+import no.nav.hag.simba.utils.felles.utils.erForespurt
 import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
@@ -64,16 +65,10 @@ class OppdaterImSomProsessertRiverTest :
                     testRapid.inspektør.size shouldBeExactly 0
 
                     verifySequence {
-                        when (inntektsmelding.type) {
-                            is Inntektsmelding.Type.Forespurt,
-                            is Inntektsmelding.Type.ForespurtEkstern,
-                            -> mockImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
-
-                            is Inntektsmelding.Type.Selvbestemt,
-                            is Inntektsmelding.Type.Fisker,
-                            is Inntektsmelding.Type.UtenArbeidsforhold,
-                            is Inntektsmelding.Type.Behandlingsdager,
-                            -> mockSelvbestemtImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
+                        if (inntektsmelding.type.erForespurt()) {
+                            mockImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
+                        } else {
+                            mockSelvbestemtImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
                         }
                     }
                 }
@@ -98,16 +93,10 @@ class OppdaterImSomProsessertRiverTest :
                     testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
                     verifySequence {
-                        when (inntektsmelding.type) {
-                            is Inntektsmelding.Type.Forespurt,
-                            is Inntektsmelding.Type.ForespurtEkstern,
-                            -> mockImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
-
-                            is Inntektsmelding.Type.Selvbestemt,
-                            is Inntektsmelding.Type.Fisker,
-                            is Inntektsmelding.Type.UtenArbeidsforhold,
-                            is Inntektsmelding.Type.Behandlingsdager,
-                            -> mockSelvbestemtImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
+                        if (inntektsmelding.type.erForespurt()) {
+                            mockImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
+                        } else {
+                            mockSelvbestemtImRepo.oppdaterSomProsessert(innkommendeMelding.inntektsmelding.id)
                         }
                     }
                 }

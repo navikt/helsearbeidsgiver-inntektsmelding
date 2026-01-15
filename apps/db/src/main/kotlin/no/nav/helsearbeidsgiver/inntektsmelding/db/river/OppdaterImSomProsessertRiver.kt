@@ -7,6 +7,7 @@ import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.json.krev
 import no.nav.hag.simba.utils.felles.json.les
 import no.nav.hag.simba.utils.felles.utils.Log
+import no.nav.hag.simba.utils.felles.utils.erForespurt
 import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
@@ -44,16 +45,10 @@ class OppdaterImSomProsessertRiver(
     override fun OppdaterImSomProsessertMelding.bestemNoekkel(): KafkaKey = KafkaKey(inntektsmelding.type.id)
 
     override fun OppdaterImSomProsessertMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
-        when (inntektsmelding.type) {
-            is Inntektsmelding.Type.Forespurt,
-            is Inntektsmelding.Type.ForespurtEkstern,
-            -> imRepo.oppdaterSomProsessert(inntektsmelding.id)
-
-            is Inntektsmelding.Type.Selvbestemt,
-            is Inntektsmelding.Type.Fisker,
-            is Inntektsmelding.Type.UtenArbeidsforhold,
-            is Inntektsmelding.Type.Behandlingsdager,
-            -> selvbestemtImRepo.oppdaterSomProsessert(inntektsmelding.id)
+        if (inntektsmelding.type.erForespurt()) {
+            imRepo.oppdaterSomProsessert(inntektsmelding.id)
+        } else {
+            selvbestemtImRepo.oppdaterSomProsessert(inntektsmelding.id)
         }
 
         return null
@@ -82,16 +77,6 @@ class OppdaterImSomProsessertRiver(
             Log.event(eventName),
             Log.kontekstId(kontekstId),
             Log.inntektsmeldingId(inntektsmelding.id),
-            when (inntektsmelding.type) {
-                is Inntektsmelding.Type.Forespurt,
-                is Inntektsmelding.Type.ForespurtEkstern,
-                -> Log.forespoerselId(inntektsmelding.type.id)
-
-                is Inntektsmelding.Type.Selvbestemt,
-                is Inntektsmelding.Type.Fisker,
-                is Inntektsmelding.Type.UtenArbeidsforhold,
-                is Inntektsmelding.Type.Behandlingsdager,
-                -> Log.selvbestemtId(inntektsmelding.type.id)
-            },
+            Log.inntektsmeldingTypeId(inntektsmelding.type),
         )
 }

@@ -51,12 +51,7 @@ fun mockInnsending(): Innsending {
         type =
             Inntektsmelding.Type.ForespurtEkstern(
                 id = skjema.forespoerselId,
-                _avsenderSystem =
-                    AvsenderSystem(
-                        orgnr = Orgnr.genererGyldig(),
-                        navn = "Tigersys",
-                        versjon = "3.0.0",
-                    ),
+                _avsenderSystem = mockAvsenderSystem(),
             ),
         innsendtTid = OffsetDateTime.now(),
         kontaktinfo = "Ella LPS",
@@ -188,4 +183,11 @@ fun mockRefusjon(): Refusjon =
                     startdato = 30.november,
                 ),
             ),
+    )
+
+fun mockAvsenderSystem(): AvsenderSystem =
+    AvsenderSystem(
+        orgnr = Orgnr.genererGyldig(),
+        navn = "Slapp Tiger",
+        versjon = "8.8.8",
     )

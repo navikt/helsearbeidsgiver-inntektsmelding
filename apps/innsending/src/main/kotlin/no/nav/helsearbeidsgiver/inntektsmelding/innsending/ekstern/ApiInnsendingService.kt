@@ -95,6 +95,7 @@ class ApiInnsendingService(
                         mapOf(
                             Key.FORESPOERSEL_SVAR to steg0.forespoersel.toJson(),
                             Key.INNTEKTSMELDING_ID to steg1.inntektsmeldingId.toJson(),
+                            // hvis fjernes, oppdater FerdigstillSakOgOppgaveRiver
                             Key.SKJEMA_INNTEKTSMELDING to steg0.innsending.skjema.toJson(SkjemaInntektsmelding.serializer()), // fjern
                             Key.MOTTATT to steg0.mottatt.toJson(),
                             Key.INNSENDING to steg0.innsending.toJson(Innsending.serializer()),

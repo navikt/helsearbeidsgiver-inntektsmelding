@@ -9,7 +9,6 @@ import java.util.UUID
 
 class InntektsmeldingUtilsKtTest :
     FunSpec({
-
         context(Inntektsmelding.Type::erForespurt.name) {
             withData(
                 nameFn = { it.first::class.simpleName!! },

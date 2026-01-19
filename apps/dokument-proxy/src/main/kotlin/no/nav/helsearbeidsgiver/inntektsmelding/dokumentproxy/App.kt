@@ -22,6 +22,7 @@ import no.nav.hag.simba.utils.auth.IdentityProvider
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
 
 val logger = "helsearbeidsgiver-im-dokument-proxy".logger()
 val sikkerLogger = sikkerLogger()
@@ -34,14 +35,17 @@ fun main() {
     embeddedServer(
         factory = Netty,
         port = 8080,
-        module = { apiModule(AuthClient()) },
+        module = { apiModule(AuthClient(), PdfClient()) },
     ).apply {
         addShutdownHook {
         }
     }.start(wait = true)
 }
 
-fun Application.apiModule(authClient: AuthClient) {
+fun Application.apiModule(
+    authClient: AuthClient,
+    pdfClient: PdfClient = PdfClient(),
+) {
     install(ContentNegotiation) {
         json(jsonConfig)
     }
@@ -71,15 +75,47 @@ fun Application.apiModule(authClient: AuthClient) {
 
         authenticate {
             route(Routes.PREFIX) {
-                get("pdf") {
-                    logger.info("pdf request received")
-                    val principal = call.principal<TexasPrincipal>()
-                    if (principal == null) {
-                        call.respond(HttpStatusCode.Unauthorized, "missing principal")
+                get("sykmelding/{uuid}.pdf") {
+                    val uuidParam = call.parameters["uuid"]
+                    if (uuidParam == null) {
+                        call.respond(HttpStatusCode.BadRequest, "mangler sykmelding id")
                         return@get
                     }
-                    val tokenxToken = authClient.exchange(IdentityProvider.TOKEN_X, Env.lpsApiScope,principal.token)
-                    call.respond("")
+
+                    val uuid =
+                        try {
+                            UUID.fromString(uuidParam)
+                        } catch (_e: IllegalArgumentException) {
+                            call.respond(HttpStatusCode.BadRequest, "ugyldig sykmelding id")
+                            return@get
+                        }
+
+                    logger.info("pdf request received for uuid: $uuid")
+                    val principal = call.principal<TexasPrincipal>()
+                    if (principal == null) {
+                        call.respond(HttpStatusCode.Unauthorized, "mangler gyldig token")
+                        return@get
+                    }
+
+                    val tokenxToken = authClient.exchange(IdentityProvider.TOKEN_X, Env.lpsApiScope, principal.token)
+
+                    when (val pdfResponse = pdfClient.genererPDF(uuid, tokenxToken.accessToken)) {
+                        is PdfResponse.Success -> {
+                            call.response.headers.append("Content-Type", "application/pdf")
+                            call.response.headers.append("Content-Disposition", "inline; filename=\"sykmelding-$uuid.pdf\"")
+                            call.respond(pdfResponse.pdf)
+                        }
+
+                        is PdfResponse.Unauthorized -> {
+                            logger.warn("Unauthorized/Forbidden when fetching PDF for uuid: $uuid, status: ${pdfResponse.status}")
+                            call.respond(pdfResponse.status, "Ikke autorisert til å hente PDF")
+                        }
+
+                        is PdfResponse.Failure -> {
+                            logger.error("Failed to fetch PDF for uuid: $uuid, status: ${pdfResponse.status}")
+                            call.respond(pdfResponse.status, "Kunne ikke hente PDF")
+                        }
+                    }
                 }
             }
         }

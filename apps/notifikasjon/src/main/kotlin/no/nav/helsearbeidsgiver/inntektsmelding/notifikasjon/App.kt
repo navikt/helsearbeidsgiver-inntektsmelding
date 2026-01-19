@@ -6,7 +6,7 @@ import no.nav.hag.simba.utils.rr.Publisher
 import no.nav.hag.simba.utils.rr.river.ObjectRiver
 import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FerdigstillForespoerselSakOgOppgaveRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FerdigstillSakOgOppgaveRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FjernPaaminnelseRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettForespoerselSakOgOppgaveRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSelvbestemtSakRiver
@@ -40,7 +40,7 @@ fun createNotifikasjonRivers(
             agNotifikasjonKlient = agNotifikasjonKlient,
         ),
         OpprettSelvbestemtSakRiver(linkUrl, agNotifikasjonKlient),
-        FerdigstillForespoerselSakOgOppgaveRiver(linkUrl, agNotifikasjonKlient),
+        FerdigstillSakOgOppgaveRiver(linkUrl, agNotifikasjonKlient),
         UtgaattForespoerselRiver(linkUrl, agNotifikasjonKlient),
         FjernPaaminnelseRiver(agNotifikasjonKlient),
     )

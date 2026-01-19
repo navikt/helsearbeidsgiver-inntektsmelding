@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
+import io.kotest.assertions.fail
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
@@ -19,17 +20,22 @@ import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
+import no.nav.hag.simba.utils.felles.test.json.plusData
+import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
+import no.nav.hag.simba.utils.felles.utils.erForespurt
 import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakLevetid
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class FerdigstillForespoerselSakOgOppgaveRiverTest :
+class FerdigstillSakOgOppgaveRiverTest :
     FunSpec({
         val testRapid = TestRapid()
         val mockAgNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
@@ -37,7 +43,7 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
 
         mockConnectToRapid(testRapid) {
             listOf(
-                FerdigstillForespoerselSakOgOppgaveRiver(mockLinkUrl, mockAgNotifikasjonKlient),
+                FerdigstillSakOgOppgaveRiver(mockLinkUrl, mockAgNotifikasjonKlient),
             )
         }
 
@@ -51,17 +57,18 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
                 nameFn = { "for event '$it'" },
                 listOf(
                     EventName.INNTEKTSMELDING_MOTTATT,
+                    EventName.SELVBESTEMT_IM_LAGRET,
                     EventName.FORESPOERSEL_BESVART,
                 ),
             ) { eventName ->
-                val innkommendeMelding = innkommendeMelding().copy(eventName = eventName)
+                val innkommendeMelding = innkommendeMelding(eventName)
 
                 coEvery {
-                    mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), NotifikasjonTekst.MERKELAPP, any(), any(), any())
+                    mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any(), hardDeleteOm = any())
                 } just Runs
 
                 coEvery {
-                    mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), NotifikasjonTekst.MERKELAPP, any())
+                    mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), any(), any())
                 } just Runs
 
                 testRapid.sendJson(innkommendeMelding.toMap())
@@ -70,19 +77,29 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
 
                 testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding)
 
+                val erForespurt = innkommendeMelding.imType.erForespurt()
+
                 coVerifySequence {
                     mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
-                        grupperingsid = innkommendeMelding.forespoerselId.toString(),
+                        grupperingsid = innkommendeMelding.imType.id.toString(),
                         merkelapp = "Inntektsmelding sykepenger",
                         status = SaksStatus.FERDIG,
                         statusTekst = "Mottatt – Se kvittering eller korriger inntektsmelding",
-                        nyLenke = "$mockLinkUrl/im-dialog/kvittering/${innkommendeMelding.forespoerselId}",
+                        nyLenke =
+                            if (erForespurt) {
+                                "$mockLinkUrl/im-dialog/kvittering/${innkommendeMelding.imType.id}"
+                            } else {
+                                null
+                            },
+                        hardDeleteOm = sakLevetid,
                     )
-                    mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(
-                        eksternId = innkommendeMelding.forespoerselId.toString(),
-                        merkelapp = "Inntektsmelding sykepenger",
-                        nyLenke = "$mockLinkUrl/im-dialog/kvittering/${innkommendeMelding.forespoerselId}",
-                    )
+                    if (erForespurt) {
+                        mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(
+                            eksternId = innkommendeMelding.imType.id.toString(),
+                            merkelapp = "Inntektsmelding sykepenger",
+                            nyLenke = "$mockLinkUrl/im-dialog/kvittering/${innkommendeMelding.imType.id}",
+                        )
+                    }
                 }
             }
         }
@@ -91,7 +108,7 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
             val innkommendeMelding = innkommendeMelding()
 
             coEvery {
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any(), hardDeleteOm = any())
             } just Runs
 
             coEvery {
@@ -105,8 +122,8 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding)
 
             coVerifySequence {
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), "Inntektsmelding sykepenger", any(), any(), any())
-                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), "Inntektsmelding sykepenger", any())
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any(), hardDeleteOm = any())
+                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), any(), any())
             }
         }
 
@@ -114,7 +131,7 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
             val innkommendeMelding = innkommendeMelding()
 
             coEvery {
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any(), hardDeleteOm = any())
             } throws SakEllerOppgaveFinnesIkkeException("'Tis but a scratch")
 
             coEvery {
@@ -128,8 +145,8 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding)
 
             coVerifySequence {
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), "Inntektsmelding sykepenger", any(), any(), any())
-                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), "Inntektsmelding sykepenger", any())
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any(), hardDeleteOm = any())
+                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), any(), any())
             }
         }
 
@@ -137,7 +154,7 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
             val innkommendeMelding = innkommendeMelding()
 
             coEvery {
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any(), hardDeleteOm = any())
             } throws SakEllerOppgaveFinnesIkkeException("'Tis but a scratch")
 
             coEvery {
@@ -151,8 +168,8 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding)
 
             coVerifySequence {
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), "Inntektsmelding sykepenger", any(), any(), any())
-                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), "Inntektsmelding sykepenger", any())
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any(), hardDeleteOm = any())
+                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), any(), any())
             }
         }
 
@@ -160,7 +177,7 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
             val innkommendeMelding = innkommendeMelding()
 
             coEvery {
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any(), hardDeleteOm = any())
             } throws NullPointerException("It's just a flesh wound")
 
             testRapid.sendJson(innkommendeMelding.toMap())
@@ -169,7 +186,7 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
 
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail(innkommendeMelding).tilMelding()
             coVerifySequence {
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), "Inntektsmelding sykepenger", any(), any(), any())
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any(), hardDeleteOm = any())
             }
         }
 
@@ -177,7 +194,7 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
             val innkommendeMelding = innkommendeMelding()
 
             coEvery {
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any(), hardDeleteOm = any())
             } just Runs
 
             coEvery {
@@ -191,8 +208,32 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail(innkommendeMelding).tilMelding()
 
             coVerifySequence {
-                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), "Inntektsmelding sykepenger", any(), any(), any())
-                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), "Inntektsmelding sykepenger", any())
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any(), hardDeleteOm = any())
+                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), any(), any())
+            }
+        }
+
+        test("ny, selvbestemt inntektsmelding ignoreres") {
+            val innkommendeMelding = innkommendeMelding(EventName.SELVBESTEMT_IM_LAGRET)
+            val innkommendeMeldingMap =
+                innkommendeMelding
+                    .toMap()
+                    .plusData(
+                        Key.SELVBESTEMT_INNTEKTSMELDING to
+                            mockInntektsmeldingV1()
+                                .copy(
+                                    type = innkommendeMelding.imType,
+                                    aarsakInnsending = AarsakInnsending.Ny,
+                                ).toJson(Inntektsmelding.serializer()),
+                    )
+
+            testRapid.sendJson(innkommendeMeldingMap)
+
+            testRapid.inspektør.size shouldBeExactly 0
+
+            coVerify(exactly = 0) {
+                mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any(), hardDeleteOm = any())
+                mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), any(), any())
             }
         }
 
@@ -213,37 +254,78 @@ class FerdigstillForespoerselSakOgOppgaveRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 coVerify(exactly = 0) {
-                    mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any())
+                    mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any(), any(), any(), hardDeleteOm = any())
                     mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(any(), any(), any())
                 }
             }
         }
     })
 
-private fun innkommendeMelding(): FerdigstillForespoerselSakMelding =
-    FerdigstillForespoerselSakMelding(
-        eventName = EventName.FORESPOERSEL_BESVART,
+private fun innkommendeMelding(eventName: EventName = EventName.FORESPOERSEL_BESVART): FerdigstillMelding {
+    val imType =
+        when (eventName) {
+            EventName.INNTEKTSMELDING_MOTTATT, EventName.FORESPOERSEL_BESVART -> Inntektsmelding.Type.Forespurt(UUID.randomUUID())
+            EventName.SELVBESTEMT_IM_LAGRET -> Inntektsmelding.Type.Selvbestemt(UUID.randomUUID())
+            else -> fail("Melding har ugyldig eventnavn.")
+        }
+
+    return FerdigstillMelding(
+        eventName = eventName,
         kontekstId = UUID.randomUUID(),
-        forespoerselId = UUID.randomUUID(),
+        imType = imType,
     )
+}
 
-private fun forventetUtgaaendeMelding(innkommendeMelding: FerdigstillForespoerselSakMelding): Map<Key, JsonElement> =
-    mapOf(
-        Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_FERDIGSTILT.toJson(),
-        Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
-        Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
-    )
+private fun FerdigstillMelding.toMap(): Map<Key, JsonElement> {
+    val dataField =
+        when (eventName) {
+            EventName.INNTEKTSMELDING_MOTTATT -> {
+                Key.FORESPOERSEL_ID to imType.id.toJson()
+            }
 
-private fun forventetFail(innkommendeMelding: FerdigstillForespoerselSakMelding): Fail =
-    Fail(
-        feilmelding = "Klarte ikke ferdigstille sak og/eller oppgave for forespurt inntektmelding.",
-        kontekstId = innkommendeMelding.kontekstId,
-        utloesendeMelding = innkommendeMelding.toMap(),
-    )
+            EventName.SELVBESTEMT_IM_LAGRET -> {
+                Key.SELVBESTEMT_INNTEKTSMELDING to
+                    mockInntektsmeldingV1()
+                        .copy(
+                            type = imType,
+                            aarsakInnsending = AarsakInnsending.Endring,
+                        ).toJson(Inntektsmelding.serializer())
+            }
 
-private fun FerdigstillForespoerselSakMelding.toMap(): Map<Key, JsonElement> =
-    mapOf(
+            EventName.FORESPOERSEL_BESVART -> {
+                Key.FORESPOERSEL_ID to imType.id.toJson()
+            }
+
+            else -> {
+                fail("Melding har ugyldig eventnavn.")
+            }
+        }
+
+    return mapOf(
         Key.EVENT_NAME to eventName.toJson(),
         Key.KONTEKST_ID to kontekstId.toJson(),
-        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+        Key.DATA to mapOf(dataField).toJson(),
+    )
+}
+
+private fun forventetUtgaaendeMelding(innkommendeMelding: FerdigstillMelding): Map<Key, JsonElement> {
+    val idKey =
+        if (innkommendeMelding.imType.erForespurt()) {
+            Key.FORESPOERSEL_ID
+        } else {
+            Key.SELVBESTEMT_ID
+        }
+
+    return mapOf(
+        Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_FERDIGSTILT.toJson(),
+        Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
+        idKey to innkommendeMelding.imType.id.toJson(),
+    )
+}
+
+private fun forventetFail(innkommendeMelding: FerdigstillMelding): Fail =
+    Fail(
+        feilmelding = "Klarte ikke ferdigstille sak og/eller oppgave for inntektmelding.",
+        kontekstId = innkommendeMelding.kontekstId,
+        utloesendeMelding = innkommendeMelding.toMap(),
     )

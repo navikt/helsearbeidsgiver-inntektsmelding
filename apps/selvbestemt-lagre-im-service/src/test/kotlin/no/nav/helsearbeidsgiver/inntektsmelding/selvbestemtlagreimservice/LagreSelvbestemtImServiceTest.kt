@@ -576,7 +576,7 @@ private object Mock {
 
     fun steg1(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
-            Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
+            Key.EVENT_NAME to EventName.SERVICE_SELVBESTEMT_IM_LAGRE.toJson(),
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(

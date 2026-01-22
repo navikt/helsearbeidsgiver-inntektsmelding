@@ -92,7 +92,7 @@ class InnsendingServiceIT : EndToEndTest() {
 
         // Forespørsel hentet
         messages
-            .filter(EventName.INSENDING_STARTED)
+            .filter(EventName.SERVICE_FORESPURT_IM_LAGRE_SKJEMA)
             .filter(Key.FORESPOERSEL_SVAR)
             .firstAsMap()
             .verifiserKontekstId(kontekstId)
@@ -103,7 +103,7 @@ class InnsendingServiceIT : EndToEndTest() {
 
         // Inntektsmelding lagret
         messages
-            .filter(EventName.INSENDING_STARTED)
+            .filter(EventName.SERVICE_FORESPURT_IM_LAGRE_SKJEMA)
             .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .verifiserKontekstId(kontekstId)

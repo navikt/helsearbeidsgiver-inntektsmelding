@@ -14,6 +14,7 @@ import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.test.json.lesBehov
+import no.nav.hag.simba.utils.felles.test.json.plusData
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
 import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
@@ -48,14 +49,14 @@ class HentSelvbestemtImServiceTest :
             val kontekstId = UUID.randomUUID()
 
             testRapid.sendJson(
-                Mock.startMelding(kontekstId),
+                Mock.steg0(kontekstId),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_SELVBESTEMT_IM
 
             testRapid.sendJson(
-                Mock.dataMelding(kontekstId),
+                Mock.steg1(kontekstId),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
@@ -74,12 +75,12 @@ class HentSelvbestemtImServiceTest :
             val fail =
                 mockFail(
                     feilmelding = "Snitches get stitches (fordi vi har gratis helsevesen)",
-                    eventName = EventName.SELVBESTEMT_IM_REQUESTED,
+                    eventName = EventName.SERVICE_SELVBESTEMT_IM_HENT,
                     behovType = BehovType.HENT_SELVBESTEMT_IM,
                 )
 
             testRapid.sendJson(
-                Mock.startMelding(fail.kontekstId),
+                Mock.steg0(fail.kontekstId),
             )
 
             testRapid.sendJson(fail.tilMelding())
@@ -102,7 +103,7 @@ private object Mock {
     private val selvbestemtId: UUID = UUID.randomUUID()
     val inntektsmelding = mockInntektsmeldingV1()
 
-    fun startMelding(kontekstId: UUID): Map<Key, JsonElement> =
+    fun steg0(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
             Key.KONTEKST_ID to kontekstId.toJson(),
@@ -112,14 +113,10 @@ private object Mock {
                 ).toJson(),
         )
 
-    fun dataMelding(kontekstId: UUID): Map<Key, JsonElement> =
-        mapOf(
-            Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
-            Key.KONTEKST_ID to kontekstId.toJson(),
-            Key.DATA to
-                mapOf(
-                    Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
-                    Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                ).toJson(),
-        )
+    fun steg1(kontekstId: UUID): Map<Key, JsonElement> =
+        steg0(kontekstId)
+            .plus(Key.EVENT_NAME to EventName.SERVICE_SELVBESTEMT_IM_HENT.toJson())
+            .plusData(
+                Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+            )
 }

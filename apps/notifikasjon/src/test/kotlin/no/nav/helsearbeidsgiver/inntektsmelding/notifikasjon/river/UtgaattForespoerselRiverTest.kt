@@ -210,25 +210,4 @@ private object Mock {
             kontekstId = innkommendeMelding.kontekstId,
             utloesendeMelding = innkommendeMelding.toMap(),
         )
-
-    fun forespoerselIkkeFunnetFail(): Fail {
-        val eventName = EventName.TRENGER_REQUESTED
-        val kontekstId = UUID.randomUUID()
-        val forespoerselId = UUID.randomUUID()
-
-        return Fail(
-            feilmelding = "Klarte ikke hente forespørsel. Feilet med kode 'FORESPOERSEL_IKKE_FUNNET'.",
-            kontekstId = kontekstId,
-            utloesendeMelding =
-                mapOf(
-                    Key.EVENT_NAME to eventName.toJson(),
-                    Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                    Key.KONTEKST_ID to kontekstId.toJson(),
-                    Key.DATA to
-                        mapOf(
-                            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                        ).toJson(),
-                ),
-        )
-    }
 }

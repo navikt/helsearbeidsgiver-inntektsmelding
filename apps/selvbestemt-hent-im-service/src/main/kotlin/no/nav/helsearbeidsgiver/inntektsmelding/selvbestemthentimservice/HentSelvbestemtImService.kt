@@ -37,7 +37,8 @@ class HentSelvbestemtImService(
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val eventName = EventName.SELVBESTEMT_IM_REQUESTED
+    override val initialEventName = EventName.SELVBESTEMT_IM_REQUESTED
+    override val serviceEventName = EventName.SERVICE_SELVBESTEMT_IM_HENT
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
@@ -57,7 +58,7 @@ class HentSelvbestemtImService(
         val publisert =
             publisher.publish(
                 key = steg0.selvbestemtId,
-                Key.EVENT_NAME to eventName.toJson(),
+                Key.EVENT_NAME to serviceEventName.toJson(),
                 Key.BEHOV to BehovType.HENT_SELVBESTEMT_IM.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
@@ -101,7 +102,7 @@ class HentSelvbestemtImService(
     override fun Steg0.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this@HentSelvbestemtImService),
-            Log.event(eventName),
+            Log.event(serviceEventName),
             Log.kontekstId(kontekstId),
             Log.selvbestemtId(selvbestemtId),
         )

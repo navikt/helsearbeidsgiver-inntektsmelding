@@ -78,7 +78,8 @@ class LagreSelvbestemtImService(
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val eventName = EventName.SELVBESTEMT_IM_MOTTATT
+    override val initialEventName = EventName.SELVBESTEMT_IM_MOTTATT
+    override val serviceEventName = EventName.SERVICE_SELVBESTEMT_IM_LAGRE
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
@@ -129,7 +130,7 @@ class LagreSelvbestemtImService(
 
         publisher.publish(
             key = steg0.skjema.sykmeldtFnr,
-            Key.EVENT_NAME to eventName.toJson(),
+            Key.EVENT_NAME to serviceEventName.toJson(),
             Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
             Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
@@ -141,7 +142,7 @@ class LagreSelvbestemtImService(
 
         publisher.publish(
             key = steg0.skjema.sykmeldtFnr,
-            Key.EVENT_NAME to eventName.toJson(),
+            Key.EVENT_NAME to serviceEventName.toJson(),
             Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
             Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
@@ -157,7 +158,7 @@ class LagreSelvbestemtImService(
 
         publisher.publish(
             key = steg0.skjema.sykmeldtFnr,
-            Key.EVENT_NAME to eventName.toJson(),
+            Key.EVENT_NAME to serviceEventName.toJson(),
             Key.BEHOV to BehovType.HENT_ANSETTELSESPERIODER.toJson(),
             Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
@@ -205,7 +206,7 @@ class LagreSelvbestemtImService(
                 publisher
                     .publish(
                         key = inntektsmelding.type.id,
-                        Key.EVENT_NAME to eventName.toJson(),
+                        Key.EVENT_NAME to serviceEventName.toJson(),
                         Key.BEHOV to BehovType.LAGRE_SELVBESTEMT_IM.toJson(),
                         Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                         Key.DATA to
@@ -243,7 +244,7 @@ class LagreSelvbestemtImService(
                 publisher
                     .publish(
                         key = steg2.inntektsmelding.type.id,
-                        Key.EVENT_NAME to eventName.toJson(),
+                        Key.EVENT_NAME to serviceEventName.toJson(),
                         Key.BEHOV to BehovType.OPPRETT_SELVBESTEMT_SAK.toJson(),
                         Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                         Key.DATA to
@@ -305,7 +306,7 @@ class LagreSelvbestemtImService(
     ) {
         MdcUtils.withLogFields(
             Log.klasse(this),
-            Log.event(eventName),
+            Log.event(serviceEventName),
             Log.kontekstId(fail.kontekstId),
         ) {
             val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding)
@@ -354,7 +355,7 @@ class LagreSelvbestemtImService(
     override fun Steg0.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this@LagreSelvbestemtImService),
-            Log.event(eventName),
+            Log.event(serviceEventName),
             Log.kontekstId(kontekstId),
         )
 }

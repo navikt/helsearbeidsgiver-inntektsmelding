@@ -38,6 +38,12 @@ class FeilLytter(
     private val jobbType = FeilProsessor.JOB_TYPE
     private val eventerSomHaandteres =
         setOf(
+            EventName.SERVICE_HENT_DATA_TIL_SAK_OG_OPPGAVE,
+            EventName.SERVICE_FORESPURT_IM_LAGRE_SKJEMA,
+            EventName.SERVICE_SELVBESTEMT_IM_LAGRE,
+            EventName.SERVICE_EKSTERN_IM_VALIDER,
+            EventName.SERVICE_EKSTERN_IM_LAGRE_SKJEMA,
+            EventName.SERVICE_BERIK_INNTEKTSMELDING,
             EventName.FORESPOERSEL_MOTTATT,
             EventName.FORESPOERSEL_BESVART,
             EventName.FORESPOERSEL_FORKASTET,

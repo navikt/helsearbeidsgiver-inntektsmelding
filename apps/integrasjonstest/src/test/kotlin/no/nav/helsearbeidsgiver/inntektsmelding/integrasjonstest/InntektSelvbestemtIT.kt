@@ -43,7 +43,7 @@ class InntektSelvbestemtIT : EndToEndTest() {
             .firstAsMap()
             .shouldContainExactly(
                 mapOf(
-                    Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
+                    Key.EVENT_NAME to EventName.SERVICE_HENT_INNTEKT_SELVBESTEMT.toJson(),
                     Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
                     Key.KONTEKST_ID to Mock.kontekstId.toJson(),
                     Key.DATA to
@@ -61,7 +61,7 @@ class InntektSelvbestemtIT : EndToEndTest() {
             .firstAsMap()
             .shouldContainExactly(
                 mapOf(
-                    Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
+                    Key.EVENT_NAME to EventName.SERVICE_HENT_INNTEKT_SELVBESTEMT.toJson(),
                     Key.KONTEKST_ID to Mock.kontekstId.toJson(),
                     Key.DATA to
                         mapOf(

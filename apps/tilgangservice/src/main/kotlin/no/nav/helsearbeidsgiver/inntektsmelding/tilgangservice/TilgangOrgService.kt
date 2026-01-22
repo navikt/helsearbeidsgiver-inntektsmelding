@@ -31,7 +31,8 @@ class TilgangOrgService(
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val eventName = EventName.TILGANG_ORG_REQUESTED
+    override val initialEventName = EventName.TILGANG_ORG_REQUESTED
+    override val serviceEventName = EventName.SERVICE_HENT_TILGANG_ORG
 
     data class Steg0(
         val kontekstId: UUID,
@@ -62,7 +63,7 @@ class TilgangOrgService(
         publisher
             .publish(
                 key = steg0.fnr,
-                Key.EVENT_NAME to eventName.toJson(),
+                Key.EVENT_NAME to serviceEventName.toJson(),
                 Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
@@ -93,8 +94,6 @@ class TilgangOrgService(
             )
 
         redisStore.skrivResultat(steg0.kontekstId, resultat)
-
-        sikkerLogger.info("$eventName fullført.")
     }
 
     override fun onError(
@@ -103,7 +102,7 @@ class TilgangOrgService(
     ) {
         MdcUtils.withLogFields(
             Log.klasse(this),
-            Log.event(eventName),
+            Log.event(serviceEventName),
             Log.kontekstId(fail.kontekstId),
         ) {
             val resultat =
@@ -112,15 +111,13 @@ class TilgangOrgService(
                 )
 
             redisStore.skrivResultat(fail.kontekstId, resultat)
-
-            sikkerLogger.error("$eventName terminert.")
         }
     }
 
     override fun Steg0.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this@TilgangOrgService),
-            Log.event(eventName),
+            Log.event(serviceEventName),
             Log.kontekstId(kontekstId),
         )
 }

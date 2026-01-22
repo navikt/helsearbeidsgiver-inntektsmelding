@@ -91,7 +91,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
                 ).toJson(),
         )
 
-        val serviceMessages = messages.filter(EventName.SELVBESTEMT_IM_MOTTATT)
+        val serviceMessages = messages.filter(EventName.SERVICE_SELVBESTEMT_IM_LAGRE)
 
         // Data hentet
         serviceMessages
@@ -211,7 +211,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
                 ).toJson(),
         )
 
-        val serviceMessages = messages.filter(EventName.SELVBESTEMT_IM_MOTTATT)
+        val serviceMessages = messages.filter(EventName.SERVICE_SELVBESTEMT_IM_LAGRE)
 
         // Lagring utført, uten duplikat
         serviceMessages
@@ -281,7 +281,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
                 ).toJson(),
         )
 
-        val serviceMessages = messages.filter(EventName.SELVBESTEMT_IM_MOTTATT)
+        val serviceMessages = messages.filter(EventName.SERVICE_SELVBESTEMT_IM_LAGRE)
 
         // Lagring utført, med duplikat
         serviceMessages

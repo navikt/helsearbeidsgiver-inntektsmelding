@@ -15,6 +15,7 @@ import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.inntektMapSerializer
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.test.json.lesBehov
+import no.nav.hag.simba.utils.felles.test.json.plusData
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
 import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
 import no.nav.hag.simba.utils.rr.test.firstMessage
@@ -52,14 +53,14 @@ class InntektSelvbestemtServiceTest :
             val kontekstId = UUID.randomUUID()
 
             testRapid.sendJson(
-                Mock.melding(kontekstId, Mock.steg0Data),
+                Mock.steg0(kontekstId),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_INNTEKT
 
             testRapid.sendJson(
-                Mock.melding(kontekstId, Mock.steg1Data),
+                Mock.steg1(kontekstId),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
@@ -78,12 +79,12 @@ class InntektSelvbestemtServiceTest :
             val fail =
                 mockFail(
                     feilmelding = "Teknisk feil, prøv igjen senere.",
-                    eventName = EventName.INNTEKT_SELVBESTEMT_REQUESTED,
+                    eventName = EventName.SERVICE_HENT_INNTEKT_SELVBESTEMT,
                     behovType = BehovType.HENT_INNTEKT,
                 )
 
             testRapid.sendJson(
-                Mock.melding(fail.kontekstId, Mock.steg0Data),
+                Mock.steg0(fail.kontekstId),
             )
 
             testRapid.sendJson(fail.tilMelding())
@@ -103,6 +104,8 @@ class InntektSelvbestemtServiceTest :
     })
 
 private object Mock {
+    private val orgnr = Orgnr.genererGyldig()
+    private val fnr = Fnr.genererGyldig()
     val inntekt =
         mapOf(
             april(2019) to 40000.0,
@@ -110,25 +113,22 @@ private object Mock {
             juni(2019) to 44000.0,
         )
 
-    val steg0Data =
-        mapOf(
-            Key.ORGNR_UNDERENHET to Orgnr.genererGyldig().toJson(),
-            Key.FNR to Fnr.genererGyldig().toJson(),
-            Key.INNTEKTSDATO to 14.april.toJson(),
-        )
-
-    val steg1Data =
-        steg0Data.plus(
-            Key.INNTEKT to inntekt.toJson(inntektMapSerializer),
-        )
-
-    fun melding(
-        kontekstId: UUID,
-        data: Map<Key, JsonElement>,
-    ): Map<Key, JsonElement> =
+    fun steg0(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
             Key.KONTEKST_ID to kontekstId.toJson(),
-            Key.DATA to data.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.ORGNR_UNDERENHET to orgnr.toJson(),
+                    Key.FNR to fnr.toJson(),
+                    Key.INNTEKTSDATO to 14.april.toJson(),
+                ).toJson(),
         )
+
+    fun steg1(kontekstId: UUID) =
+        steg0(kontekstId)
+            .plus(Key.EVENT_NAME to EventName.SERVICE_HENT_INNTEKT_SELVBESTEMT.toJson())
+            .plusData(
+                Key.INNTEKT to inntekt.toJson(inntektMapSerializer),
+            )
 }

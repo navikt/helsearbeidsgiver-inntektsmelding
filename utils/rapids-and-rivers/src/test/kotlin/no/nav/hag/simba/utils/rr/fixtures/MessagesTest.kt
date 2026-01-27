@@ -21,7 +21,7 @@ class MessagesTest :
     FunSpec({
 
         test("finner korrekt melding for event") {
-            val expectedEventName = EventName.TRENGER_REQUESTED
+            val expectedEventName = EventName.SERVICE_HENT_FORESPOERSEL
 
             val funnetMelding = Mock.meldinger.filter(expectedEventName).firstAsMap()
 
@@ -76,7 +76,7 @@ private object Mock {
 
     val meldinger =
         mapOf(
-            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+            Key.EVENT_NAME to EventName.SERVICE_HENT_FORESPOERSEL.toJson(),
             Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
             Key.DATA to
                 mapOf(

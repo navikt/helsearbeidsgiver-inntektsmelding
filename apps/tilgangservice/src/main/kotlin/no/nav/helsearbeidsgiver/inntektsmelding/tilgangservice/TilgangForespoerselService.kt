@@ -35,7 +35,8 @@ class TilgangForespoerselService(
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val eventName = EventName.TILGANG_FORESPOERSEL_REQUESTED
+    override val initialEventName = EventName.TILGANG_FORESPOERSEL_REQUESTED
+    override val serviceEventName = EventName.SERVICE_HENT_TILGANG_FORESPOERSEL
 
     data class Steg0(
         val kontekstId: UUID,
@@ -75,7 +76,7 @@ class TilgangForespoerselService(
         publisher
             .publish(
                 key = steg0.forespoerselId,
-                Key.EVENT_NAME to eventName.toJson(),
+                Key.EVENT_NAME to serviceEventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
@@ -100,7 +101,7 @@ class TilgangForespoerselService(
         publisher
             .publish(
                 key = steg0.forespoerselId,
-                Key.EVENT_NAME to eventName.toJson(),
+                Key.EVENT_NAME to serviceEventName.toJson(),
                 Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
@@ -132,8 +133,6 @@ class TilgangForespoerselService(
             )
 
         redisStore.skrivResultat(steg0.kontekstId, tilgang)
-
-        sikkerLogger.info("$eventName fullført.")
     }
 
     override fun onError(
@@ -142,7 +141,7 @@ class TilgangForespoerselService(
     ) {
         MdcUtils.withLogFields(
             Log.klasse(this),
-            Log.event(eventName),
+            Log.event(serviceEventName),
             Log.kontekstId(fail.kontekstId),
         ) {
             val tilgangResultat =
@@ -151,15 +150,13 @@ class TilgangForespoerselService(
                 )
 
             redisStore.skrivResultat(fail.kontekstId, tilgangResultat)
-
-            sikkerLogger.error("$eventName terminert.")
         }
     }
 
     override fun Steg0.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this@TilgangForespoerselService),
-            Log.event(eventName),
+            Log.event(serviceEventName),
             Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )

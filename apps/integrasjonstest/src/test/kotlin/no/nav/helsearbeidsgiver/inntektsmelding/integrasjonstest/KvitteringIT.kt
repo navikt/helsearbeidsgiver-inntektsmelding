@@ -58,7 +58,7 @@ class KvitteringIT : EndToEndTest() {
         )
 
         messages
-            .filter(EventName.KVITTERING_REQUESTED)
+            .filter(EventName.SERVICE_FORESPURT_IM_HENT)
             .filter(Key.LAGRET_INNTEKTSMELDING)
             .firstAsMap()
             .also {
@@ -103,7 +103,7 @@ class KvitteringIT : EndToEndTest() {
         )
 
         messages
-            .filter(EventName.KVITTERING_REQUESTED)
+            .filter(EventName.SERVICE_FORESPURT_IM_HENT)
             .filter(Key.LAGRET_INNTEKTSMELDING)
             .firstAsMap()
             .also {
@@ -140,7 +140,7 @@ class KvitteringIT : EndToEndTest() {
         )
 
         messages
-            .filter(EventName.KVITTERING_REQUESTED)
+            .filter(EventName.SERVICE_FORESPURT_IM_HENT)
             .filter(Key.LAGRET_INNTEKTSMELDING)
             .firstAsMap()
             .also {

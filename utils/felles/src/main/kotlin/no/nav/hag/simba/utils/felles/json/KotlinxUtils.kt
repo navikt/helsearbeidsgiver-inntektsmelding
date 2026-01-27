@@ -95,7 +95,18 @@ fun <K : IKey, T : Any> K.krev(
 ): T =
     les(serializer, melding).also {
         if (it != krav) {
-            throw MeldingException("Nøkkel '$this' har verdi '$it', som ikke matcher med påkrevd verdi '$krav'.")
+            throw MeldingException("Nøkkel '$this' har verdi '$it', som ikke samsvarer med påkrevd verdi '$krav'.")
+        }
+    }
+
+fun <K : IKey, T : Any> K.krevEnAv(
+    krav: Set<T>,
+    serializer: KSerializer<T>,
+    melding: Map<K, JsonElement>,
+): T =
+    les(serializer, melding).also {
+        if (it !in krav) {
+            throw MeldingException("Nøkkel '$this' har verdi '$it', som ikke finnes i sett av påkrevde verdier '$krav'.")
         }
     }
 

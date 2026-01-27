@@ -32,7 +32,6 @@ class ServiceRiverStatefulTest :
             spyk(
                 MockServiceMedRedis(mockRedis.store),
             )
-        val mockFail = mockFail("Noen har blandet ut flybensinen med Red Bull.", mockService.eventName)
 
         mockConnectToRapid(testRapid) {
             listOf(
@@ -46,225 +45,236 @@ class ServiceRiverStatefulTest :
             mockRedis.setup()
         }
 
-        context("fail-melding har presedens") {
-            withData(
-                mapOf(
-                    "over data" to
-                        mapOf(
-                            Key.EVENT_NAME to mockService.eventName.toJson(),
-                            Key.KONTEKST_ID to mockFail.kontekstId.toJson(),
-                            Key.FAIL to mockFail.toJson(Fail.serializer()),
-                            Key.DATA to mockService.mockSteg1Data().toJson(),
-                        ),
-                    "over behov (som skal ignoreres)" to
-                        mapOf(
-                            Key.EVENT_NAME to mockService.eventName.toJson(),
-                            Key.KONTEKST_ID to mockFail.kontekstId.toJson(),
-                            Key.FAIL to mockFail.toJson(Fail.serializer()),
-                            Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
-                        ),
-                ),
-            ) { innkommendeMelding ->
-                testRapid.sendJson(innkommendeMelding)
+        mapOf(
+            mockService::initialEventName.name to mockService.initialEventName,
+            mockService::serviceEventName.name to mockService.serviceEventName,
+        ).forEach { (eventType, eventName) ->
 
-                verify {
-                    mockService.onError(any(), any())
+            val mockFail = mockFail("Noen har blandet ut flybensinen med Red Bull.", eventName)
+
+            context(eventType) {
+
+                context("fail-melding har presedens") {
+                    withData(
+                        mapOf(
+                            "over data" to
+                                mapOf(
+                                    Key.EVENT_NAME to eventName.toJson(),
+                                    Key.KONTEKST_ID to mockFail.kontekstId.toJson(),
+                                    Key.FAIL to mockFail.toJson(Fail.serializer()),
+                                    Key.DATA to mockService.mockSteg1Data().toJson(),
+                                ),
+                            "over behov (som skal ignoreres)" to
+                                mapOf(
+                                    Key.EVENT_NAME to eventName.toJson(),
+                                    Key.KONTEKST_ID to mockFail.kontekstId.toJson(),
+                                    Key.FAIL to mockFail.toJson(Fail.serializer()),
+                                    Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
+                                ),
+                        ),
+                    ) { innkommendeMelding ->
+                        testRapid.sendJson(innkommendeMelding)
+
+                        verify {
+                            mockService.onError(any(), any())
+                        }
+                        verify(exactly = 0) {
+                            mockService.onData(any())
+                        }
+                    }
                 }
-                verify(exactly = 0) {
-                    mockService.onData(any())
+
+                test("datamelding håndteres korrekt") {
+                    val kontekstId = UUID.randomUUID()
+                    val virksomhetNavn = "Fredrikssons Fabrikk"
+
+                    val eksisterendeRedisValues =
+                        mockService
+                            .mockSteg0Data()
+                            .plus(
+                                mapOf(
+                                    Key.PERSONER to "mock personer".toJson(),
+                                    Key.FORESPOERSEL_ID to "mock forespoersel_id".toJson(),
+                                ),
+                            )
+
+                    eksisterendeRedisValues.forEach {
+                        mockRedis.store.skrivMellomlagring(kontekstId, it.key, it.value)
+                    }
+
+                    val innkommendeMeldingUtenData =
+                        mapOf(
+                            Key.EVENT_NAME to eventName.toJson(),
+                            Key.KONTEKST_ID to kontekstId.toJson(),
+                        )
+
+                    val data =
+                        mapOf(
+                            Key.VIRKSOMHETER to virksomhetNavn.toJson(),
+                            Key.EVENT_NAME to "blir overskrevet av rotnivå".toJson(),
+                            Key.FORESPOERSEL_ID to "overskriver Redis-verdi".toJson(),
+                        )
+
+                    testRapid.sendJson(innkommendeMeldingUtenData.plusData(data))
+
+                    // På rotnivå, så forventes det at eksisterende data fra Redis prioriteres under innkommende data, som igjen prioriteres under innkommende felt fra rotnivå
+                    // På datanivå, så forventes det at eksisterende data fra Redis prioriteres under innkommende data
+                    val forventetBeriketMelding = (eksisterendeRedisValues + data + innkommendeMeldingUtenData).plusData(eksisterendeRedisValues + data)
+
+                    verifyOrder {
+                        mockRedis.store.skrivMellomlagring(kontekstId, Key.VIRKSOMHETER, virksomhetNavn.toJson())
+                        mockRedis.store.lesAlleMellomlagrede(kontekstId)
+                        mockService.onData(forventetBeriketMelding)
+                    }
+                    verify(exactly = 0) {
+                        mockService.onError(any(), any())
+                    }
                 }
-            }
-        }
 
-        test("datamelding håndteres korrekt") {
-            val kontekstId = UUID.randomUUID()
-            val virksomhetNavn = "Fredrikssons Fabrikk"
+                test("fail-melding håndteres korrekt") {
+                    val eksisterendeRedisValues =
+                        mockService
+                            .mockSteg0Data()
+                            .plus(Key.VIRKSOMHETER to "mock virksomheter".toJson())
 
-            val eksisterendeRedisValues =
-                mockService
-                    .mockSteg0Data()
-                    .plus(
+                    every { mockRedis.store.lesAlleMellomlagrede(any()) } returns eksisterendeRedisValues
+
+                    val innkommendeMelding =
                         mapOf(
-                            Key.PERSONER to "mock personer".toJson(),
-                            Key.FORESPOERSEL_ID to "mock forespoersel_id".toJson(),
-                        ),
-                    )
+                            Key.FAIL to mockFail.toJson(Fail.serializer()),
+                            Key.EVENT_NAME to "ignoreres".toJson(),
+                            Key.KONTEKST_ID to "ignoreres".toJson(),
+                            Key.DATA to
+                                mapOf(
+                                    Key.VIRKSOMHETER to "ignoreres".toJson(),
+                                ).toJson(),
+                        )
 
-            eksisterendeRedisValues.forEach {
-                mockRedis.store.skrivMellomlagring(kontekstId, it.key, it.value)
-            }
-
-            val innkommendeMeldingUtenData =
-                mapOf(
-                    Key.EVENT_NAME to mockService.eventName.toJson(),
-                    Key.KONTEKST_ID to kontekstId.toJson(),
-                )
-
-            val data =
-                mapOf(
-                    Key.VIRKSOMHETER to virksomhetNavn.toJson(),
-                    Key.EVENT_NAME to "blir overskrevet av rotnivå".toJson(),
-                    Key.FORESPOERSEL_ID to "overskriver Redis-verdi".toJson(),
-                )
-
-            testRapid.sendJson(innkommendeMeldingUtenData.plusData(data))
-
-            // På rotnivå, så forventes det at eksisterende data fra Redis prioriteres under innkommende data, som igjen prioriteres under innkommende felt fra rotnivå
-            // På datanivå, så forventes det at eksisterende data fra Redis prioriteres under innkommende data
-            val forventetBeriketMelding = (eksisterendeRedisValues + data + innkommendeMeldingUtenData).plusData(eksisterendeRedisValues + data)
-
-            verifyOrder {
-                mockRedis.store.skrivMellomlagring(kontekstId, Key.VIRKSOMHETER, virksomhetNavn.toJson())
-                mockRedis.store.lesAlleMellomlagrede(kontekstId)
-                mockService.onData(forventetBeriketMelding)
-            }
-            verify(exactly = 0) {
-                mockService.onError(any(), any())
-            }
-        }
-
-        test("fail-melding håndteres korrekt") {
-            val eksisterendeRedisValues =
-                mockService
-                    .mockSteg0Data()
-                    .plus(Key.VIRKSOMHETER to "mock virksomheter".toJson())
-
-            every { mockRedis.store.lesAlleMellomlagrede(any()) } returns eksisterendeRedisValues
-
-            val innkommendeMelding =
-                mapOf(
-                    Key.FAIL to mockFail.toJson(Fail.serializer()),
-                    Key.EVENT_NAME to "ignoreres".toJson(),
-                    Key.KONTEKST_ID to "ignoreres".toJson(),
-                    Key.DATA to
-                        mapOf(
-                            Key.VIRKSOMHETER to "ignoreres".toJson(),
-                        ).toJson(),
-                )
-
-            testRapid.sendJson(innkommendeMelding)
-
-            val beriketMelding =
-                mapOf(
-                    Key.EVENT_NAME to mockService.eventName.toJson(),
-                    Key.KONTEKST_ID to mockFail.kontekstId.toJson(),
-                    Key.DATA to eksisterendeRedisValues.toJson(),
-                ).plus(eksisterendeRedisValues)
-
-            verifyOrder {
-                mockRedis.store.lesAlleMellomlagrede(mockFail.kontekstId)
-                mockService.onError(beriketMelding, mockFail)
-            }
-            verify(exactly = 0) {
-                mockService.onData(any())
-            }
-        }
-
-        test("ved feil så publiseres ingenting") {
-            every { mockRedis.store.skrivMellomlagring(any(), any(), any()) } throws NullPointerException()
-
-            val innkommendeMelding =
-                mapOf(
-                    Key.EVENT_NAME to mockService.eventName.toJson(),
-                    Key.KONTEKST_ID to UUID.randomUUID().toJson(),
-                    Key.DATA to
-                        mapOf(
-                            Key.VIRKSOMHETER to "Barry Eagles Language Course".toJson(),
-                        ).toJson(),
-                )
-
-            testRapid.sendJson(innkommendeMelding)
-
-            testRapid.inspektør.size shouldBeExactly 0
-
-            verify {
-                mockRedis.store.skrivMellomlagring(any(), any(), any())
-            }
-            verify(exactly = 0) {
-                mockService.onData(any())
-                mockService.onError(any(), any())
-            }
-        }
-
-        context("ignorer melding") {
-            context("fail-melding") {
-                withData(
-                    mapOf(
-                        "med uønsket event" to
-                            mapOf(
-                                Key.FAIL to
-                                    mockFail(
-                                        "You punched a bursar?",
-                                        EventName.KVITTERING_REQUESTED,
-                                    ).toJson(Fail.serializer()),
-                            ),
-                        "med ugyldig fail" to
-                            mapOf(
-                                Key.FAIL to "ugyldig fail".toJson(),
-                            ),
-                    ),
-                ) { innkommendeMelding ->
                     testRapid.sendJson(innkommendeMelding)
 
+                    val beriketMelding =
+                        mapOf(
+                            Key.EVENT_NAME to eventName.toJson(),
+                            Key.KONTEKST_ID to mockFail.kontekstId.toJson(),
+                            Key.DATA to eksisterendeRedisValues.toJson(),
+                        ).plus(eksisterendeRedisValues)
+
+                    verifyOrder {
+                        mockRedis.store.lesAlleMellomlagrede(mockFail.kontekstId)
+                        mockService.onError(beriketMelding, mockFail)
+                    }
+                    verify(exactly = 0) {
+                        mockService.onData(any())
+                    }
+                }
+
+                test("ved feil så publiseres ingenting") {
+                    every { mockRedis.store.skrivMellomlagring(any(), any(), any()) } throws NullPointerException()
+
+                    val innkommendeMelding =
+                        mapOf(
+                            Key.EVENT_NAME to eventName.toJson(),
+                            Key.KONTEKST_ID to UUID.randomUUID().toJson(),
+                            Key.DATA to
+                                mapOf(
+                                    Key.VIRKSOMHETER to "Barry Eagles Language Course".toJson(),
+                                ).toJson(),
+                        )
+
+                    testRapid.sendJson(innkommendeMelding)
+
+                    testRapid.inspektør.size shouldBeExactly 0
+
+                    verify {
+                        mockRedis.store.skrivMellomlagring(any(), any(), any())
+                    }
                     verify(exactly = 0) {
                         mockService.onData(any())
                         mockService.onError(any(), any())
                     }
                 }
-            }
 
-            context("datamelding") {
-                withData(
-                    mapOf(
-                        "med behov" to
+                context("ignorer melding") {
+                    context("fail-melding") {
+                        withData(
                             mapOf(
-                                Key.EVENT_NAME to mockService.eventName.toJson(),
-                                Key.KONTEKST_ID to UUID.randomUUID().toJson(),
-                                Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
-                                Key.DATA to
-                                    mockService
-                                        .mockSteg0Data()
-                                        .plus(Key.PERSONER to "mock personer".toJson())
-                                        .toJson(),
-                            ),
-                        "med data som flagg" to
-                            mapOf(
-                                Key.EVENT_NAME to mockService.eventName.toJson(),
-                                Key.KONTEKST_ID to UUID.randomUUID().toJson(),
-                                Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
-                                Key.DATA to "".toJson(),
-                                Key.PERSONER to "mock personer".toJson(),
-                            ),
-                        "med uønsket event" to
-                            mapOf(
-                                Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-                                Key.KONTEKST_ID to UUID.randomUUID().toJson(),
-                                Key.DATA to
+                                "med uønsket event" to
                                     mapOf(
-                                        Key.PERSONER to "mock personer".toJson(),
-                                    ).toJson(),
+                                        Key.FAIL to
+                                            mockFail(
+                                                "You punched a bursar?",
+                                                EventName.KVITTERING_REQUESTED,
+                                            ).toJson(Fail.serializer()),
+                                    ),
+                                "med ugyldig fail" to
+                                    mapOf(
+                                        Key.FAIL to "ugyldig fail".toJson(),
+                                    ),
                             ),
-                    ),
-                ) { innkommendeMelding ->
+                        ) { innkommendeMelding ->
+                            testRapid.sendJson(innkommendeMelding)
 
-                    testRapid.sendJson(innkommendeMelding)
-
-                    verify(exactly = 0) {
-                        mockService.onData(any())
-                        mockService.onError(any(), any())
+                            verify(exactly = 0) {
+                                mockService.onData(any())
+                                mockService.onError(any(), any())
+                            }
+                        }
                     }
-                }
-            }
 
-            test("melding som er hverken data- eller fail-melding") {
-                testRapid.sendJson(
-                    Key.EVENT_NAME to mockService.eventName.toJson(),
-                    Key.KONTEKST_ID to UUID.randomUUID().toJson(),
-                )
+                    context("datamelding") {
+                        withData(
+                            mapOf(
+                                "med behov" to
+                                    mapOf(
+                                        Key.EVENT_NAME to eventName.toJson(),
+                                        Key.KONTEKST_ID to UUID.randomUUID().toJson(),
+                                        Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
+                                        Key.DATA to
+                                            mockService
+                                                .mockSteg0Data()
+                                                .plus(Key.PERSONER to "mock personer".toJson())
+                                                .toJson(),
+                                    ),
+                                "med data som flagg" to
+                                    mapOf(
+                                        Key.EVENT_NAME to eventName.toJson(),
+                                        Key.KONTEKST_ID to UUID.randomUUID().toJson(),
+                                        Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
+                                        Key.DATA to "".toJson(),
+                                        Key.PERSONER to "mock personer".toJson(),
+                                    ),
+                                "med uønsket event" to
+                                    mapOf(
+                                        Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
+                                        Key.KONTEKST_ID to UUID.randomUUID().toJson(),
+                                        Key.DATA to
+                                            mapOf(
+                                                Key.PERSONER to "mock personer".toJson(),
+                                            ).toJson(),
+                                    ),
+                            ),
+                        ) { innkommendeMelding ->
 
-                verify(exactly = 0) {
-                    mockService.onData(any())
-                    mockService.onError(any(), any())
+                            testRapid.sendJson(innkommendeMelding)
+
+                            verify(exactly = 0) {
+                                mockService.onData(any())
+                                mockService.onError(any(), any())
+                            }
+                        }
+                    }
+
+                    test("melding som er hverken data- eller fail-melding") {
+                        testRapid.sendJson(
+                            Key.EVENT_NAME to eventName.toJson(),
+                            Key.KONTEKST_ID to UUID.randomUUID().toJson(),
+                        )
+
+                        verify(exactly = 0) {
+                            mockService.onData(any())
+                            mockService.onError(any(), any())
+                        }
+                    }
                 }
             }
         }

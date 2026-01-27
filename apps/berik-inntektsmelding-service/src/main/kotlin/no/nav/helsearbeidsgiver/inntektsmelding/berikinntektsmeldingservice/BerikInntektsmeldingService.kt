@@ -65,7 +65,8 @@ class BerikInntektsmeldingService(
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET
+    override val initialEventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET
+    override val serviceEventName = EventName.SERVICE_BERIK_INNTEKTSMELDING
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
@@ -101,7 +102,7 @@ class BerikInntektsmeldingService(
         publisher
             .publish(
                 key = steg0.skjema.forespoerselId,
-                Key.EVENT_NAME to eventName.toJson(),
+                Key.EVENT_NAME to serviceEventName.toJson(),
                 Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
@@ -123,7 +124,7 @@ class BerikInntektsmeldingService(
         publisher
             .publish(
                 key = steg0.skjema.forespoerselId,
-                Key.EVENT_NAME to eventName.toJson(),
+                Key.EVENT_NAME to serviceEventName.toJson(),
                 Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
@@ -167,7 +168,7 @@ class BerikInntektsmeldingService(
         publisher
             .publish(
                 key = steg0.skjema.forespoerselId,
-                Key.EVENT_NAME to eventName.toJson(),
+                Key.EVENT_NAME to serviceEventName.toJson(),
                 Key.BEHOV to BehovType.LAGRE_IM.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
@@ -217,7 +218,7 @@ class BerikInntektsmeldingService(
     override fun Steg0.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this@BerikInntektsmeldingService),
-            Log.event(eventName),
+            Log.event(serviceEventName),
             Log.kontekstId(kontekstId),
             Log.inntektsmeldingId(inntektsmeldingId),
             Log.forespoerselId(skjema.forespoerselId),

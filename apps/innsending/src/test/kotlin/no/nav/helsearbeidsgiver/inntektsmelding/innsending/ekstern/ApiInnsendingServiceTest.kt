@@ -120,11 +120,13 @@ private object Mock {
         )
 
     fun steg1(kontekstId: UUID): Map<Key, JsonElement> =
-        steg0(kontekstId).plusData(
-            mapOf(
-                Key.SKJEMA_INNTEKTSMELDING to innsending.skjema.toJson(SkjemaInntektsmelding.serializer()),
-                Key.INNTEKTSMELDING_ID to innsending.innsendingId.toJson(),
-                Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
-            ),
-        )
+        steg0(kontekstId)
+            .plus(Key.EVENT_NAME to EventName.SERVICE_EKSTERN_IM_LAGRE_SKJEMA.toJson())
+            .plusData(
+                mapOf(
+                    Key.SKJEMA_INNTEKTSMELDING to innsending.skjema.toJson(SkjemaInntektsmelding.serializer()),
+                    Key.INNTEKTSMELDING_ID to innsending.innsendingId.toJson(),
+                    Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
+                ),
+            )
 }

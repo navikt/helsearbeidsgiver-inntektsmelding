@@ -141,7 +141,7 @@ private object MockHentIm {
         val svarKafkaKey = KafkaKey(forespoerselId)
 
         return HentLagretImMelding(
-            eventName = EventName.KVITTERING_REQUESTED,
+            eventName = EventName.SERVICE_FORESPURT_IM_HENT,
             behovType = BehovType.HENT_LAGRET_IM,
             kontekstId = UUID.randomUUID(),
             data =
@@ -162,5 +162,5 @@ private object MockHentIm {
             Key.DATA to data.toJson(),
         )
 
-    val fail = mockFail("Filthy, little hobbitses...", EventName.INNTEKTSMELDING_MOTTATT)
+    val fail = mockFail("Filthy, little hobbitses...", EventName.SERVICE_FORESPURT_IM_HENT)
 }

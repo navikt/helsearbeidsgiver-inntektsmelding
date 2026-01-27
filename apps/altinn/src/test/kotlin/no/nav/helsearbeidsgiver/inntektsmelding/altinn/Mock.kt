@@ -19,7 +19,7 @@ object Mock {
         val svarKafkaKey = KafkaKey(fnr)
 
         return Melding(
-            eventName = EventName.AKTIVE_ORGNR_REQUESTED,
+            eventName = EventName.SERVICE_HENT_AKTIVE_ORGNR,
             behovType = BehovType.ARBEIDSGIVERE,
             kontekstId = UUID.randomUUID(),
             data =
@@ -40,7 +40,7 @@ object Mock {
             Key.DATA to data.toJson(),
         )
 
-    val fail = mockFail("One does not simply walk into Mordor.", EventName.AKTIVE_ORGNR_REQUESTED)
+    val fail = mockFail("One does not simply walk into Mordor.", EventName.SERVICE_HENT_AKTIVE_ORGNR)
 
     val altinnOrganisasjoner = setOf(Orgnr.genererGyldig().verdi)
 }

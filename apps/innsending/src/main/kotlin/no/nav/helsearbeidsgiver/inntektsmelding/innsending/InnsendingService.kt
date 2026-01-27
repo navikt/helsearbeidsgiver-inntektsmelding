@@ -58,7 +58,8 @@ class InnsendingService(
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val eventName = EventName.INSENDING_STARTED
+    override val initialEventName = EventName.INSENDING_STARTED
+    override val serviceEventName = EventName.SERVICE_FORESPURT_IM_LAGRE_SKJEMA
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
@@ -91,7 +92,7 @@ class InnsendingService(
         publisher
             .publish(
                 key = steg0.skjema.forespoerselId,
-                Key.EVENT_NAME to eventName.toJson(),
+                Key.EVENT_NAME to serviceEventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
@@ -109,7 +110,7 @@ class InnsendingService(
         publisher
             .publish(
                 key = steg0.skjema.forespoerselId,
-                Key.EVENT_NAME to eventName.toJson(),
+                Key.EVENT_NAME to serviceEventName.toJson(),
                 Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
@@ -140,7 +141,7 @@ class InnsendingService(
             publisher
                 .publish(
                     key = steg0.skjema.forespoerselId,
-                    Key.EVENT_NAME to eventName.toJson(),
+                    Key.EVENT_NAME to serviceEventName.toJson(),
                     Key.BEHOV to BehovType.LAGRE_IM_SKJEMA.toJson(),
                     Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                     Key.DATA to
@@ -231,7 +232,7 @@ class InnsendingService(
     override fun Steg0.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this@InnsendingService),
-            Log.event(eventName),
+            Log.event(serviceEventName),
             Log.kontekstId(kontekstId),
             Log.forespoerselId(skjema.forespoerselId),
         )

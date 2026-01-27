@@ -157,7 +157,7 @@ private object Mock {
         val svarKafkaKey = KafkaKey(fnr)
 
         return HentAnsettelsesperioderMelding(
-            eventName = EventName.AKTIVE_ORGNR_REQUESTED,
+            eventName = EventName.SERVICE_HENT_AKTIVE_ORGNR,
             behovType = BehovType.HENT_ANSETTELSESPERIODER,
             kontekstId = UUID.randomUUID(),
             data =
@@ -178,5 +178,5 @@ private object Mock {
             Key.DATA to data.toJson(),
         )
 
-    val fail = mockFail("All work and no play makes Jack a dull boy.", EventName.AKTIVE_ORGNR_REQUESTED)
+    val fail = mockFail("All work and no play makes Jack a dull boy.", EventName.SERVICE_HENT_AKTIVE_ORGNR)
 }

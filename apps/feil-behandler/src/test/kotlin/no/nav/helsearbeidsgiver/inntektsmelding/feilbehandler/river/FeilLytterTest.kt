@@ -201,7 +201,7 @@ class FeilLytterTest :
         context("ignorerer melding") {
             test("med event som ikke støttes") {
                 val omEttMinutt = LocalDateTime.now().plusMinutes(1)
-                val ikkeStoettetFail = mockFail("pux life", EventName.TILGANG_ORG_REQUESTED)
+                val ikkeStoettetFail = mockFail("pux life", EventName.SERVICE_HENT_TILGANG_ORG)
 
                 rapid.sendJson(ikkeStoettetFail.tilMelding())
 

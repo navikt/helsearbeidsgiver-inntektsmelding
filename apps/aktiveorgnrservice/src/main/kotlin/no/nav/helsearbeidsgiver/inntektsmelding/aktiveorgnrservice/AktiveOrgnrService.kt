@@ -57,7 +57,8 @@ class AktiveOrgnrService(
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val eventName = EventName.AKTIVE_ORGNR_REQUESTED
+    override val initialEventName = EventName.AKTIVE_ORGNR_REQUESTED
+    override val serviceEventName = EventName.SERVICE_HENT_AKTIVE_ORGNR
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
@@ -99,7 +100,7 @@ class AktiveOrgnrService(
 
         publisher.publish(
             key = steg0.sykmeldtFnr,
-            Key.EVENT_NAME to eventName.toJson(),
+            Key.EVENT_NAME to serviceEventName.toJson(),
             Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
             Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
@@ -111,7 +112,7 @@ class AktiveOrgnrService(
 
         publisher.publish(
             key = steg0.sykmeldtFnr,
-            Key.EVENT_NAME to eventName.toJson(),
+            Key.EVENT_NAME to serviceEventName.toJson(),
             Key.BEHOV to BehovType.HENT_ANSETTELSESPERIODER.toJson(),
             Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
@@ -123,7 +124,7 @@ class AktiveOrgnrService(
 
         publisher.publish(
             key = steg0.sykmeldtFnr,
-            Key.EVENT_NAME to eventName.toJson(),
+            Key.EVENT_NAME to serviceEventName.toJson(),
             Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
             Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
@@ -153,7 +154,7 @@ class AktiveOrgnrService(
             } else {
                 publisher.publish(
                     key = steg0.sykmeldtFnr,
-                    Key.EVENT_NAME to eventName.toJson(),
+                    Key.EVENT_NAME to serviceEventName.toJson(),
                     Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                     Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                     Key.DATA to
@@ -228,7 +229,7 @@ class AktiveOrgnrService(
     override fun Steg0.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this@AktiveOrgnrService),
-            Log.event(eventName),
+            Log.event(serviceEventName),
             Log.kontekstId(kontekstId),
         )
 }

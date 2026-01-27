@@ -78,11 +78,11 @@ class KotlinxUtilsKtTest :
 
                 val jsonMap =
                     mapOf(
-                        Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+                        Key.EVENT_NAME to EventName.SERVICE_HENT_FORESPOERSEL.toJson(),
                         TestKey.EVENT_RSVP to "Kanskje".toJson(),
                     )
 
-                Key.EVENT_NAME.les(EventName.serializer(), jsonMap) shouldBe EventName.TRENGER_REQUESTED
+                Key.EVENT_NAME.les(EventName.serializer(), jsonMap) shouldBe EventName.SERVICE_HENT_FORESPOERSEL
                 TestKey.EVENT_RSVP.les(String.serializer(), jsonMap) shouldBe "Kanskje"
             }
 

@@ -81,7 +81,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
         // Virksomhetsnavn hentet
         messages
-            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+            .filter(EventName.SERVICE_BERIK_INNTEKTSMELDING)
             .filter(Key.VIRKSOMHETER)
             .firstAsMap()
             .verifiserKontekstId(Mock.kontekstId)
@@ -93,7 +93,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
         // Inntektsmelding lagret
         messages
-            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+            .filter(EventName.SERVICE_BERIK_INNTEKTSMELDING)
             .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .verifiserKontekstId(Mock.kontekstId)
@@ -105,7 +105,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
         // Sykmeldt og innsender hentet
         messages
-            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+            .filter(EventName.SERVICE_BERIK_INNTEKTSMELDING)
             .filter(Key.PERSONER)
             .firstAsMap()
             .verifiserKontekstId(Mock.kontekstId)
@@ -185,7 +185,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
         // Virksomhetsnavn hentet
         messages
-            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+            .filter(EventName.SERVICE_BERIK_INNTEKTSMELDING)
             .filter(Key.VIRKSOMHETER)
             .firstAsMap()
             .verifiserKontekstId(Mock.kontekstId)
@@ -197,7 +197,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
         // Personnavn ikke hentet
         messages
-            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+            .filter(EventName.SERVICE_BERIK_INNTEKTSMELDING)
             .filter(Key.PERSONER)
             .all()
             .size shouldBe 0
@@ -229,7 +229,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
         // Sykmeldt og innsender hentet
         messages
-            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+            .filter(EventName.SERVICE_BERIK_INNTEKTSMELDING)
             .filter(Key.PERSONER)
             .firstAsMap()
             .verifiserKontekstId(Mock.kontekstId)

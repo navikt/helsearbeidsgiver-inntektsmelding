@@ -91,7 +91,7 @@ class ApiInnsendingIT : EndToEndTest() {
             }
 
         messages
-            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+            .filter(EventName.SERVICE_EKSTERN_IM_LAGRE_SKJEMA)
             .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {

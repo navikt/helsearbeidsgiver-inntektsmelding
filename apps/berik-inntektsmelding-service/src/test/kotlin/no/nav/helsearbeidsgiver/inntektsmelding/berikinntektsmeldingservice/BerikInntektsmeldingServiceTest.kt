@@ -208,9 +208,11 @@ private object Mock {
         )
 
     fun steg1(kontekstId: UUID): Map<Key, JsonElement> =
-        steg0(kontekstId).plusData(
-            Key.VIRKSOMHETER to orgnrMedNavn.toJson(orgMapSerializer),
-        )
+        steg0(kontekstId)
+            .plus(Key.EVENT_NAME to EventName.SERVICE_BERIK_INNTEKTSMELDING.toJson())
+            .plusData(
+                Key.VIRKSOMHETER to orgnrMedNavn.toJson(orgMapSerializer),
+            )
 
     fun steg2(kontekstId: UUID): Map<Key, JsonElement> =
         steg1(kontekstId).plusData(
@@ -232,9 +234,11 @@ private object Mock {
             ).minusData(Key.AVSENDER_NAVN)
 
     fun apiSteg1(kontekstId: UUID): Map<Key, JsonElement> =
-        apiSteg0(kontekstId).plusData(
-            Key.VIRKSOMHETER to orgnrMedNavn.toJson(orgMapSerializer),
-        )
+        apiSteg0(kontekstId)
+            .plus(Key.EVENT_NAME to EventName.SERVICE_BERIK_INNTEKTSMELDING.toJson())
+            .plusData(
+                Key.VIRKSOMHETER to orgnrMedNavn.toJson(orgMapSerializer),
+            )
 
     fun apiSteg2(kontekstId: UUID): Map<Key, JsonElement> =
         apiSteg1(kontekstId).plusData(

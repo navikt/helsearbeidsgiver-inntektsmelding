@@ -130,7 +130,7 @@ private object MockTilgang {
         val fnr = Fnr.genererGyldig()
 
         return TilgangMelding(
-            eventName = EventName.TILGANG_FORESPOERSEL_REQUESTED,
+            eventName = EventName.SERVICE_HENT_TILGANG_FORESPOERSEL,
             behovType = BehovType.TILGANGSKONTROLL,
             kontekstId = UUID.randomUUID(),
             data =
@@ -151,5 +151,5 @@ private object MockTilgang {
             Key.DATA to data.toJson(),
         )
 
-    val fail = mockFail("You shall not pass!", EventName.TILGANG_FORESPOERSEL_REQUESTED)
+    val fail = mockFail("You shall not pass!", EventName.SERVICE_HENT_TILGANG_FORESPOERSEL)
 }

@@ -48,7 +48,7 @@ class HentForespoerslerForVedtaksperiodeIdListeIT : EndToEndTest() {
 
         // Henter forespørsler
         messages
-            .filter(EventName.FORESPOERSLER_REQUESTED)
+            .filter(EventName.SERVICE_HENT_FORESPOERSEL_LISTE)
             .filter(BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE)
             .firstAsMap()
             .let {
@@ -57,7 +57,7 @@ class HentForespoerslerForVedtaksperiodeIdListeIT : EndToEndTest() {
 
         // Forespørsler hentet
         messages
-            .filter(EventName.FORESPOERSLER_REQUESTED)
+            .filter(EventName.SERVICE_HENT_FORESPOERSEL_LISTE)
             .filter(Key.FORESPOERSEL_MAP)
             .firstAsMap()
             .let {

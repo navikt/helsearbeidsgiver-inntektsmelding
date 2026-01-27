@@ -46,7 +46,8 @@ class InntektSelvbestemtService(
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val eventName = EventName.INNTEKT_SELVBESTEMT_REQUESTED
+    override val initialEventName = EventName.INNTEKT_SELVBESTEMT_REQUESTED
+    override val serviceEventName = EventName.SERVICE_HENT_INNTEKT_SELVBESTEMT
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
@@ -68,7 +69,7 @@ class InntektSelvbestemtService(
         val publisert =
             publisher.publish(
                 key = steg0.sykmeldtFnr,
-                Key.EVENT_NAME to eventName.toJson(),
+                Key.EVENT_NAME to serviceEventName.toJson(),
                 Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
@@ -104,8 +105,6 @@ class InntektSelvbestemtService(
             )
 
         redisStore.skrivResultat(steg0.kontekstId, resultJson)
-
-        sikkerLogger.info("$eventName fullført.")
     }
 
     override fun onError(
@@ -114,7 +113,7 @@ class InntektSelvbestemtService(
     ) {
         MdcUtils.withLogFields(
             Log.klasse(this),
-            Log.event(eventName),
+            Log.event(serviceEventName),
             Log.kontekstId(fail.kontekstId),
         ) {
             val feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
@@ -126,15 +125,13 @@ class InntektSelvbestemtService(
             }
 
             redisStore.skrivResultat(fail.kontekstId, resultJson)
-
-            sikkerLogger.error("$eventName terminert.")
         }
     }
 
     override fun Steg0.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this@InntektSelvbestemtService),
-            Log.event(eventName),
+            Log.event(serviceEventName),
             Log.kontekstId(kontekstId),
         )
 }

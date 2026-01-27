@@ -31,7 +31,8 @@ class HentForespoerslerForVedtaksperiodeIdListeService(
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val eventName = EventName.FORESPOERSLER_REQUESTED
+    override val initialEventName = EventName.FORESPOERSLER_REQUESTED
+    override val serviceEventName = EventName.SERVICE_HENT_FORESPOERSEL_LISTE
 
     data class Steg0(
         val kontekstId: UUID,
@@ -60,7 +61,7 @@ class HentForespoerslerForVedtaksperiodeIdListeService(
         publisher
             .publish(
                 key = UUID.randomUUID(),
-                Key.EVENT_NAME to eventName.toJson(),
+                Key.EVENT_NAME to serviceEventName.toJson(),
                 Key.BEHOV to BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
@@ -100,7 +101,7 @@ class HentForespoerslerForVedtaksperiodeIdListeService(
     override fun Steg0.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this@HentForespoerslerForVedtaksperiodeIdListeService),
-            Log.event(eventName),
+            Log.event(serviceEventName),
             Log.kontekstId(kontekstId),
         )
 

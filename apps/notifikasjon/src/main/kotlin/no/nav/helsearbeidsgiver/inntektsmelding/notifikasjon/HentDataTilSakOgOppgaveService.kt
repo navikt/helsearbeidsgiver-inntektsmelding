@@ -45,7 +45,8 @@ class HentDataTilSakOgOppgaveService(
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val eventName = EventName.FORESPOERSEL_MOTTATT
+    override val initialEventName = EventName.FORESPOERSEL_MOTTATT
+    override val serviceEventName = EventName.SERVICE_HENT_DATA_TIL_SAK_OG_OPPGAVE
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
@@ -69,14 +70,14 @@ class HentDataTilSakOgOppgaveService(
         data: Map<Key, JsonElement>,
         steg0: Steg0,
     ) {
-        "Mottok event $eventName. Henter data for å opprette sak og oppgave.".also {
+        "Henter data for å opprette sak og oppgave.".also {
             logger.info(it)
             sikkerLogger.info(it)
         }
 
         publisher.publish(
             key = steg0.forespoerselId,
-            Key.EVENT_NAME to eventName.toJson(),
+            Key.EVENT_NAME to serviceEventName.toJson(),
             Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
             Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
@@ -97,7 +98,7 @@ class HentDataTilSakOgOppgaveService(
     ) {
         publisher.publish(
             key = steg0.forespoerselId,
-            Key.EVENT_NAME to eventName.toJson(),
+            Key.EVENT_NAME to serviceEventName.toJson(),
             Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
             Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
@@ -143,7 +144,7 @@ class HentDataTilSakOgOppgaveService(
     override fun Steg0.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this@HentDataTilSakOgOppgaveService),
-            Log.event(eventName),
+            Log.event(serviceEventName),
             Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )

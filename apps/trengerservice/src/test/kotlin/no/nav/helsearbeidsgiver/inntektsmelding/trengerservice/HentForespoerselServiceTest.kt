@@ -176,14 +176,17 @@ private object Mock {
 
     fun steg1(kontekstId: UUID): Map<Key, JsonElement> =
         steg0(kontekstId).plus(
-            Key.DATA to
-                mapOf(
-                    Key.FORESPOERSEL_SVAR to resultat.forespoersel.toJson(),
-                ).toJson(),
+            mapOf(
+                Key.EVENT_NAME to EventName.SERVICE_HENT_FORESPOERSEL.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_SVAR to resultat.forespoersel.toJson(),
+                    ).toJson(),
+            ),
         )
 
     fun steg2(kontekstId: UUID): Map<Key, JsonElement> =
-        steg0(kontekstId).plus(
+        steg1(kontekstId).plus(
             Key.DATA to
                 mapOf(
                     Key.VIRKSOMHETER to mapOf(resultat.forespoersel.orgnr to orgNavn).toJson(orgMapSerializer),
@@ -205,7 +208,7 @@ private object Mock {
             kontekstId = kontekstId,
             utloesendeMelding =
                 mapOf(
-                    Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+                    Key.EVENT_NAME to EventName.SERVICE_HENT_FORESPOERSEL.toJson(),
                     Key.BEHOV to behovType.toJson(),
                     Key.KONTEKST_ID to kontekstId.toJson(),
                 ),

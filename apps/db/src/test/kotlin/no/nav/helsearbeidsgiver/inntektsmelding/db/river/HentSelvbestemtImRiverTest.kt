@@ -137,7 +137,7 @@ private fun innkommendeMelding(): HentSelvbestemtImMelding {
     val selvbestemtId = UUID.randomUUID()
 
     return HentSelvbestemtImMelding(
-        eventName = EventName.SELVBESTEMT_IM_REQUESTED,
+        eventName = EventName.SERVICE_SELVBESTEMT_IM_HENT,
         behovType = BehovType.HENT_SELVBESTEMT_IM,
         kontekstId = UUID.randomUUID(),
         data =
@@ -163,4 +163,4 @@ private fun HentSelvbestemtImMelding.toFail(feilmelding: String): Fail =
         utloesendeMelding = toMap(),
     )
 
-private val mockFail = mockFail("Computer says no.", EventName.SELVBESTEMT_IM_REQUESTED)
+private val mockFail = mockFail("Computer says no.", EventName.SERVICE_SELVBESTEMT_IM_HENT)

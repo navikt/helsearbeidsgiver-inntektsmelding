@@ -162,7 +162,7 @@ private object Mock {
         val svarKafkaKey = KafkaKey(fnr)
 
         return Melding(
-            eventName = EventName.TRENGER_REQUESTED,
+            eventName = EventName.SERVICE_HENT_FORESPOERSEL,
             behovType = BehovType.HENT_INNTEKT,
             kontekstId = UUID.randomUUID(),
             data =
@@ -187,5 +187,5 @@ private object Mock {
             Key.DATA to data.toJson(),
         )
 
-    val fail = mockFail("Elementary, my dear Watson.", EventName.TRENGER_REQUESTED)
+    val fail = mockFail("Elementary, my dear Watson.", EventName.SERVICE_HENT_FORESPOERSEL)
 }

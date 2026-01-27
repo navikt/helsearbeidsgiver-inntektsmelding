@@ -35,7 +35,7 @@ class TrengerForespoerselRiverTest :
             // Må bare returnere en Result med gyldig JSON
             every { mockProducer.send(any(), any<Map<Pri.Key, JsonElement>>()) } just Runs
 
-            val expectedEvent = EventName.INNTEKT_REQUESTED
+            val expectedEvent = EventName.SERVICE_FORESPURT_IM_HENT
             val expectedKontekstId = UUID.randomUUID()
             val expectedForespoerselId = UUID.randomUUID()
             val journalpostId = "denne skal i boomerangen"

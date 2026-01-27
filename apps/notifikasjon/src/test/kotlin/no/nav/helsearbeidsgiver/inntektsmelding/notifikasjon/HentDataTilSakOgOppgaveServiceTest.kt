@@ -101,7 +101,7 @@ class HentDataTilSakOgOppgaveServiceTest :
 private object Mock {
     const val SKAL_HA_PAAMINNELSE = true
     val forespoersel = mockForespoersel()
-    val kontekstId: UUID = forespoersel.vedtaksperiodeId
+    val kontekstId: UUID = UUID.randomUUID()
     val forespoerselId: UUID = UUID.randomUUID()
     val orgnrMedNavn = mapOf(forespoersel.orgnr to "Kåre Conradis Kål og Kålrabi")
     val personer = listOf(forespoersel.fnr).associateWith { Person(it, "Kåre Conradi") }
@@ -119,9 +119,11 @@ private object Mock {
         )
 
     fun steg1(): Map<Key, JsonElement> =
-        steg0().plusData(
-            Key.VIRKSOMHETER to orgnrMedNavn.toJson(orgMapSerializer),
-        )
+        steg0()
+            .plus(Key.EVENT_NAME to EventName.SERVICE_HENT_DATA_TIL_SAK_OG_OPPGAVE.toJson())
+            .plusData(
+                Key.VIRKSOMHETER to orgnrMedNavn.toJson(orgMapSerializer),
+            )
 
     fun steg2(): Map<Key, JsonElement> =
         steg1().plusData(

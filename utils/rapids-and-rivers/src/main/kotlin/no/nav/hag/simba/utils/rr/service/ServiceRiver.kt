@@ -5,6 +5,7 @@ import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.json.krev
+import no.nav.hag.simba.utils.felles.json.krevEnAv
 import no.nav.hag.simba.utils.felles.json.les
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
@@ -102,7 +103,12 @@ sealed class ServiceRiver : ObjectRiver.Simba<ServiceMelding>() {
                 val fail = Key.FAIL.les(Fail.serializer(), json)
 
                 FailMelding(
-                    eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), fail.utloesendeMelding),
+                    eventName =
+                        Key.EVENT_NAME.krevEnAv(
+                            setOf(service.initialEventName, service.serviceEventName),
+                            EventName.serializer(),
+                            fail.utloesendeMelding,
+                        ),
                     kontekstId = Key.KONTEKST_ID.krev(fail.kontekstId, UuidSerializer, fail.utloesendeMelding),
                     fail = fail,
                 )
@@ -117,7 +123,12 @@ sealed class ServiceRiver : ObjectRiver.Simba<ServiceMelding>() {
                 val nestedData = json[Key.DATA]?.toMap()
                 if (nestedData != null) {
                     DataMelding(
-                        eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), json),
+                        eventName =
+                            Key.EVENT_NAME.krevEnAv(
+                                setOf(service.initialEventName, service.serviceEventName),
+                                EventName.serializer(),
+                                json,
+                            ),
                         kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                         dataMap = nestedData,
                     )

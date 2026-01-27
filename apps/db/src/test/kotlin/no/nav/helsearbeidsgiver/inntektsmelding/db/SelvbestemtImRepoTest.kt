@@ -17,11 +17,11 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.SelvbestemtInntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.test.date.september
-import org.jetbrains.exposed.exceptions.ExposedSQLException
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
@@ -104,9 +104,9 @@ class SelvbestemtImRepoTest :
 
                 alleRader shouldHaveSize 1
                 alleRader.first().let {
-                    it[SelvbestemtInntektsmeldingEntitet.inntektsmeldingId] shouldBe inntektsmelding.id
-                    it[SelvbestemtInntektsmeldingEntitet.selvbestemtId] shouldBe inntektsmelding.type.id
-                    it[SelvbestemtInntektsmeldingEntitet.inntektsmelding] shouldBe inntektsmelding
+                    it.getOrNull(SelvbestemtInntektsmeldingEntitet.inntektsmeldingId) shouldBe inntektsmelding.id
+                    it.getOrNull(SelvbestemtInntektsmeldingEntitet.selvbestemtId) shouldBe inntektsmelding.type.id
+                    it.getOrNull(SelvbestemtInntektsmeldingEntitet.inntektsmelding) shouldBe inntektsmelding
                 }
             }
 
@@ -320,11 +320,11 @@ class SelvbestemtImRepoTest :
                 SelvbestemtInntektsmeldingEntitet.apply {
                     resultat[0][opprettet] shouldBeLessThan resultat[1][opprettet]
 
-                    resultat[0][this.inntektsmelding] shouldBe inntektsmelding
-                    resultat[0][prosessert].shouldNotBeNull().shouldBeIn(prosessertVindu)
+                    resultat[0].getOrNull(this.inntektsmelding) shouldBe inntektsmelding
+                    resultat[0].getOrNull(prosessert).shouldNotBeNull().shouldBeIn(prosessertVindu)
 
-                    resultat[1][this.inntektsmelding].shouldNotBeNull()
-                    resultat[1][prosessert].shouldBeNull()
+                    resultat[1].getOrNull(this.inntektsmelding).shouldNotBeNull()
+                    resultat[1].getOrNull(prosessert).shouldBeNull()
                 }
             }
         }

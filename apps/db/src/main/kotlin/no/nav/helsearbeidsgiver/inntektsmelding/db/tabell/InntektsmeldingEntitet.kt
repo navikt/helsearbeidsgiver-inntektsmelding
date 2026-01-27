@@ -4,13 +4,14 @@ import no.nav.hag.simba.kontrakt.domene.inntektsmelding.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.javatime.datetime
-import org.jetbrains.exposed.sql.json.jsonb
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.java.javaUUID
+import org.jetbrains.exposed.v1.javatime.datetime
+import org.jetbrains.exposed.v1.json.jsonb
 
 object InntektsmeldingEntitet : Table("inntektsmelding") {
-    val inntektsmeldingId = uuid("inntektsmelding_id").nullable()
-    val forespoerselId = uuid("forespoersel_id")
+    val inntektsmeldingId = javaUUID("inntektsmelding_id").nullable()
+    val forespoerselId = javaUUID("forespoersel_id")
     val skjema =
         jsonb<SkjemaInntektsmelding>(
             name = "skjema",

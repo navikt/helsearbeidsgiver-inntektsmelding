@@ -10,6 +10,11 @@ tasks {
 }
 
 dependencies {
+    constraints {
+        // token-validation-ktor-v3 bruker (transitivt) 0.6.x av kotlinx-datetime, mens exposed bruker 0.7.x. Uten denne constrainten så får vi konflikt i integrasjonstestene.
+        implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1-0.6.x-compat")
+    }
+
     implementation(project(":kontrakt-domene-arbeidsgiver"))
     implementation(project(":kontrakt-resultat-forespoersel"))
     implementation(project(":kontrakt-resultat-kvittering"))

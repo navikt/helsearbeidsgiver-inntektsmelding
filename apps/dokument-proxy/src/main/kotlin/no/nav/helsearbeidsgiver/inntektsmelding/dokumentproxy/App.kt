@@ -96,25 +96,30 @@ fun Application.apiModule(
                         call.respond(HttpStatusCode.Unauthorized, "mangler gyldig token")
                         return@get
                     }
+                    try {
+                        val tokenxToken = authClient.exchange(IdentityProvider.TOKEN_X, Env.lpsApiScope, principal.token)
 
-                    val tokenxToken = authClient.exchange(IdentityProvider.TOKEN_X, Env.lpsApiScope, principal.token)
+                        when (val pdfResponse = pdfClient.genererPDF(uuid, tokenxToken.accessToken)) {
+                            is PdfResponse.Success -> {
+                                call.response.headers.append("Content-Type", "application/pdf")
+                                call.response.headers.append("Content-Disposition", "inline; filename=\"sykmelding-$uuid.pdf\"")
+                                call.respond(pdfResponse.pdf)
+                            }
 
-                    when (val pdfResponse = pdfClient.genererPDF(uuid, tokenxToken.accessToken)) {
-                        is PdfResponse.Success -> {
-                            call.response.headers.append("Content-Type", "application/pdf")
-                            call.response.headers.append("Content-Disposition", "inline; filename=\"sykmelding-$uuid.pdf\"")
-                            call.respond(pdfResponse.pdf)
+                            is PdfResponse.Unauthorized -> {
+                                logger.warn("Unauthorized/Forbidden when fetching PDF for uuid: $uuid, status: ${pdfResponse.status}")
+                                call.respond(pdfResponse.status, "Ikke autorisert til å hente PDF")
+                            }
+
+                            is PdfResponse.Failure -> {
+                                logger.error("Failed to fetch PDF for uuid: $uuid, status: ${pdfResponse.status}")
+                                call.respond(pdfResponse.status, "Kunne ikke hente PDF")
+                            }
                         }
-
-                        is PdfResponse.Unauthorized -> {
-                            logger.warn("Unauthorized/Forbidden when fetching PDF for uuid: $uuid, status: ${pdfResponse.status}")
-                            call.respond(pdfResponse.status, "Ikke autorisert til å hente PDF")
-                        }
-
-                        is PdfResponse.Failure -> {
-                            logger.error("Failed to fetch PDF for uuid: $uuid, status: ${pdfResponse.status}")
-                            call.respond(pdfResponse.status, "Kunne ikke hente PDF")
-                        }
+                    } catch (e: Exception) {
+                        logger.error("Error while fetching PDF for uuid: $uuid")
+                        sikkerLogger.error("Error while fetching PDF for uuid: $uuid", e)
+                        call.respond(HttpStatusCode.InternalServerError, "Feil ved henting av PDF")
                     }
                 }
             }

@@ -14,6 +14,7 @@ import no.nav.hag.simba.utils.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.ferdigstillOppgave
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.ferdigstillSak
@@ -46,9 +47,10 @@ class FerdigstillSakOgOppgaveRiver(
             // Støtter både inntektmelding mottatt av Simba og event fra Storebror
             val imType =
                 when (eventName) {
-                    EventName.INNTEKTSMELDING_MOTTATT -> {
-                        Key.FORESPOERSEL_ID
-                            .les(UuidSerializer, data)
+                    EventName.INNTEKTSMELDING_SKJEMA_LAGRET -> {
+                        Key.SKJEMA_INNTEKTSMELDING
+                            .les(SkjemaInntektsmelding.serializer(), data)
+                            .forespoerselId
                             .let(Inntektsmelding.Type::Forespurt)
                     }
 

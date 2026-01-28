@@ -91,12 +91,12 @@ fun Application.apiModule(
                         }
 
                     logger.info("pdf request received for uuid: $uuid")
-                    val principal = call.principal<TexasPrincipal>()
-                    if (principal == null) {
-                        call.respond(HttpStatusCode.Unauthorized, "mangler gyldig token")
-                        return@get
-                    }
                     try {
+                        val principal = call.principal<TexasPrincipal>()
+                        if (principal == null) {
+                            call.respond(HttpStatusCode.Unauthorized, "mangler gyldig token")
+                            return@get
+                        }
                         val tokenxToken = authClient.exchange(IdentityProvider.TOKEN_X, Env.lpsApiScope, principal.token)
 
                         when (val pdfResponse = pdfClient.genererPDF(uuid, tokenxToken.accessToken)) {

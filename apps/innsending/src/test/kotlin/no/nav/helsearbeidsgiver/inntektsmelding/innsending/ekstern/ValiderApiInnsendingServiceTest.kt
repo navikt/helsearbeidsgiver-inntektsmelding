@@ -203,9 +203,11 @@ class ValiderApiInnsendingServiceTest :
             )
 
         fun steg1(kontekstId: UUID): Map<Key, JsonElement> =
-            steg0(kontekstId).plusData(
-                Key.FORESPOERSEL_SVAR to forespoersel.toJson(),
-            )
+            steg0(kontekstId)
+                .plus(Key.EVENT_NAME to EventName.SERVICE_EKSTERN_IM_VALIDER.toJson())
+                .plusData(
+                    Key.FORESPOERSEL_SVAR to forespoersel.toJson(),
+                )
 
         fun steg2(kontekstId: UUID): Map<Key, JsonElement> =
             steg1(kontekstId).plusData(

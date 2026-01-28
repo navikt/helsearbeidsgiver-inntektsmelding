@@ -150,7 +150,7 @@ private object MockKvittering {
         forespoersel: Forespoersel,
     ): Map<Key, JsonElement> =
         mapOf(
-            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
+            Key.EVENT_NAME to EventName.SERVICE_FORESPURT_IM_HENT.toJson(),
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
@@ -165,7 +165,7 @@ private object MockKvittering {
         lagret: LagretInntektsmelding?,
     ): Map<Key, JsonElement> =
         mapOf(
-            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
+            Key.EVENT_NAME to EventName.SERVICE_FORESPURT_IM_HENT.toJson(),
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
@@ -178,5 +178,5 @@ private object MockKvittering {
                 ).toJson(),
         )
 
-    val fail = mockFail("Fool of a Took!", EventName.KVITTERING_REQUESTED)
+    val fail = mockFail("Fool of a Took!", EventName.SERVICE_FORESPURT_IM_HENT)
 }

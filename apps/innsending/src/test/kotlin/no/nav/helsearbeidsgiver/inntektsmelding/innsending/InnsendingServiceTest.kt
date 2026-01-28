@@ -235,9 +235,11 @@ private object Mock {
         kontekstId: UUID,
         skjema: SkjemaInntektsmelding,
     ): Map<Key, JsonElement> =
-        steg0(kontekstId, skjema).plusData(
-            Key.FORESPOERSEL_SVAR to mockForespoersel().toJson(),
-        )
+        steg0(kontekstId, skjema)
+            .plus(Key.EVENT_NAME to EventName.SERVICE_FORESPURT_IM_LAGRE_SKJEMA.toJson())
+            .plusData(
+                Key.FORESPOERSEL_SVAR to mockForespoersel().toJson(),
+            )
 
     fun steg2(
         kontekstId: UUID,

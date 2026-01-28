@@ -61,7 +61,7 @@ class HentSelvbestemtIT : EndToEndTest() {
 
         // Behov publiseres
         messages
-            .filter(EventName.SELVBESTEMT_IM_REQUESTED)
+            .filter(EventName.SERVICE_SELVBESTEMT_IM_HENT)
             .filter(BehovType.HENT_SELVBESTEMT_IM)
             .firstAsMap()
             .let { msg ->
@@ -73,7 +73,7 @@ class HentSelvbestemtIT : EndToEndTest() {
 
         // Behov besvares
         messages
-            .filter(EventName.SELVBESTEMT_IM_REQUESTED)
+            .filter(EventName.SERVICE_SELVBESTEMT_IM_HENT)
             .filter(Key.SELVBESTEMT_INNTEKTSMELDING)
             .firstAsMap()
             .let { msg ->
@@ -120,7 +120,7 @@ class HentSelvbestemtIT : EndToEndTest() {
 
         // Behov publiseres
         messages
-            .filter(EventName.SELVBESTEMT_IM_REQUESTED)
+            .filter(EventName.SERVICE_SELVBESTEMT_IM_HENT)
             .filter(BehovType.HENT_SELVBESTEMT_IM)
             .firstAsMap()
             .let { msg ->

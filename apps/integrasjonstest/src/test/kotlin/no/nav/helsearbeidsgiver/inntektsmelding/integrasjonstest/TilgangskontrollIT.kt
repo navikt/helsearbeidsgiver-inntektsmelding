@@ -96,7 +96,7 @@ class TilgangskontrollIT : EndToEndTest() {
         }
 
         messages
-            .filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
+            .filter(EventName.SERVICE_HENT_TILGANG_FORESPOERSEL)
             .filter(BehovType.HENT_TRENGER_IM)
             .firstAsMap()
             .also {
@@ -108,7 +108,7 @@ class TilgangskontrollIT : EndToEndTest() {
 
         val result =
             messages
-                .filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
+                .filter(EventName.SERVICE_HENT_TILGANG_FORESPOERSEL)
                 .filter(Key.TILGANG)
                 .firstAsMap()
 
@@ -143,7 +143,7 @@ class TilgangskontrollIT : EndToEndTest() {
 
         val result =
             messages
-                .filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
+                .filter(EventName.SERVICE_HENT_TILGANG_FORESPOERSEL)
                 .filter(Key.TILGANG)
                 .firstAsMap()
 
@@ -167,7 +167,7 @@ class TilgangskontrollIT : EndToEndTest() {
 
         val result =
             messages
-                .filter(EventName.TILGANG_ORG_REQUESTED)
+                .filter(EventName.SERVICE_HENT_TILGANG_ORG)
                 .filter(Key.TILGANG)
                 .firstAsMap()
 
@@ -193,7 +193,7 @@ class TilgangskontrollIT : EndToEndTest() {
 
         val result =
             messages
-                .filter(EventName.TILGANG_ORG_REQUESTED)
+                .filter(EventName.SERVICE_HENT_TILGANG_ORG)
                 .filter(Key.TILGANG)
                 .firstAsMap()
 

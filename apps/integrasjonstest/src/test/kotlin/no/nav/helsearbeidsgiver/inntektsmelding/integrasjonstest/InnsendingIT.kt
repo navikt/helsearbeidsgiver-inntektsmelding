@@ -77,7 +77,7 @@ class InnsendingIT : EndToEndTest() {
         )
 
         messages
-            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+            .filter(EventName.SERVICE_FORESPURT_IM_LAGRE_SKJEMA)
             .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {
@@ -151,7 +151,7 @@ class InnsendingIT : EndToEndTest() {
         )
 
         messages
-            .filter(EventName.INSENDING_STARTED)
+            .filter(EventName.SERVICE_FORESPURT_IM_LAGRE_SKJEMA)
             .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {

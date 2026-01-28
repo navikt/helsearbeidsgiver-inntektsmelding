@@ -97,8 +97,8 @@ subprojects {
     val hagDomeneInntektsmeldingVersion: String by project
     val junitJupiterVersion: String by project
     val kotestVersion: String by project
-    val kotlinCoroutinesVersion: String by project
-    val kotlinSerializationVersion: String by project
+    val kotlinxCoroutinesVersion: String by project
+    val kotlinxSerializationVersion: String by project
     val mockkVersion: String by project
     val utilsVersion: String by project
 
@@ -126,8 +126,8 @@ subprojects {
 
         implementation("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion")
         implementation("no.nav.helsearbeidsgiver:utils:$utilsVersion")
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
-        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
 
         testImplementation(testFixtures("no.nav.helsearbeidsgiver:utils:$utilsVersion"))
         testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")

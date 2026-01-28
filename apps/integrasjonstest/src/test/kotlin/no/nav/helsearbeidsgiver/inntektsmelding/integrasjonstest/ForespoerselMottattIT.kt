@@ -50,9 +50,8 @@ class ForespoerselMottattIT : EndToEndTest() {
             Pri.Key.SKAL_HA_PAAMINNELSE to Mock.SKAL_HA_PAAMINNELSE.toJson(Boolean.serializer()),
         )
 
-        val messagesFilteredForespoerselMottatt = messages.filter(EventName.FORESPOERSEL_MOTTATT)
-
-        messagesFilteredForespoerselMottatt
+        messages
+            .filter(EventName.FORESPOERSEL_MOTTATT)
             .firstAsMap()
             .also {
                 Key.KONTEKST_ID.lesOrNull(UuidSerializer, it).shouldNotBeNull()
@@ -65,7 +64,9 @@ class ForespoerselMottattIT : EndToEndTest() {
                 Key.SKAL_HA_PAAMINNELSE.lesOrNull(Boolean.serializer(), data) shouldBe Mock.SKAL_HA_PAAMINNELSE
             }
 
-        messagesFilteredForespoerselMottatt
+        val serviceMessages = messages.filter(EventName.SERVICE_HENT_DATA_TIL_SAK_OG_OPPGAVE)
+
+        serviceMessages
             .filter(BehovType.HENT_VIRKSOMHET_NAVN)
             .firstAsMap()
             .also {
@@ -73,7 +74,7 @@ class ForespoerselMottattIT : EndToEndTest() {
                 data[Key.ORGNR_UNDERENHETER]?.fromJson(Orgnr.serializer().set()) shouldBe setOf(Mock.forespoersel.orgnr)
             }
 
-        messagesFilteredForespoerselMottatt
+        serviceMessages
             .filter(BehovType.HENT_PERSONER)
             .firstAsMap()
             .also {
@@ -81,7 +82,7 @@ class ForespoerselMottattIT : EndToEndTest() {
                 data[Key.FNR_LISTE]?.fromJson(Fnr.serializer().set()) shouldBe setOf(Mock.forespoersel.fnr)
             }
 
-        messagesFilteredForespoerselMottatt
+        serviceMessages
             .filter(Key.VIRKSOMHETER)
             .firstAsMap()
             .also {
@@ -91,7 +92,7 @@ class ForespoerselMottattIT : EndToEndTest() {
                     .shouldNotBeNull()
             }
 
-        messagesFilteredForespoerselMottatt
+        serviceMessages
             .filter(Key.PERSONER)
             .firstAsMap()
             .also {

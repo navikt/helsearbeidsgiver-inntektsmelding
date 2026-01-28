@@ -69,6 +69,7 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
                 any(),
             )
         } returns mapOf(Mock.orgnr.toString() to Mock.inntektFraAordningen)
+
         publish(
             Key.EVENT_NAME to EventName.API_INNSENDING_STARTET.toJson(),
             Key.KONTEKST_ID to Mock.kontekstId.toJson(),
@@ -81,7 +82,7 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
 
         // Ber om forespørsel
         messages
-            .filter(EventName.API_INNSENDING_STARTET)
+            .filter(EventName.SERVICE_EKSTERN_IM_VALIDER)
             .filter(BehovType.HENT_TRENGER_IM)
             .firstAsMap()
             .verifiserKontekstId(Mock.kontekstId)
@@ -92,7 +93,7 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
 
         // Forespørsel hentet
         messages
-            .filter(EventName.API_INNSENDING_STARTET)
+            .filter(EventName.SERVICE_EKSTERN_IM_VALIDER)
             .filter(Key.FORESPOERSEL_SVAR)
             .firstAsMap()
             .verifiserKontekstId(Mock.kontekstId)
@@ -103,7 +104,7 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
 
         // Ber om inntekt
         messages
-            .filter(EventName.API_INNSENDING_STARTET)
+            .filter(EventName.SERVICE_EKSTERN_IM_VALIDER)
             .filter(BehovType.HENT_INNTEKT)
             .firstAsMap()
             .verifiserKontekstId(Mock.kontekstId)
@@ -115,7 +116,7 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
 
         // Inntekt hentet
         messages
-            .filter(EventName.API_INNSENDING_STARTET)
+            .filter(EventName.SERVICE_EKSTERN_IM_VALIDER)
             .filter(Key.INNTEKT)
             .firstAsMap()
             .verifiserKontekstId(Mock.kontekstId)
@@ -180,7 +181,7 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
 
         // Hentet forespørsel
         messages
-            .filter(EventName.API_INNSENDING_STARTET)
+            .filter(EventName.SERVICE_EKSTERN_IM_VALIDER)
             .filter(Key.FORESPOERSEL_SVAR)
             .firstAsMap()
             .verifiserKontekstId(Mock.kontekstId)
@@ -191,7 +192,7 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
 
         // Inntektkall feiler
         messages
-            .filter(EventName.API_INNSENDING_STARTET)
+            .filter(EventName.SERVICE_EKSTERN_IM_VALIDER)
             .filter(Key.INNTEKT)
             .all()
             .size shouldBe 0
@@ -223,7 +224,7 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
 
         // Nå hentes inntekt
         messages
-            .filter(EventName.API_INNSENDING_STARTET)
+            .filter(EventName.SERVICE_EKSTERN_IM_VALIDER)
             .filter(Key.INNTEKT)
             .firstAsMap()
             .verifiserKontekstId(Mock.kontekstId)

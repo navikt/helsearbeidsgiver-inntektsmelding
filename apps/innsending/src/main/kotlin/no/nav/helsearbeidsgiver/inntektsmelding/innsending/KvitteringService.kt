@@ -40,7 +40,8 @@ class KvitteringService(
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val eventName = EventName.KVITTERING_REQUESTED
+    override val initialEventName = EventName.KVITTERING_REQUESTED
+    override val serviceEventName = EventName.SERVICE_FORESPURT_IM_HENT
 
     data class Steg0(
         val kontekstId: UUID,
@@ -105,7 +106,7 @@ class KvitteringService(
         publisher
             .publish(
                 key = steg0.forespoerselId,
-                Key.EVENT_NAME to eventName.toJson(),
+                Key.EVENT_NAME to serviceEventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
@@ -123,7 +124,7 @@ class KvitteringService(
         publisher
             .publish(
                 key = steg0.forespoerselId,
-                Key.EVENT_NAME to eventName.toJson(),
+                Key.EVENT_NAME to serviceEventName.toJson(),
                 Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
@@ -136,7 +137,7 @@ class KvitteringService(
         publisher
             .publish(
                 key = steg0.forespoerselId,
-                Key.EVENT_NAME to eventName.toJson(),
+                Key.EVENT_NAME to serviceEventName.toJson(),
                 Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
@@ -149,7 +150,7 @@ class KvitteringService(
         publisher
             .publish(
                 key = steg0.forespoerselId,
-                Key.EVENT_NAME to eventName.toJson(),
+                Key.EVENT_NAME to serviceEventName.toJson(),
                 Key.BEHOV to BehovType.HENT_LAGRET_IM.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
@@ -191,7 +192,7 @@ class KvitteringService(
     ) {
         MdcUtils.withLogFields(
             Log.klasse(this),
-            Log.event(eventName),
+            Log.event(serviceEventName),
             Log.kontekstId(fail.kontekstId),
         ) {
             "Klarte ikke hente kvittering for forespørsel.".also {
@@ -208,7 +209,7 @@ class KvitteringService(
     override fun Steg0.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this@KvitteringService),
-            Log.event(eventName),
+            Log.event(serviceEventName),
             Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )

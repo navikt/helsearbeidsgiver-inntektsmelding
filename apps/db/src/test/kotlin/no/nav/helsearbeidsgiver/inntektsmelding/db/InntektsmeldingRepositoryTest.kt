@@ -24,11 +24,12 @@ import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.mai
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.date.september
-import org.jetbrains.exposed.exceptions.ExposedSQLException
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -394,11 +395,11 @@ class InntektsmeldingRepositoryTest :
                 InntektsmeldingEntitet.apply {
                     resultat[0][innsendt] shouldBeLessThan resultat[1][innsendt]
 
-                    resultat[0][this.inntektsmelding].shouldNotBeNull()
-                    resultat[0][this.journalpostId].shouldBeNull()
+                    resultat[0].getOrNull(this.inntektsmelding).shouldNotBeNull()
+                    resultat[0].getOrNull(this.journalpostId).shouldBeNull()
 
-                    resultat[1][this.inntektsmelding].shouldNotBeNull()
-                    resultat[1][this.journalpostId] shouldBe journalpostId
+                    resultat[1].getOrNull(this.inntektsmelding).shouldNotBeNull()
+                    resultat[1].getOrNull(this.journalpostId) shouldBe journalpostId
                 }
             }
 
@@ -432,11 +433,11 @@ class InntektsmeldingRepositoryTest :
                 InntektsmeldingEntitet.apply {
                     resultatFoerNyJournalpostId[0][innsendt] shouldBeLessThan resultatFoerNyJournalpostId[1][innsendt]
 
-                    resultatFoerNyJournalpostId[0][this.inntektsmelding].shouldNotBeNull()
-                    resultatFoerNyJournalpostId[0][journalpostId].shouldBeNull()
+                    resultatFoerNyJournalpostId[0].getOrNull(this.inntektsmelding).shouldNotBeNull()
+                    resultatFoerNyJournalpostId[0].getOrNull(journalpostId).shouldBeNull()
 
-                    resultatFoerNyJournalpostId[1][this.inntektsmelding].shouldNotBeNull()
-                    resultatFoerNyJournalpostId[1][journalpostId] shouldBe gammelJournalpostId
+                    resultatFoerNyJournalpostId[1].getOrNull(this.inntektsmelding).shouldNotBeNull()
+                    resultatFoerNyJournalpostId[1].getOrNull(journalpostId) shouldBe gammelJournalpostId
                 }
 
                 // Oppdater journalpostId
@@ -455,11 +456,11 @@ class InntektsmeldingRepositoryTest :
                 InntektsmeldingEntitet.apply {
                     resultsEtterNyJournalpostId[0][innsendt] shouldBeLessThan resultsEtterNyJournalpostId[1][innsendt]
 
-                    resultsEtterNyJournalpostId[0][this.inntektsmelding].shouldNotBeNull()
-                    resultsEtterNyJournalpostId[0][journalpostId].shouldBeNull()
+                    resultsEtterNyJournalpostId[0].getOrNull(this.inntektsmelding).shouldNotBeNull()
+                    resultsEtterNyJournalpostId[0].getOrNull(journalpostId).shouldBeNull()
 
-                    resultsEtterNyJournalpostId[1][this.inntektsmelding].shouldNotBeNull()
-                    resultsEtterNyJournalpostId[1][journalpostId] shouldBe nyJournalpostId
+                    resultsEtterNyJournalpostId[1].getOrNull(this.inntektsmelding).shouldNotBeNull()
+                    resultsEtterNyJournalpostId[1].getOrNull(journalpostId) shouldBe nyJournalpostId
                 }
             }
 
@@ -493,11 +494,11 @@ class InntektsmeldingRepositoryTest :
                 InntektsmeldingEntitet.apply {
                     resultat[0][innsendt] shouldBeLessThan resultat[1][innsendt]
 
-                    resultat[0][this.inntektsmelding].shouldNotBeNull()
-                    resultat[0][this.journalpostId] shouldBe journalpostId
+                    resultat[0].getOrNull(this.inntektsmelding).shouldNotBeNull()
+                    resultat[0].getOrNull(this.journalpostId) shouldBe journalpostId
 
-                    resultat[1][eksternInntektsmelding].shouldNotBeNull()
-                    resultat[1][this.journalpostId].shouldBeNull()
+                    resultat[1].getOrNull(eksternInntektsmelding).shouldNotBeNull()
+                    resultat[1].getOrNull(this.journalpostId).shouldBeNull()
                 }
             }
         }
@@ -532,11 +533,11 @@ class InntektsmeldingRepositoryTest :
                 InntektsmeldingEntitet.apply {
                     resultat[0][innsendt] shouldBeLessThan resultat[1][innsendt]
 
-                    resultat[0][this.skjema] shouldBe skjema
-                    resultat[0][prosessert].shouldNotBeNull().shouldBeIn(prosessertVindu)
+                    resultat[0].getOrNull(this.skjema) shouldBe skjema
+                    resultat[0].getOrNull(prosessert).shouldNotBeNull().shouldBeIn(prosessertVindu)
 
-                    resultat[1][this.skjema].shouldNotBeNull()
-                    resultat[1][prosessert].shouldBeNull()
+                    resultat[1].getOrNull(this.skjema).shouldNotBeNull()
+                    resultat[1].getOrNull(prosessert).shouldBeNull()
                 }
             }
         }

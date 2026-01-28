@@ -42,7 +42,8 @@ class ApiInnsendingService(
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val eventName = EventName.API_INNSENDING_VALIDERT
+    override val initialEventName = EventName.API_INNSENDING_VALIDERT
+    override val serviceEventName = EventName.SERVICE_EKSTERN_IM_LAGRE_SKJEMA
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
@@ -65,7 +66,7 @@ class ApiInnsendingService(
         publisher
             .publish(
                 key = steg0.innsending.skjema.forespoerselId,
-                Key.EVENT_NAME to eventName.toJson(),
+                Key.EVENT_NAME to serviceEventName.toJson(),
                 Key.BEHOV to BehovType.LAGRE_IM_SKJEMA.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
@@ -121,7 +122,7 @@ class ApiInnsendingService(
     override fun Steg0.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this@ApiInnsendingService),
-            Log.event(eventName),
+            Log.event(serviceEventName),
             Log.kontekstId(kontekstId),
             Log.inntektsmeldingId(innsending.innsendingId),
             Log.forespoerselId(innsending.skjema.forespoerselId),

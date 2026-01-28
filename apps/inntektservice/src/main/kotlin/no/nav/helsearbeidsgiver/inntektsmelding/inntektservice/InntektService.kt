@@ -48,7 +48,8 @@ class InntektService(
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val eventName = EventName.INNTEKT_REQUESTED
+    override val initialEventName = EventName.INNTEKT_REQUESTED
+    override val serviceEventName = EventName.SERVICE_HENT_INNTEKT
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
@@ -74,7 +75,7 @@ class InntektService(
         publisher
             .publish(
                 key = steg0.forespoerselId,
-                Key.EVENT_NAME to eventName.toJson(),
+                Key.EVENT_NAME to serviceEventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
@@ -99,7 +100,7 @@ class InntektService(
         publisher
             .publish(
                 key = steg0.forespoerselId,
-                Key.EVENT_NAME to eventName.toJson(),
+                Key.EVENT_NAME to serviceEventName.toJson(),
                 Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
                 Key.KONTEKST_ID to steg0.kontekstId.toJson(),
                 Key.DATA to
@@ -133,8 +134,6 @@ class InntektService(
             )
 
         redisStore.skrivResultat(steg0.kontekstId, resultJson)
-
-        sikkerLogger.info("$eventName fullført.")
     }
 
     override fun onError(
@@ -150,18 +149,12 @@ class InntektService(
         }
 
         redisStore.skrivResultat(fail.kontekstId, resultJson)
-
-        MdcUtils.withLogFields(
-            Log.kontekstId(fail.kontekstId),
-        ) {
-            sikkerLogger.error("$eventName terminert.")
-        }
     }
 
     override fun Steg0.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this@InntektService),
-            Log.event(eventName),
+            Log.event(serviceEventName),
             Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
         )

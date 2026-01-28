@@ -81,6 +81,6 @@ fun mockForespoerselSvarSuksess(forespoerselId: UUID): ForespoerselFraBro {
 
 private fun mockBoomerang(): JsonElement =
     mapOf(
-        Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),
+        Key.EVENT_NAME to EventName.SERVICE_HENT_INNTEKT.toJson(),
         Key.KONTEKST_ID to UUID.randomUUID().toJson(),
     ).toJson()

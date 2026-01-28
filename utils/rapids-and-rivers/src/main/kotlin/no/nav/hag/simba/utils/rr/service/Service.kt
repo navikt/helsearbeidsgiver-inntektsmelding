@@ -15,7 +15,8 @@ sealed interface Service {
         val redisStore: RedisStore
     }
 
-    val eventName: EventName
+    val initialEventName: EventName
+    val serviceEventName: EventName
 
     // TODO internal?
     fun onData(melding: Map<Key, JsonElement>)

@@ -190,7 +190,7 @@ private object Mock {
         val svarKafkaKey = KafkaKey(UUID.randomUUID())
 
         return HentOrganisasjonMelding(
-            eventName = EventName.TRENGER_REQUESTED,
+            eventName = EventName.SERVICE_HENT_FORESPOERSEL,
             behovType = BehovType.HENT_VIRKSOMHET_NAVN,
             kontekstId = UUID.randomUUID(),
             data =
@@ -211,7 +211,7 @@ private object Mock {
             Key.DATA to data.toJson(),
         )
 
-    val fail = mockFail("failando, failando", EventName.TRENGER_REQUESTED)
+    val fail = mockFail("failando, failando", EventName.SERVICE_HENT_FORESPOERSEL)
 }
 
 private fun Set<Orgnr>.somStrenger(): Set<String> = map { it.verdi }.toSet()

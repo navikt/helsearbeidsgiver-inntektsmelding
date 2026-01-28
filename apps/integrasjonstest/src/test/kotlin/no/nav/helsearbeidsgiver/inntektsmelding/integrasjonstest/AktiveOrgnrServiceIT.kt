@@ -69,7 +69,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         redisConnection.get(RedisPrefix.AktiveOrgnr, kontekstId) shouldBe Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE
 
-        val aktiveOrgnrMeldinger = messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
+        val aktiveOrgnrMeldinger = messages.filter(EventName.SERVICE_HENT_AKTIVE_ORGNR)
 
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSGIVERE)
@@ -150,7 +150,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         redisConnection.get(RedisPrefix.AktiveOrgnr, kontekstId)?.parseJson() shouldBe Mock.resultatIngenArbeidsforholdJson
 
-        val aktiveOrgnrMeldinger = messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
+        val aktiveOrgnrMeldinger = messages.filter(EventName.SERVICE_HENT_AKTIVE_ORGNR)
 
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSGIVERE)
@@ -209,7 +209,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                 kontekstId = kontekstId,
                 utloesendeMelding =
                     mapOf(
-                        Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
+                        Key.EVENT_NAME to EventName.SERVICE_HENT_AKTIVE_ORGNR.toJson(),
                         Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
                         Key.KONTEKST_ID to kontekstId.toJson(),
                         Key.DATA to

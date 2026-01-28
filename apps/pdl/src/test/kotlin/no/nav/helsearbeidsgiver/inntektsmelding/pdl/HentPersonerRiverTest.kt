@@ -184,7 +184,7 @@ private object Mock {
         val svarKafkaKey = KafkaKey(UUID.randomUUID())
 
         return Melding(
-            eventName = EventName.TRENGER_REQUESTED,
+            eventName = EventName.SERVICE_HENT_FORESPOERSEL,
             behovType = BehovType.HENT_PERSONER,
             kontekstId = UUID.randomUUID(),
             data =
@@ -219,7 +219,7 @@ private object Mock {
                     ).toJson(),
         )
 
-    val fail = mockFail("They have a cave troll.", EventName.TRENGER_REQUESTED)
+    val fail = mockFail("They have a cave troll.", EventName.SERVICE_HENT_FORESPOERSEL)
 
     fun fullPerson(
         fornavn: String,

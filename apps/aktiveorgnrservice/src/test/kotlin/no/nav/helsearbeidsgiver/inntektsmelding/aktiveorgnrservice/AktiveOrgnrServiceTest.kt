@@ -64,7 +64,7 @@ class AktiveOrgnrServiceTest :
             val expectedSuccess = Mock.successResult(orgnr)
 
             testRapid.sendJson(
-                Mock.startmelding(kontekstId),
+                Mock.steg0(kontekstId),
             )
 
             testRapid.inspektør.size shouldBeExactly 3
@@ -82,14 +82,14 @@ class AktiveOrgnrServiceTest :
             }
 
             testRapid.sendJson(
-                Mock.steg1Data(kontekstId, orgnr),
+                Mock.steg1(kontekstId, orgnr),
             )
 
             testRapid.inspektør.size shouldBeExactly 4
             testRapid.message(3).lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
 
             testRapid.sendJson(
-                Mock.steg2Data(kontekstId, orgnr),
+                Mock.steg2(kontekstId, orgnr),
             )
 
             verify {
@@ -103,14 +103,14 @@ class AktiveOrgnrServiceTest :
             val expectedSuccess = Mock.successResultTomListe()
 
             testRapid.sendJson(
-                Mock.startmelding(kontekstId),
+                Mock.steg0(kontekstId),
             )
 
             testRapid.inspektør.size shouldBeExactly 3
 
             testRapid.sendJson(
                 Mock
-                    .steg1Data(kontekstId, orgnr)
+                    .steg1(kontekstId, orgnr)
                     .plusData(Key.ANSETTELSESPERIODER to JsonObject(emptyMap())),
             )
 
@@ -128,14 +128,14 @@ class AktiveOrgnrServiceTest :
             val expectedSuccess = Mock.successResultTomListe()
 
             testRapid.sendJson(
-                Mock.startmelding(kontekstId),
+                Mock.steg0(kontekstId),
             )
 
             testRapid.inspektør.size shouldBeExactly 3
 
             testRapid.sendJson(
                 Mock
-                    .steg1Data(kontekstId, orgnr)
+                    .steg1(kontekstId, orgnr)
                     .plusData(Key.ORG_RETTIGHETER to setOf(Orgnr.genererGyldig().verdi).toJson(String.serializer())),
             )
 
@@ -154,14 +154,14 @@ class AktiveOrgnrServiceTest :
             val expectedFailure = Mock.failureResult(feilmelding)
 
             testRapid.sendJson(
-                Mock.startmelding(kontekstId),
+                Mock.steg0(kontekstId),
             )
 
             testRapid.inspektør.size shouldBeExactly 3
 
             testRapid.sendJson(
                 Mock
-                    .steg1Data(kontekstId, orgnr)
+                    .steg1(kontekstId, orgnr)
                     .plusData(Key.ORG_RETTIGHETER to emptySet<String>().toJson(String.serializer())),
             )
 
@@ -177,13 +177,13 @@ class AktiveOrgnrServiceTest :
             val fail =
                 mockFail(
                     feilmelding = "Kafka streiker for bedre vilkår :(",
-                    eventName = EventName.AKTIVE_ORGNR_REQUESTED,
+                    eventName = EventName.SERVICE_HENT_AKTIVE_ORGNR,
                     behovType = BehovType.ARBEIDSGIVERE,
                 )
             val expectedFailure = Mock.failureResult(fail.feilmelding)
 
             testRapid.sendJson(
-                Mock.startmelding(fail.kontekstId),
+                Mock.steg0(fail.kontekstId),
             )
 
             testRapid.sendJson(fail.tilMelding())
@@ -242,7 +242,7 @@ private object Mock {
             failure = feilmelding.toJson(),
         )
 
-    fun startmelding(kontekstId: UUID): Map<Key, JsonElement> =
+    fun steg0(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
             Key.KONTEKST_ID to kontekstId.toJson(),
@@ -253,12 +253,12 @@ private object Mock {
                 ).toJson(),
         )
 
-    fun steg1Data(
+    fun steg1(
         kontekstId: UUID,
         orgnr: Orgnr,
     ): Map<Key, JsonElement> =
         mapOf(
-            Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
+            Key.EVENT_NAME to EventName.SERVICE_HENT_AKTIVE_ORGNR.toJson(),
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
@@ -271,11 +271,14 @@ private object Mock {
                 ).toJson(),
         )
 
-    fun steg2Data(
+    fun steg2(
         kontekstId: UUID,
         orgnr: Orgnr,
     ): Map<Key, JsonElement> =
-        steg1Data(kontekstId, orgnr).plusData(
-            Key.VIRKSOMHETER to mapOf(orgnr.verdi to ORG_NAVN).toJson(),
+        steg1(kontekstId, orgnr).plus(
+            Key.DATA to
+                mapOf(
+                    Key.VIRKSOMHETER to mapOf(orgnr.verdi to ORG_NAVN).toJson(),
+                ).toJson(),
         )
 }

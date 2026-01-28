@@ -79,7 +79,7 @@ class HentForespoerselIT : EndToEndTest() {
         )
 
         messages
-            .filter(EventName.TRENGER_REQUESTED)
+            .filter(EventName.SERVICE_HENT_FORESPOERSEL)
             .filter(BehovType.HENT_TRENGER_IM)
             .firstAsMap()
             .let {
@@ -87,7 +87,7 @@ class HentForespoerselIT : EndToEndTest() {
             }
 
         messages
-            .filter(EventName.TRENGER_REQUESTED)
+            .filter(EventName.SERVICE_HENT_FORESPOERSEL)
             .filter(BehovType.HENT_VIRKSOMHET_NAVN)
             .firstAsMap()
             .let {
@@ -95,7 +95,7 @@ class HentForespoerselIT : EndToEndTest() {
             }
 
         messages
-            .filter(EventName.TRENGER_REQUESTED)
+            .filter(EventName.SERVICE_HENT_FORESPOERSEL)
             .filter(BehovType.HENT_PERSONER)
             .firstAsMap()
             .let {
@@ -103,7 +103,7 @@ class HentForespoerselIT : EndToEndTest() {
             }
 
         messages
-            .filter(EventName.TRENGER_REQUESTED)
+            .filter(EventName.SERVICE_HENT_FORESPOERSEL)
             .filter(BehovType.HENT_INNTEKT)
             .firstAsMap()
             .let {

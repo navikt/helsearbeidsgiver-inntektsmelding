@@ -17,6 +17,7 @@ import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.test.json.lesBehov
+import no.nav.hag.simba.utils.felles.test.json.plusData
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
 import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
 import no.nav.hag.simba.utils.rr.test.firstMessage
@@ -73,7 +74,7 @@ class HentForespoerslerForVedtaksperiodeIdListeServiceTest :
             val fail =
                 mockFail(
                     feilmelding = "Teknisk feil, prøv igjen senere.",
-                    eventName = EventName.FORESPOERSLER_REQUESTED,
+                    eventName = EventName.SERVICE_HENT_FORESPOERSEL_LISTE,
                     behovType = BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE,
                 )
 
@@ -118,16 +119,15 @@ private object MockHent {
         )
 
     fun steg1(kontekstId: UUID): Map<Key, JsonElement> =
-        mapOf(
-            Key.EVENT_NAME to EventName.FORESPOERSLER_REQUESTED.toJson(),
-            Key.KONTEKST_ID to kontekstId.toJson(),
-            Key.DATA to
+        steg0(kontekstId)
+            .plus(Key.EVENT_NAME to EventName.SERVICE_HENT_FORESPOERSEL_LISTE.toJson())
+            .plusData(
                 mapOf(
                     Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIdListe.toJson(UuidSerializer),
                     Key.FORESPOERSEL_MAP to
                         forespoersler.toJson(
                             serializer = MapSerializer(UuidSerializer, Forespoersel.serializer()),
                         ),
-                ).toJson(),
-        )
+                ),
+            )
 }

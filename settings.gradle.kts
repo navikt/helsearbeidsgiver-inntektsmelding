@@ -1,20 +1,40 @@
 rootProject.name = "helsearbeidsgiver-inntektsmelding"
 
-include(
-    rootDir
-        .listFiles()
-        ?.filter { it.isDirectory && File(it, "build.gradle.kts").exists() }
-        ?.map { it.name }
-        .orEmpty()
-)
+val appsDirName = "apps"
+val kontraktDirName = "kontrakt"
+val utilsDirName = "utils"
+
+val projects =
+    setOf(appsDirName, kontraktDirName, utilsDirName)
+        .mapNotNull { dirName ->
+            File(rootDir, dirName)
+                .listFiles()
+                ?.map { it.name to dirName }
+        }.flatten()
+        .toMap()
+
+include(projects.map { it.projectName() })
+
+projects.forEach {
+    project(":${it.projectName()}").projectDir = file("${it.value}/${it.key}")
+}
 
 pluginManagement {
     plugins {
+        val kotestVersion: String by settings
         val kotlinVersion: String by settings
         val kotlinterVersion: String by settings
 
         kotlin("jvm") version kotlinVersion
         kotlin("plugin.serialization") version kotlinVersion
+        id("io.kotest") version kotestVersion
         id("org.jmailen.kotlinter") version kotlinterVersion
     }
 }
+
+private fun Map.Entry<String, String>.projectName(): String =
+    if (value == appsDirName) {
+        key
+    } else {
+        "$value-$key"
+    }

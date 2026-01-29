@@ -1,0 +1,53 @@
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      build-matrix:
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+
+jobs:
+  build:
+    if: "!contains(inputs.build-matrix, '\"project\": []')"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(inputs.build-matrix) }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build
+        uses: ./.github/actions/build
+        with:
+          project: ${{ matrix.project }}
+
+      - name: Determine Docker image tag (short SHA)
+        id: docker-image-tag
+        run: |
+          short_sha=$(echo ${{ github.sha }} | cut -c 1-7)
+          echo "tag=$short_sha" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        uses: nais/docker-build-push@v0
+        id: docker-image
+        with:
+          team: helsearbeidsgiver
+          dockerfile: Dockerfile
+          docker_context: apps/${{ matrix.project }}
+          image_suffix: im-${{ matrix.project }}
+          tag: ${{ steps.docker-image-tag.outputs.tag }}
+
+      - name: Lag Docker image-fil for opplasting
+        run: echo ${{ steps.docker-image.outputs.image }} > ${{ matrix.project }}-image.txt
+
+      - name: Last opp Docker image-fil
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.project }}-image
+          path: ${{ matrix.project }}-image.txt
+          retention-days: 1
+          overwrite: true

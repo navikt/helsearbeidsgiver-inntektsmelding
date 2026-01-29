@@ -1,0 +1,39 @@
+val ktorVersion: String by project
+val mockOauth2ServerVersion: String by project
+val tokenSupportVersion: String by project
+
+tasks {
+    test {
+        environment("IDPORTEN_WELL_KNOWN_URL", "http://localhost:6666/idporten-issuer/.well-known/openid-configuration")
+        environment("IDPORTEN_AUDIENCE", "aud-localhost")
+    }
+}
+
+dependencies {
+    constraints {
+        // token-validation-ktor-v3 bruker (transitivt) 0.6.x av kotlinx-datetime, mens exposed bruker 0.7.x. Uten denne constrainten så får vi konflikt i integrasjonstestene.
+        implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1-0.6.x-compat")
+    }
+
+    implementation(project(":kontrakt-domene-arbeidsgiver"))
+    implementation(project(":kontrakt-resultat-forespoersel"))
+    implementation(project(":kontrakt-resultat-kvittering"))
+    implementation(project(":kontrakt-resultat-lagre-im"))
+    implementation(project(":kontrakt-resultat-tilgang"))
+    implementation(project(":utils-kafka"))
+    implementation(project(":utils-valkey"))
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+    implementation("io.ktor:ktor-server-auth:$ktorVersion")
+    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-server-core:$ktorVersion")
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
+    implementation("no.nav.security:token-client-core:$tokenSupportVersion")
+    implementation("no.nav.security:token-validation-ktor-v3:$tokenSupportVersion")
+
+    testImplementation(testFixtures(project(":kontrakt-domene-forespoersel")))
+    testImplementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+    testImplementation("io.ktor:ktor-client-core:$ktorVersion")
+    testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
+    testImplementation("no.nav.security:mock-oauth2-server:$mockOauth2ServerVersion")
+}

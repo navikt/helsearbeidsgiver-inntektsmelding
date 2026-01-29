@@ -1,10 +1,10 @@
 kafkaPool: nav-prod
-azure:
-  enabled: true
+replicasMax: 5
+entraIdEnabled: true
 env:
 - name: AAREG_URL
-  value: "https://helsearbeidsgiver-proxy.prod-fss-pub.nais.io/aareg-arbeidsforhold"
-- name: PROXY_SCOPE
-  value: "api://prod-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"
+  value: "https://aareg-services.prod-fss-pub.nais.io"
+- name: AAREG_SCOPE
+  value: "api://prod-fss.arbeidsforhold.aareg-services-nais/.default"
 externalHosts:
-  - helsearbeidsgiver-proxy.prod-fss-pub.nais.io
+  - aareg-services.prod-fss-pub.nais.io

@@ -1,11 +1,10 @@
 kafkaPool: nav-dev
-azure:
-  enabled: true
-ingress: https://helsearbeidsgiver-im-aareg.intern.dev.nav.no
+replicasMax: 5
+entraIdEnabled: true
 env:
 - name: AAREG_URL
-  value: "https://helsearbeidsgiver-proxy.dev-fss-pub.nais.io/aareg-arbeidsforhold"
-- name: PROXY_SCOPE
-  value: "api://dev-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"
+  value: "https://aareg-services.dev-fss-pub.nais.io"
+- name: AAREG_SCOPE
+  value: "api://dev-fss.arbeidsforhold.aareg-services-nais/.default"
 externalHosts:
-  - helsearbeidsgiver-proxy.dev-fss-pub.nais.io
+  - aareg-services.dev-fss-pub.nais.io

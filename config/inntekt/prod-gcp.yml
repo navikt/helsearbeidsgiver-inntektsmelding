@@ -1,10 +1,10 @@
 kafkaPool: nav-prod
-azure:
-  enabled: true
+replicasMax: 5
+entraIdEnabled: true
 env:
 - name: INNTEKT_URL
-  value: "https://helsearbeidsgiver-proxy.prod-fss-pub.nais.io/inntekt"
-- name: PROXY_SCOPE
-  value: "api://prod-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"
+  value: "https://ikomp.prod-fss-pub.nais.io/rs"
+- name: INNTEKT_SCOPE
+  value: "api://prod-fss.team-inntekt.ikomp/.default"
 externalHosts:
-  - helsearbeidsgiver-proxy.prod-fss-pub.nais.io
+  - ikomp.prod-fss-pub.nais.io

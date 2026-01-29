@@ -1,6 +1,6 @@
 kafkaPool: nav-prod
-azure:
-  enabled: true
+replicasMax: 5
+entraIdEnabled: true
 env:
 - name: PDL_URL
   value: "https://pdl-api.prod-fss-pub.nais.io/graphql"

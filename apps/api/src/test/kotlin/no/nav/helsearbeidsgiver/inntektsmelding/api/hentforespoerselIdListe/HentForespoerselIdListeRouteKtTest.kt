@@ -1,0 +1,362 @@
+package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIdListe
+
+import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.maps.shouldContainKey
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
+import io.mockk.clearAllMocks
+import io.mockk.coEvery
+import io.mockk.verifySequence
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
+import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
+import no.nav.hag.simba.utils.felles.EventName
+import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.Tekst
+import no.nav.hag.simba.utils.felles.domene.ResultJson
+import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
+import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import java.util.UUID
+
+class HentForespoerselIdListeRouteKtTest : ApiTest() {
+    private val path = Routes.PREFIX + Routes.HENT_FORESPOERSEL_ID_LISTE
+
+    @BeforeEach
+    fun setup() {
+        clearAllMocks()
+    }
+
+    @Test
+    fun `gir OK med forespørsel-IDer`() =
+        testApi {
+            val mockResultat = Mock.mockResultat()
+            val vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
+                listOf(
+                    Mock.successResult(mockResultat),
+                    harTilgangResultat,
+                )
+
+            val response =
+                post(
+                    path,
+                    HentForespoerslerRequest(vedtaksperiodeIdListe),
+                    HentForespoerslerRequest.serializer(),
+                )
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.OK
+            actualJson shouldBe Mock.successResponseJson()
+
+            verifySequence {
+                mockProducer.send(
+                    key = any<UUID>(),
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it.minus(Key.KONTEKST_ID) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.FORESPOERSLER_REQUESTED.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIdListe.toJson(UuidSerializer),
+                                        ).toJson(),
+                                )
+                        },
+                )
+                mockProducer.send(
+                    key = mockPid,
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it.minus(Key.KONTEKST_ID) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.TILGANG_ORG_REQUESTED.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.FNR to mockPid.toJson(),
+                                            Key.ORGNR_UNDERENHET to Mock.orgnr.toJson(),
+                                        ).toJson(),
+                                )
+                        },
+                )
+            }
+        }
+
+    @Test
+    fun `gir OK med tom liste av forespørsel-IDer`() =
+        testApi {
+            val mockResultat = emptyMap<UUID, Forespoersel>()
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
+                listOf(
+                    Mock.successResult(mockResultat),
+                    harTilgangResultat,
+                )
+
+            val response =
+                post(
+                    path,
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest.serializer(),
+                )
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.OK
+            actualJson shouldBe Mock.successEmptyResponseJson()
+        }
+
+    @Test
+    fun `manglende tilgang til organisasjon gir 403 forbidden-feil`() =
+        testApi {
+            val mockResultat = Mock.mockResultat()
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
+                listOf(
+                    Mock.successResult(mockResultat),
+                    ikkeTilgangResultat,
+                )
+
+            val response =
+                post(
+                    path,
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest.serializer(),
+                )
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.Forbidden
+            actualJson shouldBe "\"Mangler rettigheter for organisasjon.\""
+        }
+
+    @Test
+    fun `vedtaksperiode-IDer som tilhører ulike organisasjoner gir 400-feil`() =
+        testApi {
+            val mockResultat = Mock.mockResultatMedUlikeOrgnr()
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
+                listOf(
+                    Mock.successResult(mockResultat),
+                    harTilgangResultat,
+                )
+
+            val response =
+                post(
+                    path,
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest.serializer(),
+                )
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.BadRequest
+            actualJson shouldBe "\"Ugyldig request.\""
+        }
+
+    @Test
+    fun `mer enn maks antall vedtaksperiode-IDer i request gir 400-feil`() =
+        testApi {
+            val mockResultat = Mock.mockResultat()
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
+                listOf(
+                    Mock.successResult(mockResultat),
+                    harTilgangResultat,
+                )
+
+            val response =
+                post(
+                    path,
+                    HentForespoerslerRequest(
+                        vedtaksperiodeIdListe = List(MAKS_ANTALL_VEDTAKSPERIODE_IDER + 1) { Mock.vedtaksPeriodeId1 },
+                    ),
+                    HentForespoerslerRequest.serializer(),
+                )
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.BadRequest
+            actualJson shouldBe "\"Ugyldig request.\""
+        }
+
+    @Test
+    fun `ugyldig ID i request gir 400-feil`() =
+        testApi {
+            val ugyldigRequest =
+                JsonObject(
+                    mapOf(
+                        HentForespoerslerRequest::vedtaksperiodeIdListe.name to
+                            listOf(
+                                "ikke en uuid",
+                                Mock.vedtaksPeriodeId2.toString(),
+                            ).toJson(String.serializer()),
+                    ),
+                )
+
+            val response =
+                post(
+                    path,
+                    ugyldigRequest,
+                    JsonElement.serializer(),
+                )
+
+            val actualJson = response.bodyAsText()
+            response.status shouldBe HttpStatusCode.BadRequest
+            actualJson shouldBe "\"Klarte ikke lese request.\""
+        }
+
+    @Test
+    fun `feilresultat gir 500-feil`() =
+        testApi {
+            val expectedFeilmelding = "Det e itjnå som kjem tå sæ sjøl!"
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
+                listOf(
+                    Mock.failureResult(expectedFeilmelding),
+                    harTilgangResultat,
+                )
+
+            val response =
+                post(
+                    path,
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest.serializer(),
+                )
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            actualJson shouldBe "\"$expectedFeilmelding\""
+        }
+
+    @Test
+    fun `tomt resultat gir 500-feil`() =
+        testApi {
+            val expectedFeilmelding = "Teknisk feil, prøv igjen senere."
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
+                listOf(
+                    Mock.emptyResult(),
+                    harTilgangResultat,
+                )
+
+            val response =
+                post(
+                    path,
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest.serializer(),
+                )
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            actualJson shouldBe "\"$expectedFeilmelding\""
+        }
+
+    @Test
+    fun `timeout mot redis gir 500-feil`() =
+        testApi {
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns null
+
+            val response =
+                post(
+                    path,
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest.serializer(),
+                )
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            actualJson shouldBe Tekst.REDIS_TIMEOUT_FEILMELDING.toJson().toString()
+        }
+
+    @Test
+    fun `ukjent feil gir 500-feil`() =
+        testApi {
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns harTilgangResultat andThenThrows NullPointerException()
+
+            val response =
+                post(
+                    path,
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest.serializer(),
+                )
+
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            error.shouldBeTypeOf<ErrorResponse.Unknown>()
+        }
+}
+
+private object Mock {
+    val orgnr = Orgnr.genererGyldig()
+    val vedtaksPeriodeId1: UUID = UUID.randomUUID()
+    val forespoerselId1: UUID = UUID.randomUUID()
+
+    val vedtaksPeriodeId2: UUID = UUID.randomUUID()
+    val forespoerselId2: UUID = UUID.randomUUID()
+
+    fun mockResultat(): Map<UUID, Forespoersel> =
+        mapOf(
+            forespoerselId1 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId1, orgnr = orgnr),
+            forespoerselId2 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId2, orgnr = orgnr),
+        )
+
+    fun mockResultatMedUlikeOrgnr(): Map<UUID, Forespoersel> =
+        mapOf(
+            forespoerselId1 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId1),
+            forespoerselId2 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId2),
+        )
+
+    fun successResponseJson(): String =
+        """
+    [
+      {
+        "vedtaksperiodeId": "$vedtaksPeriodeId1",
+        "forespoerselId": "$forespoerselId1"
+      },
+      {
+        "vedtaksperiodeId": "$vedtaksPeriodeId2",
+        "forespoerselId": "$forespoerselId2"
+      }
+    ]
+    """.removeJsonWhitespace()
+
+    fun successEmptyResponseJson(): String = """[]""".removeJsonWhitespace()
+
+    fun successResult(resultat: Map<UUID, Forespoersel>): ResultJson =
+        ResultJson(
+            success = resultat.toJson(MapSerializer(UuidSerializer, Forespoersel.serializer())),
+        )
+
+    fun failureResult(feilmelding: String): ResultJson =
+        ResultJson(
+            failure = feilmelding.toJson(),
+        )
+
+    fun emptyResult(): ResultJson = ResultJson()
+}

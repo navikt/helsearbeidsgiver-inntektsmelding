@@ -1,0 +1,89 @@
+package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart
+
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.maps.shouldContainKey
+import io.mockk.clearAllMocks
+import no.nav.hag.simba.kontrakt.kafkatopic.pri.Pri
+import no.nav.hag.simba.utils.felles.EventName
+import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.felles.json.toMap
+import no.nav.hag.simba.utils.rr.test.firstMessage
+import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
+import no.nav.hag.simba.utils.rr.test.sendJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import java.util.UUID
+
+class ForespoerselBesvartRiverTest :
+    FunSpec({
+        val testRapid = TestRapid()
+
+        mockConnectToRapid(testRapid) {
+            listOf(
+                ForespoerselBesvartRiver(),
+            )
+        }
+
+        beforeEach {
+            testRapid.reset()
+            clearAllMocks()
+        }
+
+        test("Ved notis om besvart forespørsel publiseres behov om å hente notifikasjon-ID-er _uten_ IM-ID fra Spinn") {
+            val forespoerselId = UUID.randomUUID()
+            val forventetPublisert =
+                mapOf(
+                    Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                    Key.KONTEKST_ID to UUID.randomUUID().toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                        ).toJson(),
+                )
+
+            testRapid.sendJson(
+                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
+                Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            val publisert = testRapid.firstMessage().toMap()
+
+            publisert shouldContainKey Key.KONTEKST_ID
+
+            publisert.minus(Key.KONTEKST_ID) shouldContainExactly forventetPublisert.minus(Key.KONTEKST_ID)
+        }
+
+        test("Ved notis om besvart forespørsel publiseres behov om å hente notifikasjon-ID-er _med_ IM-ID fra Spinn") {
+            val forespoerselId = UUID.randomUUID()
+            val spinnInntektsmeldingId = UUID.randomUUID()
+            val forventetPublisert =
+                mapOf(
+                    Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                    Key.KONTEKST_ID to UUID.randomUUID().toJson(),
+                    Key.DATA to
+                        mapOf(
+                            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                            Key.SPINN_INNTEKTSMELDING_ID to spinnInntektsmeldingId.toJson(),
+                        ).toJson(),
+                )
+
+            testRapid.sendJson(
+                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
+                Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Pri.Key.SPINN_INNTEKTSMELDING_ID to spinnInntektsmeldingId.toJson(),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            val publisert = testRapid.firstMessage().toMap()
+
+            publisert shouldContainKey Key.KONTEKST_ID
+
+            publisert.minus(Key.KONTEKST_ID) shouldContainExactly forventetPublisert.minus(Key.KONTEKST_ID)
+        }
+    })

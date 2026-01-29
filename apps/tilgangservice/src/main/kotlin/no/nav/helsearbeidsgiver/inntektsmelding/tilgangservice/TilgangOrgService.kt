@@ -1,0 +1,123 @@
+package no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice
+
+import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.resultat.tilgang.Tilgang
+import no.nav.hag.simba.utils.felles.BehovType
+import no.nav.hag.simba.utils.felles.EventName
+import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.Tekst
+import no.nav.hag.simba.utils.felles.domene.Fail
+import no.nav.hag.simba.utils.felles.domene.ResultJson
+import no.nav.hag.simba.utils.felles.json.les
+import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.felles.utils.Log
+import no.nav.hag.simba.utils.rr.Publisher
+import no.nav.hag.simba.utils.rr.service.ServiceMed1Steg
+import no.nav.hag.simba.utils.valkey.RedisStore
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import java.util.UUID
+
+class TilgangOrgService(
+    private val publisher: Publisher,
+    private val redisStore: RedisStore,
+) : ServiceMed1Steg<TilgangOrgService.Steg0, TilgangOrgService.Steg1>() {
+    override val logger = logger()
+    override val sikkerLogger = sikkerLogger()
+
+    override val initialEventName = EventName.TILGANG_ORG_REQUESTED
+    override val serviceEventName = EventName.SERVICE_HENT_TILGANG_ORG
+
+    data class Steg0(
+        val kontekstId: UUID,
+        val orgnr: Orgnr,
+        val fnr: Fnr,
+    )
+
+    data class Steg1(
+        val tilgang: Tilgang,
+    )
+
+    override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
+        Steg0(
+            kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
+            orgnr = Key.ORGNR_UNDERENHET.les(Orgnr.serializer(), melding),
+            fnr = Key.FNR.les(Fnr.serializer(), melding),
+        )
+
+    override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
+        Steg1(
+            tilgang = Key.TILGANG.les(Tilgang.serializer(), melding),
+        )
+
+    override fun utfoerSteg0(
+        data: Map<Key, JsonElement>,
+        steg0: Steg0,
+    ) {
+        publisher
+            .publish(
+                key = steg0.fnr,
+                Key.EVENT_NAME to serviceEventName.toJson(),
+                Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
+                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
+                Key.DATA to
+                    data
+                        .plus(
+                            mapOf(
+                                Key.ORGNR_UNDERENHET to steg0.orgnr.toJson(),
+                                Key.FNR to steg0.fnr.toJson(),
+                            ),
+                        ).toJson(),
+            ).also {
+                MdcUtils.withLogFields(
+                    Log.behov(BehovType.TILGANGSKONTROLL),
+                ) {
+                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
+                }
+            }
+    }
+
+    override fun utfoerSteg1(
+        data: Map<Key, JsonElement>,
+        steg0: Steg0,
+        steg1: Steg1,
+    ) {
+        val resultat =
+            ResultJson(
+                success = steg1.tilgang.toJson(Tilgang.serializer()),
+            )
+
+        redisStore.skrivResultat(steg0.kontekstId, resultat)
+    }
+
+    override fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    ) {
+        MdcUtils.withLogFields(
+            Log.klasse(this),
+            Log.event(serviceEventName),
+            Log.kontekstId(fail.kontekstId),
+        ) {
+            val resultat =
+                ResultJson(
+                    failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(),
+                )
+
+            redisStore.skrivResultat(fail.kontekstId, resultat)
+        }
+    }
+
+    override fun Steg0.loggfelt(): Map<String, String> =
+        mapOf(
+            Log.klasse(this@TilgangOrgService),
+            Log.event(serviceEventName),
+            Log.kontekstId(kontekstId),
+        )
+}

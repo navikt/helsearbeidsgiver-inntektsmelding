@@ -1,0 +1,218 @@
+package no.nav.helsearbeidsgiver.inntektsmelding.api.inntektselvbestemt
+
+import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.maps.shouldContainKey
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
+import io.mockk.clearAllMocks
+import io.mockk.coEvery
+import io.mockk.verify
+import io.mockk.verifySequence
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.utils.felles.EventName
+import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.Tekst
+import no.nav.hag.simba.utils.felles.domene.ResultJson
+import no.nav.hag.simba.utils.felles.json.inntektMapSerializer
+import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.felles.utils.gjennomsnitt
+import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
+import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.test.date.april
+import no.nav.helsearbeidsgiver.utils.test.date.juni
+import no.nav.helsearbeidsgiver.utils.test.date.mai
+import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import java.time.YearMonth
+import java.util.UUID
+
+private const val PATH = Routes.PREFIX + Routes.INNTEKT_SELVBESTEMT
+
+class InntektSelvbestemtRouteKtTest : ApiTest() {
+    @BeforeEach
+    fun setup() {
+        clearAllMocks()
+    }
+
+    @Test
+    fun `gi OK med inntekt`() =
+        testApi {
+            val expectedInntekt = Mock.inntekt
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    Mock.successResult(expectedInntekt),
+                )
+
+            val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.OK
+            actualJson shouldBe expectedInntekt.successResponseJson()
+
+            verifySequence {
+                mockProducer.send(
+                    key = mockPid,
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it.minus(Key.KONTEKST_ID) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.TILGANG_ORG_REQUESTED.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.FNR to mockPid.toJson(),
+                                            Key.ORGNR_UNDERENHET to Mock.request.orgnr.toJson(),
+                                        ).toJson(),
+                                )
+                        },
+                )
+                mockProducer.send(
+                    key = Mock.request.sykmeldtFnr,
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it.minus(Key.KONTEKST_ID) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.FNR to Mock.request.sykmeldtFnr.toJson(),
+                                            Key.ORGNR_UNDERENHET to Mock.request.orgnr.toJson(),
+                                            Key.INNTEKTSDATO to Mock.request.inntektsdato.toJson(),
+                                        ).toJson(),
+                                )
+                        },
+                )
+            }
+        }
+
+    @Test
+    fun `manglende tilgang gir 403-feil`() =
+        testApi {
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns ikkeTilgangResultat
+
+            val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
+
+            val error = response.bodyAsText().fromJson(String.serializer())
+
+            response.status shouldBe HttpStatusCode.Forbidden
+            error shouldBe "Du har ikke rettigheter for organisasjon."
+
+            verify(exactly = 0) {
+                mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
+            }
+        }
+
+    @Test
+    fun `feilresultat gir 500-feil`() =
+        testApi {
+            val expectedFeilmelding = "Du får vente til freddan'!"
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    Mock.failureResult(expectedFeilmelding),
+                )
+
+            val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            actualJson shouldBe expectedFeilmelding.toJsonStr(String.serializer())
+        }
+
+    @Test
+    fun `tomt resultat gir 500-feil`() =
+        testApi {
+            val expectedFeilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    Mock.emptyResult(),
+                )
+
+            val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            actualJson shouldBe expectedFeilmelding.toJsonStr(String.serializer())
+        }
+
+    @Test
+    fun `timeout mot redis gir 500-feil`() =
+        testApi {
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns harTilgangResultat andThen null
+
+            val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
+
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            error.shouldBeTypeOf<ErrorResponse.RedisTimeout>()
+        }
+
+    @Test
+    fun `ukjent feil gir 500-feil`() =
+        testApi {
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } throws NullPointerException()
+
+            val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
+
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            error.shouldBeTypeOf<ErrorResponse.Unknown>()
+        }
+}
+
+private object Mock {
+    val request = InntektSelvbestemtRequest(Fnr.genererGyldig(), Orgnr.genererGyldig(), 12.april)
+    val inntekt =
+        mapOf(
+            april(2018) to 20000.0,
+            mai(2018) to 22000.0,
+            juni(2018) to 24000.0,
+        )
+
+    fun successResult(inntekt: Map<YearMonth, Double>): ResultJson =
+        ResultJson(
+            success = inntekt.toJson(inntektMapSerializer),
+        )
+
+    fun failureResult(feilmelding: String): ResultJson =
+        ResultJson(
+            failure = feilmelding.toJson(),
+        )
+
+    fun emptyResult(): ResultJson = ResultJson()
+}
+
+fun Map<YearMonth, Double>.successResponseJson(): String =
+    """
+    {
+        "gjennomsnitt": ${gjennomsnitt()},
+        "historikk": {${toList().joinToString(transform = Pair<YearMonth, Double?>::hardcodedJson)}}
+    }
+    """.removeJsonWhitespace()
+
+private fun Pair<YearMonth, Double?>.hardcodedJson(): String = "\"$first\": $second"

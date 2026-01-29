@@ -1,0 +1,33 @@
+name: Build dependencies
+
+on: pull_request
+
+jobs:
+  determine-build:
+    runs-on: ubuntu-latest
+    outputs:
+      projects: ${{ steps.projects.outputs.projects }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Determine dependency projects to build
+        id: projects
+        run: |
+          kontrakt=$(ls --color=never kontrakt | sed 's/.*/"kontrakt-&"/')
+          utils=$(ls --color=never utils | sed 's/.*/"utils-&"/')
+          projects=$(echo "$kontrakt $utils" | jq -sc)
+          echo 'projects={"project": '"$projects"'}'>> $GITHUB_OUTPUT
+
+  build:
+    needs: determine-build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.determine-build.outputs.projects) }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build
+        uses: ./.github/actions/build
+        with:
+          project: ${{ matrix.project }}

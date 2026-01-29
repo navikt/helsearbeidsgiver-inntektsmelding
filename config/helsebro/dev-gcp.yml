@@ -1,6 +1,4 @@
 kafkaPool: nav-dev
-azure:
-  enabled: true
 env:
   - name: KAFKA_EXTRA_TOPIC
     value: helsearbeidsgiver.pri

@@ -1,0 +1,375 @@
+package no.nav.helsearbeidsgiver.inntektsmelding.api.lagreselvbestemtim
+
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.maps.shouldContainKey
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
+import io.mockk.clearAllMocks
+import io.mockk.coEvery
+import io.mockk.verify
+import io.mockk.verifySequence
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.jsonObject
+import no.nav.hag.simba.utils.felles.EventName
+import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.domene.ResultJson
+import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.felles.json.toMap
+import no.nav.hag.simba.utils.felles.test.json.minusData
+import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmeldingSelvbestemt
+import no.nav.hag.simba.utils.felles.test.mock.randomDigitString
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
+import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
+import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import java.util.UUID
+
+class LagreSelvbestemtImRouteKtTest : ApiTest() {
+    private val path = Routes.PREFIX + Routes.SELVBESTEMT_INNTEKTSMELDING
+
+    @BeforeEach
+    fun setup() {
+        clearAllMocks()
+    }
+
+    @Test
+    fun `skal godta og returnere id ved gyldig innsending`() =
+        testApi {
+            val selvbestemtId = UUID.randomUUID()
+            val skjema = mockSkjemaInntektsmeldingSelvbestemt()
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    Mock.successResult(selvbestemtId),
+                )
+
+            val response = post(path, skjema, SkjemaInntektsmeldingSelvbestemt.serializer())
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.OK
+            actualJson shouldBe Mock.successResponseJson(selvbestemtId)
+
+            verifySequence {
+                mockProducer.send(
+                    key = mockPid,
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it.minus(Key.KONTEKST_ID) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.TILGANG_ORG_REQUESTED.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.FNR to mockPid.toJson(),
+                                            Key.ORGNR_UNDERENHET to skjema.avsender.orgnr.toJson(),
+                                        ).toJson(),
+                                )
+                        },
+                )
+                mockProducer.send(
+                    key = skjema.sykmeldtFnr,
+                    message =
+                        withArg<Map<Key, JsonElement>> {
+                            it shouldContainKey Key.KONTEKST_ID
+                            it[Key.DATA]?.toMap()?.shouldContainKey(Key.MOTTATT)
+                            it.minus(Key.KONTEKST_ID).minusData(Key.MOTTATT) shouldContainExactly
+                                mapOf(
+                                    Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.ARBEIDSGIVER_FNR to mockPid.toJson(),
+                                            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+                                        ).toJson(),
+                                )
+                        },
+                )
+            }
+        }
+
+    @Test
+    fun `skal godta og returnere id ved innsending som mangler vedtaksperiodeId`() =
+        testApi {
+            val selvbestemtId = UUID.randomUUID()
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    Mock.successResult(selvbestemtId),
+                )
+
+            val skjemaJson = Mock.skjemaJson(selvbestemtId)
+
+            val response = post(path, skjemaJson, JsonElement.serializer())
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.OK
+            actualJson shouldBe Mock.successResponseJson(selvbestemtId)
+        }
+
+    @Test
+    fun `skal godta og returnere id ved innsending som mangler arbeidsforholdType men inneholder vedtaksperiodeId`() =
+        testApi {
+            val selvbestemtId = UUID.randomUUID()
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    Mock.successResult(selvbestemtId),
+                )
+
+            val skjemaJson = Mock.skjemaJsonUtenArbeidsforholdType(selvbestemtId, UUID.randomUUID())
+
+            val response = post(path, skjemaJson, JsonElement.serializer())
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.OK
+            actualJson shouldBe Mock.successResponseJson(selvbestemtId)
+        }
+
+    @Test
+    fun `skal ikke godta innsending som mangler arbeidsforholdType og mangler vedtaksperiodeId`() =
+        testApi {
+            val selvbestemtId = UUID.randomUUID()
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    Mock.successResult(selvbestemtId),
+                )
+
+            val skjemaJson = Mock.skjemaJsonUtenArbeidsforholdType(selvbestemtId, null)
+
+            val response = post(path, skjemaJson, JsonElement.serializer())
+
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.BadRequest
+            error.shouldBeTypeOf<ErrorResponse.JsonSerialization>()
+        }
+
+    @Test
+    fun `feil i request body gir 400-feil`() =
+        testApi {
+            val response = post(path, "ikke et skjema", String.serializer())
+
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.BadRequest
+            error.shouldBeTypeOf<ErrorResponse.JsonSerialization>()
+
+            verify(exactly = 0) {
+                mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
+            }
+        }
+
+    @Test
+    fun `valideringsfeil gir 400-feil`() =
+        testApi {
+            val forventetValideringsfeil =
+                setOf(
+                    "Sykmeldingsperioder må fylles ut",
+                    "Beløp må være større eller lik 0",
+                    "Refusjonsbeløp må være mindre eller lik inntekt",
+                )
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns harTilgangResultat
+
+            val skjemaMedFeil =
+                mockSkjemaInntektsmeldingSelvbestemt().let {
+                    it.copy(
+                        sykmeldingsperioder = emptyList(),
+                        inntekt =
+                            it.inntekt.copy(
+                                beloep = -1.0,
+                            ),
+                    )
+                }
+
+            val response = post(path, skjemaMedFeil, SkjemaInntektsmeldingSelvbestemt.serializer())
+
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.BadRequest
+            error.shouldBeTypeOf<ErrorResponse.Validering>()
+            error.valideringsfeil shouldContainExactly forventetValideringsfeil
+
+            verify(exactly = 0) {
+                mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
+            }
+        }
+
+    @Test
+    fun `manglende tilgang gir 500-feil`() =
+        testApi {
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns ikkeTilgangResultat
+
+            val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
+
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            error.shouldBeTypeOf<ErrorResponse.Unknown>()
+
+            verify(exactly = 0) {
+                mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
+            }
+        }
+
+    @Test
+    fun `feilresultat gir 500-feil`() =
+        testApi {
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    Mock.failureResult("Ukjent feil."),
+                )
+
+            val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
+
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            error.shouldBeTypeOf<ErrorResponse.Unknown>()
+        }
+
+    @Test
+    fun `skal returnere bad request hvis arbeidsforhold mangler`() =
+        testApi {
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    Mock.failureResult("Mangler arbeidsforhold i perioden"),
+                )
+
+            val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
+
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.BadRequest
+            error.shouldBeTypeOf<ErrorResponse.Arbeidsforhold>()
+        }
+
+    @Test
+    fun `tomt resultat gir 500-feil`() =
+        testApi {
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    Mock.emptyResult(),
+                )
+
+            val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
+
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            error.shouldBeTypeOf<ErrorResponse.Unknown>()
+        }
+
+    @Test
+    fun `timeout mot redis gir 500-feil`() =
+        testApi {
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns harTilgangResultat andThen null
+
+            val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
+
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            error.shouldBeTypeOf<ErrorResponse.RedisTimeout>()
+        }
+
+    @Test
+    fun `ukjent feil gir 500-feil`() =
+        testApi {
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } throws NullPointerException()
+
+            val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
+
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            error.shouldBeTypeOf<ErrorResponse.Unknown>()
+        }
+}
+
+private object Mock {
+    fun skjemaJson(selvbestemtId: UUID) =
+        """
+            {
+                "selvbestemtId": "$selvbestemtId",
+                "sykmeldtFnr": "${Fnr.genererGyldig()}",
+                "avsender": {
+                    "orgnr": "${Orgnr.genererGyldig()}",
+                    "tlf": "${randomDigitString(8)}"
+                },
+                "sykmeldingsperioder": [{"fom": "2024-02-12", "tom": "2024-02-28"}],
+                "agp": null,
+                "inntekt": {
+                    "beloep": 1000.10,
+                    "inntektsdato": "2024-02-12",
+                    "endringAarsaker": [
+                        {"aarsak": "Bonus"}
+                    ]
+                },
+                "naturalytelser": [],
+                "refusjon": null,
+                "arbeidsforholdType": {
+                    "type": "UtenArbeidsforhold"
+                }
+            }
+            """.removeJsonWhitespace()
+            .parseJson()
+
+    fun skjemaJsonUtenArbeidsforholdType(
+        selvbestemtId: UUID,
+        vedtaksperiodeId: UUID? = null,
+    ): JsonElement {
+        val json = skjemaJson(selvbestemtId).jsonObject.minus(SkjemaInntektsmeldingSelvbestemt::arbeidsforholdType.name)
+
+        return if (vedtaksperiodeId != null) {
+            json.plus(SkjemaInntektsmeldingSelvbestemt::vedtaksperiodeId.name to vedtaksperiodeId.toJson()).toJson()
+        } else {
+            json.toJson()
+        }
+    }
+
+    fun successResponseJson(selvbestemtId: UUID): String =
+        """
+        {
+            "selvbestemtId": "$selvbestemtId"
+        }
+        """.removeJsonWhitespace()
+
+    fun successResult(selvbestemtId: UUID): ResultJson =
+        ResultJson(
+            success = selvbestemtId.toJson(),
+        )
+
+    fun failureResult(feilmelding: String): ResultJson =
+        ResultJson(
+            failure = feilmelding.toJson(),
+        )
+
+    fun emptyResult(): ResultJson = ResultJson()
+}

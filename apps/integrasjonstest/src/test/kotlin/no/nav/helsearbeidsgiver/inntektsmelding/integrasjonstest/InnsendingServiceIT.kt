@@ -1,0 +1,207 @@
+package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
+
+import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.ForespoerselFraBro
+import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
+import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespurtData
+import no.nav.hag.simba.utils.felles.EventName
+import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.domene.ResultJson
+import no.nav.hag.simba.utils.felles.json.lesOrNull
+import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.felles.json.toMap
+import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
+import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
+import no.nav.hag.simba.utils.valkey.RedisPrefix
+import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.arveAvsender
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.april
+import no.nav.helsearbeidsgiver.utils.test.date.desember
+import no.nav.helsearbeidsgiver.utils.test.date.februar
+import no.nav.helsearbeidsgiver.utils.test.date.kl
+import no.nav.helsearbeidsgiver.utils.test.date.mars
+import no.nav.helsearbeidsgiver.utils.test.date.oktober
+import no.nav.helsearbeidsgiver.utils.test.date.september
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import java.util.UUID
+
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class InnsendingServiceIT : EndToEndTest() {
+    @Test
+    fun `Test at innsending er mottatt`() {
+        val kontekstId: UUID = UUID.randomUUID()
+        val tidligereInntektsmelding = mockInntektsmeldingV1()
+
+        imRepository.lagreInntektsmeldingSkjema(tidligereInntektsmelding.id, Mock.skjema, arveAvsender.navn.fulltNavn(), 9.desember.atStartOfDay())
+        imRepository.oppdaterMedInntektsmelding(tidligereInntektsmelding)
+
+        mockForespoerselSvarFraHelsebro(
+            forespoerselId = Mock.skjema.forespoerselId,
+            forespoerselSvar = Mock.forespoerselSvar,
+        )
+
+        coEvery {
+            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
+        } returns
+            OpprettOgFerdigstillResponse(
+                journalpostId = "journalpost-id-sukkerspinn",
+                journalpostFerdigstilt = true,
+                melding = "Ha en brillefin dag!",
+                dokumenter = emptyList(),
+            )
+
+        val nyInnsending =
+            Mock.skjema.let {
+                it.copy(
+                    agp =
+                        it.agp?.copy(
+                            egenmeldinger =
+                                listOf(
+                                    6.oktober til 11.oktober,
+                                ),
+                        ),
+                )
+            }
+
+        publish(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.KONTEKST_ID to kontekstId.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.SKJEMA_INNTEKTSMELDING to nyInnsending.toJson(SkjemaInntektsmelding.serializer()),
+                    Key.ARBEIDSGIVER_FNR to arveAvsender.ident.shouldNotBeNull().toJson(),
+                    Key.MOTTATT to Mock.mottatt.toJson(),
+                ).toJson(),
+        )
+
+        // Forespørsel hentet
+        messages
+            .filter(EventName.SERVICE_FORESPURT_IM_LAGRE_SKJEMA)
+            .filter(Key.FORESPOERSEL_SVAR)
+            .firstAsMap()
+            .verifiserKontekstId(kontekstId)
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoerselSvar.toForespoersel()
+            }
+
+        // Inntektsmelding lagret
+        messages
+            .filter(EventName.SERVICE_FORESPURT_IM_LAGRE_SKJEMA)
+            .filter(Key.ER_DUPLIKAT_IM)
+            .firstAsMap()
+            .verifiserKontekstId(kontekstId)
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                data[Key.ER_DUPLIKAT_IM]?.fromJson(Boolean.serializer()) shouldBe false
+            }
+
+        // Siste melding fra service
+        messages
+            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+            .firstAsMap()
+            .verifiserKontekstId(kontekstId)
+            .verifiserForespoerselIdFraSkjema()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+
+                shouldNotThrowAny {
+                    it[Key.KONTEKST_ID]
+                        .shouldNotBeNull()
+                        .fromJson(UuidSerializer)
+
+                    data[Key.FORESPOERSEL_SVAR]
+                        .shouldNotBeNull()
+                        .fromJson(Forespoersel.serializer())
+
+                    data[Key.INNTEKTSMELDING_ID]
+                        .shouldNotBeNull()
+                        .fromJson(UuidSerializer)
+
+                    data[Key.SKJEMA_INNTEKTSMELDING]
+                        .shouldNotBeNull()
+                        .fromJson(SkjemaInntektsmelding.serializer())
+
+                    data[Key.AVSENDER_NAVN]
+                        .shouldNotBeNull()
+                        .fromJson(String.serializer())
+
+                    data[Key.MOTTATT]
+                        .shouldNotBeNull()
+                        .fromJson(LocalDateTimeSerializer)
+                }
+            }
+
+        // Ingen feil
+        messages.filterFeil().all().size shouldBe 0
+
+        // API besvart gjennom redis
+        shouldNotThrowAny {
+            redisConnection
+                .get(RedisPrefix.Innsending, kontekstId)
+                .shouldNotBeNull()
+                .fromJson(ResultJson.serializer())
+                .success
+                .shouldNotBeNull()
+                .fromJson(UuidSerializer)
+        }
+    }
+
+    private fun Map<Key, JsonElement>.verifiserKontekstId(kontekstId: UUID): Map<Key, JsonElement> =
+        also {
+            Key.KONTEKST_ID.lesOrNull(UuidSerializer, it) shouldBe kontekstId
+        }
+
+    private fun Map<Key, JsonElement>.verifiserForespoerselIdFraSkjema(): Map<Key, JsonElement> =
+        also {
+            val data = it[Key.DATA]?.toMap().orEmpty()
+            val skjema = Key.SKJEMA_INNTEKTSMELDING.lesOrNull(SkjemaInntektsmelding.serializer(), data)
+            skjema?.forespoerselId shouldBe Mock.skjema.forespoerselId
+        }
+
+    private object Mock {
+        val skjema = mockSkjemaInntektsmelding()
+
+        val orgnr = Orgnr.genererGyldig()
+        val vedtaksperiodeId: UUID = UUID.randomUUID()
+        val mottatt = 6.september.kl(22, 18, 0, 0)
+
+        val forespoerselSvar =
+            ForespoerselFraBro(
+                orgnr = orgnr,
+                fnr = Fnr.genererGyldig(),
+                forespoerselId = skjema.forespoerselId,
+                vedtaksperiodeId = vedtaksperiodeId,
+                sykmeldingsperioder =
+                    listOf(
+                        3.mars til 13.mars,
+                        17.mars til 5.april,
+                    ),
+                egenmeldingsperioder =
+                    listOf(
+                        24.februar til 26.februar,
+                        1.mars til 1.mars,
+                    ),
+                bestemmendeFravaersdager = mapOf(orgnr to 17.mars),
+                forespurtData = mockForespurtData(),
+                erBesvart = false,
+                erBegrenset = false,
+            )
+    }
+}

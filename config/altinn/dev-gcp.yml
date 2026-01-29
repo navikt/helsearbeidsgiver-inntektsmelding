@@ -1,16 +1,13 @@
 kafkaPool: nav-dev
-azure:
-  enabled: true
-replicasMin: 2
-replicasMax: 2
-ingress: https://helsearbeidsgiver-im-altinn.intern.dev.nav.no
-envFrom:
-  - type: secret
-    name: altinn-api-gw-keys
+replicasMax: 5
+entraIdEnabled: true
+apps:
+  - name: arbeidsgiver-altinn-tilganger
+    namespace: fager
 env:
-  - name: ALTINN_URL
-    value: https://api-gw-q1.oera.no/ekstern/altinn/api/serviceowner
   - name: ALTINN_SERVICE_CODE
     value: 4936
-externalHosts:
-  - api-gw-q1.oera.no
+  - name: ALTINN_TILGANGER_SCOPE
+    value: api://dev-gcp.fager.arbeidsgiver-altinn-tilganger/.default
+  - name: ALTINN_TILGANGER_BASE_URL
+    value: http://arbeidsgiver-altinn-tilganger.fager

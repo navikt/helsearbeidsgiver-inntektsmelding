@@ -1,0 +1,77 @@
+package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
+
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.ints.shouldBeExactly
+import io.mockk.Runs
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.verifySequence
+import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.kafkatopic.pri.Pri
+import no.nav.hag.simba.utils.felles.BehovType
+import no.nav.hag.simba.utils.felles.EventName
+import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.kafka.Producer
+import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
+import no.nav.hag.simba.utils.rr.test.sendJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import java.util.UUID
+
+class TrengerForespoerselRiverTest :
+    FunSpec({
+        val testRapid = TestRapid()
+        val mockProducer = mockk<Producer>()
+
+        mockConnectToRapid(testRapid) {
+            listOf(
+                TrengerForespoerselRiver(mockProducer),
+            )
+        }
+
+        test("Ved behov om forespørsel på rapid-topic publiseres behov om forespørsel på pri-topic") {
+            // Må bare returnere en Result med gyldig JSON
+            every { mockProducer.send(any(), any<Map<Pri.Key, JsonElement>>()) } just Runs
+
+            val expectedEvent = EventName.SERVICE_FORESPURT_IM_HENT
+            val expectedKontekstId = UUID.randomUUID()
+            val expectedForespoerselId = UUID.randomUUID()
+            val journalpostId = "denne skal i boomerangen"
+
+            testRapid.sendJson(
+                Key.EVENT_NAME to expectedEvent.toJson(),
+                Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
+                Key.KONTEKST_ID to expectedKontekstId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
+                        Key.JOURNALPOST_ID to journalpostId.toJson(),
+                    ).toJson(),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 0
+
+            verifySequence {
+                mockProducer.send(
+                    key = expectedForespoerselId,
+                    message =
+                        mapOf(
+                            Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
+                            Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
+                            Pri.Key.BOOMERANG to
+                                mapOf(
+                                    Key.EVENT_NAME to expectedEvent.toJson(),
+                                    Key.KONTEKST_ID to expectedKontekstId.toJson(),
+                                    Key.DATA to
+                                        mapOf(
+                                            Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
+                                            Key.JOURNALPOST_ID to journalpostId.toJson(),
+                                        ).toJson(),
+                                ).toJson(),
+                        ),
+                )
+            }
+        }
+    })

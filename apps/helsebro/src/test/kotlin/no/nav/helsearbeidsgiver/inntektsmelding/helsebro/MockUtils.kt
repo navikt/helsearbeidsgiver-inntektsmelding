@@ -1,0 +1,86 @@
+package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
+
+import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.ForespoerselFraBro
+import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespurtData
+import no.nav.hag.simba.utils.felles.EventName
+import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselListeSvar
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.januar
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import java.util.UUID
+
+fun mockForespoerselSvarMedSuksess(): ForespoerselSvar {
+    val forespoerselId = UUID.randomUUID()
+    return ForespoerselSvar(
+        forespoerselId = forespoerselId,
+        resultat = mockForespoerselSvarSuksess(forespoerselId),
+        feil = null,
+        boomerang = mockBoomerang(),
+    )
+}
+
+fun mockForespoerselListeSvarMedSuksess(): ForespoerselListeSvar {
+    val orgnr = Orgnr.genererGyldig()
+    return ForespoerselListeSvar(
+        resultat =
+            listOf(
+                ForespoerselFraBro(
+                    orgnr = orgnr,
+                    fnr = Fnr.genererGyldig(),
+                    vedtaksperiodeId = UUID.randomUUID(),
+                    forespoerselId = UUID.randomUUID(),
+                    sykmeldingsperioder = listOf(2.januar til 16.januar),
+                    egenmeldingsperioder = listOf(1.januar til 1.januar),
+                    bestemmendeFravaersdager = mapOf(orgnr to 1.januar),
+                    forespurtData = mockForespurtData(),
+                    erBesvart = false,
+                    erBegrenset = false,
+                ),
+            ),
+        boomerang = mockBoomerang(),
+    )
+}
+
+fun mockForespoerselSvarMedFeil(): ForespoerselSvar =
+    ForespoerselSvar(
+        forespoerselId = UUID.randomUUID(),
+        resultat = null,
+        feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET,
+        boomerang = mockBoomerang(),
+    )
+
+fun mockForespoerselListeSvarMedFeil(): ForespoerselListeSvar =
+    ForespoerselListeSvar(
+        resultat = emptyList(),
+        boomerang = mockBoomerang(),
+        feil = ForespoerselListeSvar.Feil.FORESPOERSEL_FOR_VEDTAKSPERIODE_ID_LISTE_FEILET,
+    )
+
+fun mockForespoerselSvarSuksess(forespoerselId: UUID): ForespoerselFraBro {
+    val orgnr = Orgnr.genererGyldig()
+    return ForespoerselFraBro(
+        orgnr = orgnr,
+        fnr = Fnr.genererGyldig(),
+        forespoerselId = forespoerselId,
+        vedtaksperiodeId = UUID.randomUUID(),
+        sykmeldingsperioder = listOf(2.januar til 16.januar),
+        egenmeldingsperioder = listOf(1.januar til 1.januar),
+        bestemmendeFravaersdager = mapOf(orgnr to 1.januar),
+        forespurtData = mockForespurtData(),
+        erBesvart = false,
+        erBegrenset = false,
+    )
+}
+
+private fun mockBoomerang(): JsonElement =
+    mapOf(
+        Key.EVENT_NAME to EventName.SERVICE_HENT_INNTEKT.toJson(),
+        Key.KONTEKST_ID to UUID.randomUUID().toJson(),
+    ).toJson()

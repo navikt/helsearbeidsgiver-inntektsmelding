@@ -14,94 +14,102 @@ metadata:
   labels:
     team: helsearbeidsgiver
 spec:
-  image: {{ image }}
-  port: 8080
-  idporten:
-    enabled: {{#if idportenEnabled}}true{{else}}false{{/if}}
-    sidecar:
-      enabled: {{#if sidecarEnabled}}true{{else}}false{{/if}}
+  strategy:
+    type: {{#if strategyType}}{{ strategyType }}{{else}}RollingUpdate{{/if}}
+  resources:
+    requests:
+      cpu: 50m
+      memory: 768Mi
+    limits:
+      memory: 1536Mi
+  replicas:
+    min: 2
+    max: {{#if replicasMax}}{{ replicasMax }}{{else}}2{{/if}}
+    scalingStrategy:
+      kafka:
+        consumerGroup: helsearbeidsgiver-im-{{app}}-v1
+        topic: helsearbeidsgiver.rapid
+        threshold: 100
+  startup:
+    path: /isalive
+    initialDelay: 10
+    periodSeconds: 5
+    failureThreshold: 22
+  liveness:
+    path: /isalive
+  readiness:
+    path: /isready
+  observability:
+    logging:
+      destinations:
+        - id: loki
+    autoInstrumentation:
+      enabled: true
+      runtime: java
   {{#if ingress}}
   ingresses:
     - {{ ingress }}
   {{/if}}
-  liveness:
-    path: isalive
-    initialDelay: 5
-  readiness:
-    path: isready
-    initialDelay: 5
-  resources:
-    limits:
-      cpu: 2000m
-      memory: 512Mi
-    requests:
-      cpu: 50m
-      memory: 128Mi
-  replicas:
-    min: {{#if replicasMin }}{{ replicasMin }}{{else}}1{{/if}}
-    max: {{#if replicasMax }}{{ replicasMax }}{{else}}1{{/if}}
-    cpuThresholdPercentage: 75
   {{#if kafkaPool}}
   kafka:
     pool: {{ kafkaPool }}
   {{/if}}
-  {{#if azure}}
+  {{#if entraIdEnabled}}
   azure:
     application:
-      enabled: {{ azure.enabled }}
-      {{#if azure.tenant}}
-      tenant: {{ azure.tenant }}
-      {{/if}}
+      enabled: {{ entraIdEnabled }}
+  {{/if}}
+  {{#if valkeyAccess}}
+  valkey:
+    - instance: inntektsmelding
+      access: {{ valkeyAccess }}
   {{/if}}
   {{#if database}}
   gcp:
     sqlInstances:
       - type: POSTGRES_14
+        tier: {{ database.tier }}
         databases:
-          {{#each database as |db| }}
-          - name: {{ db.name }}
-            {{#if db.users}}
+          - name: {{ database.name }}
+            {{#if database.user}}
             users:
-              {{#each db.users as |user| }}
-              - name: {{ user }}
-              {{/each}}
+              - name: {{ database.user }}
             {{/if}}
-          {{/each}}
-        {{#if logical_decoding}}
         flags:
+          - name: cloudsql.enable_pgaudit
+            value: "true"
+          - name: pgaudit.log
+            value: "write,ddl,role"
+          - name: pgaudit.log_parameter
+            value: "on"
+        {{#if database.logicalDecoding}}
           - name: cloudsql.logical_decoding
             value: "on"
         {{/if}}
   {{/if}}
-  prometheus:
-    enabled: true
-    path: /metrics
-  webproxy: true
-  secureLogs:
-    enabled: true
-  vault:
-    enabled: true
-    {{#if mountPaths}}
-    paths:
-    {{# each mountPaths as |item| }}
-      - mountPath: {{ item.mountPath }}
-        kvPath: {{ item.kvPath }}
-    {{/each}}
-    {{/if}}
   {{#if envFrom}}
   envFrom:
-  {{# each envFrom as |item| }}
+    {{# each envFrom as |item| }}
     - {{ item.type }}: {{ item.name }}
-  {{/each}}{{/if}}
+    {{/each}}
+  {{/if}}
   env:
     - name: KAFKA_CONSUMER_GROUP_ID
-      value: {{#if kafkaConsumerGroup }}{{ kafkaConsumerGroup }}{{else}}helsearbeidsgiver-im-{{app}}-v1{{/if}}
+      value: helsearbeidsgiver-im-{{app}}-v1
     - name: KAFKA_RAPID_TOPIC
       value: helsearbeidsgiver.rapid
+    - name: JDK_JAVA_OPTIONS
+      value: -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp
     {{#if env}}{{# each env as |item| }}
     - name: {{ item.name }}
       value: "{{ item.value }}"
     {{/each}}{{/if}}
+  {{#if idportenEnabled}}
+  idporten:
+    enabled: true
+    sidecar:
+      enabled: true
+  {{/if}}
   accessPolicy:
     outbound:
       external:
@@ -109,6 +117,8 @@ spec:
         - host: {{ item }}
       {{/each}}{{/if}}
       rules:
+        - application: logging
+          namespace: nais-system
         {{#if apps}}{{# each apps as |app| }}
         - application: {{ app.name }}
           {{#if app.namespace}}

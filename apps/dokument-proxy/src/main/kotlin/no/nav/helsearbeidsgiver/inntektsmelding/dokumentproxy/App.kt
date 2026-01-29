@@ -102,7 +102,7 @@ fun Application.apiModule(
                             return@get
                         }
                         logger.info("fetching tokenx token for uuid: $uuid")
-                        val tokenxToken = authClient.exchange(IdentityProvider.TOKEN_X, Env.lpsApiScope, principal.token)
+                        val tokenxToken = authClient.exchange(IdentityProvider.TOKEN_X, Env.lpsApiTarget, principal.token)
 
                         logger.info("fetching PDF for uuid: $uuid")
                         when (val pdfResponse = pdfClient.genererPDF(uuid, tokenxToken.accessToken)) {

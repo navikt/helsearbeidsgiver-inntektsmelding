@@ -4,7 +4,7 @@ val tokenSupportVersion: String by project
 
 tasks {
     test {
-        environment("LPS_API_SCOPE", "api://dev-gcp.helsearbeidsgiver.sykepenger-im-lps-api/.default")
+        environment("LPS_API_TARGET", "dev-gcp.helsearbeidsgiver.sykepenger-im-lps-api")
         environment("LPS_API_BASEURL", "http://sykepenger-im-lps-api")
     }
 }

@@ -164,10 +164,11 @@ class PdfDokument(
         val kolonneVenstreMaxY = y
 
         // --- Kolonnen til høyre ---------------------------------------------------
-        val egenmeldinger = utledEgenmeldinger(
-            arbeidsgiverperioder = inntektsmelding.agp?.perioder.orEmpty(),
-            sykmeldingsperioder = inntektsmelding.sykmeldingsperioder
-        )
+        val egenmeldinger =
+            utledEgenmeldinger(
+                arbeidsgiverperioder = inntektsmelding.agp?.perioder.orEmpty(),
+                sykmeldingsperioder = inntektsmelding.sykmeldingsperioder,
+            )
         moveCursorTo(seksjonStartY) // Gjenopprett y-aksen fra tidligere
         addLabel("Egenmelding", x = kolonneTo)
         addPerioder(kolonneTo, egenmeldinger)

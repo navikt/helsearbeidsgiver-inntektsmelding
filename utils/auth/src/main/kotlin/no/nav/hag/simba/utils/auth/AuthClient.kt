@@ -62,6 +62,7 @@ class AuthClient {
     ): TokenResponse =
         try {
             logger().info("Bytter token mot target=$target og provider=${provider.verdi}")
+            sikkerLogger.info("Bytter token mot target=$target og provider=${provider.verdi}")
             val tokenResponse =
                 httpClient
                     .submitForm(
@@ -74,6 +75,9 @@ class AuthClient {
                             },
                     ).body<TokenResponse>()
             logger().info(
+                "Byttet token mot target=$target og provider=${provider.verdi} - fikk access token med gyldighet i ${tokenResponse.expiresInSeconds} s",
+            )
+            sikkerLogger.info(
                 "Byttet token mot target=$target og provider=${provider.verdi} - fikk access token med gyldighet i ${tokenResponse.expiresInSeconds} s",
             )
             tokenResponse

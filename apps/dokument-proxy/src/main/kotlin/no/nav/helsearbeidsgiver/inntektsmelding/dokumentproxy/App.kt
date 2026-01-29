@@ -101,6 +101,7 @@ fun Application.apiModule(
                             call.respond(HttpStatusCode.Unauthorized, "mangler gyldig token")
                             return@get
                         }
+                        sikkerLogger.info("token ${principal.token.take(10)}... requested PDF for uuid: $uuid")
                         logger.info("fetching tokenx token for uuid: $uuid")
                         val tokenxToken = authClient.tokenExchanger(IdentityProvider.TOKEN_X, Env.lpsApiTarget, principal.token)
 

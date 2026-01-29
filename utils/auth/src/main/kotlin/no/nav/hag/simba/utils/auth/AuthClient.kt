@@ -34,6 +34,8 @@ class AuthClient {
         userToken: String,
     ): String =
         runBlocking {
+            sikkerLogger.info("Henter exchangetoken for target=$target og provider=${identityProvider.verdi}")
+            logger().info("Henter exchangetoken for target=$target og provider=${identityProvider.verdi}")
             exchange(identityProvider, target, userToken).accessToken
         }
 

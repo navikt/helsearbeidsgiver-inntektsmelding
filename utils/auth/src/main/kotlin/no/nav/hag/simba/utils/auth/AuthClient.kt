@@ -28,17 +28,6 @@ class AuthClient {
             }
         }
 
-    fun tokenExchanger(
-        identityProvider: IdentityProvider,
-        target: String,
-        userToken: String,
-    ): String =
-        runBlocking {
-            sikkerLogger.info("Henter exchangetoken for target=$target og provider=${identityProvider.verdi}")
-            logger().info("Henter exchangetoken for target=$target og provider=${identityProvider.verdi}")
-            exchange(identityProvider, target, userToken).accessToken
-        }
-
     internal suspend fun token(
         provider: IdentityProvider,
         target: String,

@@ -124,7 +124,6 @@ class AppTest {
                 TokenIntrospectionResponse(active = true)
             coEvery { exchange(IdentityProvider.TOKEN_X, any(), any()) } returns
                 TokenResponse(accessToken = "exchanged-token", expiresInSeconds = 3600)
-            coEvery { tokenExchanger(IdentityProvider.TOKEN_X, any(), any()) } returns "exchanged-token"
         }
 
     private fun mockUgyldigToken(): AuthClient =

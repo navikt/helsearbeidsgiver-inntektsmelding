@@ -103,10 +103,10 @@ fun Application.apiModule(
                         }
                         sikkerLogger.info("token ${principal.token.take(10)}... requested PDF for uuid: $uuid")
                         logger.info("fetching tokenx token for uuid: $uuid")
-                        val tokenxToken = authClient.tokenExchanger(IdentityProvider.TOKEN_X, Env.lpsApiTarget, principal.token)
+                        val tokenxToken = authClient.exchange(IdentityProvider.TOKEN_X, Env.lpsApiTarget, principal.token)
 
                         logger.info("fetching PDF for uuid: $uuid")
-                        when (val pdfResponse = pdfClient.genererPDF(uuid, tokenxToken)) {
+                        when (val pdfResponse = pdfClient.genererPDF(uuid, tokenxToken.accessToken)) {
                             is PdfResponse.Success -> {
                                 call.response.headers.append("Content-Type", "application/pdf")
                                 call.response.headers.append("Content-Disposition", "inline; filename=\"sykmelding-$uuid.pdf\"")

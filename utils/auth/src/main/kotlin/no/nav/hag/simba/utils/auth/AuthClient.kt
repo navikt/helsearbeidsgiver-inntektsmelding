@@ -6,6 +6,7 @@ import io.ktor.client.request.forms.submitForm
 import io.ktor.http.parameters
 import kotlinx.coroutines.runBlocking
 import no.nav.hag.simba.utils.felles.utils.fromEnv
+import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 /** Krever `entraIdEnabled: true` i konfig. */
@@ -51,16 +52,22 @@ class AuthClient {
         userToken: String,
     ): TokenResponse =
         try {
-            httpClient
-                .submitForm(
-                    url = tokenExchangeEndpoint,
-                    formParameters =
-                        parameters {
-                            identityProvider(provider)
-                            target(target)
-                            userToken(userToken)
-                        },
-                ).body()
+            logger().info("Bytter token mot target=$target og provider=${provider.verdi}")
+            val tokenResponse =
+                httpClient
+                    .submitForm(
+                        url = tokenExchangeEndpoint,
+                        formParameters =
+                            parameters {
+                                identityProvider(provider)
+                                target(target)
+                                userToken(userToken)
+                            },
+                    ).body<TokenResponse>()
+            logger().info(
+                "Byttet token mot target=$target og provider=${provider.verdi} - fikk access token med gyldighet i ${tokenResponse.expiresInSeconds} s",
+            )
+            tokenResponse
         } catch (e: ResponseException) {
             e.logAndRethrow()
         }

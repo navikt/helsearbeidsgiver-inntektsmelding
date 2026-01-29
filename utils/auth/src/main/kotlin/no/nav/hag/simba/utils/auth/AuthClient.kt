@@ -28,6 +28,15 @@ class AuthClient {
             }
         }
 
+    fun tokenExchanger(
+        identityProvider: IdentityProvider,
+        target: String,
+        userToken: String,
+    ): String =
+        runBlocking {
+            exchange(identityProvider, target, userToken).accessToken
+        }
+
     internal suspend fun token(
         provider: IdentityProvider,
         target: String,

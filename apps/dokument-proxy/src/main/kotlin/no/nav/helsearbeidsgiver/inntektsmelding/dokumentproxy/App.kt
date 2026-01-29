@@ -102,10 +102,10 @@ fun Application.apiModule(
                             return@get
                         }
                         logger.info("fetching tokenx token for uuid: $uuid")
-                        val tokenxToken = authClient.exchange(IdentityProvider.TOKEN_X, Env.lpsApiTarget, principal.token)
+                        val tokenxToken = authClient.tokenExchanger(IdentityProvider.TOKEN_X, Env.lpsApiTarget, principal.token)
 
                         logger.info("fetching PDF for uuid: $uuid")
-                        when (val pdfResponse = pdfClient.genererPDF(uuid, tokenxToken.accessToken)) {
+                        when (val pdfResponse = pdfClient.genererPDF(uuid, tokenxToken)) {
                             is PdfResponse.Success -> {
                                 call.response.headers.append("Content-Type", "application/pdf")
                                 call.response.headers.append("Content-Disposition", "inline; filename=\"sykmelding-$uuid.pdf\"")

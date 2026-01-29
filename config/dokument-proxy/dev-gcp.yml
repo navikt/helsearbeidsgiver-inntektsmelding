@@ -3,6 +3,6 @@ tokenxEnabled: true
 ingress: https://dokument-proxy.ekstern.dev.nav.no
 env:
   - name: LPS_API_TARGET
-    value: dev-gcp.helsearbeidsgiver.sykepenger-im-lps-api
+    value: dev-gcp:helsearbeidsgiver:sykepenger-im-lps-api
   - name: LPS_API_BASE_URL
     value: http://sykepenger-im-lps-api

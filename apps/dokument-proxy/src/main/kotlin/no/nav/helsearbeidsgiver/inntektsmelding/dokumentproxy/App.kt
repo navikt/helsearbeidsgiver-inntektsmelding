@@ -13,6 +13,7 @@ import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
+import io.ktor.server.response.respondBytes
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
@@ -75,6 +76,9 @@ fun Application.apiModule(
 
         authenticate {
             route(Routes.PREFIX) {
+                get("test") {
+                    call.respondText("test ok")
+                }
                 get("sykmelding/{uuid}.pdf") {
                     val uuidParam = call.parameters["uuid"]
                     if (uuidParam == null) {
@@ -97,13 +101,19 @@ fun Application.apiModule(
                             call.respond(HttpStatusCode.Unauthorized, "mangler gyldig token")
                             return@get
                         }
+                        logger.info("fetching tokenx token for uuid: $uuid")
                         val tokenxToken = authClient.exchange(IdentityProvider.TOKEN_X, Env.lpsApiScope, principal.token)
 
+                        logger.info("fetching PDF for uuid: $uuid")
                         when (val pdfResponse = pdfClient.genererPDF(uuid, tokenxToken.accessToken)) {
                             is PdfResponse.Success -> {
                                 call.response.headers.append("Content-Type", "application/pdf")
                                 call.response.headers.append("Content-Disposition", "inline; filename=\"sykmelding-$uuid.pdf\"")
-                                call.respond(pdfResponse.pdf)
+                                call.respondBytes(
+                                    bytes = pdfResponse.pdf,
+                                    contentType = io.ktor.http.ContentType.Application.Pdf,
+                                    status = HttpStatusCode.OK,
+                                )
                             }
 
                             is PdfResponse.Unauthorized -> {

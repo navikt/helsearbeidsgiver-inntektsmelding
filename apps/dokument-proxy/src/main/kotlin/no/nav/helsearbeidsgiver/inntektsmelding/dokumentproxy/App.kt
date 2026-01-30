@@ -36,7 +36,7 @@ fun main() {
     embeddedServer(
         factory = Netty,
         port = 8080,
-        module = { apiModule(AuthClient(), PdfClient()) },
+        module = { apiModule(AuthClient(), AuthClient(), PdfClient()) },
     ).apply {
         addShutdownHook {
         }
@@ -45,6 +45,7 @@ fun main() {
 
 fun Application.apiModule(
     authClient: AuthClient,
+    authClient2: AuthClient,
     pdfClient: PdfClient = PdfClient(),
 ) {
     install(ContentNegotiation) {
@@ -103,7 +104,7 @@ fun Application.apiModule(
                         }
                         sikkerLogger.info("token ${principal.token.take(10)}... requested PDF for uuid: $uuid")
                         logger.info("fetching tokenx token for uuid: $uuid")
-                        val tokenxToken = authClient.exchange(IdentityProvider.TOKEN_X, Env.lpsApiTarget, principal.token)
+                        val tokenxToken = authClient2.exchange(IdentityProvider.TOKEN_X, Env.lpsApiTarget, principal.token)
 
                         logger.info("fetching PDF for uuid: $uuid")
                         when (val pdfResponse = pdfClient.genererPDF(uuid, tokenxToken.accessToken)) {

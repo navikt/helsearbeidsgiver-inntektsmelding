@@ -7,4 +7,4 @@ env:
   - name: LPS_API_BASE_URL
     value: http://sykepenger-im-lps-api
   - name: JAVA_TOOL_OPTIONS
-    value: "agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+    value: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"

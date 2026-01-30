@@ -6,13 +6,12 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
 private const val MAX_LINJELENGDE = 36
+private val datoTidFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy ' kl. ' HH.mm.ss")
+private val inntektFormat = DecimalFormat("# ###.##")
 
-fun OffsetDateTime.tilNorskFormat(): String = this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy ' kl. ' HH.mm.ss"))
+fun OffsetDateTime.tilNorskFormat(): String = datoTidFormat.format(this)
 
-fun Double.tilNorskFormat(): String {
-    val format = DecimalFormat("#,###.##")
-    return format.format(this)
-}
+fun Double.tilNorskFormat(): String = inntektFormat.format(this)
 
 fun Boolean.tilNorskFormat(): String =
     if (this) {

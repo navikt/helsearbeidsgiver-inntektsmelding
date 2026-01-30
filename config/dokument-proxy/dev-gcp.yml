@@ -1,6 +1,8 @@
 idportenEnabled: true
 tokenxEnabled: true
 ingress: https://dokument-proxy.ekstern.dev.nav.no
+apps:
+  - name: sykepenger-im-lps-api
 env:
   - name: LPS_API_TARGET
     value: dev-gcp:helsearbeidsgiver:sykepenger-im-lps-api

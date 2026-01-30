@@ -60,6 +60,8 @@ fun Application.apiModule(
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
+            logger.info("Unhandled exception caught in status pages")
+            sikkerLogger.error("Unhandled exception caught in status pages", cause)
 
             call.respondText(
                 status = HttpStatusCode.InternalServerError,

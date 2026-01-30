@@ -2,10 +2,12 @@ package no.nav.helsearbeidsgiver.inntektsmelding.dokumentproxy
 
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
+import io.ktor.client.call.body
 import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.readRawBytes
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
@@ -37,6 +39,7 @@ class PdfClient {
 
                 else -> {
                     logger.error("Klarte ikke å hente PDF for sykmeldingId: $sykmeldingId, status: ${response.status}")
+                    sikkerLogger.error("Klarte ikke å hente PDF for sykmeldingId: $sykmeldingId, status: ${response.status}, body: ${response.bodyAsText()}")
                     PdfResponse.Failure(response.status)
                 }
             }

@@ -107,7 +107,7 @@ class AppTest {
         block: suspend ApplicationTestBuilder.() -> Unit,
     ) = testApplication {
         application {
-            apiModule(authClient, authClient, pdfClient)
+            apiModule(authClient, pdfClient)
         }
         block()
     }

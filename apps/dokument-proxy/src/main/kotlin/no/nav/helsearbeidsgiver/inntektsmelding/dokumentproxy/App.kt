@@ -28,10 +28,6 @@ import java.util.UUID
 val logger = "helsearbeidsgiver-im-dokument-proxy".logger()
 val sikkerLogger = sikkerLogger()
 
-object Routes {
-    const val PREFIX = "/api/v1"
-}
-
 fun main() {
     embeddedServer(
         factory = Netty,
@@ -77,62 +73,61 @@ fun Application.apiModule(
         }
 
         authenticate {
-            route(Routes.PREFIX) {
-                get("test") {
-                    call.respondText("test ok")
+            get("test") {
+                call.respondText("test ok")
+            }
+            get("sykmelding/{uuid}.pdf") {
+                val uuidParam = call.parameters["uuid"]
+                if (uuidParam == null) {
+                    call.respond(HttpStatusCode.BadRequest, "mangler sykmelding id")
+                    return@get
                 }
-                get("sykmelding/{uuid}.pdf") {
-                    val uuidParam = call.parameters["uuid"]
-                    if (uuidParam == null) {
-                        call.respond(HttpStatusCode.BadRequest, "mangler sykmelding id")
+
+                val uuid =
+                    try {
+                        UUID.fromString(uuidParam)
+                    } catch (_e: IllegalArgumentException) {
+                        call.respond(HttpStatusCode.BadRequest, "ugyldig sykmelding id")
                         return@get
                     }
 
-                    val uuid =
-                        try {
-                            UUID.fromString(uuidParam)
-                        } catch (_e: IllegalArgumentException) {
-                            call.respond(HttpStatusCode.BadRequest, "ugyldig sykmelding id")
-                            return@get
-                        }
-
-                    logger.info("pdf request received for uuid: $uuid")
-                    try {
-                        val principal = call.principal<TexasPrincipal>()
-                        if (principal == null) {
-                            call.respond(HttpStatusCode.Unauthorized, "mangler gyldig token")
-                            return@get
-                        }
-                        val tokenxToken = authClient.exchange(IdentityProvider.TOKEN_X, Env.lpsApiTarget, principal.token)
-
-                        when (val pdfResponse = pdfClient.genererPDF(uuid, tokenxToken.accessToken)) {
-                            is PdfResponse.Success -> {
-                                call.response.headers.append("Content-Type", "application/pdf")
-                                call.response.headers.append("Content-Disposition", "inline; filename=\"sykmelding-$uuid.pdf\"")
-                                call.respondBytes(
-                                    bytes = pdfResponse.pdf,
-                                    contentType = io.ktor.http.ContentType.Application.Pdf,
-                                    status = HttpStatusCode.OK,
-                                )
-                            }
-
-                            is PdfResponse.Unauthorized -> {
-                                logger.warn("Unauthorized/Forbidden when fetching PDF for uuid: $uuid, status: ${pdfResponse.status}")
-                                call.respond(pdfResponse.status, "Ikke autorisert til å hente PDF")
-                            }
-
-                            is PdfResponse.Failure -> {
-                                logger.error("Failed to fetch PDF for uuid: $uuid, status: ${pdfResponse.status}")
-                                call.respond(pdfResponse.status, "Kunne ikke hente PDF")
-                            }
-                        }
-                    } catch (e: Exception) {
-                        logger.error("Error while fetching PDF for uuid: $uuid")
-                        sikkerLogger.error("Error while fetching PDF for uuid: $uuid", e)
-                        call.respond(HttpStatusCode.InternalServerError, "Feil ved henting av PDF")
+                logger.info("pdf request received for uuid: $uuid")
+                try {
+                    val principal = call.principal<TexasPrincipal>()
+                    if (principal == null) {
+                        call.respond(HttpStatusCode.Unauthorized, "mangler gyldig token")
+                        return@get
                     }
+                    val tokenxToken = authClient.exchange(IdentityProvider.TOKEN_X, Env.lpsApiTarget, principal.token)
+
+                    when (val pdfResponse = pdfClient.genererPDF(uuid, tokenxToken.accessToken)) {
+                        is PdfResponse.Success -> {
+                            call.response.headers.append("Content-Type", "application/pdf")
+                            call.response.headers.append("Content-Disposition", "inline; filename=\"sykmelding-$uuid.pdf\"")
+                            call.respondBytes(
+                                bytes = pdfResponse.pdf,
+                                contentType = io.ktor.http.ContentType.Application.Pdf,
+                                status = HttpStatusCode.OK,
+                            )
+                        }
+
+                        is PdfResponse.Unauthorized -> {
+                            logger.warn("Unauthorized/Forbidden when fetching PDF for uuid: $uuid, status: ${pdfResponse.status}")
+                            call.respond(pdfResponse.status, "Ikke autorisert til å hente PDF")
+                        }
+
+                        is PdfResponse.Failure -> {
+                            logger.error("Failed to fetch PDF for uuid: $uuid, status: ${pdfResponse.status}")
+                            call.respond(pdfResponse.status, "Kunne ikke hente PDF")
+                        }
+                    }
+                } catch (e: Exception) {
+                    logger.error("Error while fetching PDF for uuid: $uuid")
+                    sikkerLogger.error("Error while fetching PDF for uuid: $uuid", e)
+                    call.respond(HttpStatusCode.InternalServerError, "Feil ved henting av PDF")
                 }
             }
         }
     }
 }
+

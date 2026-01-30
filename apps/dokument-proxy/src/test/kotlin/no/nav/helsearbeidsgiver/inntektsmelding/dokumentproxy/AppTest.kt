@@ -35,7 +35,7 @@ class AppTest {
     @Test
     fun `pdf endepunkt krever autentisering`() =
         testWithAuth {
-            val response = noRedirectClient.get("${Routes.PREFIX}/sykmelding/$testUuid.pdf")
+            val response = noRedirectClient.get("sykmelding/$testUuid.pdf")
             response.status shouldBe HttpStatusCode.Found
         }
 
@@ -43,7 +43,7 @@ class AppTest {
     fun `pdf endepunkt returnerer 200 med gyldig token og vellykket PDF generering`() =
         testWithAuth(mockGyldigToken(), mockPdfClientSuccess()) {
             val response =
-                client.get("${Routes.PREFIX}/sykmelding/$testUuid.pdf") {
+                client.get("sykmelding/$testUuid.pdf") {
                     bearerAuth("valid-token")
                 }
             response.status shouldBe HttpStatusCode.OK
@@ -54,27 +54,27 @@ class AppTest {
     fun `pdf endepunkt returnerer 401 når PDF klient returnerer Unauthorized`() =
         testWithAuth(mockGyldigToken(), mockPdfClientUnauthorized()) {
             val response =
-                client.get("${Routes.PREFIX}/sykmelding/$testUuid.pdf") {
+                client.get("sykmelding/$testUuid.pdf") {
                     bearerAuth("valid-token")
                 }
             response.status shouldBe HttpStatusCode.Unauthorized
         }
 
     @Test
-    fun `pdf endepunkt returnerer 500 når PDF klient returnerer Failure`() =
+    fun `pdf endepunkt returnerer 404 når PDF ikke finnes`() =
         testWithAuth(mockGyldigToken(), mockPdfClientFailure()) {
             val response =
-                client.get("${Routes.PREFIX}/sykmelding/$testUuid.pdf") {
+                client.get("sykmelding/$testUuid.pdf") {
                     bearerAuth("valid-token")
                 }
-            response.status shouldBe HttpStatusCode.InternalServerError
+            response.status shouldBe HttpStatusCode.NotFound
         }
 
     @Test
     fun `pdf endepunkt returnerer 302 redirect med ugyldig token`() =
         testWithAuth(mockUgyldigToken()) {
             val response =
-                noRedirectClient.get("${Routes.PREFIX}/sykmelding/$testUuid.pdf") {
+                noRedirectClient.get("sykmelding/$testUuid.pdf") {
                     bearerAuth("invalid-token")
                 }
             response.status shouldBe HttpStatusCode.Found
@@ -84,7 +84,7 @@ class AppTest {
     fun `pdf endepunkt håndterer introspect feil`() =
         testWithAuth(mockIntrospectError()) {
             val response =
-                noRedirectClient.get("${Routes.PREFIX}/sykmelding/$testUuid.pdf") {
+                noRedirectClient.get("sykmelding/$testUuid.pdf") {
                     bearerAuth("some-token")
                 }
             response.status shouldBe HttpStatusCode.Found
@@ -94,7 +94,7 @@ class AppTest {
     fun `pdf endepunkt returnerer 400 med ugyldig uuid format`() =
         testWithAuth(mockGyldigToken()) {
             val response =
-                client.get("${Routes.PREFIX}/sykmelding/ikke-en-uuid.pdf") {
+                client.get("sykmelding/ikke-en-uuid.pdf") {
                     bearerAuth("valid-token")
                 }
             response.status shouldBe HttpStatusCode.BadRequest
@@ -150,6 +150,6 @@ class AppTest {
 
     private fun mockPdfClientFailure(): PdfClient =
         mockk<PdfClient>().apply {
-            coEvery { genererPDF(any(), any()) } returns PdfResponse.Failure(HttpStatusCode.InternalServerError)
+            coEvery { genererPDF(any(), any()) } returns PdfResponse.Failure(HttpStatusCode.NotFound)
         }
 }

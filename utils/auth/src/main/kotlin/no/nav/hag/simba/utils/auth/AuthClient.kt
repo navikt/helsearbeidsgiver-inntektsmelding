@@ -6,7 +6,6 @@ import io.ktor.client.request.forms.submitForm
 import io.ktor.http.parameters
 import kotlinx.coroutines.runBlocking
 import no.nav.hag.simba.utils.felles.utils.fromEnv
-import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 /** Krever `entraIdEnabled: true` i konfig. */

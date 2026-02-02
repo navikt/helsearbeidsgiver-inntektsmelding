@@ -5,6 +5,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Feilregistrert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferie
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferietrekk
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.InntektEndringAarsak
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStilling
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStillingsprosent
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Nyansatt
@@ -18,7 +19,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.utils.utledEgenmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.tittel
 import no.nav.helsearbeidsgiver.utils.date.tilNorskFormat
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
-import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 
 private const val FORKLARING_ENDRING = "Endringsårsak"
 

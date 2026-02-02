@@ -1,6 +1,6 @@
 package no.nav.hag.simba.utils.felles.utils
 
-import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 
 fun Inntektsmelding.Type.erForespurt(): Boolean =
     when (this) {

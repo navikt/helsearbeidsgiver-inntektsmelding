@@ -2,6 +2,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.EksternInntektsmelding
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -17,8 +19,6 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import java.time.LocalDateTime
 import java.util.UUID
-import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
-import no.nav.hag.simba.utils.felles.domene.SkjemaInntektsmeldingIntern as SkjemaInntektsmelding
 
 class InntektsmeldingRepository(
     private val db: Database,

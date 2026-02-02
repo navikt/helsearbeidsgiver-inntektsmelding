@@ -25,15 +25,16 @@ import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.date.november
+import no.nav.helsearbeidsgiver.utils.test.date.oktober
+import no.nav.helsearbeidsgiver.utils.test.date.september
 import java.util.UUID
-import no.nav.hag.simba.utils.felles.domene.ArbeidsgiverperiodeUtenEksplisitteEgenmeldinger as Arbeidsgiverperiode
-import no.nav.hag.simba.utils.felles.domene.SkjemaInntektsmeldingIntern as SkjemaInntektsmelding
 
 class LagreImSkjemaRiverTest :
     FunSpec({
@@ -51,14 +52,17 @@ class LagreImSkjemaRiverTest :
             clearAllMocks()
         }
 
-        val inntektsmeldingSkjemaMedEndredeEgenmeldinger =
+        val inntektsmeldingSkjemaMedEndretAgp =
             mockSkjemaInntektsmelding().let { skjema ->
                 skjema.copy(
                     agp =
                         skjema.agp?.let { agp ->
                             Arbeidsgiverperiode(
-                                perioder = agp.perioder,
-                                egenmeldinger = listOf(13.juli til 31.juli),
+                                perioder =
+                                    listOf(
+                                        30.september til 30.september,
+                                        5.oktober til 19.oktober,
+                                    ),
                                 redusertLoennIAgp = agp.redusertLoennIAgp,
                             )
                         },
@@ -69,7 +73,7 @@ class LagreImSkjemaRiverTest :
             withData(
                 mapOf(
                     "hvis ingen andre inntektsmeldingskjemaer er mottatt" to null,
-                    "hvis ikke duplikat av siste inntektsmeldingskjema" to inntektsmeldingSkjemaMedEndredeEgenmeldinger,
+                    "hvis ikke duplikat av siste inntektsmeldingskjema" to inntektsmeldingSkjemaMedEndretAgp,
                 ),
             ) { eksisterendeInntektsmeldingSkjema ->
                 val innkommendeMelding = innkommendeMelding()

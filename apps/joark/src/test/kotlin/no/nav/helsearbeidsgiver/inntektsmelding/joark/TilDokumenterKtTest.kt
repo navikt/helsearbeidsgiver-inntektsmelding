@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.AvsenderSystem
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
@@ -10,7 +11,6 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
-import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 
 class TilDokumenterKtTest {
     @Test
@@ -23,7 +23,7 @@ class TilDokumenterKtTest {
         assertEquals(2, dokumenter[0].dokumentVarianter.size)
         assertEquals("XML", dokumenter[0].dokumentVarianter[0].filtype)
         assertEquals("PDFA", dokumenter[0].dokumentVarianter[1].filtype)
-        assertEquals("Inntektsmelding for sykepenger (endring) – 05.10.18–[…]–22.10.18", dokumenter[0].tittel)
+        assertEquals("Inntektsmelding for sykepenger (endring) – 28.09.18–[…]–22.10.18", dokumenter[0].tittel)
     }
 
     @Test
@@ -71,7 +71,7 @@ class TilDokumenterKtTest {
             Inntektsmelding.Type.ForespurtEkstern(id, false, avsenderSystem) to ", arbeidsgiverperiode – ikke forespurt",
         ).forEach { (imType, forventetTillegg) ->
             val beskrivelse = mockInntektsmeldingV1().copy(type = imType).tilDokumentbeskrivelse()
-            val forventetBeskrivelse = "Inntektsmelding for sykepenger (endring${forventetTillegg.orEmpty()}) – 05.10.18–[…]–22.10.18"
+            val forventetBeskrivelse = "Inntektsmelding for sykepenger (endring${forventetTillegg.orEmpty()}) – 28.09.18–[…]–22.10.18"
             assertEquals(forventetBeskrivelse, beskrivelse)
         }
     }

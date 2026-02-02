@@ -2,8 +2,8 @@ package no.nav.hag.simba.utils.felles.utils
 
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import java.util.UUID
+import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 
 object Log {
     fun <T : Any> klasse(value: T) = "hag_class" to value::class.simpleName.orEmpty()

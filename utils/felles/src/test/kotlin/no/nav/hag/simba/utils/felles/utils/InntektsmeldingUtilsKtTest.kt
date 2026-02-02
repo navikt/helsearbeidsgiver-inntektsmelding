@@ -4,8 +4,8 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 import no.nav.hag.simba.utils.felles.test.mock.mockAvsenderSystem
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import java.util.UUID
+import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 
 class InntektsmeldingUtilsKtTest :
     FunSpec({

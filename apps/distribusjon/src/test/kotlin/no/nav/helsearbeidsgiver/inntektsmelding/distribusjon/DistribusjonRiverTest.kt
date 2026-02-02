@@ -26,11 +26,11 @@ import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.JournalfoertInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
+import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 
 class DistribusjonRiverTest :
     FunSpec({
@@ -83,7 +83,7 @@ class DistribusjonRiverTest :
                     mockProducer.send(
                         JournalfoertInntektsmelding(
                             journalpostId = innkommendeMelding.journalpostId,
-                            inntektsmelding = innkommendeMelding.inntektsmelding,
+                            inntektsmelding = innkommendeMelding.inntektsmelding.tilInntektsmelding(),
                         ),
                     )
                 }

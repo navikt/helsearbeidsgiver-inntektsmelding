@@ -22,6 +22,7 @@ import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.test.json.minusData
 import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmeldingSelvbestemt
 import no.nav.hag.simba.utils.felles.test.mock.randomDigitString
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
@@ -38,7 +39,6 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
-import no.nav.hag.simba.utils.felles.domene.SkjemaInntektsmeldingSelvbestemtIntern as SkjemaInntektsmeldingSelvbestemt
 
 class LagreSelvbestemtImRouteKtTest : ApiTest() {
     private val path = Routes.PREFIX + Routes.SELVBESTEMT_INNTEKTSMELDING

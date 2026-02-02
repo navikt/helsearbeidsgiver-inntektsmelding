@@ -167,7 +167,7 @@ class ProducerTest :
                 val inntektsmelding =
                     JournalfoertInntektsmelding(
                         journalpostId = randomDigitString(12),
-                        inntektsmelding = mockInntektsmeldingV1().tilInntektsmelding(),
+                        inntektsmelding = mockInntektsmeldingV1(),
                     )
 
                 producer.send(inntektsmelding)
@@ -189,7 +189,7 @@ class ProducerTest :
                 val inntektsmelding =
                     JournalfoertInntektsmelding(
                         journalpostId = randomDigitString(11),
-                        inntektsmelding = mockInntektsmeldingV1().tilInntektsmelding(),
+                        inntektsmelding = mockInntektsmeldingV1(),
                     )
 
                 shouldThrowExactly<TimeoutException> {

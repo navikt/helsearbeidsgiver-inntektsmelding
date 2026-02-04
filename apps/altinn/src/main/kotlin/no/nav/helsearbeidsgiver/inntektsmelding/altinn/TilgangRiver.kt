@@ -59,7 +59,7 @@ class TilgangRiver(
     override fun TilgangMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val harTilgang =
             runBlocking {
-                altinnClient.harTilgangTilOrganisasjon(fnr = fnr.verdi, orgnr = orgnr.verdi)
+                altinnClient.harTilgangTilOrganisasjonAltinn3(fnr = fnr.verdi, orgnr = orgnr.verdi)
             }
 
         val tilgang = if (harTilgang) Tilgang.HAR_TILGANG else Tilgang.IKKE_TILGANG

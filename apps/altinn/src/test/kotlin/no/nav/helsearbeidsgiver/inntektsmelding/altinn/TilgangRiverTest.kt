@@ -53,7 +53,7 @@ class TilgangRiverTest :
                     "ikke tilgang" to Pair(false, Tilgang.IKKE_TILGANG),
                 ),
             ) { (altinnSvar, forventetTilgang) ->
-                coEvery { mockAltinn3M2MClient.harTilgangTilOrganisasjon(any(), any()) } returns altinnSvar
+                coEvery { mockAltinn3M2MClient.harTilgangTilOrganisasjonAltinn3(any(), any()) } returns altinnSvar
 
                 val innkommendeMelding = MockTilgang.innkommendeMelding()
 
@@ -72,13 +72,13 @@ class TilgangRiverTest :
                     )
 
                 coVerifySequence {
-                    mockAltinn3M2MClient.harTilgangTilOrganisasjon(innkommendeMelding.fnr.verdi, innkommendeMelding.orgnr.verdi)
+                    mockAltinn3M2MClient.harTilgangTilOrganisasjonAltinn3(innkommendeMelding.fnr.verdi, innkommendeMelding.orgnr.verdi)
                 }
             }
         }
 
         test("håndterer feil") {
-            coEvery { mockAltinn3M2MClient.harTilgangTilOrganisasjon(any(), any()) } throws NullPointerException()
+            coEvery { mockAltinn3M2MClient.harTilgangTilOrganisasjonAltinn3(any(), any()) } throws NullPointerException()
 
             val innkommendeMelding = MockTilgang.innkommendeMelding()
 
@@ -96,7 +96,7 @@ class TilgangRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             coVerifySequence {
-                mockAltinn3M2MClient.harTilgangTilOrganisasjon(innkommendeMelding.fnr.verdi, innkommendeMelding.orgnr.verdi)
+                mockAltinn3M2MClient.harTilgangTilOrganisasjonAltinn3(innkommendeMelding.fnr.verdi, innkommendeMelding.orgnr.verdi)
             }
         }
 

@@ -25,9 +25,10 @@ class PdfClient {
                 httpClient.get("${Env.lpsApiBaseurl}/intern/personbruker/sykmelding/$sykmeldingId/pdf") {
                     bearerAuth(token)
                 }
-            val responseGammel = httpClient.get("${Env.lpsApiBaseurl}/intern/personbruker/sykmelding/$sykmeldingId.pdf") {
-                bearerAuth(token)
-            }
+            val responseGammel =
+                httpClient.get("${Env.lpsApiBaseurl}/intern/personbruker/sykmelding/$sykmeldingId.pdf") {
+                    bearerAuth(token)
+                }
             val response = if (responseNy.status == HttpStatusCode.NotFound) responseGammel else responseNy
 
             when (response.status) {

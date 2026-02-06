@@ -59,7 +59,7 @@ class AltinnRiver(
     override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val rettigheterForenklet =
             runBlocking {
-                altinnClient.hentAltinn3Tilganger(fnr.verdi)
+                altinnClient.hentTilganger(fnr.verdi)
             }
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),

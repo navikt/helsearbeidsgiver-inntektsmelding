@@ -4,13 +4,11 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Feilregistrert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferie
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferietrekk
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.InntektEndringAarsak
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStilling
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStillingsprosent
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Nyansatt
@@ -33,6 +31,8 @@ import org.junit.jupiter.api.Test
 import java.io.File
 import java.io.FileOutputStream
 import java.util.UUID
+import no.nav.hag.simba.utils.felles.domene.ArbeidsgiverperiodeUtenEksplisitteEgenmeldinger as Arbeidsgiverperiode
+import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 
 class PdfDokumentTest {
     private val dag = 24.desember(2022)

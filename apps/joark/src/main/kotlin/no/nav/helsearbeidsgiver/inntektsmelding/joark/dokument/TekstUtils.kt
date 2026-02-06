@@ -1,18 +1,29 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
+import java.math.RoundingMode
 import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
 private const val MAX_LINJELENGDE = 36
+private val datoTidFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy ' kl. ' HH.mm.ss")
+private val inntektFormat =
+    DecimalFormat(
+        "#,##0.00",
+        DecimalFormatSymbols().apply {
+            groupingSeparator = ' '
+            decimalSeparator = ','
+        },
+    )
 
-fun OffsetDateTime.tilNorskFormat(): String = this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy ' kl. ' HH.mm.ss"))
+fun OffsetDateTime.tilNorskFormat(): String = datoTidFormat.format(this)
 
-fun Double.tilNorskFormat(): String {
-    val format = DecimalFormat("#,###.##")
-    return format.format(this)
-}
+fun Double.tilNorskFormat(): String =
+    toBigDecimal()
+        .setScale(2, RoundingMode.HALF_UP)
+        .let(inntektFormat::format)
 
 fun Boolean.tilNorskFormat(): String =
     if (this) {

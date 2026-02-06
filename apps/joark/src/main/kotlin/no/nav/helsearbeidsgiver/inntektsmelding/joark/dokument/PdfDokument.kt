@@ -5,7 +5,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Feilregistrert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferie
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferietrekk
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.InntektEndringAarsak
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStilling
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStillingsprosent
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Nyansatt
@@ -15,9 +14,11 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Permittering
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykefravaer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.utils.utledEgenmeldinger
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.tittel
 import no.nav.helsearbeidsgiver.utils.date.tilNorskFormat
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
+import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
 
 private const val FORKLARING_ENDRING = "Endringsårsak"
 
@@ -163,9 +164,14 @@ class PdfDokument(
         val kolonneVenstreMaxY = y
 
         // --- Kolonnen til høyre ---------------------------------------------------
+        val egenmeldinger =
+            utledEgenmeldinger(
+                arbeidsgiverperioder = inntektsmelding.agp?.perioder.orEmpty(),
+                sykmeldingsperioder = inntektsmelding.sykmeldingsperioder,
+            )
         moveCursorTo(seksjonStartY) // Gjenopprett y-aksen fra tidligere
         addLabel("Egenmelding", x = kolonneTo)
-        addPerioder(kolonneTo, inntektsmelding.agp?.egenmeldinger.orEmpty())
+        addPerioder(kolonneTo, egenmeldinger)
         addLabel("Sykemeldingsperioder", x = kolonneTo)
         addPerioder(kolonneTo, inntektsmelding.sykmeldingsperioder)
 

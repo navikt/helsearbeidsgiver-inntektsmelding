@@ -22,6 +22,7 @@ import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.test.json.plusData
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
+import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.hag.simba.utils.felles.utils.erForespurt
 import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
@@ -30,10 +31,11 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakLevetid
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
+import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
+import no.nav.hag.simba.utils.felles.domene.SkjemaInntektsmeldingIntern as SkjemaInntektsmelding
 
 class FerdigstillSakOgOppgaveRiverTest :
     FunSpec({
@@ -56,7 +58,7 @@ class FerdigstillSakOgOppgaveRiverTest :
             withData(
                 nameFn = { "for event '$it'" },
                 listOf(
-                    EventName.INNTEKTSMELDING_MOTTATT,
+                    EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
                     EventName.SELVBESTEMT_IM_LAGRET,
                     EventName.FORESPOERSEL_BESVART,
                 ),
@@ -264,7 +266,7 @@ class FerdigstillSakOgOppgaveRiverTest :
 private fun innkommendeMelding(eventName: EventName = EventName.FORESPOERSEL_BESVART): FerdigstillMelding {
     val imType =
         when (eventName) {
-            EventName.INNTEKTSMELDING_MOTTATT, EventName.FORESPOERSEL_BESVART -> Inntektsmelding.Type.Forespurt(UUID.randomUUID())
+            EventName.INNTEKTSMELDING_SKJEMA_LAGRET, EventName.FORESPOERSEL_BESVART -> Inntektsmelding.Type.Forespurt(UUID.randomUUID())
             EventName.SELVBESTEMT_IM_LAGRET -> Inntektsmelding.Type.Selvbestemt(UUID.randomUUID())
             else -> fail("Melding har ugyldig eventnavn.")
         }
@@ -279,8 +281,12 @@ private fun innkommendeMelding(eventName: EventName = EventName.FORESPOERSEL_BES
 private fun FerdigstillMelding.toMap(): Map<Key, JsonElement> {
     val dataField =
         when (eventName) {
-            EventName.INNTEKTSMELDING_MOTTATT -> {
-                Key.FORESPOERSEL_ID to imType.id.toJson()
+            EventName.INNTEKTSMELDING_SKJEMA_LAGRET -> {
+                Key.SKJEMA_INNTEKTSMELDING to
+                    mockSkjemaInntektsmelding()
+                        .copy(
+                            forespoerselId = imType.id,
+                        ).toJson(SkjemaInntektsmelding.serializer())
             }
 
             EventName.SELVBESTEMT_IM_LAGRET -> {

@@ -44,7 +44,7 @@ class AltinnRiverTest :
         test("henter organisasjonsrettigheter med id fra behov") {
             val innkommendeMelding = Mock.innkommendeMelding()
 
-            coEvery { mockAltinnClient.hentAltinn3Tilganger(any()) } returns Mock.altinnOrganisasjoner
+            coEvery { mockAltinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjoner
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -64,7 +64,7 @@ class AltinnRiverTest :
                 )
 
             coVerifySequence {
-                mockAltinnClient.hentAltinn3Tilganger(innkommendeMelding.fnr.verdi)
+                mockAltinnClient.hentTilganger(innkommendeMelding.fnr.verdi)
             }
         }
 
@@ -80,7 +80,7 @@ class AltinnRiverTest :
                     utloesendeMelding = innkommendeJsonMap,
                 )
 
-            coEvery { mockAltinnClient.hentAltinn3Tilganger(any()) } throws NullPointerException()
+            coEvery { mockAltinnClient.hentTilganger(any()) } throws NullPointerException()
 
             testRapid.sendJson(innkommendeJsonMap)
 
@@ -89,7 +89,7 @@ class AltinnRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             coVerifySequence {
-                mockAltinnClient.hentAltinn3Tilganger(innkommendeMelding.fnr.verdi)
+                mockAltinnClient.hentTilganger(innkommendeMelding.fnr.verdi)
             }
         }
 

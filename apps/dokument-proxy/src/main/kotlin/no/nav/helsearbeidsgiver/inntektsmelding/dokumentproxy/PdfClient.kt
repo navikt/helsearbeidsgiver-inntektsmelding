@@ -22,7 +22,7 @@ class PdfClient {
     ): PdfResponse =
         try {
             val response =
-                httpClient.get("${Env.lpsApiBaseurl}/intern/personbruker/sykmelding/$sykmeldingId.pdf") {
+                httpClient.get("${Env.lpsApiBaseurl}/intern/personbruker/sykmelding/$sykmeldingId/pdf") {
                     bearerAuth(token)
                 }
 

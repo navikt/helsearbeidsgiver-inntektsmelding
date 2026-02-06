@@ -16,7 +16,6 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytes
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
-import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.hag.simba.utils.auth.AuthClient
 import no.nav.hag.simba.utils.auth.IdentityProvider
@@ -130,4 +129,3 @@ fun Application.apiModule(
         }
     }
 }
-

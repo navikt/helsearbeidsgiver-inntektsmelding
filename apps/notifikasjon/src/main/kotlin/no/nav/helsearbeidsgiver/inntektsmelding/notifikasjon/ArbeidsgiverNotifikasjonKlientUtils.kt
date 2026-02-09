@@ -4,6 +4,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.domene.Person
 import no.nav.hag.simba.utils.felles.utils.tilKortFormat
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Altinn3Ressurs
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveDuplikatException
@@ -124,6 +125,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
                 tilleggsinfo = NotifikasjonTekst.sakTilleggsinfo(sykmeldingsperioder),
                 initiellStatus = initiellStatus,
                 hardDeleteOm = sakLevetid,
+                ressursId = Altinn3Ressurs.INNTEKTSMELDING,
             )
         }
     } catch (e: SakEllerOppgaveDuplikatException) {
@@ -199,6 +201,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
                 paaminnelse =
                     if (skalHaPaaminnelse) {
                         Paaminnelse(
+                            ressursId = Altinn3Ressurs.INNTEKTSMELDING,
                             tittel = NotifikasjonTekst.PAAMINNELSE_TITTEL,
                             innhold = NotifikasjonTekst.paaminnelseInnhold(orgnr, orgNavn, sykmeldingsPerioder),
                             tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveopprettelseOgPaaminnelse,
@@ -206,6 +209,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
                     } else {
                         null
                     },
+                ressursId = Altinn3Ressurs.INNTEKTSMELDING,
             )
         }
     } catch (e: SakEllerOppgaveDuplikatException) {

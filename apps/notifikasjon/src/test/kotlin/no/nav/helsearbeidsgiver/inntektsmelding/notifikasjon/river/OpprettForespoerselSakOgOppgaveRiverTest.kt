@@ -23,6 +23,7 @@ import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Altinn3Ressurs
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveDuplikatException
@@ -58,8 +59,8 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             val sakId = UUID.randomUUID().toString()
             val oppgaveId = UUID.randomUUID().toString()
 
-            coEvery { mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns sakId
-            coEvery { mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns oppgaveId
+            coEvery { mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns sakId
+            coEvery { mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns oppgaveId
 
             val innkommendeMelding = innkommendeOpprettForespoerselSakOgOppgaveMelding()
 
@@ -74,6 +75,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                     virksomhetsnummer = innkommendeMelding.forespoersel.orgnr.verdi,
                     grupperingsid = innkommendeMelding.forespoerselId.toString(),
                     merkelapp = NotifikasjonTekst.MERKELAPP,
+                    ressursId = Altinn3Ressurs.INNTEKTSMELDING,
                     lenke = "en-slags-url/im-dialog/${innkommendeMelding.forespoerselId}",
                     tittel = NotifikasjonTekst.sakTittel(Inntektsmelding.Type.Forespurt(innkommendeMelding.forespoerselId), innkommendeMelding.sykmeldt),
                     statusTekst = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
@@ -106,7 +108,9 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                                     innkommendeMelding.forespoersel.sykmeldingsperioder,
                                 ),
                             tidMellomOppgaveopprettelseOgPaaminnelse = "P28D",
+                            ressursId = Altinn3Ressurs.INNTEKTSMELDING,
                         ),
+                    ressursId = Altinn3Ressurs.INNTEKTSMELDING,
                 )
             }
         }
@@ -115,10 +119,10 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             val sakId = UUID.randomUUID().toString()
             val duplikatOppgaveId = UUID.randomUUID().toString()
 
-            coEvery { mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns sakId
+            coEvery { mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns sakId
 
             coEvery {
-                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             } throws SakEllerOppgaveDuplikatException(duplikatOppgaveId, "mock feilmelding")
 
             val innkommendeMelding = innkommendeOpprettForespoerselSakOgOppgaveMelding()
@@ -130,8 +134,8 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding, sakId, duplikatOppgaveId)
 
             coVerifySequence {
-                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
-                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
 
@@ -140,10 +144,10 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             val oppgaveId = UUID.randomUUID().toString()
 
             coEvery {
-                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             } throws SakEllerOppgaveDuplikatException(duplikatSakId, "mock feilmelding")
 
-            coEvery { mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns oppgaveId
+            coEvery { mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns oppgaveId
 
             val innkommendeMelding = innkommendeOpprettForespoerselSakOgOppgaveMelding()
 
@@ -154,8 +158,8 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding, duplikatSakId, oppgaveId)
 
             coVerifySequence {
-                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
-                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
 
@@ -164,11 +168,11 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             val duplikatOppgaveId = UUID.randomUUID().toString()
 
             coEvery {
-                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             } throws SakEllerOppgaveDuplikatException(duplikatSakId, "mock feilmelding")
 
             coEvery {
-                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             } throws SakEllerOppgaveDuplikatException(duplikatOppgaveId, "mock feilmelding")
 
             val innkommendeMelding = innkommendeOpprettForespoerselSakOgOppgaveMelding()
@@ -180,8 +184,8 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding, duplikatSakId, duplikatOppgaveId)
 
             coVerifySequence {
-                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
-                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
 
@@ -189,7 +193,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             val innkommendeMelding = innkommendeOpprettForespoerselSakOgOppgaveMelding()
 
             coEvery {
-                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             } throws NullPointerException("To me, religion is like Paul Rudd.")
 
             testRapid.sendJson(innkommendeMelding.toMap())
@@ -199,7 +203,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail(innkommendeMelding).tilMelding()
 
             coVerifySequence {
-                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
 
@@ -207,11 +211,11 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             val innkommendeMelding = innkommendeOpprettForespoerselSakOgOppgaveMelding()
 
             coEvery {
-                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             } returns UUID.randomUUID().toString()
 
             coEvery {
-                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             } throws NullPointerException("Doing anything more than the minimum amount of work required is my definition of failing.")
 
             testRapid.sendJson(innkommendeMelding.toMap())
@@ -221,8 +225,8 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail(innkommendeMelding).tilMelding()
 
             coVerifySequence {
-                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
-                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
 
@@ -243,8 +247,8 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 coVerify(exactly = 0) {
-                    mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
-                    mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+                    mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+                    mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
                 }
             }
         }

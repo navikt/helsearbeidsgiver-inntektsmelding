@@ -22,6 +22,7 @@ import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
 import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Altinn3Ressurs
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveDuplikatException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
@@ -51,7 +52,7 @@ class OpprettSelvbestemtSakRiverTest :
             val sakId = UUID.randomUUID().toString()
             val innkommendeMelding = innkommendeMelding()
 
-            coEvery { mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns sakId
+            coEvery { mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns sakId
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -83,6 +84,7 @@ class OpprettSelvbestemtSakRiverTest :
                     tilleggsinfo = "Sykmeldingsperiode 05.10.18–[…]–03.11.18",
                     initiellStatus = SaksStatus.FERDIG,
                     hardDeleteOm = any(),
+                    ressursId = Altinn3Ressurs.INNTEKTSMELDING,
                 )
             }
         }
@@ -92,7 +94,7 @@ class OpprettSelvbestemtSakRiverTest :
             val innkommendeMelding = innkommendeMelding()
 
             coEvery {
-                mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             } throws SakEllerOppgaveDuplikatException(duplikatSakId, "mock feilmelding")
 
             testRapid.sendJson(innkommendeMelding.toMap())
@@ -111,7 +113,7 @@ class OpprettSelvbestemtSakRiverTest :
                 )
 
             coVerifySequence {
-                mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
 
@@ -120,7 +122,7 @@ class OpprettSelvbestemtSakRiverTest :
             val forventetFail = innkommendeMelding.toFail()
 
             coEvery {
-                mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             } throws RuntimeException("RIP in peace")
 
             testRapid.sendJson(innkommendeMelding.toMap())
@@ -130,7 +132,7 @@ class OpprettSelvbestemtSakRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             coVerifySequence {
-                mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
 
@@ -151,7 +153,7 @@ class OpprettSelvbestemtSakRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 coVerify(exactly = 0) {
-                    mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
+                    mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
                 }
             }
         }

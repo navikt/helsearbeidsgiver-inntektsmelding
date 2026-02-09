@@ -112,6 +112,9 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
             SaksStatus.FERDIG -> NotifikasjonTekst.STATUS_TEKST_FERDIG
             else -> NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING
         }
+    logger.info(
+        "Oppretter sak med ressursId ${Altinn3Ressurs.INNTEKTSMELDING} for inntektsmelding med id ${inntektsmeldingType.id} for virksomhet ${orgnr.verdi}.",
+    )
 
     return try {
         runBlocking {

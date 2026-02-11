@@ -5,6 +5,8 @@ import no.nav.hag.simba.utils.auth.IdentityProvider
 import no.nav.hag.simba.utils.rr.Publisher
 import no.nav.hag.simba.utils.rr.river.ObjectRiver
 import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Altinn3Ressurs
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.AltinnMottaker
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FerdigstillSakOgOppgaveRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FjernPaaminnelseRiver
@@ -47,5 +49,6 @@ fun createNotifikasjonRivers(
 
 private fun agNotifikasjonKlient(): ArbeidsgiverNotifikasjonKlient {
     val tokenGetter = AuthClient().tokenGetter(IdentityProvider.AZURE_AD, Env.agNotifikasjonScope)
-    return ArbeidsgiverNotifikasjonKlient(Env.agNotifikasjonUrl, tokenGetter)
+    val altinnMottaker = AltinnMottaker.Altinn3(Altinn3Ressurs.INNTEKTSMELDING)
+    return ArbeidsgiverNotifikasjonKlient(Env.agNotifikasjonUrl, altinnMottaker, tokenGetter)
 }

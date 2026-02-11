@@ -128,7 +128,6 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
                 tilleggsinfo = NotifikasjonTekst.sakTilleggsinfo(sykmeldingsperioder),
                 initiellStatus = initiellStatus,
                 hardDeleteOm = sakLevetid,
-                ressursId = Altinn3Ressurs.INNTEKTSMELDING,
             )
         }
     } catch (e: SakEllerOppgaveDuplikatException) {
@@ -204,7 +203,6 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
                 paaminnelse =
                     if (skalHaPaaminnelse) {
                         Paaminnelse(
-                            ressursId = Altinn3Ressurs.INNTEKTSMELDING,
                             tittel = NotifikasjonTekst.PAAMINNELSE_TITTEL,
                             innhold = NotifikasjonTekst.paaminnelseInnhold(orgnr, orgNavn, sykmeldingsPerioder),
                             tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveopprettelseOgPaaminnelse,
@@ -212,7 +210,6 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
                     } else {
                         null
                     },
-                ressursId = Altinn3Ressurs.INNTEKTSMELDING,
             )
         }
     } catch (e: SakEllerOppgaveDuplikatException) {

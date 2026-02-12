@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FjernPaaminne
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettForespoerselSakOgOppgaveRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSelvbestemtSakRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.UtgaattForespoerselRiver
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 fun main() {
     ObjectRiver.connectToRapid {
@@ -50,5 +51,6 @@ fun createNotifikasjonRivers(
 private fun agNotifikasjonKlient(): ArbeidsgiverNotifikasjonKlient {
     val tokenGetter = AuthClient().tokenGetter(IdentityProvider.AZURE_AD, Env.agNotifikasjonScope)
     val altinnMottaker = if (Env.erProd) AltinnMottaker.Altinn2("4936", "1") else AltinnMottaker.Altinn3(Altinn3Ressurs.INNTEKTSMELDING)
+    sikkerLogger().info("Oppretter ArbeidsgiverNotifikasjonKlient med mottaker ${altinnMottaker.tilTekst()}")
     return ArbeidsgiverNotifikasjonKlient(Env.agNotifikasjonUrl, altinnMottaker, tokenGetter)
 }

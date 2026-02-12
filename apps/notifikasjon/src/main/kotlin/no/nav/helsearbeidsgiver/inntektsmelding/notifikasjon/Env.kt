@@ -7,4 +7,5 @@ object Env {
     val agNotifikasjonScope = "ARBEIDSGIVER_NOTIFIKASJON_SCOPE".fromEnv()
     val agNotifikasjonUrl = "ARBEIDSGIVER_NOTIFIKASJON_API_URL".fromEnv()
     val tidMellomOppgaveOpprettelseOgPaaminnelse = "TID_MELLOM_OPPGAVEOPPRETTELSE_OG_PAAMINNELSE".fromEnv()
+    val erProd = "NAIS_CLUSTER_NAME".fromEnv() == "prod-gcp"
 }

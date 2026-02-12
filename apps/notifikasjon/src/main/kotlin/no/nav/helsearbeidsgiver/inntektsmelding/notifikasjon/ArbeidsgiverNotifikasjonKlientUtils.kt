@@ -4,7 +4,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.domene.Person
 import no.nav.hag.simba.utils.felles.utils.tilKortFormat
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Altinn3Ressurs
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.AltinnMottaker
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveDuplikatException
@@ -99,6 +99,12 @@ object NotifikasjonTekst {
         ).joinToString(separator = " ")
 }
 
+fun AltinnMottaker.tilTekst(): String =
+    when (this) {
+        is AltinnMottaker.Altinn3 -> "Altinn 3 ressurs ${this.ressurs.value}"
+        is AltinnMottaker.Altinn2 -> "Altinn 2 tjeneste ${this.serviceCode} versjon ${this.serviceEdition}"
+    }
+
 fun ArbeidsgiverNotifikasjonKlient.opprettSak(
     lenke: String,
     inntektsmeldingType: Inntektsmelding.Type,
@@ -112,8 +118,9 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
             SaksStatus.FERDIG -> NotifikasjonTekst.STATUS_TEKST_FERDIG
             else -> NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING
         }
+
     logger.info(
-        "Oppretter sak med ressursId ${Altinn3Ressurs.INNTEKTSMELDING} for inntektsmelding med id ${inntektsmeldingType.id} for virksomhet ${orgnr.verdi}.",
+        "Oppretter sak med ${mottaker.tilTekst()} for inntektsmelding med id ${inntektsmeldingType.id} for virksomhet ${orgnr.verdi}.",
     )
 
     return try {

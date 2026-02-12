@@ -49,6 +49,6 @@ fun createNotifikasjonRivers(
 
 private fun agNotifikasjonKlient(): ArbeidsgiverNotifikasjonKlient {
     val tokenGetter = AuthClient().tokenGetter(IdentityProvider.AZURE_AD, Env.agNotifikasjonScope)
-    val altinnMottaker = AltinnMottaker.Altinn3(Altinn3Ressurs.INNTEKTSMELDING)
+    val altinnMottaker = if (Env.erProd) AltinnMottaker.Altinn2("4936", "1") else AltinnMottaker.Altinn3(Altinn3Ressurs.INNTEKTSMELDING)
     return ArbeidsgiverNotifikasjonKlient(Env.agNotifikasjonUrl, altinnMottaker, tokenGetter)
 }

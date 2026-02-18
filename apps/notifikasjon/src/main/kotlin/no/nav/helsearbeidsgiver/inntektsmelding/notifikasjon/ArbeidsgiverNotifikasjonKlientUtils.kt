@@ -120,7 +120,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
         }
 
     logger.info(
-        "Oppretter sak med ${mottaker.tilTekst()} for inntektsmelding med typeId ${inntektsmeldingType.id} for virksomhet ${orgnr.verdi}.",
+        "Oppretter sak med ${mottaker.tilTekst()} for inntektsmelding med typeId ${inntektsmeldingType.id}",
     )
 
     return try {

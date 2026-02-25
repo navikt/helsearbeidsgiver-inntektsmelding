@@ -15,6 +15,7 @@ import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.Publisher
 import no.nav.hag.simba.utils.rr.service.ServiceMed2Steg
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -27,7 +28,6 @@ import java.time.YearMonth
 import java.util.UUID
 import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.EventName as InnsendingEventName
 import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.Key as InnsendingKey
-import no.nav.hag.simba.utils.felles.domene.InnsendingIntern as Innsending
 
 data class ValideringsSteg0(
     val kontekstId: UUID,

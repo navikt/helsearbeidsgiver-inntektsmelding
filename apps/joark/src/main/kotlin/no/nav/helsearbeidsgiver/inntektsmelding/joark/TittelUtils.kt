@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
-import no.nav.hag.simba.utils.felles.domene.InntektsmeldingIntern as Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 
 fun Inntektsmelding.tittel(): String {
     val endringTillegg =

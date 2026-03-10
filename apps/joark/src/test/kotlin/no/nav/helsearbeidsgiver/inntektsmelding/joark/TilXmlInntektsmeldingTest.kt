@@ -33,7 +33,7 @@ class TilXmlInntektsmeldingTest {
         Assertions.assertEquals(im.sykmeldt.fnr.verdi, skjema.arbeidstakerFnr)
         Assertions.assertEquals(20.oktober, skjema.arbeidsforhold.foersteFravaersdag)
         Assertions.assertNotNull(skjema.arbeidsforhold.beregnetInntekt)
-        Assertions.assertEquals(2, skjema.sykepengerIArbeidsgiverperioden.arbeidsgiverperiodeListe.size)
+        Assertions.assertEquals(4, skjema.sykepengerIArbeidsgiverperioden.arbeidsgiverperiodeListe.size)
         Assertions.assertNotNull(skjema.sykepengerIArbeidsgiverperioden.bruttoUtbetalt)
         Assertions.assertEquals(
             im.agp

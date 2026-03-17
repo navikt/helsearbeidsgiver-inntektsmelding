@@ -4,6 +4,7 @@ import no.nav.hag.simba.utils.auth.AuthClient
 import no.nav.hag.simba.utils.auth.IdentityProvider
 import no.nav.hag.simba.utils.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.altinn.Altinn3M2MClient
+import no.nav.helsearbeidsgiver.altinn.Altinn3Ressurs
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import kotlin.time.Duration.Companion.minutes
 
@@ -23,6 +24,7 @@ private fun createAltinnClient(): Altinn3M2MClient =
     Altinn3M2MClient(
         baseUrl = Env.altinnTilgangerBaseUrl,
         serviceCode = Env.serviceCode,
+        ressurs = Altinn3Ressurs.INNTEKTSMELDING,
         cacheConfig = LocalCache.Config(60.minutes, 1000),
         getToken = AuthClient().tokenGetter(IdentityProvider.AZURE_AD, Env.altinnScope),
     )

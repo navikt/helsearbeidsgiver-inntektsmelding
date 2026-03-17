@@ -61,7 +61,6 @@ class AltinnRiver(
             runBlocking {
                 altinnClient.hentTilganger(fnr.verdi)
             }
-
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.KONTEKST_ID to kontekstId.toJson(),

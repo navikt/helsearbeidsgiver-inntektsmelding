@@ -107,7 +107,7 @@ private fun List<String>.joinKeySeparator(withPostfix: Boolean = false): String 
 enum class RedisPrefix {
     AktiveOrgnr,
     ApiInnsending,
-    HentAareg,
+    HentArbeidsforhold,
     HentForespoersel,
     HentForespoerslerForVedtaksperiodeIdListe,
     HentSelvbestemtIm,

@@ -77,7 +77,7 @@ class HentAaregRouteKtTest : ApiTest() {
                             it shouldContainKey Key.KONTEKST_ID
                             it.minus(Key.KONTEKST_ID) shouldContainExactly
                                 mapOf(
-                                    Key.EVENT_NAME to EventName.AAREG_REQUESTED.toJson(),
+                                    Key.EVENT_NAME to EventName.AKTIVE_ARBEIDSFORHOLD_REQUESTED.toJson(),
                                     Key.DATA to
                                         mapOf(
                                             Key.FORESPOERSEL_ID to forespoerselId.toJson(),

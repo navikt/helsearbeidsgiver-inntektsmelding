@@ -39,12 +39,12 @@ class HentAaregServiceTest :
     FunSpec({
 
         val testRapid = TestRapid()
-        val mockRedis = MockRedis(RedisPrefix.HentAareg)
+        val mockRedis = MockRedis(RedisPrefix.HentArbeidsforhold)
 
         mockConnectToRapid(testRapid) {
             listOf(
                 ServiceRiverStateful(
-                    HentAaregService(it, mockRedis.store),
+                    HentArbeidsforholdService(it, mockRedis.store),
                 ),
             )
         }
@@ -137,7 +137,7 @@ class HentAaregServiceTest :
             val fail =
                 mockFail(
                     feilmelding = "Klarte ikke hente forespoersel.",
-                    eventName = EventName.SERVICE_HENT_AAREG,
+                    eventName = EventName.SERVICE_HENT_ARBEIDSFORHOLD,
                     behovType = BehovType.HENT_TRENGER_IM,
                 )
 
@@ -159,7 +159,7 @@ private object Mock {
 
     fun steg0(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
-            Key.EVENT_NAME to EventName.AAREG_REQUESTED.toJson(),
+            Key.EVENT_NAME to EventName.AKTIVE_ARBEIDSFORHOLD_REQUESTED.toJson(),
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
@@ -170,7 +170,7 @@ private object Mock {
     fun steg1(kontekstId: UUID): Map<Key, JsonElement> =
         steg0(kontekstId).plus(
             mapOf(
-                Key.EVENT_NAME to EventName.SERVICE_HENT_AAREG.toJson(),
+                Key.EVENT_NAME to EventName.SERVICE_HENT_ARBEIDSFORHOLD.toJson(),
                 Key.DATA to
                     mapOf(
                         Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),

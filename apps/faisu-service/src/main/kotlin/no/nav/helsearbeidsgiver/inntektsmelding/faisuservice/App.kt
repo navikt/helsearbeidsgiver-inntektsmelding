@@ -26,12 +26,12 @@ fun main() {
 fun createHentAaregService(
     publisher: Publisher,
     redisConnection: RedisConnection,
-): List<ServiceRiverStateful<HentAaregService>> =
+): List<ServiceRiverStateful<HentArbeidsforholdService>> =
     listOf(
         ServiceRiverStateful(
-            HentAaregService(
+            HentArbeidsforholdService(
                 publisher = publisher,
-                redisStore = RedisStore(redisConnection, RedisPrefix.HentAareg),
+                redisStore = RedisStore(redisConnection, RedisPrefix.HentArbeidsforhold),
             ),
         ),
     )

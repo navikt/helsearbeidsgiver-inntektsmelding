@@ -39,7 +39,7 @@ data class Steg2(
     val ansettelsesperioder: Map<Orgnr, Set<PeriodeAapen>>,
 )
 
-class HentAaregService(
+class HentArbeidsforholdService(
     private val publisher: Publisher,
     override val redisStore: RedisStore,
 ) : ServiceMed2Steg<Steg0, Steg1, Steg2>(),
@@ -47,8 +47,8 @@ class HentAaregService(
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val initialEventName = EventName.AAREG_REQUESTED
-    override val serviceEventName = EventName.SERVICE_HENT_AAREG
+    override val initialEventName = EventName.AKTIVE_ARBEIDSFORHOLD_REQUESTED
+    override val serviceEventName = EventName.SERVICE_HENT_ARBEIDSFORHOLD
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(
@@ -112,7 +112,8 @@ class HentAaregService(
 
         val ansettelsesperioderForAktuellOrg = steg2.ansettelsesperioder[forespoersel.orgnr].orEmpty()
 
-        // TODO: Finne ut hvordan vi skal filtrere ut urelevante ansettelseperioder
+        // Dette er en forenklet metode
+        // TODO: Finne ut hvordan vi skal filtrere ut urelevante ansettelseperioder på en bedre måte
         val ansettelsePerioderMedSykmeldingOverlapp =
             ansettelsesperioderForAktuellOrg.filter { ansettelsePeriode ->
                 forespoersel.sykmeldingsperioder.any { sykmeldingPeriode ->
@@ -138,7 +139,7 @@ class HentAaregService(
 
     override fun Steg0.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this@HentAaregService),
+            Log.klasse(this@HentArbeidsforholdService),
             Log.event(serviceEventName),
             Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),

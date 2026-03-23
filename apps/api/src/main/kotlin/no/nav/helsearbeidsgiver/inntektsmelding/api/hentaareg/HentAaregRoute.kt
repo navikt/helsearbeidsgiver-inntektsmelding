@@ -35,7 +35,7 @@ fun Route.hentAaregRoute(
     tilgangskontroll: Tilgangskontroll,
     redisConnection: RedisConnection,
 ) {
-    val redisPoller = RedisStore(redisConnection, RedisPrefix.HentAareg).let(::RedisPoller)
+    val redisPoller = RedisStore(redisConnection, RedisPrefix.HentArbeidsforhold).let(::RedisPoller)
 
     get(Routes.HENT_AAREG) {
         val kontekstId = UUID.randomUUID()
@@ -107,7 +107,7 @@ private fun Producer.sendRequestEvent(
         key = forespoerselId,
         message =
             mapOf(
-                Key.EVENT_NAME to EventName.AAREG_REQUESTED.toJson(),
+                Key.EVENT_NAME to EventName.AKTIVE_ARBEIDSFORHOLD_REQUESTED.toJson(),
                 Key.KONTEKST_ID to kontekstId.toJson(),
                 Key.DATA to
                     mapOf(

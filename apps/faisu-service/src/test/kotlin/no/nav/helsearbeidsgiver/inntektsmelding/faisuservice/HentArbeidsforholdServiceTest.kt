@@ -35,7 +35,7 @@ import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
-class HentAaregServiceTest :
+class HentArbeidsforholdServiceTest :
     FunSpec({
 
         val testRapid = TestRapid()

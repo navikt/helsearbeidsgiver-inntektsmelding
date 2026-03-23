@@ -19,11 +19,11 @@ fun main() {
     ObjectRiver.connectToRapid(
         onShutdown = { redisConnection.close() },
     ) {
-        createHentAaregService(it, redisConnection)
+        createHentArbeidsforholdService(it, redisConnection)
     }
 }
 
-fun createHentAaregService(
+fun createHentArbeidsforholdService(
     publisher: Publisher,
     redisConnection: RedisConnection,
 ): List<ServiceRiverStateful<HentArbeidsforholdService>> =

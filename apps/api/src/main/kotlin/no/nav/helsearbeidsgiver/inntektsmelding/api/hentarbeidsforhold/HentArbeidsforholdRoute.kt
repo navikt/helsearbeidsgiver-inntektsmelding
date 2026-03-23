@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.hentaareg
+package no.nav.helsearbeidsgiver.inntektsmelding.api.hentarbeidsforhold
 
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -30,14 +30,14 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import java.util.UUID
 
-fun Route.hentAaregRoute(
+fun Route.hentArbeidsforholdRoute(
     producer: Producer,
     tilgangskontroll: Tilgangskontroll,
     redisConnection: RedisConnection,
 ) {
     val redisPoller = RedisStore(redisConnection, RedisPrefix.HentArbeidsforhold).let(::RedisPoller)
 
-    get(Routes.HENT_AAREG) {
+    get(Routes.HENT_ARBEIDSFORHOLD) {
         val kontekstId = UUID.randomUUID()
 
         val forespoerselId =
@@ -53,7 +53,7 @@ fun Route.hentAaregRoute(
             }
         } else {
             MdcUtils.withLogFields(
-                Log.apiRoute(Routes.HENT_AAREG),
+                Log.apiRoute(Routes.HENT_ARBEIDSFORHOLD),
                 Log.kontekstId(kontekstId),
                 Log.forespoerselId(forespoerselId),
             ) {
@@ -72,19 +72,19 @@ fun Route.hentAaregRoute(
                     val ansettelsesperioder = result.success?.fromJson(ListSerializer(PeriodeAapen.serializer()))
 
                     if (ansettelsesperioder != null) {
-                        val response = HentAaregResponse(ansettelsesperioder)
-                        val responseJson = response.toJson(HentAaregResponse.serializer())
+                        val response = HentArbeidsforholdResponse(ansettelsesperioder)
+                        val responseJson = response.toJson(HentArbeidsforholdResponse.serializer())
 
-                        "Aareg-data hentet OK.".also {
+                        "Arbeidsforhold-data hentet OK.".also {
                             logger.info(it)
                             sikkerLogger.info("$it\n${responseJson.toPretty()}")
                         }
 
-                        respondOk(response, HentAaregResponse.serializer())
+                        respondOk(response, HentArbeidsforholdResponse.serializer())
                     } else {
                         val feilmelding = result.failure?.fromJson(String.serializer())
 
-                        "Klarte ikke hente aareg-data.".also {
+                        "Klarte ikke hente arbeidsforhold-data.".also {
                             logger.error(it)
                             sikkerLogger.error("$it Feilmelding: '$feilmelding'")
                         }

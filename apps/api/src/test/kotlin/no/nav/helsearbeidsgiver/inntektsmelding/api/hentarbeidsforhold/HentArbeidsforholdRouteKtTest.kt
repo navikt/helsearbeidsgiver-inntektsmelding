@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.hentaareg
+package no.nav.helsearbeidsgiver.inntektsmelding.api.hentarbeidsforhold
 
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldContainKey
@@ -31,9 +31,9 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 private val forespoerselId = UUID.randomUUID()
-private val path = Routes.PREFIX + Routes.HENT_AAREG.replaceFirst("{forespoerselId}", forespoerselId.toString())
+private val path = Routes.PREFIX + Routes.HENT_ARBEIDSFORHOLD.replaceFirst("{forespoerselId}", forespoerselId.toString())
 
-class HentAaregRouteKtTest : ApiTest() {
+class HentArbeidsforholdRouteKtTest : ApiTest() {
     @BeforeEach
     fun setup() {
         clearAllMocks()

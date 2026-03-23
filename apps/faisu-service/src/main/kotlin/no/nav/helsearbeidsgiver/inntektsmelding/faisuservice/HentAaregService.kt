@@ -112,7 +112,7 @@ class HentAaregService(
 
         val ansettelsesperioderForAktuellOrg = steg2.ansettelsesperioder[forespoersel.orgnr].orEmpty()
 
-        //TODO: Finne ut hvordan vi skal filtrere ut urelevante ansettelseperioder
+        // TODO: Finne ut hvordan vi skal filtrere ut urelevante ansettelseperioder
         val ansettelsePerioderMedSykmeldingOverlapp =
             ansettelsesperioderForAktuellOrg.filter { ansettelsePeriode ->
                 forespoersel.sykmeldingsperioder.any { sykmeldingPeriode ->

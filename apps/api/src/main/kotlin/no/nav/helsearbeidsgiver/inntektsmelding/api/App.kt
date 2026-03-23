@@ -18,6 +18,7 @@ import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr.aktiveOrgnrRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
+import no.nav.helsearbeidsgiver.inntektsmelding.api.hentarbeidsforhold.hentArbeidsforholdRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoersel.hentForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIdListe.hentForespoerselIdListe
 import no.nav.helsearbeidsgiver.inntektsmelding.api.hentselvbestemtim.hentSelvbestemtImRoute
@@ -44,6 +45,7 @@ object Routes {
 
     const val HENT_FORESPOERSEL = "/hent-forespoersel/{forespoerselId}"
     const val HENT_FORESPOERSEL_ID_LISTE = "/hent-forespoersel-id-liste"
+    const val HENT_ARBEIDSFORHOLD = "/arbeidsforhold/{forespoerselId}"
     const val INNTEKT = "/inntekt"
     const val INNTEKT_SELVBESTEMT = "/inntekt-selvbestemt"
     const val INNSENDING = "/inntektsmelding"
@@ -120,6 +122,7 @@ fun Application.apiModule(
             route(Routes.PREFIX) {
                 hentForespoersel(producer, tilgangskontroll, redisConnection)
                 hentForespoerselIdListe(producer, tilgangskontroll, redisConnection)
+                hentArbeidsforholdRoute(producer, tilgangskontroll, redisConnection)
                 inntektRoute(producer, tilgangskontroll, redisConnection)
                 inntektSelvbestemtRoute(producer, tilgangskontroll, redisConnection)
                 innsending(producer, tilgangskontroll, redisConnection)

@@ -1,5 +1,6 @@
 package no.nav.hag.simba.utils.felles.utils
 
+import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -21,3 +22,11 @@ fun List<Periode>.tilKortFormat(): String {
 }
 
 private fun LocalDate.tilNorskFormatKort(): String = format(norskDatoFormatKort)
+
+// TODO: implementer tester for denne (om den skal beholdes)
+fun Periode.overlapperMed(annen: PeriodeAapen): Boolean {
+    val endA = this.tom
+    val endB = annen.tom ?: LocalDate.MAX
+
+    return !this.fom.isAfter(endB) && !annen.fom.isAfter(endA)
+}

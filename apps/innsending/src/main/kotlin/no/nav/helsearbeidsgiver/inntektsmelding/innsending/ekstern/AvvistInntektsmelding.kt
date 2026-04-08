@@ -23,7 +23,7 @@ enum class Feilkode {
 }
 
 @Serializable
-class Feil(
+data class Feil(
     val feilkode: Feilkode,
     val feilmelding: String? = null,
 )

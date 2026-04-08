@@ -104,16 +104,19 @@ class ValiderApiInnsendingServiceTest :
             testRapid.inspektør.size shouldBeExactly 2
             testRapid.message(1).lesBehov() shouldBe BehovType.HENT_INNTEKT
 
+            val mndInntekt = Mock.inntektBeloep.minus(100)
             val inntektFraAordningen =
                 mapOf(
-                    mai(2018) to Mock.inntektBeloep.minus(100),
-                    juni(2018) to Mock.inntektBeloep.minus(100),
-                    juli(2018) to Mock.inntektBeloep.minus(100),
+                    mai(2018) to mndInntekt,
+                    juni(2018) to mndInntekt,
+                    juli(2018) to mndInntekt,
                 )
 
             testRapid.sendJson(
                 Mock.steg2(kontekstId).plusData(Key.INNTEKT to inntektFraAordningen.toJson(inntektMapSerializer)),
             )
+
+            val forventetFeilmelding = "Oppgitt beløp ${Mock.inntektBeloep} matcher ikke snittinntekt i A-ordning: $mndInntekt"
 
             testRapid.inspektør.size shouldBeExactly 2
             val forventetNoekkel = Mock.innsending.skjema.forespoerselId
@@ -121,7 +124,7 @@ class ValiderApiInnsendingServiceTest :
                 ProducerRecord(
                     testTopic,
                     forventetNoekkel.toString(),
-                    Mock.avvistMelding(kontekstId).toJson(),
+                    Mock.avvistMelding(kontekstId, forventetFeilmelding).toJson(),
                 )
 
             verifySequence { mockKafkaProducer.send(forventetRecord) }
@@ -214,7 +217,10 @@ class ValiderApiInnsendingServiceTest :
                 Key.INNTEKT to inntektFraAordningen.toJson(inntektMapSerializer),
             )
 
-        fun avvistMelding(kontekstId: UUID): Map<InnsendingKey, JsonElement> {
+        fun avvistMelding(
+            kontekstId: UUID,
+            feilmelding: String = "Generisk feilmelding",
+        ): Map<InnsendingKey, JsonElement> {
             val avvistInntektsmelding =
                 AvvistInntektsmelding(
                     inntektsmeldingId = innsending.innsendingId,
@@ -222,7 +228,7 @@ class ValiderApiInnsendingServiceTest :
                     vedtaksperiodeId = forespoersel.vedtaksperiodeId,
                     orgnr = forespoersel.orgnr,
                     feilkode = Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN,
-                    feil = Feil(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN, "Generisk feilmelding"),
+                    feil = Feil(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN, feilmelding),
                 )
             return mapOf(
                 InnsendingKey.EVENT_NAME to InnsendingEventName.AVVIST_INNTEKTSMELDING.toJson(),

@@ -45,7 +45,12 @@ class ValideringsUtilsTest :
                                 49985.0,
                                 49975.0,
                             ),
-                            setOf(Feil(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN)),
+                            setOf(
+                                Feil(
+                                    Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN,
+                                    "Oppgitt beløp ${testInntekt.beloep} matcher ikke snittinntekt i A-ordning: 49980.0",
+                                ),
+                            ),
                         ),
                     "alle a-ordninginntekter er null gir valideringsfeil" to
                         Pair(
@@ -54,12 +59,22 @@ class ValideringsUtilsTest :
                                 null,
                                 null,
                             ),
-                            setOf(Feil(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN)),
+                            setOf(
+                                Feil(
+                                    Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN,
+                                    "Oppgitt beløp ${testInntekt.beloep} matcher ikke snittinntekt i A-ordning: 0.0",
+                                ),
+                            ),
                         ),
                     "tom a-ordning map gir valideringsfeil" to
                         Pair(
                             emptyList(),
-                            setOf(Feil(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN)),
+                            setOf(
+                                Feil(
+                                    Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN,
+                                    "Oppgitt beløp ${testInntekt.beloep} matcher ikke snittinntekt i A-ordning: 0.0",
+                                ),
+                            ),
                         ),
                 ),
             ) { (aordningInntektListe, forventetFeil) ->

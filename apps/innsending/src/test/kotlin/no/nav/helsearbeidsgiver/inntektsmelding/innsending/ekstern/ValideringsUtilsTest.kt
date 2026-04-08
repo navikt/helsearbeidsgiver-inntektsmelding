@@ -45,7 +45,7 @@ class ValideringsUtilsTest :
                                 49985.0,
                                 49975.0,
                             ),
-                            setOf(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN),
+                            setOf(Feil(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN)),
                         ),
                     "alle a-ordninginntekter er null gir valideringsfeil" to
                         Pair(
@@ -54,12 +54,12 @@ class ValideringsUtilsTest :
                                 null,
                                 null,
                             ),
-                            setOf(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN),
+                            setOf(Feil(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN)),
                         ),
                     "tom a-ordning map gir valideringsfeil" to
                         Pair(
                             emptyList(),
-                            setOf(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN),
+                            setOf(Feil(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN)),
                         ),
                 ),
             ) { (aordningInntektListe, forventetFeil) ->

@@ -222,6 +222,7 @@ class ValiderApiInnsendingServiceTest :
                     vedtaksperiodeId = forespoersel.vedtaksperiodeId,
                     orgnr = forespoersel.orgnr,
                     feilkode = Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN,
+                    feil = Feil(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN, "Generisk feilmelding"),
                 )
             return mapOf(
                 InnsendingKey.EVENT_NAME to InnsendingEventName.AVVIST_INNTEKTSMELDING.toJson(),

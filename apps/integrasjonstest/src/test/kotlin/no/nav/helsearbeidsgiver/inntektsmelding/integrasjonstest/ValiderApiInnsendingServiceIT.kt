@@ -23,6 +23,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.AvvistInntektsmelding
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.Feil
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.Feilkode
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -283,6 +284,7 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
                 vedtaksperiodeId = Mock.forespoersel.vedtaksperiodeId,
                 orgnr = Mock.forespoersel.orgnr,
                 feilkode = Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN,
+                feil = Feil(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN, "Generisk feilmelding"),
             )
 
         verify(exactly = 1) {

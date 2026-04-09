@@ -14,9 +14,16 @@ data class AvvistInntektsmelding(
     val forespoerselId: UUID,
     val vedtaksperiodeId: UUID,
     val orgnr: Orgnr,
-    val feilkode: Feilkode,
+    val feilkode: Feilkode, // deprecated, bruk Feil
+    val feil: Feil,
 )
 
 enum class Feilkode {
     INNTEKT_AVVIKER_FRA_A_ORDNINGEN,
 }
+
+@Serializable
+data class Feil(
+    val feilkode: Feilkode,
+    val feilmelding: String? = null,
+)

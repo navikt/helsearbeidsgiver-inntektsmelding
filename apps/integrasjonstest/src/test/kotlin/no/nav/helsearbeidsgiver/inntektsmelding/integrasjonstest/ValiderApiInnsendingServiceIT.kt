@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.slot
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.ForespoerselFraBro
@@ -274,16 +275,15 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
                 ).toJson(),
         )
 
-        val sentMessages = mutableListOf<Map<InnsendingKey, JsonElement>>()
+        val melding = slot<Map<InnsendingKey, JsonElement>>()
         verify(exactly = 1) {
             producer.send(
                 key = Mock.forespoerselId,
-                message = capture(sentMessages),
+                message = capture(melding),
             )
         }
-        val avvist = sentMessages.first()
-        avvist[InnsendingKey.EVENT_NAME] shouldBe InnsendingEventName.AVVIST_INNTEKTSMELDING.toJson()
-
+        val avvistMelding = melding.captured
+        avvistMelding[InnsendingKey.EVENT_NAME] shouldBe InnsendingEventName.AVVIST_INNTEKTSMELDING.toJson()
         // Sender _ikke_ inntektsmeldingen videre i innsendingsløypa
         messages.filter(EventName.API_INNSENDING_VALIDERT).all() shouldBe emptyList()
     }

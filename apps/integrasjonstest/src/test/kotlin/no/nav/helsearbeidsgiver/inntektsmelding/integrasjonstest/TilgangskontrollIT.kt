@@ -1,6 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
-import io.kotest.assertions.throwables.shouldThrowExactly
+import io.kotest.matchers.booleans.shouldBeFalse
+import io.kotest.matchers.booleans.shouldBeTrue
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.server.request.ApplicationRequest
@@ -18,7 +21,6 @@ import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.kafka.test.mockRecordMetadata
-import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.lesFnrFraAuthToken
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess
@@ -92,7 +94,7 @@ class TilgangskontrollIT : EndToEndTest() {
         mockStatic(ApplicationRequest::lesFnrFraAuthToken) {
             every { mockRequest.lesFnrFraAuthToken() } returns Mock.innloggetFnr
 
-            tilgangskontroll.validerTilgangTilForespoersel(mockRequest, Mock.forespoerselId)
+            tilgangskontroll.manglerTilgangTilForespoersel(mockRequest, UUID.randomUUID(), Mock.forespoerselId).shouldBeFalse()
         }
 
         messages
@@ -136,9 +138,7 @@ class TilgangskontrollIT : EndToEndTest() {
         mockStatic(ApplicationRequest::lesFnrFraAuthToken) {
             every { mockRequest.lesFnrFraAuthToken() } returns Mock.innloggetFnr
 
-            shouldThrowExactly<ManglerAltinnRettigheterException> {
-                tilgangskontroll.validerTilgangTilForespoersel(mockRequest, Mock.forespoerselId)
-            }
+            tilgangskontroll.manglerTilgangTilForespoersel(mockRequest, UUID.randomUUID(), Mock.forespoerselId).shouldBeTrue()
         }
 
         val result =
@@ -158,11 +158,25 @@ class TilgangskontrollIT : EndToEndTest() {
     }
 
     @Test
+    fun `forespoersel - gir 'null' dersom tilgang ikke kan kontrolleres`() {
+        // Sender ikke melding, så får aldri svar
+        every { mockKafkaProducer.send(any()).get() } returns mockRecordMetadata()
+
+        mockStatic(ApplicationRequest::lesFnrFraAuthToken) {
+            every { mockRequest.lesFnrFraAuthToken() } returns Mock.innloggetFnr
+
+            tilgangskontroll.manglerTilgangTilForespoersel(mockRequest, UUID.randomUUID(), Mock.forespoerselId).shouldBeNull()
+        }
+
+        messages.all().shouldBeEmpty()
+    }
+
+    @Test
     fun `organisasjon - skal få tilgang`() {
         mockStatic(ApplicationRequest::lesFnrFraAuthToken) {
             every { mockRequest.lesFnrFraAuthToken() } returns Mock.innloggetFnr
 
-            tilgangskontroll.validerTilgangTilOrg(mockRequest, Mock.orgnrMedTilgang)
+            tilgangskontroll.manglerTilgangTilOrg(mockRequest, UUID.randomUUID(), Mock.orgnrMedTilgang).shouldBeFalse()
         }
 
         val result =
@@ -186,9 +200,7 @@ class TilgangskontrollIT : EndToEndTest() {
         mockStatic(ApplicationRequest::lesFnrFraAuthToken) {
             every { mockRequest.lesFnrFraAuthToken() } returns Mock.innloggetFnr
 
-            shouldThrowExactly<ManglerAltinnRettigheterException> {
-                tilgangskontroll.validerTilgangTilOrg(mockRequest, Mock.orgnrUtenTilgang)
-            }
+            tilgangskontroll.manglerTilgangTilOrg(mockRequest, UUID.randomUUID(), Mock.orgnrUtenTilgang).shouldBeTrue()
         }
 
         val result =
@@ -205,6 +217,20 @@ class TilgangskontrollIT : EndToEndTest() {
                 .fromJson(Tilgang.serializer())
 
         tilgang shouldBe Tilgang.IKKE_TILGANG
+    }
+
+    @Test
+    fun `organisasjon - gir 'null' dersom tilgang ikke kan kontrolleres`() {
+        // Sender ikke melding, så får aldri svar
+        every { mockKafkaProducer.send(any()).get() } returns mockRecordMetadata()
+
+        mockStatic(ApplicationRequest::lesFnrFraAuthToken) {
+            every { mockRequest.lesFnrFraAuthToken() } returns Mock.innloggetFnr
+
+            tilgangskontroll.manglerTilgangTilOrg(mockRequest, UUID.randomUUID(), Mock.orgnrMedTilgang).shouldBeNull()
+        }
+
+        messages.all().shouldBeEmpty()
     }
 
     private object Mock {

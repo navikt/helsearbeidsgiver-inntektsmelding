@@ -1,10 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.request.receiveText
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.post
+import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.resultat.lagreim.LagreImError
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
@@ -18,16 +16,16 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.lesFnrFraAuthToken
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respond
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedis
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondCreated
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondError
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.time.LocalDateTime
 import java.util.UUID
@@ -43,13 +41,11 @@ fun Route.innsending(
         val kontekstId = UUID.randomUUID()
         val mottatt = LocalDateTime.now()
 
-        val skjema = lesRequestOrNull()
-        when {
-            skjema == null -> {
-                respondBadRequest(ErrorResponse.JsonSerialization(kontekstId))
-            }
-
-            skjema.valider().isNotEmpty() -> {
+        readRequest(
+            kontekstId,
+            SkjemaInntektsmelding.serializer(),
+        ) { skjema ->
+            if (skjema.valider().isNotEmpty()) {
                 val valideringsfeil = skjema.valider()
 
                 "Fikk valideringsfeil: $valideringsfeil".also {
@@ -57,60 +53,34 @@ fun Route.innsending(
                     sikkerLogger.error(it)
                 }
 
-                val response = ErrorResponse.Validering(kontekstId, valideringsfeil)
+                respondError(ErrorResponse.Validering(kontekstId, valideringsfeil))
+            } else {
+                validerTilgangForespoersel(tilgangskontroll, kontekstId, skjema.forespoerselId) {
+                    val avsenderFnr = call.request.lesFnrFraAuthToken()
 
-                respondBadRequest(response)
-            }
+                    producer.sendRequestEvent(kontekstId, skjema, avsenderFnr, mottatt)
 
-            else -> {
-                tilgangskontroll.validerTilgangTilForespoersel(call.request, skjema.forespoerselId)
-
-                val avsenderFnr = call.request.lesFnrFraAuthToken()
-
-                producer.sendRequestEvent(kontekstId, skjema, avsenderFnr, mottatt)
-
-                val resultatJson = redisPoller.hent(kontekstId)
-                if (resultatJson != null) {
-                    sikkerLogger.info("Fikk resultat for innsending:\n$resultatJson")
-
-                    if (resultatJson.success != null) {
-                        respond(HttpStatusCode.Created, InnsendingResponse(skjema.forespoerselId), InnsendingResponse.serializer())
-                    } else {
-                        val error = resultatJson.failure?.fromJson(LagreImError.serializer())
-
-                        val feiletValidering = error?.feiletValidering
-                        if (feiletValidering != null) {
-                            respondBadRequest(ErrorResponse.Validering(kontekstId, setOf(feiletValidering)))
-                        } else {
-                            respondInternalServerError(ErrorResponse.Unknown(kontekstId))
-                        }
+                    hentResultatFraRedis(
+                        redisPoller = redisPoller,
+                        kontekstId = kontekstId,
+                        inntektsmeldingTypeId = skjema.forespoerselId,
+                        logOnFailure = "Klarte ikke motta forespurt inntektsmelding pga. feil.",
+                        onFailureCustomError = { failure ->
+                            failure
+                                ?.fromJson(LagreImError.serializer())
+                                ?.feiletValidering
+                                ?.let { ErrorResponse.Validering(kontekstId, setOf(it)) }
+                        },
+                        successSerializer = JsonElement.serializer(),
+                    ) {
+                        sikkerLogger.info("Fikk resultat for innsending:\n$it")
+                        respondCreated(InnsendingResponse(skjema.forespoerselId), InnsendingResponse.serializer())
                     }
-                } else {
-                    respondInternalServerError(ErrorResponse.RedisTimeout(skjema.forespoerselId))
                 }
             }
         }
     }
 }
-
-private suspend fun RoutingContext.lesRequestOrNull(): SkjemaInntektsmelding? =
-    call
-        .receiveText()
-        .runCatching {
-            parseJson()
-                .also { json ->
-                    "Mottok inntektsmeldingsskjema.".let {
-                        logger.info(it)
-                        sikkerLogger.info("$it\n${json.toPretty()}")
-                    }
-                }.fromJson(SkjemaInntektsmelding.serializer())
-        }.getOrElse { error ->
-            "Klarte ikke parse json for inntektsmeldingsskjema.".also {
-                logger.error(it)
-                sikkerLogger.error(it, error)
-            }
-            null
-        }
 
 private fun Producer.sendRequestEvent(
     kontekstId: UUID,

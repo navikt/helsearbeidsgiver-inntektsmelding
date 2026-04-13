@@ -3,13 +3,13 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoersel
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.verify
 import io.mockk.verifySequence
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.domene.forespoersel.ForespurtData
@@ -24,6 +24,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hardcodedJson
@@ -41,13 +42,12 @@ import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.YearMonth
 import java.util.UUID
 
-private val pathMedId = Routes.PREFIX + Routes.HENT_FORESPOERSEL.replaceFirst("{forespoerselId}", UUID.randomUUID().toString())
+private val pathMedId = Routes.PREFIX + Routes.HENT_FORESPOERSEL.replaceFirst("{${Routes.Params.forespoerselId.key}}", UUID.randomUUID().toString())
 
 class HentForespoerselRouteKtTest : ApiTest() {
     @BeforeEach
@@ -144,13 +144,12 @@ class HentForespoerselRouteKtTest : ApiTest() {
     fun `gir 400-feil ved ugyldig forespørsel-ID`() =
         testApi {
             val response = get(pathMedId.substringBeforeLast("/") + "/ugyldig-forespoersel-id")
+            val responseBody = response.bodyAsText().fromJson(ErrorResponse.serializer())
 
-            assertEquals(HttpStatusCode.BadRequest, response.status)
-            assertNotNull(response.bodyAsText())
-
-            val feilmelding = response.bodyAsText().fromJson(String.serializer())
-
-            assertEquals("Ugyldig parameter: 'ugyldig-forespoersel-id'.", feilmelding)
+            response.status shouldBe HttpStatusCode.BadRequest
+            responseBody.shouldBeTypeOf<ErrorResponse.InvalidPathParameter>()
+            responseBody.parameterKey shouldBe Routes.Params.forespoerselId.key
+            responseBody.parameterValue shouldBe "ugyldig-forespoersel-id"
 
             verify(exactly = 0) {
                 mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
@@ -163,7 +162,10 @@ class HentForespoerselRouteKtTest : ApiTest() {
             coEvery { anyConstructed<RedisPoller>().hent(any()) } returns ikkeTilgangResultat
 
             val response = get(pathMedId)
-            assertEquals(HttpStatusCode.Forbidden, response.status)
+            val responseBody = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.Forbidden
+            responseBody.shouldBeTypeOf<ErrorResponse.ManglerTilgang>()
 
             verify(exactly = 0) {
                 mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
@@ -171,7 +173,7 @@ class HentForespoerselRouteKtTest : ApiTest() {
         }
 
     @Test
-    fun `gir Forbidden-feil hvis problemer under henting av tilgang`() =
+    fun `gir 500-feil hvis problemer under henting av tilgang`() =
         testApi {
             coEvery { anyConstructed<RedisPoller>().hent(any()) } returns
                 ResultJson(
@@ -179,7 +181,11 @@ class HentForespoerselRouteKtTest : ApiTest() {
                 )
 
             val response = get(pathMedId)
-            assertEquals(HttpStatusCode.Forbidden, response.status)
+
+            val responseBody = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            responseBody.shouldBeTypeOf<ErrorResponse.RedisTimeout>()
 
             verify(exactly = 0) {
                 mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())

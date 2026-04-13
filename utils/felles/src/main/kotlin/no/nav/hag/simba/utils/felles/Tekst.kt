@@ -6,6 +6,5 @@ object Tekst {
 
     // Feilmeldinger
     const val TEKNISK_FEIL_FORBIGAAENDE = "Teknisk feil, prøv igjen senere."
-    const val UGYLDIG_REQUEST = "Ugyldig request."
     const val REDIS_TIMEOUT_FEILMELDING = "Brukte for lang tid mot Redis."
 }

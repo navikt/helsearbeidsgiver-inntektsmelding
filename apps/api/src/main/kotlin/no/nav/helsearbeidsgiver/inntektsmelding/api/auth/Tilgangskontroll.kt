@@ -13,11 +13,12 @@ import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
-import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
@@ -27,14 +28,18 @@ class Tilgangskontroll(
     private val cache: LocalCache<Tilgang>,
     redisConnection: RedisConnection,
 ) {
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
+
     private val redisPollerForespoersel = RedisStore(redisConnection, RedisPrefix.TilgangForespoersel).let(::RedisPoller)
     private val redisPollerOrg = RedisStore(redisConnection, RedisPrefix.TilgangOrg).let(::RedisPoller)
 
-    fun validerTilgangTilForespoersel(
+    fun manglerTilgangTilForespoersel(
         request: ApplicationRequest,
+        kontekstId: UUID,
         forespoerselId: UUID,
-    ) {
-        validerTilgang(redisPollerForespoersel, request, forespoerselId.toString()) { kontekstId, fnr ->
+    ): Boolean? =
+        manglerTilgang(redisPollerForespoersel, request, kontekstId, forespoerselId.toString()) { kontekstId, fnr ->
             producer.send(
                 EventName.TILGANG_FORESPOERSEL_REQUESTED,
                 kontekstId,
@@ -42,13 +47,13 @@ class Tilgangskontroll(
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             )
         }
-    }
 
-    fun validerTilgangTilOrg(
+    fun manglerTilgangTilOrg(
         request: ApplicationRequest,
+        kontekstId: UUID,
         orgnr: Orgnr,
-    ) {
-        validerTilgang(redisPollerOrg, request, orgnr.verdi) { kontekstId, fnr ->
+    ): Boolean? =
+        manglerTilgang(redisPollerOrg, request, kontekstId, orgnr.verdi) { kontekstId, fnr ->
             producer.send(
                 EventName.TILGANG_ORG_REQUESTED,
                 kontekstId,
@@ -56,39 +61,42 @@ class Tilgangskontroll(
                 Key.ORGNR_UNDERENHET to orgnr.toJson(),
             )
         }
-    }
 
-    private fun validerTilgang(
+    private fun manglerTilgang(
         redisPoller: RedisPoller,
         request: ApplicationRequest,
+        kontekstId: UUID,
         cacheKeyPostfix: String,
         publish: (UUID, Fnr) -> Unit,
-    ) {
-        val kontekstId = UUID.randomUUID()
+    ): Boolean? {
         val innloggerFnr = request.lesFnrFraAuthToken()
 
         val tilgang =
             runBlocking {
-                cache.getOrPut("$innloggerFnr:$cacheKeyPostfix") {
-                    logger.info("Fant ikke tilgang i cache, ber om tilgangskontroll.")
+                cache.getOrPutOrNull("$innloggerFnr:$cacheKeyPostfix") {
+                    "Fant ikke tilgang i cache, ber om tilgangskontroll.".also {
+                        logger.info(it)
+                        sikkerLogger.info(it)
+                    }
 
                     publish(kontekstId, innloggerFnr)
 
-                    // TODO burde ikke kaste exception hvis redisPoller.hent gir null
-                    val tilgang =
-                        redisPoller
-                            .hent(kontekstId)
-                            ?.success
-                            ?.fromJson(Tilgang.serializer())
-
-                    tilgang ?: throw ManglerAltinnRettigheterException()
+                    redisPoller
+                        .hent(kontekstId)
+                        ?.success
+                        ?.fromJson(Tilgang.serializer())
                 }
             }
 
-        if (tilgang != Tilgang.HAR_TILGANG) {
-            logger.warn("Kall for ID '$cacheKeyPostfix' har ikke tilgang.")
-            throw ManglerAltinnRettigheterException()
+        val manglerTilgang = tilgang?.let { it == Tilgang.IKKE_TILGANG }
+        if (manglerTilgang != null && manglerTilgang) {
+            "Kall for '$cacheKeyPostfix' har ikke tilgang.".also {
+                logger.warn(it)
+                sikkerLogger.warn(it)
+            }
         }
+
+        return manglerTilgang
     }
 }
 

@@ -13,7 +13,6 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.jsonObject
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.ResultJson
@@ -126,48 +125,6 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
         }
 
     @Test
-    fun `skal godta og returnere id ved innsending som mangler arbeidsforholdType men inneholder vedtaksperiodeId`() =
-        testApi {
-            val selvbestemtId = UUID.randomUUID()
-
-            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
-                listOf(
-                    harTilgangResultat,
-                    Mock.successResult(selvbestemtId),
-                )
-
-            val skjemaJson = Mock.skjemaJsonUtenArbeidsforholdType(selvbestemtId, UUID.randomUUID())
-
-            val response = post(path, skjemaJson, JsonElement.serializer())
-
-            val actualJson = response.bodyAsText()
-
-            response.status shouldBe HttpStatusCode.OK
-            actualJson shouldBe Mock.successResponseJson(selvbestemtId)
-        }
-
-    @Test
-    fun `skal ikke godta innsending som mangler arbeidsforholdType og mangler vedtaksperiodeId`() =
-        testApi {
-            val selvbestemtId = UUID.randomUUID()
-
-            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
-                listOf(
-                    harTilgangResultat,
-                    Mock.successResult(selvbestemtId),
-                )
-
-            val skjemaJson = Mock.skjemaJsonUtenArbeidsforholdType(selvbestemtId, null)
-
-            val response = post(path, skjemaJson, JsonElement.serializer())
-
-            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
-
-            response.status shouldBe HttpStatusCode.BadRequest
-            error.shouldBeTypeOf<ErrorResponse.JsonSerialization>()
-        }
-
-    @Test
     fun `feil i request body gir 400-feil`() =
         testApi {
             val response = post(path, "ikke et skjema", String.serializer())
@@ -219,16 +176,15 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
         }
 
     @Test
-    fun `manglende tilgang gir 500-feil`() =
+    fun `manglende tilgang gir 403-feil`() =
         testApi {
             coEvery { anyConstructed<RedisPoller>().hent(any()) } returns ikkeTilgangResultat
 
             val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
+            val responseBody = response.bodyAsText().fromJson(ErrorResponse.serializer())
 
-            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
-
-            response.status shouldBe HttpStatusCode.InternalServerError
-            error.shouldBeTypeOf<ErrorResponse.Unknown>()
+            response.status shouldBe HttpStatusCode.Forbidden
+            responseBody.shouldBeTypeOf<ErrorResponse.ManglerTilgang>()
 
             verify(exactly = 0) {
                 mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
@@ -340,19 +296,6 @@ private object Mock {
             }
             """.removeJsonWhitespace()
             .parseJson()
-
-    fun skjemaJsonUtenArbeidsforholdType(
-        selvbestemtId: UUID,
-        vedtaksperiodeId: UUID? = null,
-    ): JsonElement {
-        val json = skjemaJson(selvbestemtId).jsonObject.minus(SkjemaInntektsmeldingSelvbestemt::arbeidsforholdType.name)
-
-        return if (vedtaksperiodeId != null) {
-            json.plus(SkjemaInntektsmeldingSelvbestemt::vedtaksperiodeId.name to vedtaksperiodeId.toJson()).toJson()
-        } else {
-            json.toJson()
-        }
-    }
 
     fun successResponseJson(selvbestemtId: UUID): String =
         """

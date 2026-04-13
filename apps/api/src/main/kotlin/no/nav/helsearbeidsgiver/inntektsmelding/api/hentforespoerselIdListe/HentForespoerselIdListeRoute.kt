@@ -4,12 +4,9 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.post
 import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.builtins.serializer
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.Tekst
-import no.nav.hag.simba.utils.felles.Tekst.UGYLDIG_REQUEST
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.valkey.RedisConnection
@@ -17,16 +14,15 @@ import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
-import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangOrgnr
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.receive
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedis
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -42,25 +38,30 @@ fun Route.hentForespoerselIdListe(
     val redisPoller = RedisStore(redisConnection, RedisPrefix.HentForespoerslerForVedtaksperiodeIdListe).let(::RedisPoller)
 
     post(Routes.HENT_FORESPOERSEL_ID_LISTE) {
-        runCatching {
-            receive(HentForespoerslerRequest.serializer())
-        }.onSuccess { request ->
-            if (request.vedtaksperiodeIdListe.size > MAKS_ANTALL_VEDTAKSPERIODE_IDER) {
-                loggErrorSikkerOgUsikker(
-                    "Stopper forsøk på å hente forespørsler for mer enn $MAKS_ANTALL_VEDTAKSPERIODE_IDER vedtaksperiode-IDer på en gang.",
-                )
-                respondBadRequest(UGYLDIG_REQUEST)
-            } else {
-                try {
-                    hentForespoersler(producer, tilgangskontroll, redisPoller, request)
-                } catch (_: ManglerAltinnRettigheterException) {
-                    respondForbidden("Mangler rettigheter for organisasjon.")
+        val kontekstId = UUID.randomUUID()
+
+        readRequest(
+            kontekstId,
+            HentForespoerslerRequest.serializer(),
+        ) {
+            val vedtaksperiodeIdListe = it.vedtaksperiodeIdListe
+
+            when {
+                vedtaksperiodeIdListe.isEmpty() -> {
+                    loggErrorSikkerOgUsikker("Kan ikke hente forespørsler for tom vedtaksperiode-ID-liste.")
+                    respondError(ErrorResponse.Unknown(kontekstId))
                 }
-            }
-        }.onFailure {
-            "Klarte ikke lese request.".let { feilMelding ->
-                loggErrorSikkerOgUsikker(feilMelding, it)
-                respondBadRequest(feilMelding)
+
+                vedtaksperiodeIdListe.size > MAKS_ANTALL_VEDTAKSPERIODE_IDER -> {
+                    loggErrorSikkerOgUsikker(
+                        "Stopper forsøk på å hente forespørsler for mer enn $MAKS_ANTALL_VEDTAKSPERIODE_IDER vedtaksperiode-ID-er på en gang.",
+                    )
+                    respondError(ErrorResponse.Unknown(kontekstId))
+                }
+
+                else -> {
+                    hentForespoersler(producer, tilgangskontroll, redisPoller, kontekstId, vedtaksperiodeIdListe)
+                }
             }
         }
     }
@@ -70,55 +71,61 @@ private suspend fun RoutingContext.hentForespoersler(
     producer: Producer,
     tilgangskontroll: Tilgangskontroll,
     redisPoller: RedisPoller,
-    request: HentForespoerslerRequest,
+    kontekstId: UUID,
+    vedtaksperiodeIdListe: Set<UUID>,
 ) {
-    loggInfoSikkerOgUsikker("Henter forespørsler for liste med vedtaksperiode-IDer: ${request.vedtaksperiodeIdListe}")
+    loggInfoSikkerOgUsikker("Henter forespørsler for liste med vedtaksperiode-ID-er: $vedtaksperiodeIdListe")
 
-    val kontekstId = UUID.randomUUID()
+    producer.sendRequestEvent(kontekstId, vedtaksperiodeIdListe)
 
-    producer.sendRequestEvent(kontekstId, request)
+    hentResultatFraRedis(
+        redisPoller = redisPoller,
+        kontekstId = kontekstId,
+        logOnFailure = "Klarte ikke hente forespørsler for liste med vedtaksperiode-ID-er pga. feil.",
+        successSerializer = MapSerializer(UuidSerializer, Forespoersel.serializer()),
+    ) { success ->
+        "Hentet forespørsler for liste med vedtaksperiode-ID-er.".also {
+            logger.info(it)
+            sikkerLogger.info("$it\n$success")
+        }
 
-    val resultatJson = redisPoller.hent(kontekstId)
+        val alleOrgnr = success.map { (_, forespoersel) -> forespoersel.orgnr }.toSet()
+        val orgnr = alleOrgnr.firstOrNull()
 
-    sikkerLogger.info("Hentet forespørslene: $resultatJson")
-
-    if (resultatJson != null) {
-        val resultat = resultatJson.success?.fromJson(MapSerializer(UuidSerializer, Forespoersel.serializer()))
-
-        if (resultat != null) {
-            val orgnrSet = resultat.map { (_, forespoersel) -> forespoersel.orgnr }.toSet()
-
-            if (orgnrSet.size > 1) {
+        when {
+            alleOrgnr.size > 1 -> {
                 "Stopper forsøk på å hente forespørsler for vedtaksperioder, fordi de tilhører ulike arbeidsgivere.".also {
                     logger.error(it)
                     sikkerLogger.error(it)
                 }
-                respondBadRequest(UGYLDIG_REQUEST)
-            } else {
-                orgnrSet.firstOrNull()?.also { orgnr -> tilgangskontroll.validerTilgangTilOrg(call.request, orgnr) }
-
-                val respons =
-                    resultat.map { (id, forespoersel) ->
-                        VedtaksperiodeIdForespoerselIdPar(
-                            forespoerselId = id,
-                            vedtaksperiodeId = forespoersel.vedtaksperiodeId,
-                        )
-                    }
-
-                respondOk(respons, VedtaksperiodeIdForespoerselIdPar.serializer().list())
+                respondError(ErrorResponse.Unknown(kontekstId))
             }
-        } else {
-            val feilmelding = resultatJson.failure?.fromJson(String.serializer())
-            respondInternalServerError(feilmelding)
+
+            // Dersom orgnr er 'null' betyr det at ingen forespørsler ble funnet.
+            orgnr == null -> {
+                respondOk(emptyList(), VedtaksperiodeIdForespoerselIdPar.serializer().list())
+            }
+
+            else -> {
+                validerTilgangOrgnr(tilgangskontroll, kontekstId, orgnr) {
+                    val respons =
+                        success.map { (id, forespoersel) ->
+                            VedtaksperiodeIdForespoerselIdPar(
+                                forespoerselId = id,
+                                vedtaksperiodeId = forespoersel.vedtaksperiodeId,
+                            )
+                        }
+
+                    respondOk(respons, VedtaksperiodeIdForespoerselIdPar.serializer().list())
+                }
+            }
         }
-    } else {
-        respondInternalServerError(Tekst.REDIS_TIMEOUT_FEILMELDING)
     }
 }
 
 private fun Producer.sendRequestEvent(
     kontekstId: UUID,
-    request: HentForespoerslerRequest,
+    vedtaksperiodeIdListe: Set<UUID>,
 ) {
     send(
         key = UUID.randomUUID(),
@@ -128,7 +135,7 @@ private fun Producer.sendRequestEvent(
                 Key.KONTEKST_ID to kontekstId.toJson(),
                 Key.DATA to
                     mapOf(
-                        Key.VEDTAKSPERIODE_ID_LISTE to request.vedtaksperiodeIdListe.toJson(UuidSerializer),
+                        Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIdListe.toJson(UuidSerializer),
                     ).toJson(),
             ),
     )
@@ -145,15 +152,10 @@ private fun loggErrorSikkerOgUsikker(
     loggMelding: String,
     throwable: Throwable? = null,
 ) {
-    if (throwable != null) {
-        loggMelding.also {
-            logger.error(it)
-            sikkerLogger.error(it, throwable)
-        }
+    logger.error(loggMelding)
+    if (throwable == null) {
+        sikkerLogger.error(loggMelding)
     } else {
-        loggMelding.also {
-            logger.error(it)
-            sikkerLogger.error(it)
-        }
+        sikkerLogger.error(loggMelding, throwable)
     }
 }

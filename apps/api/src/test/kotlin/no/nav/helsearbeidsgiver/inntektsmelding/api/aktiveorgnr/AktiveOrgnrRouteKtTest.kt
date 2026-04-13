@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
@@ -17,6 +18,7 @@ import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -112,9 +114,11 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
                 )
 
             val response = post(path, AktiveOrgnrRequest(Fnr.genererGyldig()), AktiveOrgnrRequest.serializer())
+            val responseBody = response.bodyAsText().fromJson(ErrorResponse.serializer())
 
             response.status shouldBe HttpStatusCode.NotFound
-            response.bodyAsText() shouldBe "\"Fant ingen arbeidsforhold.\""
+            responseBody.shouldBeTypeOf<ErrorResponse.NotFound>()
+            responseBody.error shouldBe "Fant ingen arbeidsforhold."
         }
 
     @Test

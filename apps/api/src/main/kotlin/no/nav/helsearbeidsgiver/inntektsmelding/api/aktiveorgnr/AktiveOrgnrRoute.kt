@@ -1,15 +1,10 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr
 
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.request.receive
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import kotlinx.serialization.builtins.serializer
 import no.nav.hag.simba.kontrakt.domene.arbeidsgiver.AktiveArbeidsgivere
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.valkey.RedisConnection
@@ -18,9 +13,11 @@ import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.lesFnrFraAuthToken
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondNotFound
-import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedis
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
@@ -34,46 +31,47 @@ fun Route.aktiveOrgnrRoute(
     post(Routes.AKTIVEORGNR) {
         val kontekstId = UUID.randomUUID()
 
-        val request = call.receive<AktiveOrgnrRequest>()
-        val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
+        readRequest(
+            kontekstId,
+            AktiveOrgnrRequest.serializer(),
+        ) { request ->
+            producer.sendRequestEvent(
+                kontekstId = kontekstId,
+                avsenderFnr = call.request.lesFnrFraAuthToken(),
+                sykmeldtFnr = request.sykmeldtFnr,
+            )
 
-        producer.sendRequestEvent(kontekstId, arbeidsgiverFnr = arbeidsgiverFnr, arbeidstakerFnr = request.sykmeldtFnr)
-
-        val resultatJson = redisPoller.hent(kontekstId)
-        if (resultatJson != null) {
-            val resultat = resultatJson.success?.fromJson(AktiveArbeidsgivere.serializer())
-            if (resultat != null) {
-                if (resultat.arbeidsgivere.isEmpty()) {
-                    respondNotFound("Fant ingen arbeidsforhold.")
+            hentResultatFraRedis(
+                redisPoller = redisPoller,
+                kontekstId = kontekstId,
+                logOnFailure = "Klarte ikke hente aktive arbeidsforhold pga. feil.",
+                successSerializer = AktiveArbeidsgivere.serializer(),
+            ) {
+                if (it.arbeidsgivere.isEmpty()) {
+                    respondError(ErrorResponse.NotFound(kontekstId, "Fant ingen arbeidsforhold."))
                 } else {
-                    val response = resultat.toResponse()
-                    call.respond(HttpStatusCode.OK, response.toJson(AktiveOrgnrResponse.serializer()))
+                    respondOk(it.toResponse(), AktiveOrgnrResponse.serializer())
                 }
-            } else {
-                val feilmelding = resultatJson.failure?.fromJson(String.serializer())
-                respondInternalServerError(feilmelding)
             }
-        } else {
-            respondInternalServerError(Tekst.REDIS_TIMEOUT_FEILMELDING)
         }
     }
 }
 
 private fun Producer.sendRequestEvent(
     kontekstId: UUID,
-    arbeidsgiverFnr: Fnr,
-    arbeidstakerFnr: Fnr,
+    avsenderFnr: Fnr,
+    sykmeldtFnr: Fnr,
 ) {
     send(
-        key = arbeidstakerFnr,
+        key = sykmeldtFnr,
         message =
             mapOf(
                 Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
                 Key.KONTEKST_ID to kontekstId.toJson(),
                 Key.DATA to
                     mapOf(
-                        Key.FNR to arbeidstakerFnr.toJson(),
-                        Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
+                        Key.FNR to sykmeldtFnr.toJson(),
+                        Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
                     ).toJson(),
             ),
     )

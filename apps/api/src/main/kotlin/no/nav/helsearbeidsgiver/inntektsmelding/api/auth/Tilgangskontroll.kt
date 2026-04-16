@@ -34,12 +34,12 @@ class Tilgangskontroll(
     private val redisPollerForespoersel = RedisStore(redisConnection, RedisPrefix.TilgangForespoersel).let(::RedisPoller)
     private val redisPollerOrg = RedisStore(redisConnection, RedisPrefix.TilgangOrg).let(::RedisPoller)
 
-    fun manglerTilgangTilForespoersel(
+    fun harTilgangTilForespoersel(
         request: ApplicationRequest,
         kontekstId: UUID,
         forespoerselId: UUID,
     ): Boolean? =
-        manglerTilgang(redisPollerForespoersel, request, kontekstId, forespoerselId.toString()) { kontekstId, fnr ->
+        harTilgang(redisPollerForespoersel, request, kontekstId, forespoerselId.toString()) { kontekstId, fnr ->
             producer.send(
                 EventName.TILGANG_FORESPOERSEL_REQUESTED,
                 kontekstId,
@@ -48,12 +48,12 @@ class Tilgangskontroll(
             )
         }
 
-    fun manglerTilgangTilOrg(
+    fun harTilgangTilOrg(
         request: ApplicationRequest,
         kontekstId: UUID,
         orgnr: Orgnr,
     ): Boolean? =
-        manglerTilgang(redisPollerOrg, request, kontekstId, orgnr.verdi) { kontekstId, fnr ->
+        harTilgang(redisPollerOrg, request, kontekstId, orgnr.verdi) { kontekstId, fnr ->
             producer.send(
                 EventName.TILGANG_ORG_REQUESTED,
                 kontekstId,
@@ -62,7 +62,7 @@ class Tilgangskontroll(
             )
         }
 
-    private fun manglerTilgang(
+    private fun harTilgang(
         redisPoller: RedisPoller,
         request: ApplicationRequest,
         kontekstId: UUID,
@@ -88,15 +88,15 @@ class Tilgangskontroll(
                 }
             }
 
-        val manglerTilgang = tilgang?.let { it == Tilgang.IKKE_TILGANG }
-        if (manglerTilgang != null && manglerTilgang) {
+        val harTilgang = tilgang?.let { it == Tilgang.HAR_TILGANG }
+        if (harTilgang != null && !harTilgang) {
             "Kall for '$cacheKeyPostfix' har ikke tilgang.".also {
                 logger.warn(it)
                 sikkerLogger.warn(it)
             }
         }
 
-        return manglerTilgang
+        return harTilgang
     }
 }
 

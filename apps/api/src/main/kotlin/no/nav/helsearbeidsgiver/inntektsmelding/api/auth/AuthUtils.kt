@@ -18,8 +18,8 @@ suspend fun RoutingContext.validerTilgangForespoersel(
     forespoerselId: UUID,
     onSuccess: suspend RoutingContext.() -> Unit,
 ) {
-    val manglerTilgang = tilgangskontroll.manglerTilgangTilForespoersel(call.request, kontekstId, forespoerselId)
-    validerTilgang(kontekstId, manglerTilgang) { onSuccess() }
+    val harTilgang = tilgangskontroll.harTilgangTilForespoersel(call.request, kontekstId, forespoerselId)
+    validerTilgang(kontekstId, harTilgang) { onSuccess() }
 }
 
 suspend fun RoutingContext.validerTilgangOrgnr(
@@ -28,18 +28,18 @@ suspend fun RoutingContext.validerTilgangOrgnr(
     orgnr: Orgnr,
     onSuccess: suspend RoutingContext.() -> Unit,
 ) {
-    val manglerTilgang = tilgangskontroll.manglerTilgangTilOrg(call.request, kontekstId, orgnr)
-    validerTilgang(kontekstId, manglerTilgang) { onSuccess() }
+    val harTilgang = tilgangskontroll.harTilgangTilOrg(call.request, kontekstId, orgnr)
+    validerTilgang(kontekstId, harTilgang) { onSuccess() }
 }
 
 private suspend fun RoutingContext.validerTilgang(
     kontekstId: UUID,
-    manglerTilgang: Boolean?,
+    harTilgang: Boolean?,
     onSuccess: suspend RoutingContext.() -> Unit,
 ) {
     when {
-        manglerTilgang == null -> respondError(ErrorResponse.RedisTimeout(kontekstId))
-        manglerTilgang -> respondError(ErrorResponse.ManglerTilgang(kontekstId))
+        harTilgang == null -> respondError(ErrorResponse.RedisTimeout(kontekstId))
+        !harTilgang -> respondError(ErrorResponse.ManglerTilgang(kontekstId))
         else -> onSuccess()
     }
 }

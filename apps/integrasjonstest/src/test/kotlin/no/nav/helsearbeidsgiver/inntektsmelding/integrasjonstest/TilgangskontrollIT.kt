@@ -94,7 +94,7 @@ class TilgangskontrollIT : EndToEndTest() {
         mockStatic(ApplicationRequest::lesFnrFraAuthToken) {
             every { mockRequest.lesFnrFraAuthToken() } returns Mock.innloggetFnr
 
-            tilgangskontroll.manglerTilgangTilForespoersel(mockRequest, UUID.randomUUID(), Mock.forespoerselId).shouldBeFalse()
+            tilgangskontroll.harTilgangTilForespoersel(mockRequest, UUID.randomUUID(), Mock.forespoerselId).shouldBeTrue()
         }
 
         messages
@@ -138,7 +138,7 @@ class TilgangskontrollIT : EndToEndTest() {
         mockStatic(ApplicationRequest::lesFnrFraAuthToken) {
             every { mockRequest.lesFnrFraAuthToken() } returns Mock.innloggetFnr
 
-            tilgangskontroll.manglerTilgangTilForespoersel(mockRequest, UUID.randomUUID(), Mock.forespoerselId).shouldBeTrue()
+            tilgangskontroll.harTilgangTilForespoersel(mockRequest, UUID.randomUUID(), Mock.forespoerselId).shouldBeFalse()
         }
 
         val result =
@@ -165,7 +165,7 @@ class TilgangskontrollIT : EndToEndTest() {
         mockStatic(ApplicationRequest::lesFnrFraAuthToken) {
             every { mockRequest.lesFnrFraAuthToken() } returns Mock.innloggetFnr
 
-            tilgangskontroll.manglerTilgangTilForespoersel(mockRequest, UUID.randomUUID(), Mock.forespoerselId).shouldBeNull()
+            tilgangskontroll.harTilgangTilForespoersel(mockRequest, UUID.randomUUID(), Mock.forespoerselId).shouldBeNull()
         }
 
         messages.all().shouldBeEmpty()
@@ -176,7 +176,7 @@ class TilgangskontrollIT : EndToEndTest() {
         mockStatic(ApplicationRequest::lesFnrFraAuthToken) {
             every { mockRequest.lesFnrFraAuthToken() } returns Mock.innloggetFnr
 
-            tilgangskontroll.manglerTilgangTilOrg(mockRequest, UUID.randomUUID(), Mock.orgnrMedTilgang).shouldBeFalse()
+            tilgangskontroll.harTilgangTilOrg(mockRequest, UUID.randomUUID(), Mock.orgnrMedTilgang).shouldBeTrue()
         }
 
         val result =
@@ -200,7 +200,7 @@ class TilgangskontrollIT : EndToEndTest() {
         mockStatic(ApplicationRequest::lesFnrFraAuthToken) {
             every { mockRequest.lesFnrFraAuthToken() } returns Mock.innloggetFnr
 
-            tilgangskontroll.manglerTilgangTilOrg(mockRequest, UUID.randomUUID(), Mock.orgnrUtenTilgang).shouldBeTrue()
+            tilgangskontroll.harTilgangTilOrg(mockRequest, UUID.randomUUID(), Mock.orgnrUtenTilgang).shouldBeFalse()
         }
 
         val result =
@@ -227,7 +227,7 @@ class TilgangskontrollIT : EndToEndTest() {
         mockStatic(ApplicationRequest::lesFnrFraAuthToken) {
             every { mockRequest.lesFnrFraAuthToken() } returns Mock.innloggetFnr
 
-            tilgangskontroll.manglerTilgangTilOrg(mockRequest, UUID.randomUUID(), Mock.orgnrMedTilgang).shouldBeNull()
+            tilgangskontroll.harTilgangTilOrg(mockRequest, UUID.randomUUID(), Mock.orgnrMedTilgang).shouldBeNull()
         }
 
         messages.all().shouldBeEmpty()

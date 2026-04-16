@@ -59,7 +59,7 @@ fun Route.hentForespoersel(
                     hentResultatFraRedis(
                         redisPoller = redisPoller,
                         kontekstId = kontekstId,
-                        logOnFailure = "Klarte ikke hente forespørsel.",
+                        logOnFailure = "Klarte ikke hente forespørsel for '$forespoerselId'.",
                         successSerializer = HentForespoerselResultat.serializer(),
                     ) { success ->
                         val response = success.toResponse()

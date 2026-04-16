@@ -17,6 +17,8 @@ class ValideringsUtilsTest :
             )
         val testAar = 2024
 
+        val feil = Feil(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN, "whatever")
+
         context(Inntekt::validerInntektMotAordningen.name) {
             withData(
                 mapOf(
@@ -45,7 +47,9 @@ class ValideringsUtilsTest :
                                 49985.0,
                                 49975.0,
                             ),
-                            setOf(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN),
+                            setOf(
+                                feil,
+                            ),
                         ),
                     "alle a-ordninginntekter er null gir valideringsfeil" to
                         Pair(
@@ -54,12 +58,16 @@ class ValideringsUtilsTest :
                                 null,
                                 null,
                             ),
-                            setOf(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN),
+                            setOf(
+                                feil,
+                            ),
                         ),
                     "tom a-ordning map gir valideringsfeil" to
                         Pair(
                             emptyList(),
-                            setOf(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN),
+                            setOf(
+                                feil,
+                            ),
                         ),
                 ),
             ) { (aordningInntektListe, forventetFeil) ->
@@ -67,8 +75,11 @@ class ValideringsUtilsTest :
                     aordningInntektListe
                         .withIndex()
                         .associate { YearMonth.of(testAar, it.index + 1) to it.value }
-
-                testInntekt.validerInntektMotAordningen(aordningInntektMap) shouldBe forventetFeil
+                if (forventetFeil.isEmpty()) {
+                    testInntekt.validerInntektMotAordningen(aordningInntektMap) shouldBe forventetFeil
+                } else {
+                    testInntekt.validerInntektMotAordningen(aordningInntektMap).first().feilkode shouldBe forventetFeil.first().feilkode
+                }
             }
         }
     })

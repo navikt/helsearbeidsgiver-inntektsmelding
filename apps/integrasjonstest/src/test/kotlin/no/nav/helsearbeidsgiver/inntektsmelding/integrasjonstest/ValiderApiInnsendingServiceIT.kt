@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.slot
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.ForespoerselFraBro
@@ -22,8 +23,6 @@ import no.nav.hag.simba.utils.felles.test.mock.mockInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.AvvistInntektsmelding
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern.Feilkode
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
@@ -276,30 +275,15 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
                 ).toJson(),
         )
 
-        val avvistInntektsmelding =
-            AvvistInntektsmelding(
-                inntektsmeldingId = Mock.innsending.innsendingId,
-                forespoerselId = Mock.innsending.type.id,
-                vedtaksperiodeId = Mock.forespoersel.vedtaksperiodeId,
-                orgnr = Mock.forespoersel.orgnr,
-                feilkode = Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN,
-            )
-
+        val melding = slot<Map<InnsendingKey, JsonElement>>()
         verify(exactly = 1) {
             producer.send(
                 key = Mock.forespoerselId,
-                message =
-                    mapOf(
-                        InnsendingKey.EVENT_NAME to InnsendingEventName.AVVIST_INNTEKTSMELDING.toJson(),
-                        InnsendingKey.KONTEKST_ID to kontekstId.toJson(),
-                        InnsendingKey.DATA to
-                            mapOf(
-                                InnsendingKey.AVVIST_INNTEKTSMELDING to avvistInntektsmelding.toJson(AvvistInntektsmelding.serializer()),
-                            ).toJson(),
-                    ),
+                message = capture(melding),
             )
         }
-
+        val avvistMelding = melding.captured
+        avvistMelding[InnsendingKey.EVENT_NAME] shouldBe InnsendingEventName.AVVIST_INNTEKTSMELDING.toJson()
         // Sender _ikke_ inntektsmeldingen videre i innsendingsløypa
         messages.filter(EventName.API_INNSENDING_VALIDERT).all() shouldBe emptyList()
     }

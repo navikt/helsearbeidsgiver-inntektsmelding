@@ -135,7 +135,6 @@ class ValiderApiInnsendingService(
         steg2: ValideringsSteg2,
     ) {
         val inntekt = steg0.innsending.skjema.inntekt
-
         val feilkoder =
             if (inntekt == null || steg2.unnlatHentingAvInntekt) {
                 emptySet()
@@ -150,7 +149,8 @@ class ValiderApiInnsendingService(
                     forespoerselId = steg0.innsending.type.id,
                     vedtaksperiodeId = steg1.forespoersel.vedtaksperiodeId,
                     orgnr = steg1.forespoersel.orgnr,
-                    feilkode = feilkoder.first(),
+                    feilkode = feilkoder.first().feilkode,
+                    feil = feilkoder.first(),
                 )
             producer.send(
                 key = steg0.innsending.skjema.forespoerselId,

@@ -59,7 +59,7 @@ class HentAnsettelsesperioderRiver(
     override fun HentAnsettelsesperioderMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val ansettelsesperioder =
             runBlocking {
-                aaregClient.hentAnsettelsesperioder(fnr.verdi, kontekstId.toString())
+                aaregClient.hentAnsettelsesperioder(fnr.verdi, kontekstId.toString()).also { sikkerLogger.info("Respons fra aareg ansettelsesperioder: $it") }
             }.mapValues { (_, perioder) ->
                 perioder
                     .map {
@@ -69,7 +69,6 @@ class HentAnsettelsesperioderRiver(
                         )
                     }.toSet()
             }
-
         "Fant ${ansettelsesperioder.size} ansettelsesperioder.".also {
             logger.info(it)
             sikkerLogger.info(it)

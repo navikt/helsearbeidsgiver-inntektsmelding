@@ -15,7 +15,12 @@ fun Inntekt.validerInntektMotAordningen(aordningInntekt: Map<YearMonth, Double?>
     val inntektErUtenforFeilmargin = abs(beloep - aordningSnittInntekt) > FEILMARGIN_INNTEKT_A_ORDNING_KRONER
 
     return if (inntektErUtenforFeilmargin) {
-        setOf(Feil(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN, "Oppgitt beløp $beloep matcher ikke snittinntekt i A-ordning: $aordningSnittInntekt")).also {
+        setOf(
+            Feil(
+                Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN,
+                "Oppgitt beløp $beloep matcher ikke snittinntekt i A-ordning: $aordningSnittInntekt ($aordningInntekt)",
+            ),
+        ).also {
             sikkerLogger().info(
                 "Validering av inntekt mot a-ordningen resulterte i feilen INNTEKT_AVVIKER_FRA_A_ORDNINGEN. Inntekt i inntektsmelding: $beloep kroner, " +
                     "utregnet gjennomsnitt fra a-ordninginntekter: $aordningSnittInntekt kroner, " +

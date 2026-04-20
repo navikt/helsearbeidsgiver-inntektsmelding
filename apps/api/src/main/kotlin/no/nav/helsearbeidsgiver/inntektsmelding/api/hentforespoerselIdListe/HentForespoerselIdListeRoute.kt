@@ -15,12 +15,12 @@ import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
-import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangOrgnr
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangOrgnrOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedis
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedisOrError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequestOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -40,7 +40,7 @@ fun Route.hentForespoerselIdListe(
     post(Routes.HENT_FORESPOERSEL_ID_LISTE) {
         val kontekstId = UUID.randomUUID()
 
-        readRequest(
+        readRequestOrError(
             kontekstId,
             HentForespoerslerRequest.serializer(),
         ) {
@@ -78,7 +78,7 @@ private suspend fun RoutingContext.hentForespoersler(
 
     producer.sendRequestEvent(kontekstId, vedtaksperiodeIdListe)
 
-    hentResultatFraRedis(
+    hentResultatFraRedisOrError(
         redisPoller = redisPoller,
         kontekstId = kontekstId,
         logOnFailure = "Klarte ikke hente forespørsler for liste med vedtaksperiode-ID-er pga. feil.",
@@ -107,7 +107,7 @@ private suspend fun RoutingContext.hentForespoersler(
             }
 
             else -> {
-                validerTilgangOrgnr(tilgangskontroll, kontekstId, orgnr) {
+                validerTilgangOrgnrOrError(tilgangskontroll, kontekstId, orgnr) {
                     val respons =
                         success.map { (id, forespoersel) ->
                             VedtaksperiodeIdForespoerselIdPar(

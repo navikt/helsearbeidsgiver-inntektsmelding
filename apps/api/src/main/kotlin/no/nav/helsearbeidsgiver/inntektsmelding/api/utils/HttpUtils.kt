@@ -15,7 +15,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import java.util.UUID
 
-suspend fun <T : Any> RoutingContext.readPathParam(
+suspend fun <T : Any> RoutingContext.readPathParamOrError(
     kontekstId: UUID,
     param: Routes.Params.Param<T>,
     onSuccess: suspend RoutingContext.(T) -> Unit,
@@ -39,7 +39,7 @@ suspend fun <T : Any> RoutingContext.readPathParam(
     }
 }
 
-suspend fun <T : Any> RoutingContext.readRequest(
+suspend fun <T : Any> RoutingContext.readRequestOrError(
     kontekstId: UUID,
     requestSerializer: KSerializer<T>,
     onSuccess: suspend RoutingContext.(T) -> Unit,

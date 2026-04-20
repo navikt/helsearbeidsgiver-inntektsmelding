@@ -16,12 +16,12 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.lesFnrFraAuthToken
-import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangOrgnr
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangOrgnrOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedis
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedisOrError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequestOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -47,7 +47,7 @@ fun Route.lagreSelvbestemtImRoute(
             Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING),
             Log.kontekstId(kontekstId),
         ) {
-            readRequest(
+            readRequestOrError(
                 kontekstId,
                 SkjemaInntektsmeldingSelvbestemt.serializer(),
             ) { skjema ->
@@ -61,12 +61,12 @@ fun Route.lagreSelvbestemtImRoute(
 
                     respondError(ErrorResponse.Validering(kontekstId, valideringsfeil))
                 } else {
-                    validerTilgangOrgnr(tilgangskontroll, kontekstId, skjema.avsender.orgnr) {
+                    validerTilgangOrgnrOrError(tilgangskontroll, kontekstId, skjema.avsender.orgnr) {
                         val avsenderFnr = call.request.lesFnrFraAuthToken()
 
                         producer.sendRequestEvent(kontekstId, avsenderFnr, skjema, mottatt)
 
-                        hentResultatFraRedis(
+                        hentResultatFraRedisOrError(
                             redisPoller = redisPoller,
                             kontekstId = kontekstId,
                             logOnFailure = "Klarte ikke motta selvbestemt inntektsmelding pga. feil.",

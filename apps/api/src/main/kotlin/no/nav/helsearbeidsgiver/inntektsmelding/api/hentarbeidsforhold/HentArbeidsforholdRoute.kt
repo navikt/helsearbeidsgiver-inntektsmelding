@@ -14,11 +14,11 @@ import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
-import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangForespoersel
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangForespoerselOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedis
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readPathParam
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedisOrError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readPathParamOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -36,17 +36,17 @@ fun Route.hentArbeidsforholdRoute(
     get(Routes.HENT_ARBEIDSFORHOLD) {
         val kontekstId = UUID.randomUUID()
 
-        readPathParam(kontekstId, Routes.Params.forespoerselId) { forespoerselId ->
+        readPathParamOrError(kontekstId, Routes.Params.forespoerselId) { forespoerselId ->
 
             MdcUtils.withLogFields(
                 Log.apiRoute(Routes.HENT_ARBEIDSFORHOLD),
                 Log.kontekstId(kontekstId),
                 Log.forespoerselId(forespoerselId),
             ) {
-                validerTilgangForespoersel(tilgangskontroll, kontekstId, forespoerselId) {
+                validerTilgangForespoerselOrError(tilgangskontroll, kontekstId, forespoerselId) {
                     producer.sendRequestEvent(kontekstId, forespoerselId)
 
-                    hentResultatFraRedis(
+                    hentResultatFraRedisOrError(
                         redisPoller = redisPoller,
                         kontekstId = kontekstId,
                         inntektsmeldingTypeId = forespoerselId,

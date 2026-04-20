@@ -16,12 +16,12 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.lesFnrFraAuthToken
-import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangForespoersel
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangForespoerselOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedis
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedisOrError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequestOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondCreated
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondError
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -41,7 +41,7 @@ fun Route.innsending(
         val kontekstId = UUID.randomUUID()
         val mottatt = LocalDateTime.now()
 
-        readRequest(
+        readRequestOrError(
             kontekstId,
             SkjemaInntektsmelding.serializer(),
         ) { skjema ->
@@ -55,12 +55,12 @@ fun Route.innsending(
 
                 respondError(ErrorResponse.Validering(kontekstId, valideringsfeil))
             } else {
-                validerTilgangForespoersel(tilgangskontroll, kontekstId, skjema.forespoerselId) {
+                validerTilgangForespoerselOrError(tilgangskontroll, kontekstId, skjema.forespoerselId) {
                     val avsenderFnr = call.request.lesFnrFraAuthToken()
 
                     producer.sendRequestEvent(kontekstId, skjema, avsenderFnr, mottatt)
 
-                    hentResultatFraRedis(
+                    hentResultatFraRedisOrError(
                         redisPoller = redisPoller,
                         kontekstId = kontekstId,
                         inntektsmeldingTypeId = skjema.forespoerselId,

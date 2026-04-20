@@ -16,11 +16,11 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
-import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangOrgnr
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangOrgnrOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedis
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readPathParam
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedisOrError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readPathParamOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -37,7 +37,7 @@ fun Route.hentSelvbestemtImRoute(
     get(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID) {
         val kontekstId = UUID.randomUUID()
 
-        readPathParam(kontekstId, Routes.Params.selvbestemtId) { selvbestemtId ->
+        readPathParamOrError(kontekstId, Routes.Params.selvbestemtId) { selvbestemtId ->
             MdcUtils.withLogFields(
                 Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID),
                 Log.kontekstId(kontekstId),
@@ -45,14 +45,14 @@ fun Route.hentSelvbestemtImRoute(
             ) {
                 producer.sendRequestEvent(kontekstId, selvbestemtId)
 
-                hentResultatFraRedis(
+                hentResultatFraRedisOrError(
                     redisPoller = redisPoller,
                     kontekstId = kontekstId,
                     inntektsmeldingTypeId = selvbestemtId,
                     logOnFailure = "Klarte ikke hente selvbestemt inntektsmelding pga. feil.",
                     successSerializer = Inntektsmelding.serializer(),
                 ) { inntektsmelding ->
-                    validerTilgangOrgnr(tilgangskontroll, kontekstId, inntektsmelding.avsender.orgnr) {
+                    validerTilgangOrgnrOrError(tilgangskontroll, kontekstId, inntektsmelding.avsender.orgnr) {
                         val response =
                             HentSelvbestemtImResponseSuccess(inntektsmelding.fjernNavnHvisIngenArbeidsforhold())
                                 .toJson(HentSelvbestemtImResponseSuccess.serializer())

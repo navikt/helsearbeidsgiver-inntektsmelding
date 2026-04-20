@@ -12,27 +12,27 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import no.nav.security.token.support.core.jwt.JwtToken
 import java.util.UUID
 
-suspend fun RoutingContext.validerTilgangForespoersel(
+suspend fun RoutingContext.validerTilgangForespoerselOrError(
     tilgangskontroll: Tilgangskontroll,
     kontekstId: UUID,
     forespoerselId: UUID,
     onSuccess: suspend RoutingContext.() -> Unit,
 ) {
     val harTilgang = tilgangskontroll.harTilgangTilForespoersel(call.request, kontekstId, forespoerselId)
-    validerTilgang(kontekstId, harTilgang) { onSuccess() }
+    validerTilgangOrError(kontekstId, harTilgang) { onSuccess() }
 }
 
-suspend fun RoutingContext.validerTilgangOrgnr(
+suspend fun RoutingContext.validerTilgangOrgnrOrError(
     tilgangskontroll: Tilgangskontroll,
     kontekstId: UUID,
     orgnr: Orgnr,
     onSuccess: suspend RoutingContext.() -> Unit,
 ) {
     val harTilgang = tilgangskontroll.harTilgangTilOrg(call.request, kontekstId, orgnr)
-    validerTilgang(kontekstId, harTilgang) { onSuccess() }
+    validerTilgangOrError(kontekstId, harTilgang) { onSuccess() }
 }
 
-private suspend fun RoutingContext.validerTilgang(
+private suspend fun RoutingContext.validerTilgangOrError(
     kontekstId: UUID,
     harTilgang: Boolean?,
     onSuccess: suspend RoutingContext.() -> Unit,

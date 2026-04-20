@@ -11,7 +11,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import java.util.UUID
 
-suspend fun <T : Any> RoutingContext.hentResultatFraRedis(
+suspend fun <T : Any> RoutingContext.hentResultatFraRedisOrError(
     redisPoller: RedisPoller,
     kontekstId: UUID,
     inntektsmeldingTypeId: UUID? = null,

@@ -18,12 +18,12 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
-import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangForespoersel
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangForespoerselOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedis
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readPathParam
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedisOrError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readPathParamOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
@@ -41,12 +41,12 @@ fun Route.kvittering(
     get(Routes.KVITTERING) {
         val kontekstId = UUID.randomUUID()
 
-        readPathParam(kontekstId, Routes.Params.forespoerselId) { forespoerselId ->
-            validerTilgangForespoersel(tilgangskontroll, kontekstId, forespoerselId) {
+        readPathParamOrError(kontekstId, Routes.Params.forespoerselId) { forespoerselId ->
+            validerTilgangForespoerselOrError(tilgangskontroll, kontekstId, forespoerselId) {
                 logger.info("Henter kvittering for forespørsel-ID '$forespoerselId'.")
                 producer.sendRequestEvent(kontekstId, forespoerselId)
 
-                hentResultatFraRedis(
+                hentResultatFraRedisOrError(
                     redisPoller = redisPoller,
                     kontekstId = kontekstId,
                     inntektsmeldingTypeId = forespoerselId,

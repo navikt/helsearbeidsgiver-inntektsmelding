@@ -14,11 +14,11 @@ import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
-import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangForespoersel
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangForespoerselOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedis
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedisOrError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequestOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -33,11 +33,11 @@ fun Route.inntektRoute(
     post(Routes.INNTEKT) {
         val kontekstId = UUID.randomUUID()
 
-        readRequest(
+        readRequestOrError(
             kontekstId,
             InntektRequest.serializer(),
         ) { request ->
-            validerTilgangForespoersel(tilgangskontroll, kontekstId, request.forespoerselId) {
+            validerTilgangForespoerselOrError(tilgangskontroll, kontekstId, request.forespoerselId) {
                 "Henter oppdatert inntekt for forespoerselId: ${request.forespoerselId}".let {
                     logger.info(it)
                     sikkerLogger.info("$it og request:\n$request")
@@ -45,7 +45,7 @@ fun Route.inntektRoute(
 
                 producer.sendRequestEvent(kontekstId, request)
 
-                hentResultatFraRedis(
+                hentResultatFraRedisOrError(
                     redisPoller = redisPoller,
                     kontekstId = kontekstId,
                     inntektsmeldingTypeId = request.forespoerselId,

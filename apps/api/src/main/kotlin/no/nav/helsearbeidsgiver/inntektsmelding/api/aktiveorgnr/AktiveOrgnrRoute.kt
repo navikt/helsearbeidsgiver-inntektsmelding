@@ -14,8 +14,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.lesFnrFraAuthToken
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedis
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedisOrError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequestOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -31,7 +31,7 @@ fun Route.aktiveOrgnrRoute(
     post(Routes.AKTIVEORGNR) {
         val kontekstId = UUID.randomUUID()
 
-        readRequest(
+        readRequestOrError(
             kontekstId,
             AktiveOrgnrRequest.serializer(),
         ) { request ->
@@ -41,7 +41,7 @@ fun Route.aktiveOrgnrRoute(
                 sykmeldtFnr = request.sykmeldtFnr,
             )
 
-            hentResultatFraRedis(
+            hentResultatFraRedisOrError(
                 redisPoller = redisPoller,
                 kontekstId = kontekstId,
                 logOnFailure = "Klarte ikke hente aktive arbeidsforhold pga. feil.",

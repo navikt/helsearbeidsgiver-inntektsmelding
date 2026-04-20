@@ -14,10 +14,10 @@ import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
-import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangOrgnr
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangOrgnrOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedis
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedisOrError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequestOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -32,14 +32,14 @@ fun Route.inntektSelvbestemtRoute(
     post(Routes.INNTEKT_SELVBESTEMT) {
         val kontekstId = UUID.randomUUID()
 
-        readRequest(
+        readRequestOrError(
             kontekstId,
             InntektSelvbestemtRequest.serializer(),
         ) { request ->
-            validerTilgangOrgnr(tilgangskontroll, kontekstId, request.orgnr) {
+            validerTilgangOrgnrOrError(tilgangskontroll, kontekstId, request.orgnr) {
                 producer.sendRequestEvent(kontekstId, request)
 
-                hentResultatFraRedis(
+                hentResultatFraRedisOrError(
                     redisPoller = redisPoller,
                     kontekstId = kontekstId,
                     logOnFailure = "Klarte ikke hente oppdatert inntekt for selvbestemt inntektsmelding pga. feil.",

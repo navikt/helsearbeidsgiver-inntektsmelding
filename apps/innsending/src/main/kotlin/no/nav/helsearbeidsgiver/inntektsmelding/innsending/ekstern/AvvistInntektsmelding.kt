@@ -14,7 +14,6 @@ data class AvvistInntektsmelding(
     val forespoerselId: UUID,
     val vedtaksperiodeId: UUID,
     val orgnr: Orgnr,
-    val feilkode: Feilkode, // deprecated, bruk Feil
     val feil: Feil,
 )
 

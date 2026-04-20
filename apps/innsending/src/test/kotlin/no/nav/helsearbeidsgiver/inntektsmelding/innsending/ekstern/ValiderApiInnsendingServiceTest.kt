@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.ints.shouldBeAtMost
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
@@ -116,8 +117,8 @@ class ValiderApiInnsendingServiceTest :
                 Mock.steg2(kontekstId).plusData(Key.INNTEKT to inntektFraAordningen.toJson(inntektMapSerializer)),
             )
 
-            val forventetFeilmelding = "Oppgitt beløp ${Mock.inntektBeloep} matcher ikke snittinntekt i A-ordning: $mndInntekt"
-
+            val forventetFeilmelding = "Oppgitt beløp ${Mock.inntektBeloep} matcher ikke snittinntekt i A-ordning: $mndInntekt ($inntektFraAordningen)"
+            forventetFeilmelding.length shouldBeAtMost 255 // Feilmelding bør ikke være for lang, LPS-API klipper meldingen hvis over 255 tegn
             testRapid.inspektør.size shouldBeExactly 2
             val forventetNoekkel = Mock.innsending.skjema.forespoerselId
             val forventetRecord =
@@ -227,7 +228,6 @@ class ValiderApiInnsendingServiceTest :
                     forespoerselId = innsending.type.id,
                     vedtaksperiodeId = forespoersel.vedtaksperiodeId,
                     orgnr = forespoersel.orgnr,
-                    feilkode = Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN,
                     feil = Feil(Feilkode.INNTEKT_AVVIKER_FRA_A_ORDNINGEN, feilmelding),
                 )
             return mapOf(

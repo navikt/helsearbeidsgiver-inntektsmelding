@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
+import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
@@ -26,8 +27,7 @@ import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
 import no.nav.hag.simba.utils.rr.test.message
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
-import no.nav.hag.simba.utils.valkey.RedisPrefix
-import no.nav.hag.simba.utils.valkey.test.MockRedis
+import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.februar
@@ -40,12 +40,12 @@ class HentArbeidsforholdServiceTest :
     FunSpec({
 
         val testRapid = TestRapid()
-        val mockRedis = MockRedis(RedisPrefix.HentArbeidsforhold)
+        val mockRedisStore = mockk<RedisStore>(relaxed = true)
 
         mockConnectToRapid(testRapid) {
             listOf(
                 ServiceRiverStateless(
-                    HentArbeidsforholdService(it, mockRedis.store),
+                    HentArbeidsforholdService(it, mockRedisStore),
                 ),
             )
         }
@@ -53,7 +53,6 @@ class HentArbeidsforholdServiceTest :
         beforeEach {
             testRapid.reset()
             clearAllMocks()
-            mockRedis.setup()
         }
 
         test("henter og filtrerer ansettelsesperioder for forespoersel") {
@@ -81,7 +80,7 @@ class HentArbeidsforholdServiceTest :
             testRapid.sendJson(Mock.steg2(kontekstId, ansettelsesperioder))
 
             verify {
-                mockRedis.store.skrivResultat(
+                mockRedisStore.skrivResultat(
                     kontekstId,
                     ResultJson(
                         success = listOf(gyldigPeriode).toJson(PeriodeAapen.serializer()),
@@ -104,7 +103,7 @@ class HentArbeidsforholdServiceTest :
             testRapid.sendJson(Mock.steg2(kontekstId, ansettelsesperioder))
 
             verify {
-                mockRedis.store.skrivResultat(
+                mockRedisStore.skrivResultat(
                     kontekstId,
                     ResultJson(
                         success = listOf(periodeInnenfor).toJson(PeriodeAapen.serializer()),
@@ -125,7 +124,7 @@ class HentArbeidsforholdServiceTest :
             testRapid.sendJson(Mock.steg2(kontekstId, ansettelsesperioder))
 
             verify {
-                mockRedis.store.skrivResultat(
+                mockRedisStore.skrivResultat(
                     kontekstId,
                     ResultJson(
                         success = emptyList<PeriodeAapen>().toJson(PeriodeAapen.serializer()),
@@ -146,7 +145,7 @@ class HentArbeidsforholdServiceTest :
             testRapid.sendJson(fail.tilMelding())
 
             verify {
-                mockRedis.store.skrivResultat(
+                mockRedisStore.skrivResultat(
                     fail.kontekstId,
                     ResultJson(failure = fail.feilmelding.toJson()),
                 )

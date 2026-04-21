@@ -32,7 +32,7 @@ fun Route.hentArbeidsforholdSelvbestemtRoute(
     tilgangskontroll: Tilgangskontroll,
     redisConnection: RedisConnection,
 ) {
-    val redisPoller = RedisStore(redisConnection, RedisPrefix.HentArbeidsforhold).let(::RedisPoller)
+    val redisPoller = RedisStore(redisConnection, RedisPrefix.HentArbeidsforholdSelvbestemt).let(::RedisPoller)
 
     post(Routes.HENT_ARBEIDSFORHOLD_SELVBESTEMT) {
         val kontekstId = UUID.randomUUID()

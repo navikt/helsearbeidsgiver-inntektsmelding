@@ -2,8 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.hentarbeidsforhold
 
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.serializer
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
@@ -15,16 +13,14 @@ import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
-import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangForespoerselOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedisOrError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readPathParamOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
-import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
@@ -40,59 +36,33 @@ fun Route.hentArbeidsforholdRoute(
     get(Routes.HENT_ARBEIDSFORHOLD) {
         val kontekstId = UUID.randomUUID()
 
-        val forespoerselId =
-            call.parameters["forespoerselId"]
-                ?.runCatching(UUID::fromString)
-                ?.getOrNull()
+        readPathParamOrError(kontekstId, Routes.Params.forespoerselId) { forespoerselId ->
 
-        if (forespoerselId == null) {
-            "Ugyldig parameter: '${call.parameters["forespoerselId"]}'.".let {
-                logger.error(it)
-                sikkerLogger.error(it)
-                respondBadRequest(it)
-            }
-        } else {
             MdcUtils.withLogFields(
                 Log.apiRoute(Routes.HENT_ARBEIDSFORHOLD),
                 Log.kontekstId(kontekstId),
                 Log.forespoerselId(forespoerselId),
             ) {
-                try {
-                    tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
-                } catch (_: ManglerAltinnRettigheterException) {
-                    respondForbidden("Mangler rettigheter for organisasjon.")
-                    return@withLogFields
-                }
+                validerTilgangForespoerselOrError(tilgangskontroll, kontekstId, forespoerselId) {
+                    producer.sendRequestEvent(kontekstId, forespoerselId)
 
-                producer.sendRequestEvent(kontekstId, forespoerselId)
-
-                val result = redisPoller.hent(kontekstId)
-
-                if (result != null) {
-                    val ansettelsesperioder = result.success?.fromJson(ListSerializer(PeriodeAapen.serializer()))
-
-                    if (ansettelsesperioder != null) {
+                    hentResultatFraRedisOrError(
+                        redisPoller = redisPoller,
+                        kontekstId = kontekstId,
+                        inntektsmeldingTypeId = forespoerselId,
+                        logOnFailure = "Klarte ikke hente arbeidsforholdsdata.",
+                        successSerializer = PeriodeAapen.serializer().list(),
+                    ) { ansettelsesperioder ->
                         val response = HentArbeidsforholdResponse(ansettelsesperioder)
                         val responseJson = response.toJson(HentArbeidsforholdResponse.serializer())
 
-                        "Arbeidsforhold-data hentet OK.".also {
+                        "Arbeidsforholdsdata hentet OK.".also {
                             logger.info(it)
                             sikkerLogger.info("$it\n${responseJson.toPretty()}")
                         }
 
                         respondOk(response, HentArbeidsforholdResponse.serializer())
-                    } else {
-                        val feilmelding = result.failure?.fromJson(String.serializer())
-
-                        "Klarte ikke hente arbeidsforhold-data.".also {
-                            logger.error(it)
-                            sikkerLogger.error("$it Feilmelding: '$feilmelding'")
-                        }
-
-                        respondInternalServerError(ErrorResponse.Unknown(kontekstId))
                     }
-                } else {
-                    respondInternalServerError(ErrorResponse.RedisTimeout(kontekstId = kontekstId))
                 }
             }
         }

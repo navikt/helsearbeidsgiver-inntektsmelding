@@ -5,56 +5,91 @@ import io.ktor.server.request.receiveText
 import io.ktor.server.response.respond
 import io.ktor.server.routing.RoutingContext
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.builtins.serializer
-import no.nav.hag.simba.utils.felles.Tekst
+import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
+import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
+import java.util.UUID
 
-suspend fun <T : Any> RoutingContext.receive(serializer: KSerializer<T>): T = call.receiveText().fromJson(serializer)
+suspend fun <T : Any> RoutingContext.readPathParamOrError(
+    kontekstId: UUID,
+    param: Routes.Params.Param<T>,
+    onSuccess: suspend RoutingContext.(T) -> Unit,
+) {
+    val paramValueString = call.parameters[param.key]
+
+    val paramValue =
+        paramValueString
+            ?.takeUnless(String::isEmpty)
+            ?.runCatching { param.transform(this) }
+            ?.getOrNull()
+
+    if (paramValue == null) {
+        "Ugyldig parameter. key='${param.key}' value='$paramValueString'".also {
+            logger.error(it)
+            sikkerLogger.error(it)
+        }
+        respondError(ErrorResponse.InvalidPathParameter(kontekstId, param.key, paramValueString))
+    } else {
+        onSuccess(paramValue)
+    }
+}
+
+suspend fun <T : Any> RoutingContext.readRequestOrError(
+    kontekstId: UUID,
+    requestSerializer: KSerializer<T>,
+    onSuccess: suspend RoutingContext.(T) -> Unit,
+) {
+    val requestClassName = requestSerializer.descriptor.serialName.substringAfterLast(".")
+
+    call
+        .receiveText()
+        .runCatching {
+            parseJson()
+                .also { json ->
+                    "Mottok request som skal parses til '$requestClassName'.".let {
+                        logger.info(it)
+                        sikkerLogger.info("$it\n${json.toPretty()}")
+                    }
+                }.fromJson(requestSerializer)
+        }.onFailure { error ->
+            "Klarte ikke parse request til '$requestClassName'.".let {
+                logger.error(it)
+                sikkerLogger.error(it, error)
+            }
+            respondError(ErrorResponse.JsonSerialization(kontekstId))
+        }.onSuccess { onSuccess(it) }
+}
 
 suspend fun <T : Any> RoutingContext.respondOk(
-    message: T,
+    response: T,
     serializer: KSerializer<T>,
 ) {
-    respond(HttpStatusCode.OK, message, serializer)
+    respond(HttpStatusCode.OK, response, serializer)
 }
 
-suspend fun RoutingContext.respondBadRequest(message: ErrorResponse) {
-    respond(HttpStatusCode.BadRequest, message, ErrorResponse.serializer())
+suspend fun <T : Any> RoutingContext.respondCreated(
+    response: T,
+    serializer: KSerializer<T>,
+) {
+    respond(HttpStatusCode.Created, response, serializer)
 }
 
-@Deprecated("Feil bør returnere en ErrorResponse.")
-suspend fun RoutingContext.respondBadRequest(message: String) {
-    respond(HttpStatusCode.BadRequest, message, String.serializer())
+suspend fun RoutingContext.respondError(error: ErrorResponse) {
+    respond(error.statusCode(), error, ErrorResponse.serializer())
 }
 
-@Deprecated("Feil bør returnere en ErrorResponse.")
-suspend fun RoutingContext.respondForbidden(message: String) {
-    respond(HttpStatusCode.Forbidden, message, String.serializer())
-}
-
-@Deprecated("Feil bør returnere en ErrorResponse.")
-suspend fun RoutingContext.respondNotFound(message: String) {
-    respond(HttpStatusCode.NotFound, message, String.serializer())
-}
-
-suspend fun RoutingContext.respondInternalServerError(message: ErrorResponse) {
-    respond(HttpStatusCode.InternalServerError, message, ErrorResponse.serializer())
-}
-
-@Deprecated("Feil bør returnere en ErrorResponse.")
-suspend fun RoutingContext.respondInternalServerError(message: String?) {
-    respond(HttpStatusCode.InternalServerError, message ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE, String.serializer())
-}
-
-suspend fun <T : Any> RoutingContext.respond(
+private suspend fun <T : Any> RoutingContext.respond(
     status: HttpStatusCode,
-    message: T,
+    response: T,
     serializer: KSerializer<T>,
 ) {
     call.respond(
         status = status,
-        message = message.toJson(serializer),
+        message = response.toJson(serializer),
     )
 }

@@ -10,11 +10,9 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.verify
 import io.mockk.verifySequence
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.inntektMapSerializer
 import no.nav.hag.simba.utils.felles.json.toJson
@@ -27,7 +25,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.mai
@@ -109,11 +106,10 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
             coEvery { anyConstructed<RedisPoller>().hent(any()) } returns ikkeTilgangResultat
 
             val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
-
-            val error = response.bodyAsText().fromJson(String.serializer())
+            val responseBody = response.bodyAsText().fromJson(ErrorResponse.serializer())
 
             response.status shouldBe HttpStatusCode.Forbidden
-            error shouldBe "Du har ikke rettigheter for organisasjon."
+            responseBody.shouldBeTypeOf<ErrorResponse.ManglerTilgang>()
 
             verify(exactly = 0) {
                 mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
@@ -123,27 +119,22 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
     @Test
     fun `feilresultat gir 500-feil`() =
         testApi {
-            val expectedFeilmelding = "Du får vente til freddan'!"
-
             coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
-                    Mock.failureResult(expectedFeilmelding),
+                    Mock.failureResult("Du får vente til freddan'!"),
                 )
 
             val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
-
-            val actualJson = response.bodyAsText()
+            val responseBody = response.bodyAsText().fromJson(ErrorResponse.serializer())
 
             response.status shouldBe HttpStatusCode.InternalServerError
-            actualJson shouldBe expectedFeilmelding.toJsonStr(String.serializer())
+            responseBody.shouldBeTypeOf<ErrorResponse.Unknown>()
         }
 
     @Test
     fun `tomt resultat gir 500-feil`() =
         testApi {
-            val expectedFeilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
-
             coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
@@ -151,11 +142,10 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
                 )
 
             val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
-
-            val actualJson = response.bodyAsText()
+            val responseBody = response.bodyAsText().fromJson(ErrorResponse.serializer())
 
             response.status shouldBe HttpStatusCode.InternalServerError
-            actualJson shouldBe expectedFeilmelding.toJsonStr(String.serializer())
+            responseBody.shouldBeTypeOf<ErrorResponse.Unknown>()
         }
 
     @Test

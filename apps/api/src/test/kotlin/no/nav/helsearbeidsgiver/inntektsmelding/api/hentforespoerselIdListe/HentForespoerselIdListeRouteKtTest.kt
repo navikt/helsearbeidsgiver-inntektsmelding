@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIdListe
 
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldContainKey
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import io.ktor.client.statement.bodyAsText
@@ -17,7 +18,6 @@ import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
@@ -45,10 +45,10 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
     }
 
     @Test
-    fun `gir OK med forespørsel-IDer`() =
+    fun `gir OK med forespørsel-ID-er`() =
         testApi {
             val mockResultat = Mock.mockResultat()
-            val vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)
+            val vedtaksperiodeIdListe = setOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)
 
             coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
@@ -104,20 +104,16 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
         }
 
     @Test
-    fun `gir OK med tom liste av forespørsel-IDer`() =
+    fun `gir OK dersom ingen forespørsler funnet`() =
         testApi {
             val mockResultat = emptyMap<UUID, Forespoersel>()
 
-            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
-                listOf(
-                    Mock.successResult(mockResultat),
-                    harTilgangResultat,
-                )
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns Mock.successResult(mockResultat)
 
             val response =
                 post(
                     path,
-                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
                     HentForespoerslerRequest.serializer(),
                 )
 
@@ -125,80 +121,6 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
 
             response.status shouldBe HttpStatusCode.OK
             actualJson shouldBe Mock.successEmptyResponseJson()
-        }
-
-    @Test
-    fun `manglende tilgang til organisasjon gir 403 forbidden-feil`() =
-        testApi {
-            val mockResultat = Mock.mockResultat()
-
-            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
-                listOf(
-                    Mock.successResult(mockResultat),
-                    ikkeTilgangResultat,
-                )
-
-            val response =
-                post(
-                    path,
-                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
-                    HentForespoerslerRequest.serializer(),
-                )
-
-            val actualJson = response.bodyAsText()
-
-            response.status shouldBe HttpStatusCode.Forbidden
-            actualJson shouldBe "\"Mangler rettigheter for organisasjon.\""
-        }
-
-    @Test
-    fun `vedtaksperiode-IDer som tilhører ulike organisasjoner gir 400-feil`() =
-        testApi {
-            val mockResultat = Mock.mockResultatMedUlikeOrgnr()
-
-            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
-                listOf(
-                    Mock.successResult(mockResultat),
-                    harTilgangResultat,
-                )
-
-            val response =
-                post(
-                    path,
-                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
-                    HentForespoerslerRequest.serializer(),
-                )
-
-            val actualJson = response.bodyAsText()
-
-            response.status shouldBe HttpStatusCode.BadRequest
-            actualJson shouldBe "\"Ugyldig request.\""
-        }
-
-    @Test
-    fun `mer enn maks antall vedtaksperiode-IDer i request gir 400-feil`() =
-        testApi {
-            val mockResultat = Mock.mockResultat()
-
-            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
-                listOf(
-                    Mock.successResult(mockResultat),
-                    harTilgangResultat,
-                )
-
-            val response =
-                post(
-                    path,
-                    HentForespoerslerRequest(
-                        vedtaksperiodeIdListe = List(MAKS_ANTALL_VEDTAKSPERIODE_IDER + 1) { Mock.vedtaksPeriodeId1 },
-                    ),
-                    HentForespoerslerRequest.serializer(),
-                )
-
-            val actualJson = response.bodyAsText()
-
-            response.status shouldBe HttpStatusCode.BadRequest
-            actualJson shouldBe "\"Ugyldig request.\""
         }
 
     @Test
@@ -222,9 +144,90 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
                     JsonElement.serializer(),
                 )
 
-            val actualJson = response.bodyAsText()
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
             response.status shouldBe HttpStatusCode.BadRequest
-            actualJson shouldBe "\"Klarte ikke lese request.\""
+            error.shouldBeTypeOf<ErrorResponse.JsonSerialization>()
+        }
+
+    @Test
+    fun `tom vedtaksperiode-ID-liste i request gir 500-feil`() =
+        testApi {
+            val response =
+                post(
+                    path,
+                    HentForespoerslerRequest(
+                        vedtaksperiodeIdListe = emptySet(),
+                    ),
+                    HentForespoerslerRequest.serializer(),
+                )
+
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            error.shouldBeTypeOf<ErrorResponse.Unknown>()
+        }
+
+    @Test
+    fun `mer enn maks antall vedtaksperiode-ID-er i request gir 500-feil`() =
+        testApi {
+            val response =
+                post(
+                    path,
+                    HentForespoerslerRequest(
+                        vedtaksperiodeIdListe = List(MAKS_ANTALL_VEDTAKSPERIODE_IDER + 1) { UUID.randomUUID() }.toSet(),
+                    ),
+                    HentForespoerslerRequest.serializer(),
+                )
+
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            error.shouldBeTypeOf<ErrorResponse.Unknown>()
+        }
+
+    @Test
+    fun `vedtaksperiode-ID-er som tilhører ulike organisasjoner gir 500-feil`() =
+        testApi {
+            val mockResultat = Mock.mockResultatMedUlikeOrgnr()
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns Mock.successResult(mockResultat)
+
+            val response =
+                post(
+                    path,
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest.serializer(),
+                )
+
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            error.shouldBeTypeOf<ErrorResponse.Unknown>()
+        }
+
+    @Test
+    fun `manglende tilgang til organisasjon gir 403 forbidden-feil`() =
+        testApi {
+            val mockResultat = Mock.mockResultat()
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
+                listOf(
+                    Mock.successResult(mockResultat),
+                    ikkeTilgangResultat,
+                )
+
+            val response =
+                post(
+                    path,
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest.serializer(),
+                )
+
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.Forbidden
+            error.shouldBeTypeOf<ErrorResponse.ManglerTilgang>()
         }
 
     @Test
@@ -232,47 +235,37 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
         testApi {
             val expectedFeilmelding = "Det e itjnå som kjem tå sæ sjøl!"
 
-            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
-                listOf(
-                    Mock.failureResult(expectedFeilmelding),
-                    harTilgangResultat,
-                )
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns Mock.failureResult(expectedFeilmelding)
 
             val response =
                 post(
                     path,
-                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
                     HentForespoerslerRequest.serializer(),
                 )
 
-            val actualJson = response.bodyAsText()
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
 
             response.status shouldBe HttpStatusCode.InternalServerError
-            actualJson shouldBe "\"$expectedFeilmelding\""
+            error.shouldBeTypeOf<ErrorResponse.Unknown>()
         }
 
     @Test
     fun `tomt resultat gir 500-feil`() =
         testApi {
-            val expectedFeilmelding = "Teknisk feil, prøv igjen senere."
-
-            coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
-                listOf(
-                    Mock.emptyResult(),
-                    harTilgangResultat,
-                )
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns Mock.emptyResult()
 
             val response =
                 post(
                     path,
-                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
                     HentForespoerslerRequest.serializer(),
                 )
 
-            val actualJson = response.bodyAsText()
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
 
             response.status shouldBe HttpStatusCode.InternalServerError
-            actualJson shouldBe "\"$expectedFeilmelding\""
+            error.shouldBeTypeOf<ErrorResponse.Unknown>()
         }
 
     @Test
@@ -283,25 +276,26 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
             val response =
                 post(
                     path,
-                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
                     HentForespoerslerRequest.serializer(),
                 )
 
-            val actualJson = response.bodyAsText()
+            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
 
             response.status shouldBe HttpStatusCode.InternalServerError
-            actualJson shouldBe Tekst.REDIS_TIMEOUT_FEILMELDING.toJson().toString()
+            error.shouldBeTypeOf<ErrorResponse.RedisTimeout>()
+            error.inntektsmeldingTypeId.shouldBeNull()
         }
 
     @Test
     fun `ukjent feil gir 500-feil`() =
         testApi {
-            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns harTilgangResultat andThenThrows NullPointerException()
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } throws NullPointerException()
 
             val response =
                 post(
                     path,
-                    HentForespoerslerRequest(vedtaksperiodeIdListe = listOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
                     HentForespoerslerRequest.serializer(),
                 )
 

@@ -20,7 +20,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
@@ -68,7 +67,7 @@ class InntektRouteKtTest : ApiTest() {
             val response = post(path, request, InntektRequest.serializer())
 
             response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe forventetResponse.toJsonStr(InntektResponse.serializer())
+            response.bodyAsText() shouldBe forventetResponse.toJson(InntektResponse.serializer()).toString()
 
             verifySequence {
                 mockProducer.send(

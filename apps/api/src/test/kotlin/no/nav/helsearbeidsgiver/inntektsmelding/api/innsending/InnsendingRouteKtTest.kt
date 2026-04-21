@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldContainKey
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
@@ -26,7 +27,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -56,7 +56,7 @@ class InnsendingRouteKtTest : ApiTest() {
             val response = post(path, skjema, SkjemaInntektsmelding.serializer())
 
             assertEquals(HttpStatusCode.Created, response.status)
-            assertEquals(InnsendingResponse(skjema.forespoerselId).toJsonStr(InnsendingResponse.serializer()), response.bodyAsText())
+            assertEquals(InnsendingResponse(skjema.forespoerselId).toJson(InnsendingResponse.serializer()).toString(), response.bodyAsText())
 
             verifySequence {
                 mockProducer.send(
@@ -111,7 +111,7 @@ class InnsendingRouteKtTest : ApiTest() {
             val response = post(path, delvisSkjema, SkjemaInntektsmelding.serializer())
 
             assertEquals(HttpStatusCode.Created, response.status)
-            assertEquals(InnsendingResponse(delvisSkjema.forespoerselId).toJsonStr(InnsendingResponse.serializer()), response.bodyAsText())
+            assertEquals(InnsendingResponse(delvisSkjema.forespoerselId).toJson(InnsendingResponse.serializer()).toString(), response.bodyAsText())
         }
 
     @Test
@@ -123,7 +123,6 @@ class InnsendingRouteKtTest : ApiTest() {
 
             assertEquals(HttpStatusCode.BadRequest, response.status)
             error.shouldBeTypeOf<ErrorResponse.JsonSerialization>()
-            assertEquals(null, error.forespoerselId)
 
             verify(exactly = 0) {
                 mockProducer.send(any<UUID>(), any<Map<Key, JsonElement>>())
@@ -134,13 +133,14 @@ class InnsendingRouteKtTest : ApiTest() {
     fun `skal returnere feilmelding ved timeout fra Redis`() =
         testApi {
             val skjema = mockSkjemaInntektsmelding()
-            val expectedErrorJson = ErrorResponse.RedisTimeout(skjema.forespoerselId).toJson(ErrorResponse.serializer()).toString()
 
             coEvery { anyConstructed<RedisPoller>().hent(any()) } returns harTilgangResultat andThen null
 
             val response = post(path, skjema, SkjemaInntektsmelding.serializer())
+            val responseBody = response.bodyAsText().fromJson(ErrorResponse.serializer())
 
-            assertEquals(HttpStatusCode.InternalServerError, response.status)
-            assertEquals(expectedErrorJson, response.bodyAsText())
+            response.status shouldBe HttpStatusCode.InternalServerError
+            responseBody.shouldBeTypeOf<ErrorResponse.RedisTimeout>()
+            responseBody.inntektsmeldingTypeId shouldBe skjema.forespoerselId
         }
 }

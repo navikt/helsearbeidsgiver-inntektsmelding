@@ -9,5 +9,5 @@ import java.util.UUID
 
 @Serializable
 data class HentForespoerslerRequest(
-    val vedtaksperiodeIdListe: List<UUID>,
+    val vedtaksperiodeIdListe: Set<UUID>,
 )

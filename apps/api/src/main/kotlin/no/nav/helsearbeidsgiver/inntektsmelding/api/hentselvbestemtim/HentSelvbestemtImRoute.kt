@@ -1,9 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.hentselvbestemtim
 
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.get
-import kotlinx.serialization.builtins.serializer
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.Tekst
@@ -18,13 +16,12 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangOrgnrOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedisOrError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readPathParamOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
@@ -40,18 +37,7 @@ fun Route.hentSelvbestemtImRoute(
     get(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID) {
         val kontekstId = UUID.randomUUID()
 
-        val selvbestemtId =
-            call.parameters["selvbestemtId"]
-                ?.runCatching(UUID::fromString)
-                ?.getOrNull()
-
-        if (selvbestemtId == null) {
-            "Ugyldig parameter: '${call.parameters["selvbestemtId"]}'.".let {
-                logger.error(it)
-                sikkerLogger.error(it)
-                respondBadRequest(it)
-            }
-        } else {
+        readPathParamOrError(kontekstId, Routes.Params.selvbestemtId) { selvbestemtId ->
             MdcUtils.withLogFields(
                 Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID),
                 Log.kontekstId(kontekstId),
@@ -59,42 +45,31 @@ fun Route.hentSelvbestemtImRoute(
             ) {
                 producer.sendRequestEvent(kontekstId, selvbestemtId)
 
-                val result = redisPoller.hent(kontekstId)
-                if (result != null) {
-                    val inntektsmelding = result.success?.fromJson(Inntektsmelding.serializer())
+                hentResultatFraRedisOrError(
+                    redisPoller = redisPoller,
+                    kontekstId = kontekstId,
+                    inntektsmeldingTypeId = selvbestemtId,
+                    logOnFailure = "Klarte ikke hente selvbestemt inntektsmelding pga. feil.",
+                    successSerializer = Inntektsmelding.serializer(),
+                ) { inntektsmelding ->
+                    validerTilgangOrgnrOrError(tilgangskontroll, kontekstId, inntektsmelding.avsender.orgnr) {
+                        val response =
+                            HentSelvbestemtImResponseSuccess(inntektsmelding.fjernNavnHvisIngenArbeidsforhold())
+                                .toJson(HentSelvbestemtImResponseSuccess.serializer())
 
-                    if (inntektsmelding != null) {
-                        tilgangskontroll.validerTilgangTilOrg(call.request, inntektsmelding.avsender.orgnr)
-                        sendOkResponse(inntektsmelding.fjernNavnHvisIngenArbeidsforhold())
-                    } else {
-                        val feilmelding = result.failure?.fromJson(String.serializer())
-
-                        "Klarte ikke hente inntektsmelding pga. feil.".also {
-                            logger.error(it)
-                            sikkerLogger.error("$it Feilmelding: '$feilmelding'")
+                        "Selvbestemt inntektsmelding hentet OK.".also {
+                            logger.info(it)
+                            sikkerLogger.info("$it\n${response.toPretty()}")
                         }
 
-                        respondInternalServerError(ErrorResponse.Unknown(kontekstId))
+                        // TODO trenger ikke å wrappe i ResultJson (må endres i frontend først)
+                        respondOk(ResultJson(success = response), ResultJson.serializer())
                     }
-                } else {
-                    respondInternalServerError(
-                        ErrorResponse.RedisTimeout(
-                            kontekstId = kontekstId,
-                            inntektsmeldingTypeId = selvbestemtId,
-                        ),
-                    )
                 }
             }
         }
     }
 }
-
-private fun Inntektsmelding.fjernNavnHvisIngenArbeidsforhold() =
-    if (type is Inntektsmelding.Type.Fisker || type is Inntektsmelding.Type.UtenArbeidsforhold) {
-        copy(sykmeldt = sykmeldt.copy(navn = Tekst.UKJENT_NAVN))
-    } else {
-        this
-    }
 
 private fun Producer.sendRequestEvent(
     kontekstId: UUID,
@@ -114,13 +89,9 @@ private fun Producer.sendRequestEvent(
     )
 }
 
-private suspend fun RoutingContext.sendOkResponse(inntektsmelding: Inntektsmelding) {
-    val response = HentSelvbestemtImResponseSuccess(inntektsmelding).toJson(HentSelvbestemtImResponseSuccess.serializer())
-
-    "Selvbestemt inntektsmelding hentet OK.".also {
-        logger.info(it)
-        sikkerLogger.info("$it\n${response.toPretty()}")
+private fun Inntektsmelding.fjernNavnHvisIngenArbeidsforhold() =
+    if (type is Inntektsmelding.Type.Fisker || type is Inntektsmelding.Type.UtenArbeidsforhold) {
+        copy(sykmeldt = sykmeldt.copy(navn = Tekst.UKJENT_NAVN))
+    } else {
+        this
     }
-
-    respondOk(ResultJson(success = response), ResultJson.serializer())
-}

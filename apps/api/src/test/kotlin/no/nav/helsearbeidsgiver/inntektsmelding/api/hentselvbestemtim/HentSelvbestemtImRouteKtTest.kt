@@ -57,11 +57,11 @@ import java.util.UUID
 
 private val pathMedId =
     Routes.PREFIX +
-        Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID.replaceFirst("{selvbestemtId}", UUID.randomUUID().toString())
+        Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID.replaceFirst("{${Routes.Params.selvbestemtId.key}}", UUID.randomUUID().toString())
 
 private val pathUtenId =
     Routes.PREFIX +
-        Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID.replaceFirst("{selvbestemtId}", "")
+        Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID.replaceFirst("{${Routes.Params.selvbestemtId.key}}", "")
 
 class HentSelvbestemtImRouteKtTest : ApiTest() {
     @BeforeEach
@@ -146,7 +146,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
         }
 
     @Test
-    fun `manglende tilgang gir 500-feil`() =
+    fun `manglende tilgang gir 403-feil`() =
         testApi {
             coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
@@ -155,11 +155,10 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
                 )
 
             val response = get(pathMedId)
+            val responseBody = response.bodyAsText().fromJson(ErrorResponse.serializer())
 
-            val error = response.bodyAsText().fromJson(ErrorResponse.serializer())
-
-            response.status shouldBe HttpStatusCode.InternalServerError
-            error.shouldBeTypeOf<ErrorResponse.Unknown>()
+            response.status shouldBe HttpStatusCode.Forbidden
+            responseBody.shouldBeTypeOf<ErrorResponse.ManglerTilgang>()
         }
 
     @Test
@@ -229,9 +228,12 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
     fun `ugyldig ID i URL gir 400-feil`() =
         testApi {
             val response = get("${pathUtenId}ugyldig-selvbestemt-id")
+            val responseBody = response.bodyAsText().fromJson(ErrorResponse.serializer())
 
             response.status shouldBe HttpStatusCode.BadRequest
-            response.bodyAsText() shouldBe "\"Ugyldig parameter: 'ugyldig-selvbestemt-id'.\""
+            responseBody.shouldBeTypeOf<ErrorResponse.InvalidPathParameter>()
+            responseBody.parameterKey shouldBe Routes.Params.selvbestemtId.key
+            responseBody.parameterValue shouldBe "ugyldig-selvbestemt-id"
         }
 
     @Test

@@ -34,6 +34,7 @@ import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 import kotlin.time.Duration.Companion.minutes
 
@@ -41,19 +42,36 @@ val logger = "helsearbeidsgiver-im-api".logger()
 val sikkerLogger = sikkerLogger()
 
 object Routes {
+    private const val PARAM_FORESPOERSEL_ID = "forespoerselId"
+    private const val PARAM_SELVBESTEMT_ID = "selvbestemtId"
+    private const val PARAM_ORGNR = "orgnr"
+
     const val PREFIX = "/api/v1"
 
-    const val HENT_FORESPOERSEL = "/hent-forespoersel/{forespoerselId}"
+    const val HENT_FORESPOERSEL = "/hent-forespoersel/{$PARAM_FORESPOERSEL_ID}"
     const val HENT_FORESPOERSEL_ID_LISTE = "/hent-forespoersel-id-liste"
     const val HENT_ARBEIDSFORHOLD = "/arbeidsforhold/{forespoerselId}"
     const val INNTEKT = "/inntekt"
     const val INNTEKT_SELVBESTEMT = "/inntekt-selvbestemt"
     const val INNSENDING = "/inntektsmelding"
     const val SELVBESTEMT_INNTEKTSMELDING = "/selvbestemt-inntektsmelding"
-    const val SELVBESTEMT_INNTEKTSMELDING_MED_ID = "$SELVBESTEMT_INNTEKTSMELDING/{selvbestemtId}"
-    const val KVITTERING = "/kvittering/{forespoerselId}"
+    const val SELVBESTEMT_INNTEKTSMELDING_MED_ID = "$SELVBESTEMT_INNTEKTSMELDING/{$PARAM_SELVBESTEMT_ID}"
+    const val KVITTERING = "/kvittering/{$PARAM_FORESPOERSEL_ID}"
     const val AKTIVEORGNR = "/aktiveorgnr"
-    const val TILGANG_ORGNR = "/tilgangorgnr/{orgnr}"
+    const val TILGANG_ORGNR = "/tilgangorgnr/{$PARAM_ORGNR}"
+
+    object Params {
+        val forespoerselId = Param<UUID>(PARAM_FORESPOERSEL_ID, UUID::fromString)
+        val selvbestemtId = Param<UUID>(PARAM_SELVBESTEMT_ID, UUID::fromString)
+        val orgnr = Param(PARAM_ORGNR, ::Orgnr)
+
+        class Param<T : Any>(
+            val key: String,
+            val transform: (String) -> T,
+        ) {
+            override fun toString(): String = key
+        }
+    }
 }
 
 fun main() {

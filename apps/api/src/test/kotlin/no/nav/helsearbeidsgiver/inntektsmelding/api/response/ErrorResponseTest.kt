@@ -47,22 +47,30 @@ private val errors =
         ErrorResponse.Unknown(
             kontekstId = UUID.randomUUID(),
         ),
+        ErrorResponse.InvalidPathParameter(
+            kontekstId = UUID.randomUUID(),
+            "fiffig nøkkel",
+            "frekk verdi",
+        ),
+        ErrorResponse.ManglerTilgang(
+            kontekstId = UUID.randomUUID(),
+        ),
         ErrorResponse.JsonSerialization(
             kontekstId = UUID.randomUUID(),
-            forespoerselId = UUID.randomUUID().toString(),
-            inntektsmeldingTypeId = UUID.randomUUID(),
         ),
         ErrorResponse.Validering(
             kontekstId = UUID.randomUUID(),
             valideringsfeil = setOf("livet er for kjipt", "det regner hele året"),
         ),
+        ErrorResponse.NotFound(
+            kontekstId = UUID.randomUUID(),
+            error = "Fant ikke det jeg lette etter.",
+        ),
         ErrorResponse.RedisTimeout(
             kontekstId = UUID.randomUUID(),
-            uuid = UUID.randomUUID(),
             inntektsmeldingTypeId = UUID.randomUUID(),
         ),
         ErrorResponse.Arbeidsforhold(
             kontekstId = UUID.randomUUID(),
-            inntektsmeldingTypeId = UUID.randomUUID(),
         ),
     )

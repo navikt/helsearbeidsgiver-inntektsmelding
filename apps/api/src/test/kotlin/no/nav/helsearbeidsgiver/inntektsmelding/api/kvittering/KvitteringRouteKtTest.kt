@@ -41,7 +41,7 @@ class KvitteringRouteKtTest : ApiTest() {
                     ),
                 )
 
-            val response = get(PATH.replaceFirst("{forespoerselId}", forespoerselId.toString()))
+            val response = get(PATH.replaceFirst("{${Routes.Params.forespoerselId.key}}", forespoerselId.toString()))
 
             response.status shouldBe HttpStatusCode.OK
 

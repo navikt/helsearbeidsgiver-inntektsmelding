@@ -19,9 +19,10 @@ import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.test.json.lesBehov
 import no.nav.hag.simba.utils.felles.test.json.lesData
+import no.nav.hag.simba.utils.felles.test.json.plusData
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
 import no.nav.hag.simba.utils.rr.KafkaKey
-import no.nav.hag.simba.utils.rr.service.ServiceRiverStateful
+import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
 import no.nav.hag.simba.utils.rr.test.message
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
@@ -43,7 +44,7 @@ class HentArbeidsforholdServiceTest :
 
         mockConnectToRapid(testRapid) {
             listOf(
-                ServiceRiverStateful(
+                ServiceRiverStateless(
                     HentArbeidsforholdService(it, mockRedis.store),
                 ),
             )
@@ -159,7 +160,7 @@ private object Mock {
 
     fun steg0(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
-            Key.EVENT_NAME to EventName.AKTIVE_ARBEIDSFORHOLD_REQUESTED.toJson(),
+            Key.EVENT_NAME to EventName.HENT_ARBEIDSFORHOLD_REQUESTED.toJson(),
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
@@ -168,24 +169,17 @@ private object Mock {
         )
 
     fun steg1(kontekstId: UUID): Map<Key, JsonElement> =
-        steg0(kontekstId).plus(
-            mapOf(
-                Key.EVENT_NAME to EventName.SERVICE_HENT_ARBEIDSFORHOLD.toJson(),
-                Key.DATA to
-                    mapOf(
-                        Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
-                    ).toJson(),
-            ),
-        )
+        steg0(kontekstId)
+            .plus(Key.EVENT_NAME to EventName.SERVICE_HENT_ARBEIDSFORHOLD.toJson())
+            .plusData(
+                Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
+            )
 
     fun steg2(
         kontekstId: UUID,
         ansettelsesperioder: Map<Orgnr, Set<PeriodeAapen>>,
     ): Map<Key, JsonElement> =
-        steg1(kontekstId).plus(
-            Key.DATA to
-                mapOf(
-                    Key.ANSETTELSESPERIODER to ansettelsesperioder.toJson(ansettelsesperioderSerializer),
-                ).toJson(),
+        steg1(kontekstId).plusData(
+            Key.ANSETTELSESPERIODER to ansettelsesperioder.toJson(ansettelsesperioderSerializer),
         )
 }

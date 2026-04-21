@@ -1,7 +1,7 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.hentarbeidsforhold
+package no.nav.helsearbeidsgiver.inntektsmelding.api.hentarbeidsforholdselvbestemt
 
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
@@ -11,14 +11,15 @@ import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.RedisStore
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
-import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangForespoerselOrError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.validerTilgangOrgnrOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedisOrError
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readPathParamOrError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequestOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -26,42 +27,38 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import java.util.UUID
 
-fun Route.hentArbeidsforholdRoute(
+fun Route.hentArbeidsforholdSelvbestemtRoute(
     producer: Producer,
     tilgangskontroll: Tilgangskontroll,
     redisConnection: RedisConnection,
 ) {
     val redisPoller = RedisStore(redisConnection, RedisPrefix.HentArbeidsforhold).let(::RedisPoller)
 
-    get(Routes.HENT_ARBEIDSFORHOLD) {
+    post(Routes.HENT_ARBEIDSFORHOLD_SELVBESTEMT) {
         val kontekstId = UUID.randomUUID()
 
-        readPathParamOrError(kontekstId, Routes.Params.forespoerselId) { forespoerselId ->
-
-            MdcUtils.withLogFields(
-                Log.apiRoute(Routes.HENT_ARBEIDSFORHOLD),
-                Log.kontekstId(kontekstId),
-                Log.forespoerselId(forespoerselId),
-            ) {
-                validerTilgangForespoerselOrError(tilgangskontroll, kontekstId, forespoerselId) {
-                    producer.sendRequestEvent(kontekstId, forespoerselId)
+        MdcUtils.withLogFields(
+            Log.apiRoute(Routes.HENT_ARBEIDSFORHOLD_SELVBESTEMT),
+            Log.kontekstId(kontekstId),
+        ) {
+            readRequestOrError(kontekstId, HentArbeidsforholdSelvbestemtRequest.serializer()) { request ->
+                validerTilgangOrgnrOrError(tilgangskontroll, kontekstId, request.orgnr) {
+                    producer.sendRequestEvent(kontekstId, request)
 
                     hentResultatFraRedisOrError(
                         redisPoller = redisPoller,
                         kontekstId = kontekstId,
-                        inntektsmeldingTypeId = forespoerselId,
-                        logOnFailure = "Klarte ikke hente arbeidsforhold.",
+                        logOnFailure = "Klarte ikke hente arbeidsforhold for selvbestemt.",
                         successSerializer = PeriodeAapen.serializer().set(),
                     ) { ansettelsesperioder ->
-                        val response = HentArbeidsforholdResponse(ansettelsesperioder)
-                        val responseJson = response.toJson(HentArbeidsforholdResponse.serializer())
+                        val response = HentArbeidsforholdSelvbestemtResponse(ansettelsesperioder)
 
-                        "Arbeidsforhold hentet OK.".also {
+                        "Arbeidsforhold for selvbestemt hentet OK.".also {
                             logger.info(it)
-                            sikkerLogger.info("$it\n${responseJson.toPretty()}")
+                            sikkerLogger.info("$it\n${response.toJson(HentArbeidsforholdSelvbestemtResponse.serializer()).toPretty()}")
                         }
 
-                        respondOk(response, HentArbeidsforholdResponse.serializer())
+                        respondOk(response, HentArbeidsforholdSelvbestemtResponse.serializer())
                     }
                 }
             }
@@ -71,17 +68,19 @@ fun Route.hentArbeidsforholdRoute(
 
 private fun Producer.sendRequestEvent(
     kontekstId: UUID,
-    forespoerselId: UUID,
+    request: HentArbeidsforholdSelvbestemtRequest,
 ) {
     send(
-        key = forespoerselId,
+        key = request.sykmeldtFnr,
         message =
             mapOf(
-                Key.EVENT_NAME to EventName.HENT_ARBEIDSFORHOLD_REQUESTED.toJson(),
+                Key.EVENT_NAME to EventName.HENT_ARBEIDSFORHOLD_SELVBESTEMT_REQUESTED.toJson(),
                 Key.KONTEKST_ID to kontekstId.toJson(),
                 Key.DATA to
                     mapOf(
-                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                        Key.ORGNR_UNDERENHET to request.orgnr.toJson(),
+                        Key.SYKMELDT_FNR to request.sykmeldtFnr.toJson(),
+                        Key.PERIODE to Periode(request.fom, request.tom).toJson(Periode.serializer()),
                     ).toJson(),
             ),
     )

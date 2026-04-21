@@ -74,9 +74,10 @@ class HentArbeidsforholdService(
             Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
             Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
-                mapOf(
-                    Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                ).toJson(),
+                data
+                    .plus(
+                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                    ).toJson(),
         )
     }
 

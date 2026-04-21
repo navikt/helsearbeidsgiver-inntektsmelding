@@ -72,10 +72,13 @@ class HentArbeidsforholdSelvbestemtService(
             Key.BEHOV to BehovType.HENT_ANSETTELSESPERIODER.toJson(),
             Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
-                mapOf(
-                    Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
-                    Key.FNR to steg0.sykmeldFnr.toJson(),
-                ).toJson(),
+                data
+                    .plus(
+                        mapOf(
+                            Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
+                            Key.FNR to steg0.sykmeldFnr.toJson(),
+                        ),
+                    ).toJson(),
         )
     }
 

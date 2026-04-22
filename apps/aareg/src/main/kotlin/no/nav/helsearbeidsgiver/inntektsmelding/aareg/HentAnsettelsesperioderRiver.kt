@@ -57,6 +57,16 @@ class HentAnsettelsesperioderRiver(
     override fun HentAnsettelsesperioderMelding.bestemNoekkel(): KafkaKey = svarKafkaKey
 
     override fun HentAnsettelsesperioderMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
+        val ansettelsDetaljer =
+            runBlocking {
+                aaregClient.hentAnsettelsesforhold(fnr.verdi, kontekstId.toString())
+            }
+
+        sikkerLogger.info(
+            "Hentet ${ansettelsDetaljer.size} ansettelsesforhold for fnr ${fnr.verdi}. " +
+                "Detaljer: $ansettelsDetaljer",
+        )
+
         val ansettelsesperioder =
             runBlocking {
                 aaregClient.hentAnsettelsesperioder(fnr.verdi, kontekstId.toString())

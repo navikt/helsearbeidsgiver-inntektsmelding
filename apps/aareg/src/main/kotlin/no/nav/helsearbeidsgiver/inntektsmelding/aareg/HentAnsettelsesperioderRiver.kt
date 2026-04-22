@@ -63,8 +63,8 @@ class HentAnsettelsesperioderRiver(
             }
 
         sikkerLogger.info(
-            "Hentet ${ansettelsDetaljer.size} ansettelsesforhold for fnr ${fnr.verdi}. " +
-                "Detaljer: $ansettelsDetaljer",
+            "Hentet ${ansettelsDetaljer.size} ansettelsesforhold for fnr ${fnr.verdi}." +
+                "fant Detaljer: $ansettelsDetaljer",
         )
 
         val ansettelsesperioder =

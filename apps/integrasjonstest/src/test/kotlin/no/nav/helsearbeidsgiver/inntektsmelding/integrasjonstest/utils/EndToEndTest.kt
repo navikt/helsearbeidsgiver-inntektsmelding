@@ -38,6 +38,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDbRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjonRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.faisuservice.createHentArbeidsforholdServices
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.createFeilLytter
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createForespoerselEventSwitch
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebroRivers
@@ -196,6 +197,7 @@ abstract class EndToEndTest : ContainerTest() {
                 // Services
                 createAktiveOrgnrService(it, redisConnection),
                 createBerikInntektsmeldingService(it),
+                createHentArbeidsforholdServices(it, redisConnection),
                 createHentForespoerselServices(it, redisConnection),
                 createHentSelvbestemtImService(it, redisConnection),
                 createInnsendingServices(it, redisConnection, producer),

@@ -105,7 +105,7 @@ class ValiderApiInnsendingServiceTest :
             testRapid.inspektør.size shouldBeExactly 2
             testRapid.message(1).lesBehov() shouldBe BehovType.HENT_INNTEKT
 
-            val mndInntekt = Mock.inntektBeloep.minus(100)
+            val mndInntekt = Mock.inntektBeloep.minus(1001)
             val inntektFraAordningen =
                 mapOf(
                     mai(2018) to mndInntekt,

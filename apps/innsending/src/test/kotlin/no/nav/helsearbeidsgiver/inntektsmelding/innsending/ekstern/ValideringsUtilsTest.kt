@@ -43,9 +43,9 @@ class ValideringsUtilsTest :
                     "inntekt utenfor feilmargin gir valideringsfeil" to
                         Pair(
                             listOf(
-                                49980.0,
-                                49985.0,
-                                49975.0,
+                                49000.0,
+                                48000.0,
+                                49000.0,
                             ),
                             setOf(
                                 feil,

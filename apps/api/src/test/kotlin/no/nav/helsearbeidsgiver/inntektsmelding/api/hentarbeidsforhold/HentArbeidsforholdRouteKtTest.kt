@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 private val forespoerselId = UUID.randomUUID()
-private val path = Routes.PREFIX + Routes.HENT_ARBEIDSFORHOLD.replaceFirst("{forespoerselId}", forespoerselId.toString())
+private val path = Routes.PREFIX + Routes.HENT_ARBEIDSFORHOLD.replaceFirst("{${Routes.Params.forespoerselId.key}}", forespoerselId.toString())
 
 class HentArbeidsforholdRouteKtTest : ApiTest() {
     @BeforeEach
@@ -77,7 +77,7 @@ class HentArbeidsforholdRouteKtTest : ApiTest() {
                             it shouldContainKey Key.KONTEKST_ID
                             it.minus(Key.KONTEKST_ID) shouldContainExactly
                                 mapOf(
-                                    Key.EVENT_NAME to EventName.AKTIVE_ARBEIDSFORHOLD_REQUESTED.toJson(),
+                                    Key.EVENT_NAME to EventName.HENT_ARBEIDSFORHOLD_REQUESTED.toJson(),
                                     Key.DATA to
                                         mapOf(
                                             Key.FORESPOERSEL_ID to forespoerselId.toJson(),

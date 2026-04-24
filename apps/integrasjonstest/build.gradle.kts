@@ -11,6 +11,7 @@ val apps =
         "brreg",
         "db",
         "distribusjon",
+        "faisu-service",
         "feil-behandler",
         "forespoersel-marker-besvart",
         "helsebro",

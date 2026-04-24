@@ -15,7 +15,6 @@ import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.felles.utils.overlapperMed
 import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.Publisher
-import no.nav.hag.simba.utils.rr.service.Service
 import no.nav.hag.simba.utils.rr.service.ServiceMed2Steg
 import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -41,13 +40,12 @@ data class Steg2(
 
 class HentArbeidsforholdService(
     private val publisher: Publisher,
-    override val redisStore: RedisStore,
-) : ServiceMed2Steg<Steg0, Steg1, Steg2>(),
-    Service.MedRedis {
+    private val redisStore: RedisStore,
+) : ServiceMed2Steg<Steg0, Steg1, Steg2>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val initialEventName = EventName.AKTIVE_ARBEIDSFORHOLD_REQUESTED
+    override val initialEventName = EventName.HENT_ARBEIDSFORHOLD_REQUESTED
     override val serviceEventName = EventName.SERVICE_HENT_ARBEIDSFORHOLD
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
@@ -76,9 +74,10 @@ class HentArbeidsforholdService(
             Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
             Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
-                mapOf(
-                    Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                ).toJson(),
+                data
+                    .plus(
+                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                    ).toJson(),
         )
     }
 

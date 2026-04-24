@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
+import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
@@ -19,14 +20,14 @@ import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.test.json.lesBehov
 import no.nav.hag.simba.utils.felles.test.json.lesData
+import no.nav.hag.simba.utils.felles.test.json.plusData
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
 import no.nav.hag.simba.utils.rr.KafkaKey
-import no.nav.hag.simba.utils.rr.service.ServiceRiverStateful
+import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
 import no.nav.hag.simba.utils.rr.test.message
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
-import no.nav.hag.simba.utils.valkey.RedisPrefix
-import no.nav.hag.simba.utils.valkey.test.MockRedis
+import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.februar
@@ -39,12 +40,12 @@ class HentArbeidsforholdServiceTest :
     FunSpec({
 
         val testRapid = TestRapid()
-        val mockRedis = MockRedis(RedisPrefix.HentArbeidsforhold)
+        val mockRedisStore = mockk<RedisStore>(relaxed = true)
 
         mockConnectToRapid(testRapid) {
             listOf(
-                ServiceRiverStateful(
-                    HentArbeidsforholdService(it, mockRedis.store),
+                ServiceRiverStateless(
+                    HentArbeidsforholdService(it, mockRedisStore),
                 ),
             )
         }
@@ -52,7 +53,6 @@ class HentArbeidsforholdServiceTest :
         beforeEach {
             testRapid.reset()
             clearAllMocks()
-            mockRedis.setup()
         }
 
         test("henter og filtrerer ansettelsesperioder for forespoersel") {
@@ -80,7 +80,7 @@ class HentArbeidsforholdServiceTest :
             testRapid.sendJson(Mock.steg2(kontekstId, ansettelsesforhold))
 
             verify {
-                mockRedis.store.skrivResultat(
+                mockRedisStore.skrivResultat(
                     kontekstId,
                     ResultJson(
                         success = listOf(gyldigForhold).toJson(Ansettelsesforhold.serializer()),
@@ -103,7 +103,7 @@ class HentArbeidsforholdServiceTest :
             testRapid.sendJson(Mock.steg2(kontekstId, ansettelsesforhold))
 
             verify {
-                mockRedis.store.skrivResultat(
+                mockRedisStore.skrivResultat(
                     kontekstId,
                     ResultJson(
                         success = listOf(forholdInnenfor).toJson(Ansettelsesforhold.serializer()),
@@ -124,7 +124,7 @@ class HentArbeidsforholdServiceTest :
             testRapid.sendJson(Mock.steg2(kontekstId, ansettelsesforhold))
 
             verify {
-                mockRedis.store.skrivResultat(
+                mockRedisStore.skrivResultat(
                     kontekstId,
                     ResultJson(
                         success = emptyList<Ansettelsesforhold>().toJson(Ansettelsesforhold.serializer()),
@@ -145,7 +145,7 @@ class HentArbeidsforholdServiceTest :
             testRapid.sendJson(fail.tilMelding())
 
             verify {
-                mockRedis.store.skrivResultat(
+                mockRedisStore.skrivResultat(
                     fail.kontekstId,
                     ResultJson(failure = fail.feilmelding.toJson()),
                 )
@@ -159,7 +159,7 @@ private object Mock {
 
     fun steg0(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
-            Key.EVENT_NAME to EventName.AKTIVE_ARBEIDSFORHOLD_REQUESTED.toJson(),
+            Key.EVENT_NAME to EventName.HENT_ARBEIDSFORHOLD_REQUESTED.toJson(),
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 mapOf(
@@ -168,24 +168,17 @@ private object Mock {
         )
 
     fun steg1(kontekstId: UUID): Map<Key, JsonElement> =
-        steg0(kontekstId).plus(
-            mapOf(
-                Key.EVENT_NAME to EventName.SERVICE_HENT_ARBEIDSFORHOLD.toJson(),
-                Key.DATA to
-                    mapOf(
-                        Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
-                    ).toJson(),
-            ),
-        )
+        steg0(kontekstId)
+            .plus(Key.EVENT_NAME to EventName.SERVICE_HENT_ARBEIDSFORHOLD.toJson())
+            .plusData(
+                Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
+            )
 
     fun steg2(
         kontekstId: UUID,
         ansettelsesforhold: Map<Orgnr, Set<Ansettelsesforhold>>,
     ): Map<Key, JsonElement> =
-        steg1(kontekstId).plus(
-            Key.DATA to
-                mapOf(
+        steg1(kontekstId).plusData(
                     Key.ANSETTELSESFORHOLD to ansettelsesforhold.toJson(ansettelsesforholdSerializer),
-                ).toJson(),
         )
 }

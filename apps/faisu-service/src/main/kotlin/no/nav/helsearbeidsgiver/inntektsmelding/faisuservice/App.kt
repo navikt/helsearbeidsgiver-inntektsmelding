@@ -2,7 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.faisuservice
 
 import no.nav.hag.simba.utils.rr.Publisher
 import no.nav.hag.simba.utils.rr.river.ObjectRiver
-import no.nav.hag.simba.utils.rr.service.ServiceRiverStateful
+import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
 import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.RedisStore
@@ -19,19 +19,25 @@ fun main() {
     ObjectRiver.connectToRapid(
         onShutdown = { redisConnection.close() },
     ) {
-        createHentArbeidsforholdService(it, redisConnection)
+        createHentArbeidsforholdServices(it, redisConnection)
     }
 }
 
-fun createHentArbeidsforholdService(
+fun createHentArbeidsforholdServices(
     publisher: Publisher,
     redisConnection: RedisConnection,
-): List<ServiceRiverStateful<HentArbeidsforholdService>> =
+): List<ServiceRiverStateless> =
     listOf(
-        ServiceRiverStateful(
+        ServiceRiverStateless(
             HentArbeidsforholdService(
                 publisher = publisher,
                 redisStore = RedisStore(redisConnection, RedisPrefix.HentArbeidsforhold),
+            ),
+        ),
+        ServiceRiverStateless(
+            HentArbeidsforholdSelvbestemtService(
+                publisher = publisher,
+                redisStore = RedisStore(redisConnection, RedisPrefix.HentArbeidsforholdSelvbestemt),
             ),
         ),
     )

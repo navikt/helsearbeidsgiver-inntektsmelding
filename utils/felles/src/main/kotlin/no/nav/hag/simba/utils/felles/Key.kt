@@ -7,7 +7,7 @@ interface IKey
 
 @Serializable(KeySerializer::class)
 enum class Key : IKey {
-    // Predefinerte fra rapids-and-rivers  biblioteket
+    // Predefinerte fra rapids-and-rivers biblioteket
     EVENT_NAME,
     BEHOV,
 
@@ -39,6 +39,7 @@ enum class Key : IKey {
     ORGNR_UNDERENHET,
     ORGNR_UNDERENHETER,
     ORG_RETTIGHETER,
+    PERIODE,
     PERSONER,
     SAK_ID,
     SELVBESTEMT_ID,
@@ -48,6 +49,7 @@ enum class Key : IKey {
     SPINN_INNTEKTSMELDING_ID,
     SVAR_KAFKA_KEY,
     SYKMELDT,
+    SYKMELDT_FNR,
     TILGANG,
     VEDTAKSPERIODE_ID_LISTE,
     VIRKSOMHET,

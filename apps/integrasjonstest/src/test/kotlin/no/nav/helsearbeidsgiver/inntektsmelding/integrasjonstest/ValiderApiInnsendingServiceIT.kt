@@ -249,8 +249,8 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
         val inntektFraAordningen =
             mapOf(
                 oktober(2017) to Mock.inntektBeloep,
-                november(2017) to Mock.inntektBeloep.minus(100),
-                desember(2017) to Mock.inntektBeloep.minus(100),
+                november(2017) to Mock.inntektBeloep.minus(2500),
+                desember(2017) to Mock.inntektBeloep.minus(1000),
             )
 
         val kontekstId = UUID.randomUUID()

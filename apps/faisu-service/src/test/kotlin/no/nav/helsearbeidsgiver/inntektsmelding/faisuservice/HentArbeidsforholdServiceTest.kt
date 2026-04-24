@@ -179,6 +179,6 @@ private object Mock {
         ansettelsesforhold: Map<Orgnr, Set<Ansettelsesforhold>>,
     ): Map<Key, JsonElement> =
         steg1(kontekstId).plusData(
-                    Key.ANSETTELSESFORHOLD to ansettelsesforhold.toJson(ansettelsesforholdSerializer),
+            Key.ANSETTELSESFORHOLD to ansettelsesforhold.toJson(ansettelsesforholdSerializer),
         )
 }

@@ -1,4 +1,4 @@
-FROM gcr.io/distroless/java21
+FROM gcr.io/distroless/java25
 COPY build/libs/*.jar ./
 ENV JAVA_OPTS='-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
 ENV LANG='nb_NO.UTF-8' LANGUAGE='nb_NO:nb' LC_ALL='nb_NO.UTF-8' TZ="Europe/Oslo"

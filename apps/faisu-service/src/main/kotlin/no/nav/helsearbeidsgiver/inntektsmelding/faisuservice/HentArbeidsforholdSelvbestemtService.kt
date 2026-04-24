@@ -39,7 +39,7 @@ class HentArbeidsforholdSelvbestemtService(
     data class Steg0(
         val kontekstId: UUID,
         val orgnr: Orgnr,
-        val sykmeldFnr: Fnr,
+        val sykmeldtFnr: Fnr,
         val periode: Periode,
     )
 
@@ -51,7 +51,7 @@ class HentArbeidsforholdSelvbestemtService(
         Steg0(
             kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             orgnr = Key.ORGNR_UNDERENHET.les(Orgnr.serializer(), melding),
-            sykmeldFnr = Key.SYKMELDT_FNR.les(Fnr.serializer(), melding),
+            sykmeldtFnr = Key.SYKMELDT_FNR.les(Fnr.serializer(), melding),
             periode = Key.PERIODE.les(Periode.serializer(), melding),
         )
 
@@ -64,10 +64,10 @@ class HentArbeidsforholdSelvbestemtService(
         data: Map<Key, JsonElement>,
         steg0: Steg0,
     ) {
-        val svarKafkaKey = KafkaKey(steg0.sykmeldFnr)
+        val svarKafkaKey = KafkaKey(steg0.sykmeldtFnr)
 
         publisher.publish(
-            key = steg0.sykmeldFnr,
+            key = steg0.sykmeldtFnr,
             Key.EVENT_NAME to serviceEventName.toJson(),
             Key.BEHOV to BehovType.HENT_ANSETTELSESPERIODER.toJson(),
             Key.KONTEKST_ID to steg0.kontekstId.toJson(),
@@ -76,7 +76,7 @@ class HentArbeidsforholdSelvbestemtService(
                     .plus(
                         mapOf(
                             Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
-                            Key.FNR to steg0.sykmeldFnr.toJson(),
+                            Key.FNR to steg0.sykmeldtFnr.toJson(),
                         ),
                     ).toJson(),
         )

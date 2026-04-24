@@ -13,7 +13,7 @@ import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
+import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
@@ -40,18 +40,18 @@ class HentArbeidsforholdRouteKtTest : ApiTest() {
     }
 
     @Test
-    fun `gir OK med ansettelsesperioder`() =
+    fun `gir OK med ansettelsesforhold`() =
         testApi {
             coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
-                    Mock.successResult(Mock.ansettelsesperioder),
+                    Mock.successResult(Mock.ansettelsesforhold),
                 )
 
             val response = get(path)
 
             response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe Mock.successResponseJson(Mock.ansettelsesperioder)
+            response.bodyAsText() shouldBe Mock.successResponseJson(Mock.ansettelsesforhold)
 
             verifySequence {
                 mockProducer.send(
@@ -157,17 +157,17 @@ class HentArbeidsforholdRouteKtTest : ApiTest() {
 }
 
 private object Mock {
-    val ansettelsesperioder = listOf(PeriodeAapen(fom = 2.januar, tom = 31.januar))
+    val ansettelsesforhold = listOf(Ansettelsesforhold(startdato = 2.januar, sluttdato = 31.januar))
 
-    fun successResult(ansettelsesperioder: List<PeriodeAapen>): ResultJson =
+    fun successResult(ansettelsesforhold: List<Ansettelsesforhold>): ResultJson =
         ResultJson(
-            success = ansettelsesperioder.toJson(PeriodeAapen.serializer()),
+            success = ansettelsesforhold.toJson(Ansettelsesforhold.serializer()),
         )
 
-    fun successResponseJson(ansettelsesperioder: List<PeriodeAapen>): String =
+    fun successResponseJson(ansettelsesforhold: List<Ansettelsesforhold>): String =
         """
         {
-            "ansettelsesperioder": [${ansettelsesperioder.joinToString(transform = PeriodeAapen::hardcodedJson)}]
+            "ansettelsesforhold": [${ansettelsesforhold.joinToString(transform = Ansettelsesforhold::hardcodedJson)}]
         }
         """.removeJsonWhitespace()
 
@@ -176,4 +176,11 @@ private object Mock {
     fun emptyResult(): ResultJson = ResultJson()
 }
 
-private fun PeriodeAapen.hardcodedJson(): String = """{"fom":"$fom","tom":${if (tom != null) "\"$tom\"" else "null"}}"""
+private fun Ansettelsesforhold.hardcodedJson(): String {
+    val fields = mutableListOf(""""startdato":"$startdato"""")
+    if (sluttdato != null) fields.add(""""sluttdato":"$sluttdato"""")
+    if (yrkesKode != null) fields.add(""""yrkesKode":"$yrkesKode"""")
+    if (yrkesBeskrivelse != null) fields.add(""""yrkesBeskrivelse":"$yrkesBeskrivelse"""")
+    if (stillingsprosent != null) fields.add(""""stillingsprosent":$stillingsprosent""")
+    return "{${fields.joinToString(",")}}"
+}

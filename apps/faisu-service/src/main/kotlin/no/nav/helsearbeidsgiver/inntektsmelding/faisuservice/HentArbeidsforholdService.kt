@@ -5,10 +5,10 @@ import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.domene.Fail
-import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
 import no.nav.hag.simba.utils.felles.domene.ResultJson
-import no.nav.hag.simba.utils.felles.json.ansettelsesperioderSerializer
+import no.nav.hag.simba.utils.felles.json.ansettelsesforholdSerializer
 import no.nav.hag.simba.utils.felles.json.les
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.Log
@@ -36,7 +36,7 @@ data class Steg1(
 )
 
 data class Steg2(
-    val ansettelsesperioder: Map<Orgnr, Set<PeriodeAapen>>,
+    val ansettelsesforhold: Map<Orgnr, Set<Ansettelsesforhold>>,
 )
 
 class HentArbeidsforholdService(
@@ -63,7 +63,7 @@ class HentArbeidsforholdService(
 
     override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 =
         Steg2(
-            ansettelsesperioder = Key.ANSETTELSESPERIODER.les(ansettelsesperioderSerializer, melding),
+            ansettelsesforhold = Key.ANSETTELSESFORHOLD.les(ansettelsesforholdSerializer, melding),
         )
 
     override fun utfoerSteg0(
@@ -110,20 +110,20 @@ class HentArbeidsforholdService(
     ) {
         val forespoersel = steg1.forespoersel
 
-        val ansettelsesperioderForAktuellOrg = steg2.ansettelsesperioder[forespoersel.orgnr].orEmpty()
+        val ansettelsesforholdForAktuellOrg = steg2.ansettelsesforhold[forespoersel.orgnr].orEmpty()
 
         // Dette er en forenklet metode
         // TODO: Finne ut hvordan vi skal filtrere ut urelevante ansettelseperioder på en bedre måte
-        val ansettelsePerioderMedSykmeldingOverlapp =
-            ansettelsesperioderForAktuellOrg.filter { ansettelsePeriode ->
+        val ansettelsesforholdMedSykmeldingOverlapp =
+            ansettelsesforholdForAktuellOrg.filter { forhold ->
                 forespoersel.sykmeldingsperioder.any { sykmeldingPeriode ->
-                    sykmeldingPeriode.overlapperMed(ansettelsePeriode)
+                    sykmeldingPeriode.overlapperMed(forhold)
                 }
             }
 
         val resultJson =
             ResultJson(
-                success = ansettelsePerioderMedSykmeldingOverlapp.toJson(PeriodeAapen.serializer()),
+                success = ansettelsesforholdMedSykmeldingOverlapp.toJson(Ansettelsesforhold.serializer()),
             )
 
         redisStore.skrivResultat(steg0.kontekstId, resultJson)

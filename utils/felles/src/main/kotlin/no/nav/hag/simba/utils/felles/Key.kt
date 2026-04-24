@@ -12,6 +12,7 @@ enum class Key : IKey {
     BEHOV,
 
     // Egendefinerte
+    ANSETTELSESFORHOLD,
     ANSETTELSESPERIODER,
     ARBEIDSGIVER_FNR,
     AVSENDER_NAVN,

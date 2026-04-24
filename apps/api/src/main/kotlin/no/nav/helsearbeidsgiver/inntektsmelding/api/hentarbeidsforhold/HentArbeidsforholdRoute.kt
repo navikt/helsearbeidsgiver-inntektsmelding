@@ -4,7 +4,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
+import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.kafka.Producer
@@ -51,9 +51,9 @@ fun Route.hentArbeidsforholdRoute(
                         kontekstId = kontekstId,
                         inntektsmeldingTypeId = forespoerselId,
                         logOnFailure = "Klarte ikke hente arbeidsforholdsdata.",
-                        successSerializer = PeriodeAapen.serializer().list(),
-                    ) { ansettelsesperioder ->
-                        val response = HentArbeidsforholdResponse(ansettelsesperioder)
+                        successSerializer = Ansettelsesforhold.serializer().list(),
+                    ) { ansettelsesforhold ->
+                        val response = HentArbeidsforholdResponse(ansettelsesforhold)
                         val responseJson = response.toJson(HentArbeidsforholdResponse.serializer())
 
                         "Arbeidsforholdsdata hentet OK.".also {

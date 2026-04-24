@@ -16,6 +16,7 @@ import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
+import no.nav.hag.simba.utils.felles.json.ansettelsesforholdSerializer
 import no.nav.hag.simba.utils.felles.json.ansettelsesperioderSerializer
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
@@ -36,6 +37,7 @@ import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
+import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold as FellesAnsettelsesforhold
 import no.nav.helsearbeidsgiver.aareg.Periode as KlientPeriode
 
 class HentAnsettelsesperioderRiverTest :
@@ -102,6 +104,17 @@ class HentAnsettelsesperioderRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
+            val ansettelsesforhold =
+                mapOf(
+                    orgnr to
+                        setOf(
+                            FellesAnsettelsesforhold(
+                                startdato = periode.fom,
+                                sluttdato = periode.tom,
+                            ),
+                        ),
+                )
+
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
@@ -109,6 +122,7 @@ class HentAnsettelsesperioderRiverTest :
                     Key.DATA to
                         innkommendeMelding.data
                             .plus(Key.ANSETTELSESPERIODER to ansettelsesperioder.toJson(ansettelsesperioderSerializer))
+                            .plus(Key.ANSETTELSESFORHOLD to ansettelsesforhold.toJson(ansettelsesforholdSerializer))
                             .toJson(),
                 )
 

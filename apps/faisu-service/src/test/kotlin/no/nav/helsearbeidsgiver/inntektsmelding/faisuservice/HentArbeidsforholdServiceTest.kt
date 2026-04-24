@@ -12,9 +12,9 @@ import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
+import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.domene.ResultJson
-import no.nav.hag.simba.utils.felles.json.ansettelsesperioderSerializer
+import no.nav.hag.simba.utils.felles.json.ansettelsesforholdSerializer
 import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.test.json.lesBehov
@@ -57,11 +57,11 @@ class HentArbeidsforholdServiceTest :
 
         test("henter og filtrerer ansettelsesperioder for forespoersel") {
             val kontekstId = UUID.randomUUID()
-            val gyldigPeriode = PeriodeAapen(fom = 1.januar, tom = 31.januar)
-            val ansettelsesperioder =
+            val gyldigForhold = Ansettelsesforhold(startdato = 1.januar, sluttdato = 31.januar)
+            val ansettelsesforhold =
                 mapOf(
-                    Mock.forespoersel.orgnr to setOf(gyldigPeriode),
-                    Orgnr.genererGyldig() to setOf(PeriodeAapen(fom = 1.januar, tom = 31.januar)),
+                    Mock.forespoersel.orgnr to setOf(gyldigForhold),
+                    Orgnr.genererGyldig() to setOf(Ansettelsesforhold(startdato = 1.januar, sluttdato = 31.januar)),
                 )
 
             testRapid.sendJson(Mock.steg0(kontekstId))
@@ -77,13 +77,13 @@ class HentArbeidsforholdServiceTest :
                 Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(Mock.forespoerselId)
             }
 
-            testRapid.sendJson(Mock.steg2(kontekstId, ansettelsesperioder))
+            testRapid.sendJson(Mock.steg2(kontekstId, ansettelsesforhold))
 
             verify {
                 mockRedis.store.skrivResultat(
                     kontekstId,
                     ResultJson(
-                        success = listOf(gyldigPeriode).toJson(PeriodeAapen.serializer()),
+                        success = listOf(gyldigForhold).toJson(Ansettelsesforhold.serializer()),
                     ),
                 )
             }
@@ -91,22 +91,22 @@ class HentArbeidsforholdServiceTest :
 
         test("filtrerer bort ansettelsesperioder utenfor sykmeldingsperiode") {
             val kontekstId = UUID.randomUUID()
-            val periodeInnenfor = PeriodeAapen(fom = 1.januar, tom = 31.januar)
-            val periodeUtenfor = PeriodeAapen(fom = 5.februar, tom = 28.februar)
-            val ansettelsesperioder =
+            val forholdInnenfor = Ansettelsesforhold(startdato = 1.januar, sluttdato = 31.januar)
+            val forholdUtenfor = Ansettelsesforhold(startdato = 5.februar, sluttdato = 28.februar)
+            val ansettelsesforhold =
                 mapOf(
-                    Mock.forespoersel.orgnr to setOf(periodeInnenfor, periodeUtenfor),
+                    Mock.forespoersel.orgnr to setOf(forholdInnenfor, forholdUtenfor),
                 )
 
             testRapid.sendJson(Mock.steg0(kontekstId))
             testRapid.sendJson(Mock.steg1(kontekstId))
-            testRapid.sendJson(Mock.steg2(kontekstId, ansettelsesperioder))
+            testRapid.sendJson(Mock.steg2(kontekstId, ansettelsesforhold))
 
             verify {
                 mockRedis.store.skrivResultat(
                     kontekstId,
                     ResultJson(
-                        success = listOf(periodeInnenfor).toJson(PeriodeAapen.serializer()),
+                        success = listOf(forholdInnenfor).toJson(Ansettelsesforhold.serializer()),
                     ),
                 )
             }
@@ -114,20 +114,20 @@ class HentArbeidsforholdServiceTest :
 
         test("filtrerer bort ansettelsesperioder for feil orgnr") {
             val kontekstId = UUID.randomUUID()
-            val ansettelsesperioder =
+            val ansettelsesforhold =
                 mapOf(
-                    Orgnr.genererGyldig() to setOf(PeriodeAapen(fom = 1.januar, tom = 31.januar)),
+                    Orgnr.genererGyldig() to setOf(Ansettelsesforhold(startdato = 1.januar, sluttdato = 31.januar)),
                 )
 
             testRapid.sendJson(Mock.steg0(kontekstId))
             testRapid.sendJson(Mock.steg1(kontekstId))
-            testRapid.sendJson(Mock.steg2(kontekstId, ansettelsesperioder))
+            testRapid.sendJson(Mock.steg2(kontekstId, ansettelsesforhold))
 
             verify {
                 mockRedis.store.skrivResultat(
                     kontekstId,
                     ResultJson(
-                        success = emptyList<PeriodeAapen>().toJson(PeriodeAapen.serializer()),
+                        success = emptyList<Ansettelsesforhold>().toJson(Ansettelsesforhold.serializer()),
                     ),
                 )
             }
@@ -180,12 +180,12 @@ private object Mock {
 
     fun steg2(
         kontekstId: UUID,
-        ansettelsesperioder: Map<Orgnr, Set<PeriodeAapen>>,
+        ansettelsesforhold: Map<Orgnr, Set<Ansettelsesforhold>>,
     ): Map<Key, JsonElement> =
         steg1(kontekstId).plus(
             Key.DATA to
                 mapOf(
-                    Key.ANSETTELSESPERIODER to ansettelsesperioder.toJson(ansettelsesperioderSerializer),
+                    Key.ANSETTELSESFORHOLD to ansettelsesforhold.toJson(ansettelsesforholdSerializer),
                 ).toJson(),
         )
 }

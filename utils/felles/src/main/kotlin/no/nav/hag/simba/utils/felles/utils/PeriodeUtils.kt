@@ -1,5 +1,6 @@
 package no.nav.hag.simba.utils.felles.utils
 
+import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import java.time.LocalDate
@@ -29,4 +30,11 @@ fun Periode.overlapperMed(annen: PeriodeAapen): Boolean {
     val endB = annen.tom ?: LocalDate.MAX
 
     return !this.fom.isAfter(endB) && !annen.fom.isAfter(endA)
+}
+
+fun Periode.overlapperMed(annen: Ansettelsesforhold): Boolean {
+    val endA = this.tom
+    val endB = annen.sluttdato ?: LocalDate.MAX
+
+    return !this.fom.isAfter(endB) && !annen.startdato.isAfter(endA)
 }

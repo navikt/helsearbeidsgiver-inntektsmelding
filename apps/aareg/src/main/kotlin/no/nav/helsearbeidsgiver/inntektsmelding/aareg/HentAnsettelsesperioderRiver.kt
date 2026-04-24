@@ -5,8 +5,10 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
+import no.nav.hag.simba.utils.felles.json.ansettelsesforholdSerializer
 import no.nav.hag.simba.utils.felles.json.ansettelsesperioderSerializer
 import no.nav.hag.simba.utils.felles.json.krev
 import no.nav.hag.simba.utils.felles.json.les
@@ -57,15 +59,29 @@ class HentAnsettelsesperioderRiver(
     override fun HentAnsettelsesperioderMelding.bestemNoekkel(): KafkaKey = svarKafkaKey
 
     override fun HentAnsettelsesperioderMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        val ansettelsDetaljer =
+        val ansettelsesforholdFraKlient =
             runBlocking {
                 aaregClient.hentAnsettelsesforhold(fnr.verdi, kontekstId.toString())
             }
 
         sikkerLogger.info(
-            "Hentet ${ansettelsDetaljer.size} ansettelsesforhold for fnr ${fnr.verdi}." +
-                "fant Detaljer: $ansettelsDetaljer",
+            "Hentet ${ansettelsesforholdFraKlient.size} ansettelsesforhold for fnr ${fnr.verdi}. " +
+                "Detaljer: $ansettelsesforholdFraKlient",
         )
+
+        val ansettelsesforhold =
+            ansettelsesforholdFraKlient.mapValues { (_, forholdListe) ->
+                forholdListe
+                    .map {
+                        Ansettelsesforhold(
+                            startdato = it.startdato,
+                            sluttdato = it.sluttdato,
+                            yrkesKode = it.yrkesKode,
+                            yrkesBeskrivelse = it.yrkesBeskrivelse,
+                            stillingsprosent = it.stillingsprosent,
+                        )
+                    }.toSet()
+            }
 
         val ansettelsesperioder =
             runBlocking {
@@ -90,9 +106,9 @@ class HentAnsettelsesperioderRiver(
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 data
-                    .plus(
-                        Key.ANSETTELSESPERIODER to ansettelsesperioder.toJson(ansettelsesperioderSerializer),
-                    ).toJson(),
+                    .plus(Key.ANSETTELSESPERIODER to ansettelsesperioder.toJson(ansettelsesperioderSerializer))
+                    .plus(Key.ANSETTELSESFORHOLD to ansettelsesforhold.toJson(ansettelsesforholdSerializer))
+                    .toJson(),
         )
     }
 

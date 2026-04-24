@@ -40,6 +40,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
+import no.nav.helsearbeidsgiver.aareg.Ansettelsesforhold as KlientAnsettelsesforhold
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AktiveOrgnrServiceIT : EndToEndTest() {
@@ -52,6 +53,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
     fun `Henter aktive organisasjoner`() {
         val kontekstId = UUID.randomUUID()
 
+        coEvery { aaregClient.hentAnsettelsesforhold(any(), any()) } returns Mock.ansettelsesforhold
         coEvery { aaregClient.hentAnsettelsesperioder(any(), any()) } returns Mock.ansettelsesperioder
         coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet
         coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Mock.orgnr to Mock.orgNavn)
@@ -133,6 +135,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
     fun `ingen arbeidsforhold`() {
         val kontekstId = UUID.randomUUID()
 
+        coEvery { aaregClient.hentAnsettelsesforhold(any(), any()) } returns emptyMap()
         coEvery { aaregClient.hentAnsettelsesperioder(any(), any()) } returns emptyMap()
         coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet
         coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Mock.orgnr to Mock.orgNavn)
@@ -197,6 +200,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
     fun `Ved feil under henting av personer så svarer service med feil`() {
         val kontekstId = UUID.randomUUID()
 
+        coEvery { aaregClient.hentAnsettelsesforhold(any(), any()) } returns Mock.ansettelsesforhold
         coEvery { aaregClient.hentAnsettelsesperioder(any(), any()) } returns Mock.ansettelsesperioder
         coEvery { altinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjonSet
         coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Mock.orgnr to Mock.orgNavn)
@@ -290,6 +294,20 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                         Periode(
                             fom = 1.januar,
                             tom = null,
+                        ),
+                    ),
+            )
+
+        val ansettelsesforhold =
+            mapOf(
+                orgnr to
+                    setOf(
+                        KlientAnsettelsesforhold(
+                            startdato = 1.januar,
+                            sluttdato = null,
+                            yrkesKode = "1234567",
+                            yrkesBeskrivelse = "BARNEHAGEASSISTENT",
+                            stillingsprosent = 100.0,
                         ),
                     ),
             )

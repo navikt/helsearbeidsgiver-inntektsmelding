@@ -195,11 +195,14 @@ class PdfDokument(
 
     private fun addInntekt() {
         addSection("Beregnet månedslønn")
-        addLabel(
-            "Registrert inntekt (per ${inntektsmelding.inntekt?.inntektsdato?.tilNorskFormat()})",
-            "${inntektsmelding.inntekt?.beloep?.tilNorskFormat()} kr/måned",
-        )
-
+        if (inntektsmelding.inntekt == null) {
+            addLabel("Inntekt ikke oppgitt")
+        } else {
+            addLabel(
+                "Registrert inntekt (per ${inntektsmelding.inntekt?.inntektsdato?.tilNorskFormat()})",
+                "${inntektsmelding.inntekt?.beloep?.tilNorskFormat()} kr/måned",
+            )
+        }
         val endringAarsaker = inntektsmelding.inntekt?.endringAarsaker.orDefault(emptyList())
         val antall = endringAarsaker.size
         endringAarsaker.forEachIndexed { indeks, endringAarsak ->

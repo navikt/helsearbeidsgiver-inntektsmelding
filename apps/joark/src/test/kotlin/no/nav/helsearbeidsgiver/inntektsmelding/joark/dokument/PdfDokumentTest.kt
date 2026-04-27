@@ -295,6 +295,20 @@ class PdfDokumentTest {
     }
 
     @Test
+    fun `mangler inntekt`() {
+        val inntektsmeldingUtenInntekt =
+            im.copy(
+                inntekt = null,
+            )
+
+        writePDF(
+            "uten_inntekt",
+            inntektsmeldingUtenInntekt,
+        )
+        pdfTekstFraIm(inntektsmeldingUtenInntekt) shouldContain "Inntekt ikke oppgitt"
+    }
+
+    @Test
     fun `med en begrunnelse blir teksten lagt til`() {
         endringAarsaker.map { listOf(it) }.map { it.tilIm() }.forEach { im ->
             im.inntekt?.endringAarsaker?.forEach { endring ->
@@ -362,8 +376,8 @@ class PdfDokumentTest {
         title: String,
         im: Inntektsmelding,
     ) {
-        // val file = File(System.getProperty("user.home"), "/Desktop/pdf/$title.pdf")
-        val file = File.createTempFile(title, ".pdf")
+        val file = File(System.getProperty("user.home"), "/Desktop/pdf/$title.pdf")
+        // val file = File.createTempFile(title, ".pdf")
         val writer = FileOutputStream(file)
         writer.write(PdfDokument(im).export())
         println("Lagde PDF $title med filnavn ${file.toPath()}")

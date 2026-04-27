@@ -295,6 +295,20 @@ class PdfDokumentTest {
     }
 
     @Test
+    fun `mangler inntekt`() {
+        val inntektsmeldingUtenInntekt =
+            im.copy(
+                inntekt = null,
+            )
+
+        writePDF(
+            "uten_inntekt",
+            inntektsmeldingUtenInntekt,
+        )
+        pdfTekstFraIm(inntektsmeldingUtenInntekt) shouldContain "Inntekt ikke oppgitt"
+    }
+
+    @Test
     fun `med en begrunnelse blir teksten lagt til`() {
         endringAarsaker.map { listOf(it) }.map { it.tilIm() }.forEach { im ->
             im.inntekt?.endringAarsaker?.forEach { endring ->

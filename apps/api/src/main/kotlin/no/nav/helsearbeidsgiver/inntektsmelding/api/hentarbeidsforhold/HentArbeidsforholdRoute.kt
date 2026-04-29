@@ -4,7 +4,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
+import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.kafka.Producer
@@ -20,7 +20,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedisOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readPathParamOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
-import no.nav.helsearbeidsgiver.utils.json.serializer.set
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
@@ -50,13 +50,13 @@ fun Route.hentArbeidsforholdRoute(
                         redisPoller = redisPoller,
                         kontekstId = kontekstId,
                         inntektsmeldingTypeId = forespoerselId,
-                        logOnFailure = "Klarte ikke hente arbeidsforhold.",
-                        successSerializer = PeriodeAapen.serializer().set(),
-                    ) { ansettelsesperioder ->
-                        val response = HentArbeidsforholdResponse(ansettelsesperioder)
+                        logOnFailure = "Klarte ikke hente arbeidsforholdsdata.",
+                        successSerializer = Ansettelsesforhold.serializer().list(),
+                    ) { ansettelsesforhold ->
+                        val response = HentArbeidsforholdResponse(ansettelsesforhold)
                         val responseJson = response.toJson(HentArbeidsforholdResponse.serializer())
 
-                        "Arbeidsforhold hentet OK.".also {
+                        "Arbeidsforholdsdata hentet OK.".also {
                             logger.info(it)
                             sikkerLogger.info("$it\n${responseJson.toPretty()}")
                         }

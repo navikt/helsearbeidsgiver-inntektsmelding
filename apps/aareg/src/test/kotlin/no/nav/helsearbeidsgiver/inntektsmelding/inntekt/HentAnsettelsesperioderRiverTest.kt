@@ -16,6 +16,7 @@ import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
+import no.nav.hag.simba.utils.felles.json.ansettelsesforholdSerializer
 import no.nav.hag.simba.utils.felles.json.ansettelsesperioderSerializer
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
@@ -25,6 +26,7 @@ import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helsearbeidsgiver.aareg.AaregClient
+import no.nav.helsearbeidsgiver.aareg.Ansettelsesforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.HentAnsettelsesperioderMelding
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.HentAnsettelsesperioderRiver
@@ -35,6 +37,7 @@ import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
+import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold as FellesAnsettelsesforhold
 import no.nav.helsearbeidsgiver.aareg.Periode as KlientPeriode
 
 class HentAnsettelsesperioderRiverTest :
@@ -81,6 +84,18 @@ class HentAnsettelsesperioderRiverTest :
                         ),
                 )
 
+            val ansettelsesforholdFraKlient =
+                mapOf(
+                    orgnr to
+                        setOf(
+                            Ansettelsesforhold(
+                                startdato = periode.fom,
+                                sluttdato = periode.tom,
+                            ),
+                        ),
+                )
+
+            coEvery { mockAaregClient.hentAnsettelsesforhold(any(), any()) } returns ansettelsesforholdFraKlient
             coEvery { mockAaregClient.hentAnsettelsesperioder(any(), any()) } returns ansettelsesperioderFraKlient
 
             val innkommendeMelding = Mock.innkommendeMelding()
@@ -89,6 +104,17 @@ class HentAnsettelsesperioderRiverTest :
 
             testRapid.inspektør.size shouldBeExactly 1
 
+            val ansettelsesforhold =
+                mapOf(
+                    orgnr to
+                        setOf(
+                            FellesAnsettelsesforhold(
+                                startdato = periode.fom,
+                                sluttdato = periode.tom,
+                            ),
+                        ),
+                )
+
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
                     Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
@@ -96,15 +122,18 @@ class HentAnsettelsesperioderRiverTest :
                     Key.DATA to
                         innkommendeMelding.data
                             .plus(Key.ANSETTELSESPERIODER to ansettelsesperioder.toJson(ansettelsesperioderSerializer))
+                            .plus(Key.ANSETTELSESFORHOLD to ansettelsesforhold.toJson(ansettelsesforholdSerializer))
                             .toJson(),
                 )
 
             coVerifySequence {
+                mockAaregClient.hentAnsettelsesforhold(innkommendeMelding.fnr.verdi, innkommendeMelding.kontekstId.toString())
                 mockAaregClient.hentAnsettelsesperioder(innkommendeMelding.fnr.verdi, innkommendeMelding.kontekstId.toString())
             }
         }
 
         test("håndterer feil") {
+            coEvery { mockAaregClient.hentAnsettelsesforhold(any(), any()) } returns emptyMap()
             coEvery { mockAaregClient.hentAnsettelsesperioder(any(), any()) } throws NullPointerException()
 
             val innkommendeMelding = Mock.innkommendeMelding()
@@ -123,6 +152,7 @@ class HentAnsettelsesperioderRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             coVerifySequence {
+                mockAaregClient.hentAnsettelsesforhold(innkommendeMelding.fnr.verdi, innkommendeMelding.kontekstId.toString())
                 mockAaregClient.hentAnsettelsesperioder(innkommendeMelding.fnr.verdi, innkommendeMelding.kontekstId.toString())
             }
         }
@@ -145,6 +175,7 @@ class HentAnsettelsesperioderRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 coVerify(exactly = 0) {
+                    mockAaregClient.hentAnsettelsesforhold(any(), any())
                     mockAaregClient.hentAnsettelsesperioder(any(), any())
                 }
             }

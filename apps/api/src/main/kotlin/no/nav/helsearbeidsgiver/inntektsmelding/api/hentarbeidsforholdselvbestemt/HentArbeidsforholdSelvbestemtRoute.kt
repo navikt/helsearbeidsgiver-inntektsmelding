@@ -4,7 +4,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
+import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.kafka.Producer
@@ -49,9 +49,9 @@ fun Route.hentArbeidsforholdSelvbestemtRoute(
                         redisPoller = redisPoller,
                         kontekstId = kontekstId,
                         logOnFailure = "Klarte ikke hente arbeidsforhold for selvbestemt.",
-                        successSerializer = PeriodeAapen.serializer().set(),
-                    ) { ansettelsesperioder ->
-                        val response = HentArbeidsforholdSelvbestemtResponse(ansettelsesperioder)
+                        successSerializer = Ansettelsesforhold.serializer().set(),
+                    ) { ansettelsesforhold ->
+                        val response = HentArbeidsforholdSelvbestemtResponse(ansettelsesforhold)
 
                         "Arbeidsforhold for selvbestemt hentet OK.".also {
                             logger.info(it)

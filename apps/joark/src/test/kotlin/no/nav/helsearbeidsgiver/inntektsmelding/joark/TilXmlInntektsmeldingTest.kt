@@ -1,11 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.dataformat.xml.XmlMapper
-import com.fasterxml.jackson.dataformat.xml.deser.FromXmlParser
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Feilregistrert
@@ -18,6 +12,11 @@ import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
+import tools.jackson.dataformat.xml.XmlMapper
+import tools.jackson.dataformat.xml.XmlReadFeature
+import tools.jackson.module.jaxb.JaxbAnnotationModule
 
 class TilXmlInntektsmeldingTest {
     @Test
@@ -94,9 +93,9 @@ class TilXmlInntektsmeldingTest {
 }
 
 private fun xmlMapper(): ObjectMapper =
-    XmlMapper().apply {
-        registerModule(JaxbAnnotationModule())
-        registerModule(JavaTimeModule())
-        configure(FromXmlParser.Feature.EMPTY_ELEMENT_AS_NULL, true)
-        enable(SerializationFeature.INDENT_OUTPUT)
-    }
+    XmlMapper
+        .builder()
+        .addModule(JaxbAnnotationModule())
+        .enable(XmlReadFeature.EMPTY_ELEMENT_AS_NULL)
+        .enable(SerializationFeature.INDENT_OUTPUT)
+        .build()

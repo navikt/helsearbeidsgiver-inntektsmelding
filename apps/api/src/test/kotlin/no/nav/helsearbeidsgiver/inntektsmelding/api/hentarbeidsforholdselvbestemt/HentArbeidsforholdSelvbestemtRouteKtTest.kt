@@ -80,9 +80,10 @@ class HentArbeidsforholdSelvbestemtRouteKtTest : ApiTest() {
                         stillingsprosent = 60.0,
                     ),
                 )
-            val forventetResponse = HentArbeidsforholdSelvbestemtResponse(
-                ansettelsesforhold = ansettelsesforhold.map(AnsettelsesforholdResponse::fra).toSet(),
-            )
+            val forventetResponse =
+                HentArbeidsforholdSelvbestemtResponse(
+                    ansettelsesforhold = ansettelsesforhold.map(AnsettelsesforholdResponse::fra).toSet(),
+                )
 
             coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(

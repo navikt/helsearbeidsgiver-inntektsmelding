@@ -52,9 +52,10 @@ fun Route.hentArbeidsforholdSelvbestemtRoute(
                         logOnFailure = "Klarte ikke hente arbeidsforhold for selvbestemt.",
                         successSerializer = Ansettelsesforhold.serializer().set(),
                     ) { ansettelsesforhold ->
-                        val response = HentArbeidsforholdSelvbestemtResponse(
-                            ansettelsesforhold = ansettelsesforhold.map(AnsettelsesforholdResponse::fra).toSet(),
-                        )
+                        val response =
+                            HentArbeidsforholdSelvbestemtResponse(
+                                ansettelsesforhold = ansettelsesforhold.map(AnsettelsesforholdResponse::fra).toSet(),
+                            )
 
                         "Arbeidsforhold for selvbestemt hentet OK.".also {
                             logger.info(it)

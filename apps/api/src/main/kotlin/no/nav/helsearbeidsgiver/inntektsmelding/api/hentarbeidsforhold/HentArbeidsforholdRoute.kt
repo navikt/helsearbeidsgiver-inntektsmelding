@@ -53,9 +53,10 @@ fun Route.hentArbeidsforholdRoute(
                         logOnFailure = "Klarte ikke hente arbeidsforholdsdata.",
                         successSerializer = Ansettelsesforhold.serializer().set(),
                     ) { ansettelsesforhold ->
-                        val response = HentArbeidsforholdResponse(
-                            ansettelsesforhold = ansettelsesforhold.map(AnsettelsesforholdResponse::fra).toSet(),
-                        )
+                        val response =
+                            HentArbeidsforholdResponse(
+                                ansettelsesforhold = ansettelsesforhold.map(AnsettelsesforholdResponse::fra).toSet(),
+                            )
                         val responseJson = response.toJson(HentArbeidsforholdResponse.serializer())
 
                         "Arbeidsforholdsdata hentet OK.".also {

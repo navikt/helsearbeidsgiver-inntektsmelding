@@ -19,6 +19,7 @@ import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
+import no.nav.helsearbeidsgiver.inntektsmelding.api.hentarbeidsforhold.AnsettelsesforholdResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
@@ -79,7 +80,9 @@ class HentArbeidsforholdSelvbestemtRouteKtTest : ApiTest() {
                         stillingsprosent = 60.0,
                     ),
                 )
-            val forventetResponse = HentArbeidsforholdSelvbestemtResponse(ansettelsesforhold)
+            val forventetResponse = HentArbeidsforholdSelvbestemtResponse(
+                ansettelsesforhold = ansettelsesforhold.map(AnsettelsesforholdResponse::fra).toSet(),
+            )
 
             coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(

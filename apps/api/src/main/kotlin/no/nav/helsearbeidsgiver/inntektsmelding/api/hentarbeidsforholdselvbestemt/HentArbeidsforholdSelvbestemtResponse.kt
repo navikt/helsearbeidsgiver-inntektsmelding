@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.hentarbeidsforholdselvbestemt
 
 import kotlinx.serialization.Serializable
-import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold
+import no.nav.helsearbeidsgiver.inntektsmelding.api.hentarbeidsforhold.AnsettelsesforholdResponse
 
 @Serializable
 data class HentArbeidsforholdSelvbestemtResponse(
-    val ansettelsesforhold: Set<Ansettelsesforhold>,
+    val ansettelsesforhold: Set<AnsettelsesforholdResponse>,
 )

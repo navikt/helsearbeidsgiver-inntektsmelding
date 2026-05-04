@@ -167,7 +167,7 @@ private object Mock {
     fun successResponseJson(ansettelsesforhold: Set<Ansettelsesforhold>): String =
         """
         {
-            "ansettelsesforhold": [${ansettelsesforhold.joinToString(transform = Ansettelsesforhold::hardcodedJson)}]
+            "ansettelsesforhold": [${ansettelsesforhold.joinToString { it.hardcodedResponseJson() }}]
         }
         """.removeJsonWhitespace()
 
@@ -176,11 +176,9 @@ private object Mock {
     fun emptyResult(): ResultJson = ResultJson()
 }
 
-private fun Ansettelsesforhold.hardcodedJson(): String {
+private fun Ansettelsesforhold.hardcodedResponseJson(): String {
     val fields = mutableListOf(""""startdato":"$startdato"""")
-    if (sluttdato != null) fields.add(""""sluttdato":"$sluttdato"""")
-    if (yrkesKode != null) fields.add(""""yrkesKode":"$yrkesKode"""")
-    if (yrkesBeskrivelse != null) fields.add(""""yrkesBeskrivelse":"$yrkesBeskrivelse"""")
-    if (stillingsprosent != null) fields.add(""""stillingsprosent":$stillingsprosent""")
+    fields.add(""""yrkesBeskrivelse":${if (yrkesBeskrivelse != null) "\"$yrkesBeskrivelse\"" else "null"}""")
+    fields.add(""""stillingsprosent":${stillingsprosent ?: "null"}""")
     return "{${fields.joinToString(",")}}"
 }

@@ -118,7 +118,7 @@ class HentArbeidsforholdService(
                 forespoersel.sykmeldingsperioder.any { sykmeldingPeriode ->
                     sykmeldingPeriode.overlapperMed(forhold)
                 }
-            }
+            }.toSet()
 
         val resultJson =
             ResultJson(

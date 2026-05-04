@@ -59,12 +59,13 @@ class HentAnsettelsesperioderRiver(
     override fun HentAnsettelsesperioderMelding.bestemNoekkel(): KafkaKey = svarKafkaKey
 
     override fun HentAnsettelsesperioderMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
+        // TODO: Fjern duplikat API-kall mot aareg når ansettelsesperioder ikke lenger brukes
         val ansettelsesforholdFraKlient =
             runBlocking {
                 aaregClient.hentAnsettelsesforhold(fnr.verdi, kontekstId.toString())
             }
 
-        sikkerLogger.info(
+        sikkerLogger.debug(
             "Hentet ${ansettelsesforholdFraKlient.size} ansettelsesforhold for fnr ${fnr.verdi}. " +
                 "Detaljer: $ansettelsesforholdFraKlient",
         )

@@ -157,14 +157,14 @@ class HentArbeidsforholdRouteKtTest : ApiTest() {
 }
 
 private object Mock {
-    val ansettelsesforhold = listOf(Ansettelsesforhold(startdato = 2.januar, sluttdato = 31.januar))
+    val ansettelsesforhold = setOf(Ansettelsesforhold(startdato = 2.januar, sluttdato = 31.januar))
 
-    fun successResult(ansettelsesforhold: List<Ansettelsesforhold>): ResultJson =
+    fun successResult(ansettelsesforhold: Set<Ansettelsesforhold>): ResultJson =
         ResultJson(
             success = ansettelsesforhold.toJson(Ansettelsesforhold.serializer()),
         )
 
-    fun successResponseJson(ansettelsesforhold: List<Ansettelsesforhold>): String =
+    fun successResponseJson(ansettelsesforhold: Set<Ansettelsesforhold>): String =
         """
         {
             "ansettelsesforhold": [${ansettelsesforhold.joinToString(transform = Ansettelsesforhold::hardcodedJson)}]

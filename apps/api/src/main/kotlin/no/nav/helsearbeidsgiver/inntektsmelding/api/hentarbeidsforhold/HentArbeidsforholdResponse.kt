@@ -5,5 +5,5 @@ import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold
 
 @Serializable
 data class HentArbeidsforholdResponse(
-    val ansettelsesforhold: List<Ansettelsesforhold>,
+    val ansettelsesforhold: Set<Ansettelsesforhold>,
 )

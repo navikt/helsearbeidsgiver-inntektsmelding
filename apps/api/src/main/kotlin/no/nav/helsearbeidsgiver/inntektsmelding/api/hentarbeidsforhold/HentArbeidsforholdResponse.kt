@@ -11,14 +11,14 @@ import java.time.LocalDate
 @Serializable
 data class AnsettelsesforholdResponse(
     val startdato: LocalDate,
-    val yrkesBeskrivelse: String?,
+    val yrkesbeskrivelse: String?,
     val stillingsprosent: Double?,
 ) {
     companion object {
         fun fra(ansettelsesforhold: Ansettelsesforhold): AnsettelsesforholdResponse =
             AnsettelsesforholdResponse(
                 startdato = ansettelsesforhold.startdato,
-                yrkesBeskrivelse = ansettelsesforhold.yrkesBeskrivelse,
+                yrkesbeskrivelse = ansettelsesforhold.yrkesbeskrivelse,
                 stillingsprosent = ansettelsesforhold.stillingsprosent,
             )
     }

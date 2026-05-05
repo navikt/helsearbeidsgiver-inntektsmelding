@@ -63,48 +63,48 @@ class HentArbeidsforholdSelvbestemtServiceTest :
                     Ansettelsesforhold(
                         startdato = 2.februar,
                         sluttdato = 10.februar,
-                        yrkesKode = "1111111",
-                        yrkesBeskrivelse = "LEGE",
+                        yrkeskode = "1111111",
+                        yrkesbeskrivelse = "LEGE",
                         stillingsprosent = 100.0,
                     ),
-                    Ansettelsesforhold(startdato = 8.april, sluttdato = 30.juni, yrkesKode = "2222222", yrkesBeskrivelse = "TANNLEGE", stillingsprosent = 50.0),
-                    Ansettelsesforhold(startdato = 9.april, sluttdato = null, yrkesKode = "3333333", yrkesBeskrivelse = "KOKK", stillingsprosent = 80.0),
+                    Ansettelsesforhold(startdato = 8.april, sluttdato = 30.juni, yrkeskode = "2222222", yrkesbeskrivelse = "TANNLEGE", stillingsprosent = 50.0),
+                    Ansettelsesforhold(startdato = 9.april, sluttdato = null, yrkeskode = "3333333", yrkesbeskrivelse = "KOKK", stillingsprosent = 80.0),
                 )
             val ansettelsesforholdInnenforFilter =
                 setOf(
                     Ansettelsesforhold(
                         startdato = 11.februar,
                         sluttdato = 15.mars,
-                        yrkesKode = "4444444",
-                        yrkesBeskrivelse = "BARNEHAGEASSISTENT",
+                        yrkeskode = "4444444",
+                        yrkesbeskrivelse = "BARNEHAGEASSISTENT",
                         stillingsprosent = 100.0,
                     ),
                     Ansettelsesforhold(
                         startdato = 10.mars,
                         sluttdato = 1.april,
-                        yrkesKode = "5555555",
-                        yrkesBeskrivelse = "SYKEPLEIER",
+                        yrkeskode = "5555555",
+                        yrkesbeskrivelse = "SYKEPLEIER",
                         stillingsprosent = 80.0,
                     ),
                     Ansettelsesforhold(
                         startdato = 3.april,
                         sluttdato = null,
-                        yrkesKode = "6666666",
-                        yrkesBeskrivelse = "HJELPEPLEIER",
+                        yrkeskode = "6666666",
+                        yrkesbeskrivelse = "HJELPEPLEIER",
                         stillingsprosent = 50.0,
                     ),
                     Ansettelsesforhold(
                         startdato = 6.april,
                         sluttdato = 16.april,
-                        yrkesKode = "7777777",
-                        yrkesBeskrivelse = "RENHOLDER",
+                        yrkeskode = "7777777",
+                        yrkesbeskrivelse = "RENHOLDER",
                         stillingsprosent = 60.0,
                     ),
                     Ansettelsesforhold(
                         startdato = 1.januar,
                         sluttdato = 1.juni,
-                        yrkesKode = "8888888",
-                        yrkesBeskrivelse = "VAKTMESTER",
+                        yrkeskode = "8888888",
+                        yrkesbeskrivelse = "VAKTMESTER",
                         stillingsprosent = 70.0,
                     ),
                 )
@@ -116,15 +116,15 @@ class HentArbeidsforholdSelvbestemtServiceTest :
                             Ansettelsesforhold(
                                 startdato = 20.mars,
                                 sluttdato = 30.mars,
-                                yrkesKode = "9999999",
-                                yrkesBeskrivelse = "LÆRER",
+                                yrkeskode = "9999999",
+                                yrkesbeskrivelse = "LÆRER",
                                 stillingsprosent = 100.0,
                             ),
                             Ansettelsesforhold(
                                 startdato = 1.april,
                                 sluttdato = null,
-                                yrkesKode = "1010101",
-                                yrkesBeskrivelse = "FORSKER",
+                                yrkeskode = "1010101",
+                                yrkesbeskrivelse = "FORSKER",
                                 stillingsprosent = 90.0,
                             ),
                         ),
@@ -171,11 +171,11 @@ class HentArbeidsforholdSelvbestemtServiceTest :
                     Ansettelsesforhold(
                         startdato = 10.mars,
                         sluttdato = 1.april,
-                        yrkesKode = "1234567",
-                        yrkesBeskrivelse = "BARNEHAGEASSISTENT",
+                        yrkeskode = "1234567",
+                        yrkesbeskrivelse = "BARNEHAGEASSISTENT",
                         stillingsprosent = 100.0,
                     ),
-                    Ansettelsesforhold(startdato = 3.april, sluttdato = null, yrkesKode = "7654321", yrkesBeskrivelse = "SYKEPLEIER", stillingsprosent = 80.0),
+                    Ansettelsesforhold(startdato = 3.april, sluttdato = null, yrkeskode = "7654321", yrkesbeskrivelse = "SYKEPLEIER", stillingsprosent = 80.0),
                 )
             val ansettelsesforholdPerOrgnr =
                 mapOf(
@@ -202,15 +202,15 @@ class HentArbeidsforholdSelvbestemtServiceTest :
                     Ansettelsesforhold(
                         startdato = 3.januar,
                         sluttdato = 13.januar,
-                        yrkesKode = "1234567",
-                        yrkesBeskrivelse = "BARNEHAGEASSISTENT",
+                        yrkeskode = "1234567",
+                        yrkesbeskrivelse = "BARNEHAGEASSISTENT",
                         stillingsprosent = 100.0,
                     ),
                     Ansettelsesforhold(
                         startdato = 20.januar,
                         sluttdato = 8.februar,
-                        yrkesKode = "7654321",
-                        yrkesBeskrivelse = "SYKEPLEIER",
+                        yrkeskode = "7654321",
+                        yrkesbeskrivelse = "SYKEPLEIER",
                         stillingsprosent = 80.0,
                     ),
                 )

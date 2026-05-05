@@ -13,12 +13,13 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonObject
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
+import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
+import no.nav.helsearbeidsgiver.inntektsmelding.api.hentarbeidsforhold.AnsettelsesforholdResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
@@ -29,7 +30,6 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
-import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -49,21 +49,47 @@ class HentArbeidsforholdSelvbestemtRouteKtTest : ApiTest() {
     fun `henter arbeidsforhold`() =
         testApi {
             val request = mockRequest()
-            val ansettelsesperioder =
+            val ansettelsesforhold =
                 setOf(
-                    PeriodeAapen(11.februar, 15.mars),
-                    PeriodeAapen(10.mars, 1.april),
-                    PeriodeAapen(3.april, 16.april),
-                    PeriodeAapen(3.april, null),
-                    PeriodeAapen(1.januar, 1.juni),
+                    Ansettelsesforhold(
+                        startdato = 11.februar,
+                        sluttdato = 15.mars,
+                        yrkesKode = "1234567",
+                        yrkesBeskrivelse = "BARNEHAGEASSISTENT",
+                        stillingsprosent = 100.0,
+                    ),
+                    Ansettelsesforhold(
+                        startdato = 10.mars,
+                        sluttdato = 1.april,
+                        yrkesKode = "7654321",
+                        yrkesBeskrivelse = "SYKEPLEIER",
+                        stillingsprosent = 80.0,
+                    ),
+                    Ansettelsesforhold(
+                        startdato = 3.april,
+                        sluttdato = null,
+                        yrkesKode = "2345678",
+                        yrkesBeskrivelse = "HJELPEPLEIER",
+                        stillingsprosent = 50.0,
+                    ),
+                    Ansettelsesforhold(
+                        startdato = 1.januar,
+                        sluttdato = 1.april,
+                        yrkesKode = "8765432",
+                        yrkesBeskrivelse = "RENHOLDER",
+                        stillingsprosent = 60.0,
+                    ),
                 )
-            val forventetResponse = HentArbeidsforholdSelvbestemtResponse(ansettelsesperioder)
+            val forventetResponse =
+                HentArbeidsforholdSelvbestemtResponse(
+                    ansettelsesforhold = ansettelsesforhold.map(AnsettelsesforholdResponse::fra).toSet(),
+                )
 
             coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     ResultJson(
-                        success = ansettelsesperioder.toJson(PeriodeAapen.serializer().set()),
+                        success = ansettelsesforhold.toJson(Ansettelsesforhold.serializer().set()),
                     ),
                 )
 

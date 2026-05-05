@@ -76,8 +76,8 @@ class HentAnsettelsesperioderRiver(
                         Ansettelsesforhold(
                             startdato = it.startdato,
                             sluttdato = it.sluttdato,
-                            yrkesKode = it.yrkesKode,
-                            yrkesBeskrivelse = it.yrkesBeskrivelse,
+                            yrkeskode = it.yrkeskode,
+                            yrkesbeskrivelse = it.yrkesbeskrivelse,
                             stillingsprosent = it.stillingsprosent,
                         )
                     }.toSet()

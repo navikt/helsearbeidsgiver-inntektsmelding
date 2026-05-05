@@ -11,7 +11,7 @@ import java.time.LocalDate
 data class Ansettelsesforhold(
     val startdato: LocalDate,
     val sluttdato: LocalDate? = null,
-    val yrkesKode: String? = null,
-    val yrkesBeskrivelse: String? = null,
+    val yrkeskode: String? = null,
+    val yrkesbeskrivelse: String? = null,
     val stillingsprosent: Double? = null,
 )

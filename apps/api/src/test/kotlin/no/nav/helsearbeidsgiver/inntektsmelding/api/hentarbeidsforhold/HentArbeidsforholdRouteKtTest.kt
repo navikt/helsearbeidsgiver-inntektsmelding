@@ -179,8 +179,8 @@ private object Mock {
 private fun Ansettelsesforhold.hardcodedJson(): String {
     val fields = mutableListOf(""""startdato":"$startdato"""")
     if (sluttdato != null) fields.add(""""sluttdato":"$sluttdato"""")
-    if (yrkesKode != null) fields.add(""""yrkesKode":"$yrkesKode"""")
-    if (yrkesBeskrivelse != null) fields.add(""""yrkesBeskrivelse":"$yrkesBeskrivelse"""")
+    if (yrkeskode != null) fields.add(""""yrkeskode":"$yrkeskode"""")
+    if (yrkesbeskrivelse != null) fields.add(""""yrkesbeskrivelse":"$yrkesbeskrivelse"""")
     if (stillingsprosent != null) fields.add(""""stillingsprosent":$stillingsprosent""")
     return "{${fields.joinToString(",")}}"
 }

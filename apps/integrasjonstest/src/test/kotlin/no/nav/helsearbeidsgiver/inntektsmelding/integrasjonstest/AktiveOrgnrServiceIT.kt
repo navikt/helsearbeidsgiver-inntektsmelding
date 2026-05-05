@@ -305,8 +305,8 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                         KlientAnsettelsesforhold(
                             startdato = 1.januar,
                             sluttdato = null,
-                            yrkesKode = "1234567",
-                            yrkesBeskrivelse = "BARNEHAGEASSISTENT",
+                            yrkeskode = "1234567",
+                            yrkesbeskrivelse = "BARNEHAGEASSISTENT",
                             stillingsprosent = 100.0,
                         ),
                     ),

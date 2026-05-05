@@ -2,7 +2,6 @@ val hagDomeneInntektsmeldingVersion: String by project
 val kotestVersion: String by project
 val micrometerVersion: String by project
 val mockkVersion: String by project
-val rapidsAndRiversTestVersion: String by project
 val rapidsAndRiversVersion: String by project
 val slf4jVersion: String by project
 val utilsVersion: String by project
@@ -23,7 +22,7 @@ dependencies {
     testImplementation(testFixtures(project(":utils-felles")))
     testImplementation(testFixtures(project(":utils-valkey")))
 
-    testFixturesApi("com.github.navikt.tbd-libs:rapids-and-rivers-test:$rapidsAndRiversTestVersion")
+    testFixturesApi("com.github.navikt.rapids-and-rivers:rapids-and-rivers-test:$rapidsAndRiversVersion")
     testFixturesApi("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
     testFixturesApi("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion")
 

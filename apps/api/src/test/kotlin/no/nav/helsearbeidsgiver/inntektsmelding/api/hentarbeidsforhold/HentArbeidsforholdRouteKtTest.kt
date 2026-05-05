@@ -157,17 +157,17 @@ class HentArbeidsforholdRouteKtTest : ApiTest() {
 }
 
 private object Mock {
-    val ansettelsesforhold = setOf(Ansettelsesforhold(startdato = 2.januar, sluttdato = 31.januar))
+    val ansettelsesforhold = listOf(Ansettelsesforhold(startdato = 2.januar, sluttdato = 31.januar))
 
-    fun successResult(ansettelsesforhold: Set<Ansettelsesforhold>): ResultJson =
+    fun successResult(ansettelsesforhold: List<Ansettelsesforhold>): ResultJson =
         ResultJson(
             success = ansettelsesforhold.toJson(Ansettelsesforhold.serializer()),
         )
 
-    fun successResponseJson(ansettelsesforhold: Set<Ansettelsesforhold>): String =
+    fun successResponseJson(ansettelsesforhold: List<Ansettelsesforhold>): String =
         """
         {
-            "ansettelsesforhold": [${ansettelsesforhold.joinToString { it.hardcodedResponseJson() }}]
+             "ansettelsesforhold": [${ansettelsesforhold.joinToString { it.hardcodedResponseJson() }}]
         }
         """.removeJsonWhitespace()
 
@@ -178,9 +178,7 @@ private object Mock {
 
 private fun Ansettelsesforhold.hardcodedResponseJson(): String {
     val fields = mutableListOf(""""startdato":"$startdato"""")
-    if (sluttdato != null) fields.add(""""sluttdato":"$sluttdato"""")
-    if (yrkeskode != null) fields.add(""""yrkeskode":"$yrkeskode"""")
-    if (yrkesbeskrivelse != null) fields.add(""""yrkesbeskrivelse":"$yrkesbeskrivelse"""")
-    if (stillingsprosent != null) fields.add(""""stillingsprosent":$stillingsprosent""")
+    fields.add(""""yrkesbeskrivelse":${if (yrkesbeskrivelse != null) "\"$yrkesbeskrivelse\"" else "null"}""")
+    fields.add(""""stillingsprosent":${stillingsprosent ?: "null"}""")
     return "{${fields.joinToString(",")}}"
 }

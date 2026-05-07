@@ -81,7 +81,7 @@ class HentAnsettelsesperioderRiver(
                             yrkesbeskrivelse = it.yrkesbeskrivelse,
                             stillingsprosent = it.stillingsprosent,
                         )
-                    }.toSet()
+                    }
             }
 
         val ansettelsesperioder =

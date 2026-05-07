@@ -24,7 +24,7 @@ import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
-import no.nav.helsearbeidsgiver.utils.json.serializer.set
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.februar
@@ -59,7 +59,7 @@ class HentArbeidsforholdSelvbestemtServiceTest :
             val kontekstId = UUID.randomUUID()
 
             val ansettelsesforholdUtenforFilter =
-                setOf(
+                listOf(
                     Ansettelsesforhold(
                         startdato = 2.februar,
                         sluttdato = 10.februar,
@@ -71,7 +71,7 @@ class HentArbeidsforholdSelvbestemtServiceTest :
                     Ansettelsesforhold(startdato = 9.april, sluttdato = null, yrkeskode = "3333333", yrkesbeskrivelse = "KOKK", stillingsprosent = 80.0),
                 )
             val ansettelsesforholdInnenforFilter =
-                setOf(
+                listOf(
                     Ansettelsesforhold(
                         startdato = 11.februar,
                         sluttdato = 15.mars,
@@ -112,7 +112,7 @@ class HentArbeidsforholdSelvbestemtServiceTest :
                 mapOf(
                     Mock.orgnr to ansettelsesforholdUtenforFilter + ansettelsesforholdInnenforFilter,
                     Orgnr.genererGyldig() to
-                        setOf(
+                        listOf(
                             Ansettelsesforhold(
                                 startdato = 20.mars,
                                 sluttdato = 30.mars,
@@ -142,7 +142,7 @@ class HentArbeidsforholdSelvbestemtServiceTest :
                 mockRedisStore.skrivResultat(
                     kontekstId,
                     ResultJson(
-                        success = ansettelsesforholdInnenforFilter.toJson(Ansettelsesforhold.serializer().set()),
+                        success = ansettelsesforholdInnenforFilter.toJson(Ansettelsesforhold.serializer().list()),
                     ),
                 )
             }
@@ -157,7 +157,7 @@ class HentArbeidsforholdSelvbestemtServiceTest :
                 mockRedisStore.skrivResultat(
                     kontekstId,
                     ResultJson(
-                        success = emptySet<Ansettelsesforhold>().toJson(Ansettelsesforhold.serializer().set()),
+                        success = emptyList<Ansettelsesforhold>().toJson(Ansettelsesforhold.serializer().list()),
                     ),
                 )
             }
@@ -167,7 +167,7 @@ class HentArbeidsforholdSelvbestemtServiceTest :
             val kontekstId = UUID.randomUUID()
 
             val ansettelsesforholdInnenforFilter =
-                setOf(
+                listOf(
                     Ansettelsesforhold(
                         startdato = 10.mars,
                         sluttdato = 1.april,
@@ -188,7 +188,7 @@ class HentArbeidsforholdSelvbestemtServiceTest :
                 mockRedisStore.skrivResultat(
                     kontekstId,
                     ResultJson(
-                        success = emptySet<Ansettelsesforhold>().toJson(Ansettelsesforhold.serializer().set()),
+                        success = emptyList<Ansettelsesforhold>().toJson(Ansettelsesforhold.serializer().list()),
                     ),
                 )
             }
@@ -198,7 +198,7 @@ class HentArbeidsforholdSelvbestemtServiceTest :
             val kontekstId = UUID.randomUUID()
 
             val ansettelsesforholdUtenforFilter =
-                setOf(
+                listOf(
                     Ansettelsesforhold(
                         startdato = 3.januar,
                         sluttdato = 13.januar,
@@ -225,7 +225,7 @@ class HentArbeidsforholdSelvbestemtServiceTest :
                 mockRedisStore.skrivResultat(
                     kontekstId,
                     ResultJson(
-                        success = emptySet<Ansettelsesforhold>().toJson(Ansettelsesforhold.serializer().set()),
+                        success = emptyList<Ansettelsesforhold>().toJson(Ansettelsesforhold.serializer().list()),
                     ),
                 )
             }
@@ -271,12 +271,12 @@ class HentArbeidsforholdSelvbestemtServiceTest :
 
         fun steg1(
             kontekstId: UUID,
-            ansettelsesforhold: Map<Orgnr, Set<Ansettelsesforhold>>,
+            ansettelsesforhold: Map<Orgnr, List<Ansettelsesforhold>>,
         ): Map<Key, JsonElement> =
             steg0(kontekstId)
                 .plus(Key.EVENT_NAME to EventName.SERVICE_HENT_ARBEIDSFORHOLD_SELVBESTEMT.toJson())
                 .plusData(
-                    Key.ANSETTELSESFORHOLD to ansettelsesforhold.toJson(MapSerializer(Orgnr.serializer(), Ansettelsesforhold.serializer().set())),
+                    Key.ANSETTELSESFORHOLD to ansettelsesforhold.toJson(MapSerializer(Orgnr.serializer(), Ansettelsesforhold.serializer().list())),
                 )
     }
 }

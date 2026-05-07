@@ -16,6 +16,7 @@ import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -49,7 +50,7 @@ val ansettelsesperioderSerializer =
 val ansettelsesforholdSerializer =
     MapSerializer(
         Orgnr.serializer(),
-        Ansettelsesforhold.serializer().set(),
+        Ansettelsesforhold.serializer().list(),
     )
 
 fun EventName.toJson(): JsonElement = toJson(EventName.serializer())

@@ -35,7 +35,7 @@ data class Steg1(
 )
 
 data class Steg2(
-    val ansettelsesforhold: Map<Orgnr, Set<Ansettelsesforhold>>,
+    val ansettelsesforhold: Map<Orgnr, List<Ansettelsesforhold>>,
 )
 
 class HentArbeidsforholdService(
@@ -114,12 +114,11 @@ class HentArbeidsforholdService(
         // Dette er en forenklet metode
         // TODO: Finne ut hvordan vi skal filtrere ut urelevante ansettelseperioder på en bedre måte
         val ansettelsesforholdMedSykmeldingOverlapp =
-            ansettelsesforholdForAktuellOrg
-                .filter { forhold ->
-                    forespoersel.sykmeldingsperioder.any { sykmeldingPeriode ->
-                        sykmeldingPeriode.overlapperMed(forhold)
-                    }
-                }.toSet()
+            ansettelsesforholdForAktuellOrg.filter { forhold ->
+                forespoersel.sykmeldingsperioder.any { sykmeldingPeriode ->
+                    sykmeldingPeriode.overlapperMed(forhold)
+                }
+            }
 
         val resultJson =
             ResultJson(

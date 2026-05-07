@@ -18,7 +18,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.set
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.august
@@ -41,7 +41,7 @@ class HentArbeidsforholdSelvbestemtIT : EndToEndTest() {
         val sykmeldtFnr = Fnr.genererGyldig()
         val periode = 15.april til 12.august
         val expectedAnsettelsesforhold =
-            setOf(
+            listOf(
                 Ansettelsesforhold(
                     startdato = 11.april,
                     sluttdato = 11.mai,
@@ -67,7 +67,7 @@ class HentArbeidsforholdSelvbestemtIT : EndToEndTest() {
         val expectedAnsettelsesforholdPerOrgnr =
             mapOf(
                 orgnr to
-                    setOf(
+                    listOf(
                         KlientAnsettelsesforhold(
                             startdato = 11.april,
                             sluttdato = 11.mai,
@@ -91,7 +91,7 @@ class HentArbeidsforholdSelvbestemtIT : EndToEndTest() {
                         ),
                     ),
                 Orgnr.genererGyldig() to
-                    setOf(
+                    listOf(
                         KlientAnsettelsesforhold(
                             startdato = 1.juli,
                             sluttdato = 31.juli,
@@ -138,7 +138,7 @@ class HentArbeidsforholdSelvbestemtIT : EndToEndTest() {
                 .shouldNotBeNull()
                 .fromJson(ResultJson.serializer())
 
-        redisResponse.success.shouldNotBeNull().fromJson(Ansettelsesforhold.serializer().set()) shouldBe expectedAnsettelsesforhold
+        redisResponse.success.shouldNotBeNull().fromJson(Ansettelsesforhold.serializer().list()) shouldBe expectedAnsettelsesforhold
         redisResponse.failure.shouldBeNull()
     }
 

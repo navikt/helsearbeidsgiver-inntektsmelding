@@ -20,7 +20,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedisOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readPathParamOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
-import no.nav.helsearbeidsgiver.utils.json.serializer.set
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
@@ -51,11 +51,11 @@ fun Route.hentArbeidsforholdRoute(
                         kontekstId = kontekstId,
                         inntektsmeldingTypeId = forespoerselId,
                         logOnFailure = "Klarte ikke hente arbeidsforholdsdata.",
-                        successSerializer = Ansettelsesforhold.serializer().set(),
+                        successSerializer = Ansettelsesforhold.serializer().list(),
                     ) { ansettelsesforhold ->
                         val response =
                             HentArbeidsforholdResponse(
-                                ansettelsesforhold = ansettelsesforhold.map(AnsettelsesforholdResponse::fra).toSet(),
+                                ansettelsesforhold = ansettelsesforhold.map(AnsettelsesforholdResponse::fra),
                             )
                         val responseJson = response.toJson(HentArbeidsforholdResponse.serializer())
 

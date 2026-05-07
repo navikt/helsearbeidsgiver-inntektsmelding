@@ -301,7 +301,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         val ansettelsesforhold =
             mapOf(
                 orgnr to
-                    setOf(
+                    listOf(
                         KlientAnsettelsesforhold(
                             startdato = 1.januar,
                             sluttdato = null,

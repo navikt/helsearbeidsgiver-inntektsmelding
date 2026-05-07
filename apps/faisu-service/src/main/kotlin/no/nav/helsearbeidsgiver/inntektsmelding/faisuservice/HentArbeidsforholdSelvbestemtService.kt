@@ -44,7 +44,7 @@ class HentArbeidsforholdSelvbestemtService(
     )
 
     data class Steg1(
-        val ansettelsesforhold: Map<Orgnr, Set<Ansettelsesforhold>>,
+        val ansettelsesforhold: Map<Orgnr, List<Ansettelsesforhold>>,
     )
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
@@ -91,7 +91,6 @@ class HentArbeidsforholdSelvbestemtService(
             steg1.ansettelsesforhold[steg0.orgnr]
                 .orEmpty()
                 .filter { steg0.periode.overlapperMed(it) }
-                .toSet()
 
         val resultJson =
             ResultJson(

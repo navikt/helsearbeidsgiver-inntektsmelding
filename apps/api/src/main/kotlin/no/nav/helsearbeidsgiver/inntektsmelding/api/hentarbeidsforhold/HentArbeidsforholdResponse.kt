@@ -26,5 +26,5 @@ data class AnsettelsesforholdResponse(
 
 @Serializable
 data class HentArbeidsforholdResponse(
-    val ansettelsesforhold: Set<AnsettelsesforholdResponse>,
+    val ansettelsesforhold: List<AnsettelsesforholdResponse>,
 )

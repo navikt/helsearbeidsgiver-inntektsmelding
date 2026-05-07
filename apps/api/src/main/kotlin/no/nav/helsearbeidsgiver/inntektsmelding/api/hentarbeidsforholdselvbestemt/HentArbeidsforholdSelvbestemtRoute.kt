@@ -22,7 +22,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedisOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequestOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
-import no.nav.helsearbeidsgiver.utils.json.serializer.set
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
@@ -50,11 +50,11 @@ fun Route.hentArbeidsforholdSelvbestemtRoute(
                         redisPoller = redisPoller,
                         kontekstId = kontekstId,
                         logOnFailure = "Klarte ikke hente arbeidsforhold for selvbestemt.",
-                        successSerializer = Ansettelsesforhold.serializer().set(),
+                        successSerializer = Ansettelsesforhold.serializer().list(),
                     ) { ansettelsesforhold ->
                         val response =
                             HentArbeidsforholdSelvbestemtResponse(
-                                ansettelsesforhold = ansettelsesforhold.map(AnsettelsesforholdResponse::fra).toSet(),
+                                ansettelsesforhold = ansettelsesforhold.map(AnsettelsesforholdResponse::fra),
                             )
 
                         "Arbeidsforhold for selvbestemt hentet OK.".also {

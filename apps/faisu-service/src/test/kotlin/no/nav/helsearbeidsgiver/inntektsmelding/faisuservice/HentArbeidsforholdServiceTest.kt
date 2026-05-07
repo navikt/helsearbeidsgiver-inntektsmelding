@@ -60,8 +60,8 @@ class HentArbeidsforholdServiceTest :
             val gyldigForhold = Ansettelsesforhold(startdato = 1.januar, sluttdato = 31.januar)
             val ansettelsesforhold =
                 mapOf(
-                    Mock.forespoersel.orgnr to setOf(gyldigForhold),
-                    Orgnr.genererGyldig() to setOf(Ansettelsesforhold(startdato = 1.januar, sluttdato = 31.januar)),
+                    Mock.forespoersel.orgnr to listOf(gyldigForhold),
+                    Orgnr.genererGyldig() to listOf(Ansettelsesforhold(startdato = 1.januar, sluttdato = 31.januar)),
                 )
 
             testRapid.sendJson(Mock.steg0(kontekstId))
@@ -95,7 +95,7 @@ class HentArbeidsforholdServiceTest :
             val forholdUtenfor = Ansettelsesforhold(startdato = 5.februar, sluttdato = 28.februar)
             val ansettelsesforhold =
                 mapOf(
-                    Mock.forespoersel.orgnr to setOf(forholdInnenfor, forholdUtenfor),
+                    Mock.forespoersel.orgnr to listOf(forholdInnenfor, forholdUtenfor),
                 )
 
             testRapid.sendJson(Mock.steg0(kontekstId))
@@ -116,7 +116,7 @@ class HentArbeidsforholdServiceTest :
             val kontekstId = UUID.randomUUID()
             val ansettelsesforhold =
                 mapOf(
-                    Orgnr.genererGyldig() to setOf(Ansettelsesforhold(startdato = 1.januar, sluttdato = 31.januar)),
+                    Orgnr.genererGyldig() to listOf(Ansettelsesforhold(startdato = 1.januar, sluttdato = 31.januar)),
                 )
 
             testRapid.sendJson(Mock.steg0(kontekstId))
@@ -176,7 +176,7 @@ private object Mock {
 
     fun steg2(
         kontekstId: UUID,
-        ansettelsesforhold: Map<Orgnr, Set<Ansettelsesforhold>>,
+        ansettelsesforhold: Map<Orgnr, List<Ansettelsesforhold>>,
     ): Map<Key, JsonElement> =
         steg1(kontekstId).plusData(
             Key.ANSETTELSESFORHOLD to ansettelsesforhold.toJson(ansettelsesforholdSerializer),

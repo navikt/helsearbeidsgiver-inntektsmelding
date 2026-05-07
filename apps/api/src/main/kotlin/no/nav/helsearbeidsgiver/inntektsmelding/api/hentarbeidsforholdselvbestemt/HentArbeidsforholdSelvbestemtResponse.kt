@@ -5,5 +5,5 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.hentarbeidsforhold.Ansettels
 
 @Serializable
 data class HentArbeidsforholdSelvbestemtResponse(
-    val ansettelsesforhold: Set<AnsettelsesforholdResponse>,
+    val ansettelsesforhold: List<AnsettelsesforholdResponse>,
 )

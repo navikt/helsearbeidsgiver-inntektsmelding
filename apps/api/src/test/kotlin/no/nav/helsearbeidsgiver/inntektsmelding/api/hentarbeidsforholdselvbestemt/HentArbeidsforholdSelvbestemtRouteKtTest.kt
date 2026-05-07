@@ -25,7 +25,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.set
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.februar
@@ -50,7 +50,7 @@ class HentArbeidsforholdSelvbestemtRouteKtTest : ApiTest() {
         testApi {
             val request = mockRequest()
             val ansettelsesforhold =
-                setOf(
+                listOf(
                     Ansettelsesforhold(
                         startdato = 11.februar,
                         sluttdato = 15.mars,
@@ -82,14 +82,14 @@ class HentArbeidsforholdSelvbestemtRouteKtTest : ApiTest() {
                 )
             val forventetResponse =
                 HentArbeidsforholdSelvbestemtResponse(
-                    ansettelsesforhold = ansettelsesforhold.map(AnsettelsesforholdResponse::fra).toSet(),
+                    ansettelsesforhold = ansettelsesforhold.map(AnsettelsesforholdResponse::fra),
                 )
 
             coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     ResultJson(
-                        success = ansettelsesforhold.toJson(Ansettelsesforhold.serializer().set()),
+                        success = ansettelsesforhold.toJson(Ansettelsesforhold.serializer().list()),
                     ),
                 )
 

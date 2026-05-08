@@ -87,7 +87,7 @@ class HentAnsettelsesperioderRiverTest :
             val ansettelsesforholdFraKlient =
                 mapOf(
                     orgnr to
-                        setOf(
+                        listOf(
                             Ansettelsesforhold(
                                 startdato = periode.fom,
                                 sluttdato = periode.tom,

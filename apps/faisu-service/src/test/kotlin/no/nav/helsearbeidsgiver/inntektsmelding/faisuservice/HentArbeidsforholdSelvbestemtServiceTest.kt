@@ -67,8 +67,20 @@ class HentArbeidsforholdSelvbestemtServiceTest :
                         yrkesbeskrivelse = "LEGE",
                         stillingsprosent = 100.0,
                     ),
-                    Ansettelsesforhold(startdato = 8.april, sluttdato = 30.juni, yrkeskode = "2222222", yrkesbeskrivelse = "TANNLEGE", stillingsprosent = 50.0),
-                    Ansettelsesforhold(startdato = 9.april, sluttdato = null, yrkeskode = "3333333", yrkesbeskrivelse = "KOKK", stillingsprosent = 80.0),
+                    Ansettelsesforhold(
+                        startdato = 8.april,
+                        sluttdato = 30.juni,
+                        yrkeskode = "2222222",
+                        yrkesbeskrivelse = "TANNLEGE",
+                        stillingsprosent = 50.0,
+                    ),
+                    Ansettelsesforhold(
+                        startdato = 9.april,
+                        sluttdato = null,
+                        yrkeskode = "3333333",
+                        yrkesbeskrivelse = "KOKK",
+                        stillingsprosent = 80.0,
+                    ),
                 )
             val ansettelsesforholdInnenforFilter =
                 listOf(

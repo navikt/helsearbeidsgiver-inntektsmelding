@@ -25,6 +25,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import java.util.UUID
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.Ansettelsesforhold as AnsettelsesforholdResponse
 
 fun Route.hentArbeidsforholdRoute(
     producer: Producer,

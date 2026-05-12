@@ -19,7 +19,6 @@ import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
-import no.nav.helsearbeidsgiver.inntektsmelding.api.hentarbeidsforhold.AnsettelsesforholdResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
@@ -36,6 +35,7 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.Ansettelsesforhold as AnsettelsesforholdResponse
 
 class HentArbeidsforholdSelvbestemtRouteKtTest : ApiTest() {
     private val path = Routes.PREFIX + Routes.HENT_ARBEIDSFORHOLD_SELVBESTEMT

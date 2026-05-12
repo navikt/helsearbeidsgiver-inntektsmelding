@@ -14,6 +14,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
+import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
 import no.nav.hag.simba.utils.felles.json.ansettelsesforholdSerializer
@@ -26,7 +27,6 @@ import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helsearbeidsgiver.aareg.AaregClient
-import no.nav.helsearbeidsgiver.aareg.Ansettelsesforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.HentAnsettelsesperioderMelding
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.HentAnsettelsesperioderRiver
@@ -37,7 +37,7 @@ import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
-import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold as FellesAnsettelsesforhold
+import no.nav.helsearbeidsgiver.aareg.Ansettelsesforhold as KlientAnsettelsesforhold
 import no.nav.helsearbeidsgiver.aareg.Periode as KlientPeriode
 
 class HentAnsettelsesperioderRiverTest :
@@ -88,6 +88,16 @@ class HentAnsettelsesperioderRiverTest :
                 mapOf(
                     orgnr to
                         listOf(
+                            KlientAnsettelsesforhold(
+                                startdato = periode.fom,
+                                sluttdato = periode.tom,
+                            ),
+                        ),
+                )
+            val ansettelsesforhold =
+                mapOf(
+                    orgnr to
+                        listOf(
                             Ansettelsesforhold(
                                 startdato = periode.fom,
                                 sluttdato = periode.tom,
@@ -103,17 +113,6 @@ class HentAnsettelsesperioderRiverTest :
             testRapid.sendJson(innkommendeMelding.toMap())
 
             testRapid.inspektør.size shouldBeExactly 1
-
-            val ansettelsesforhold =
-                mapOf(
-                    orgnr to
-                        listOf(
-                            FellesAnsettelsesforhold(
-                                startdato = periode.fom,
-                                sluttdato = periode.tom,
-                            ),
-                        ),
-                )
 
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(

@@ -94,10 +94,13 @@ class HentArbeidsforholdService(
             Key.BEHOV to BehovType.HENT_ANSETTELSESPERIODER.toJson(),
             Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
-                mapOf(
-                    Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
-                    Key.FNR to steg1.forespoersel.fnr.toJson(),
-                ).toJson(),
+                data
+                    .plus(
+                        mapOf(
+                            Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
+                            Key.FNR to steg1.forespoersel.fnr.toJson(),
+                        ),
+                    ).toJson(),
         )
     }
 

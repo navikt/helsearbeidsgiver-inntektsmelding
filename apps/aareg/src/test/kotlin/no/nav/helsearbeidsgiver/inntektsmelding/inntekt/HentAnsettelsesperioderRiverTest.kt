@@ -160,6 +160,9 @@ private object Mock {
                     Ansettelsesforhold(
                         startdato = periode.fom,
                         sluttdato = periode.tom,
+                        yrkeskode = null,
+                        yrkesbeskrivelse = null,
+                        stillingsprosent = null,
                     ),
                 ),
         )

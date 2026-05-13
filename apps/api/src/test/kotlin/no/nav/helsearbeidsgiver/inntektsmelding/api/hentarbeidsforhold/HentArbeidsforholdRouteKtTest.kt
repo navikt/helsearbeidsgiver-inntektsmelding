@@ -20,9 +20,9 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.jsonStrOrNull
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.jsonStrOrNull
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
@@ -158,7 +158,8 @@ class HentArbeidsforholdRouteKtTest : ApiTest() {
 }
 
 private object Mock {
-    val ansettelsesforhold = listOf(Ansettelsesforhold(startdato = 2.januar, sluttdato = 31.januar))
+    val ansettelsesforhold =
+        listOf(Ansettelsesforhold(startdato = 2.januar, sluttdato = 31.januar, yrkeskode = null, yrkesbeskrivelse = null, stillingsprosent = null))
 
     fun successResult(ansettelsesforhold: List<Ansettelsesforhold>): ResultJson =
         ResultJson(

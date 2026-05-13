@@ -57,11 +57,15 @@ class HentArbeidsforholdServiceTest :
 
         test("henter og filtrerer ansettelsesperioder for forespoersel") {
             val kontekstId = UUID.randomUUID()
-            val gyldigForhold = Ansettelsesforhold(startdato = 1.januar, sluttdato = 31.januar)
+            val gyldigForhold =
+                Ansettelsesforhold(startdato = 1.januar, sluttdato = 31.januar, yrkeskode = null, yrkesbeskrivelse = null, stillingsprosent = null)
             val ansettelsesforhold =
                 mapOf(
                     Mock.forespoersel.orgnr to listOf(gyldigForhold),
-                    Orgnr.genererGyldig() to listOf(Ansettelsesforhold(startdato = 1.januar, sluttdato = 31.januar)),
+                    Orgnr.genererGyldig() to
+                        listOf(
+                            Ansettelsesforhold(startdato = 1.januar, sluttdato = 31.januar, yrkeskode = null, yrkesbeskrivelse = null, stillingsprosent = null),
+                        ),
                 )
 
             testRapid.sendJson(Mock.steg0(kontekstId))
@@ -91,8 +95,10 @@ class HentArbeidsforholdServiceTest :
 
         test("filtrerer bort ansettelsesperioder utenfor sykmeldingsperiode") {
             val kontekstId = UUID.randomUUID()
-            val forholdInnenfor = Ansettelsesforhold(startdato = 1.januar, sluttdato = 31.januar)
-            val forholdUtenfor = Ansettelsesforhold(startdato = 5.februar, sluttdato = 28.februar)
+            val forholdInnenfor =
+                Ansettelsesforhold(startdato = 1.januar, sluttdato = 31.januar, yrkeskode = null, yrkesbeskrivelse = null, stillingsprosent = null)
+            val forholdUtenfor =
+                Ansettelsesforhold(startdato = 5.februar, sluttdato = 28.februar, yrkeskode = null, yrkesbeskrivelse = null, stillingsprosent = null)
             val ansettelsesforhold =
                 mapOf(
                     Mock.forespoersel.orgnr to listOf(forholdInnenfor, forholdUtenfor),
@@ -116,7 +122,10 @@ class HentArbeidsforholdServiceTest :
             val kontekstId = UUID.randomUUID()
             val ansettelsesforhold =
                 mapOf(
-                    Orgnr.genererGyldig() to listOf(Ansettelsesforhold(startdato = 1.januar, sluttdato = 31.januar)),
+                    Orgnr.genererGyldig() to
+                        listOf(
+                            Ansettelsesforhold(startdato = 1.januar, sluttdato = 31.januar, yrkeskode = null, yrkesbeskrivelse = null, stillingsprosent = null),
+                        ),
                 )
 
             testRapid.sendJson(Mock.steg0(kontekstId))

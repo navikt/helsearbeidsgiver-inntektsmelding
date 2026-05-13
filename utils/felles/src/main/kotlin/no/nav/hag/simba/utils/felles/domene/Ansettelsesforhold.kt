@@ -10,8 +10,8 @@ import java.time.LocalDate
 @Serializable
 data class Ansettelsesforhold(
     val startdato: LocalDate,
-    val sluttdato: LocalDate? = null,
-    val yrkeskode: String? = null,
-    val yrkesbeskrivelse: String? = null,
-    val stillingsprosent: Double? = null,
+    val sluttdato: LocalDate?,
+    val yrkeskode: String?,
+    val yrkesbeskrivelse: String?,
+    val stillingsprosent: Double?,
 )

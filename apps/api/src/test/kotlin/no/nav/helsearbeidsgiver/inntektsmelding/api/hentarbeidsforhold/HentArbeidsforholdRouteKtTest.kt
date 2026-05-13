@@ -20,6 +20,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.jsonStrOrNull
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -176,9 +177,5 @@ private object Mock {
     fun emptyResult(): ResultJson = ResultJson()
 }
 
-private fun Ansettelsesforhold.hardcodedResponseJson(): String {
-    val fields = mutableListOf(""""startdato":"$startdato"""")
-    fields.add(""""yrkesbeskrivelse":${if (yrkesbeskrivelse != null) "\"$yrkesbeskrivelse\"" else "null"}""")
-    fields.add(""""stillingsprosent":${stillingsprosent ?: "null"}""")
-    return "{${fields.joinToString(",")}}"
-}
+private fun Ansettelsesforhold.hardcodedResponseJson(): String =
+    """{"startdato":"$startdato","yrkesbeskrivelse":${yrkesbeskrivelse.jsonStrOrNull()},"stillingsprosent":$stillingsprosent}"""

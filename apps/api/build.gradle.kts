@@ -15,6 +15,7 @@ dependencies {
         implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1-0.6.x-compat")
     }
 
+    implementation(project(":kontrakt-domene-ansettelsesforhold"))
     implementation(project(":kontrakt-domene-arbeidsgiver"))
     implementation(project(":kontrakt-resultat-forespoersel"))
     implementation(project(":kontrakt-resultat-kvittering"))

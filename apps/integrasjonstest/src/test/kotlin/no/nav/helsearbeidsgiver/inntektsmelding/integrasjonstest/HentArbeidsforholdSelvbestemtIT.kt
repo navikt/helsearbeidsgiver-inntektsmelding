@@ -8,9 +8,9 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerifySequence
 import kotlinx.serialization.builtins.serializer
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.valkey.RedisPrefix
@@ -18,7 +18,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.set
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.august
@@ -30,7 +30,7 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
-import no.nav.helsearbeidsgiver.aareg.Periode as KlientPeriode
+import no.nav.helsearbeidsgiver.aareg.Ansettelsesforhold as KlientAnsettelsesforhold
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class HentArbeidsforholdSelvbestemtIT : EndToEndTest() {
@@ -40,23 +40,76 @@ class HentArbeidsforholdSelvbestemtIT : EndToEndTest() {
         val orgnr = Orgnr.genererGyldig()
         val sykmeldtFnr = Fnr.genererGyldig()
         val periode = 15.april til 12.august
-        val expectedAnsettelsesperioder =
-            setOf(
-                PeriodeAapen(11.april, 11.mai),
-                PeriodeAapen(20.april, 22.april),
-                PeriodeAapen(18.mai, null),
+        val expectedAnsettelsesforhold =
+            listOf(
+                Ansettelsesforhold(
+                    startdato = 11.april,
+                    sluttdato = 11.mai,
+                    yrkeskode = "1234567",
+                    yrkesbeskrivelse = "BARNEHAGEASSISTENT",
+                    stillingsprosent = 100.0,
+                ),
+                Ansettelsesforhold(
+                    startdato = 20.april,
+                    sluttdato = 22.april,
+                    yrkeskode = "3456789",
+                    yrkesbeskrivelse = "HJELPEPLEIER",
+                    stillingsprosent = 50.0,
+                ),
+                Ansettelsesforhold(
+                    startdato = 18.mai,
+                    sluttdato = null,
+                    yrkeskode = "7654321",
+                    yrkesbeskrivelse = "SYKEPLEIER",
+                    stillingsprosent = 80.0,
+                ),
             )
-        val expectedAnsettelsesperioderPerOrgnr =
+        val expectedAnsettelsesforholdPerOrgnr =
             mapOf(
-                orgnr to expectedAnsettelsesperioder.map { KlientPeriode(it.fom, it.tom) }.toSet(),
+                orgnr to
+                    listOf(
+                        KlientAnsettelsesforhold(
+                            startdato = 11.april,
+                            sluttdato = 11.mai,
+                            yrkeskode = "1234567",
+                            yrkesbeskrivelse = "BARNEHAGEASSISTENT",
+                            stillingsprosent = 100.0,
+                        ),
+                        KlientAnsettelsesforhold(
+                            startdato = 20.april,
+                            sluttdato = 22.april,
+                            yrkeskode = "3456789",
+                            yrkesbeskrivelse = "HJELPEPLEIER",
+                            stillingsprosent = 50.0,
+                        ),
+                        KlientAnsettelsesforhold(
+                            startdato = 18.mai,
+                            sluttdato = null,
+                            yrkeskode = "7654321",
+                            yrkesbeskrivelse = "SYKEPLEIER",
+                            stillingsprosent = 80.0,
+                        ),
+                    ),
                 Orgnr.genererGyldig() to
-                    setOf(
-                        KlientPeriode(1.juli, 31.juli),
-                        KlientPeriode(2.august, null),
+                    listOf(
+                        KlientAnsettelsesforhold(
+                            startdato = 1.juli,
+                            sluttdato = 31.juli,
+                            yrkeskode = "2345678",
+                            yrkesbeskrivelse = "RENHOLDER",
+                            stillingsprosent = 60.0,
+                        ),
+                        KlientAnsettelsesforhold(
+                            startdato = 2.august,
+                            sluttdato = null,
+                            yrkeskode = "8765432",
+                            yrkesbeskrivelse = "VAKTMESTER",
+                            stillingsprosent = 70.0,
+                        ),
                     ),
             )
 
-        coEvery { aaregClient.hentAnsettelsesperioder(sykmeldtFnr.verdi, kontekstId.toString()) } returns expectedAnsettelsesperioderPerOrgnr
+        coEvery { aaregClient.hentAnsettelsesforhold(sykmeldtFnr.verdi, kontekstId.toString()) } returns expectedAnsettelsesforholdPerOrgnr
 
         publish(
             Key.EVENT_NAME to EventName.HENT_ARBEIDSFORHOLD_SELVBESTEMT_REQUESTED.toJson(),
@@ -74,6 +127,7 @@ class HentArbeidsforholdSelvbestemtIT : EndToEndTest() {
 
         // Forventede klientkall
         coVerifySequence {
+            aaregClient.hentAnsettelsesforhold(sykmeldtFnr.verdi, kontekstId.toString())
             aaregClient.hentAnsettelsesperioder(sykmeldtFnr.verdi, kontekstId.toString())
         }
 
@@ -84,7 +138,7 @@ class HentArbeidsforholdSelvbestemtIT : EndToEndTest() {
                 .shouldNotBeNull()
                 .fromJson(ResultJson.serializer())
 
-        redisResponse.success.shouldNotBeNull().fromJson(PeriodeAapen.serializer().set()) shouldBe expectedAnsettelsesperioder
+        redisResponse.success.shouldNotBeNull().fromJson(Ansettelsesforhold.serializer().list()) shouldBe expectedAnsettelsesforhold
         redisResponse.failure.shouldBeNull()
     }
 
@@ -113,6 +167,7 @@ class HentArbeidsforholdSelvbestemtIT : EndToEndTest() {
 
         // Forventede klientkall
         coVerifySequence {
+            aaregClient.hentAnsettelsesforhold(sykmeldtFnr.verdi, kontekstId.toString())
             aaregClient.hentAnsettelsesperioder(sykmeldtFnr.verdi, kontekstId.toString())
         }
 

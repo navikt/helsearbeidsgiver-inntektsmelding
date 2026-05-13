@@ -9,10 +9,10 @@ import io.mockk.mockk
 import io.mockk.verifySequence
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.test.json.lesBehov
@@ -24,7 +24,7 @@ import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
-import no.nav.helsearbeidsgiver.utils.json.serializer.set
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.februar
@@ -58,27 +58,87 @@ class HentArbeidsforholdSelvbestemtServiceTest :
         test("henter arbeidsforhold") {
             val kontekstId = UUID.randomUUID()
 
-            val ansettelsesperioderUtenforFilter =
-                setOf(
-                    PeriodeAapen(2.februar, 10.februar),
-                    PeriodeAapen(8.april, 30.juni),
-                    PeriodeAapen(9.april, null),
+            val ansettelsesforholdUtenforFilter =
+                listOf(
+                    Ansettelsesforhold(
+                        startdato = 2.februar,
+                        sluttdato = 10.februar,
+                        yrkeskode = "1111111",
+                        yrkesbeskrivelse = "LEGE",
+                        stillingsprosent = 100.0,
+                    ),
+                    Ansettelsesforhold(
+                        startdato = 8.april,
+                        sluttdato = 30.juni,
+                        yrkeskode = "2222222",
+                        yrkesbeskrivelse = "TANNLEGE",
+                        stillingsprosent = 50.0,
+                    ),
+                    Ansettelsesforhold(
+                        startdato = 9.april,
+                        sluttdato = null,
+                        yrkeskode = "3333333",
+                        yrkesbeskrivelse = "KOKK",
+                        stillingsprosent = 80.0,
+                    ),
                 )
-            val ansettelsesperioderInnenforFilter =
-                setOf(
-                    PeriodeAapen(11.februar, 15.mars),
-                    PeriodeAapen(10.mars, 1.april),
-                    PeriodeAapen(3.april, null),
-                    PeriodeAapen(6.april, 16.april),
-                    PeriodeAapen(1.januar, 1.juni),
+            val ansettelsesforholdInnenforFilter =
+                listOf(
+                    Ansettelsesforhold(
+                        startdato = 11.februar,
+                        sluttdato = 15.mars,
+                        yrkeskode = "4444444",
+                        yrkesbeskrivelse = "BARNEHAGEASSISTENT",
+                        stillingsprosent = 100.0,
+                    ),
+                    Ansettelsesforhold(
+                        startdato = 10.mars,
+                        sluttdato = 1.april,
+                        yrkeskode = "5555555",
+                        yrkesbeskrivelse = "SYKEPLEIER",
+                        stillingsprosent = 80.0,
+                    ),
+                    Ansettelsesforhold(
+                        startdato = 3.april,
+                        sluttdato = null,
+                        yrkeskode = "6666666",
+                        yrkesbeskrivelse = "HJELPEPLEIER",
+                        stillingsprosent = 50.0,
+                    ),
+                    Ansettelsesforhold(
+                        startdato = 6.april,
+                        sluttdato = 16.april,
+                        yrkeskode = "7777777",
+                        yrkesbeskrivelse = "RENHOLDER",
+                        stillingsprosent = 60.0,
+                    ),
+                    Ansettelsesforhold(
+                        startdato = 1.januar,
+                        sluttdato = 1.juni,
+                        yrkeskode = "8888888",
+                        yrkesbeskrivelse = "VAKTMESTER",
+                        stillingsprosent = 70.0,
+                    ),
                 )
-            val ansettelsesperioderPerOrgnr =
+            val ansettelsesforholdPerOrgnr =
                 mapOf(
-                    Mock.orgnr to ansettelsesperioderUtenforFilter + ansettelsesperioderInnenforFilter,
+                    Mock.orgnr to ansettelsesforholdUtenforFilter + ansettelsesforholdInnenforFilter,
                     Orgnr.genererGyldig() to
-                        setOf(
-                            PeriodeAapen(20.mars, 30.mars),
-                            PeriodeAapen(1.april, null),
+                        listOf(
+                            Ansettelsesforhold(
+                                startdato = 20.mars,
+                                sluttdato = 30.mars,
+                                yrkeskode = "9999999",
+                                yrkesbeskrivelse = "LÆRER",
+                                stillingsprosent = 100.0,
+                            ),
+                            Ansettelsesforhold(
+                                startdato = 1.april,
+                                sluttdato = null,
+                                yrkeskode = "1010101",
+                                yrkesbeskrivelse = "FORSKER",
+                                stillingsprosent = 90.0,
+                            ),
                         ),
                 )
 
@@ -87,20 +147,20 @@ class HentArbeidsforholdSelvbestemtServiceTest :
             testRapid.inspektør.size shouldBeExactly 1
             testRapid.message(0).lesBehov() shouldBe BehovType.HENT_ANSETTELSESPERIODER
 
-            testRapid.sendJson(Mock.steg1(kontekstId, ansettelsesperioderPerOrgnr))
+            testRapid.sendJson(Mock.steg1(kontekstId, ansettelsesforholdPerOrgnr))
 
             testRapid.inspektør.size shouldBeExactly 1
             verifySequence {
                 mockRedisStore.skrivResultat(
                     kontekstId,
                     ResultJson(
-                        success = ansettelsesperioderInnenforFilter.toJson(PeriodeAapen.serializer().set()),
+                        success = ansettelsesforholdInnenforFilter.toJson(Ansettelsesforhold.serializer().list()),
                     ),
                 )
             }
         }
 
-        test("tåler ingen ansettelsesperioder funnet") {
+        test("tåler ingen ansettelsesforhold funnet") {
             val kontekstId = UUID.randomUUID()
 
             testRapid.sendJson(Mock.steg1(kontekstId, emptyMap()))
@@ -109,57 +169,75 @@ class HentArbeidsforholdSelvbestemtServiceTest :
                 mockRedisStore.skrivResultat(
                     kontekstId,
                     ResultJson(
-                        success = emptySet<PeriodeAapen>().toJson(PeriodeAapen.serializer().set()),
+                        success = emptyList<Ansettelsesforhold>().toJson(Ansettelsesforhold.serializer().list()),
                     ),
                 )
             }
         }
 
-        test("tåler ingen ansettelsesperioder for gitt orgnr") {
+        test("tåler ingen ansettelsesforhold for gitt orgnr") {
             val kontekstId = UUID.randomUUID()
 
-            val ansettelsesperioderInnenforFilter =
-                setOf(
-                    PeriodeAapen(10.mars, 1.april),
-                    PeriodeAapen(3.april, null),
+            val ansettelsesforholdInnenforFilter =
+                listOf(
+                    Ansettelsesforhold(
+                        startdato = 10.mars,
+                        sluttdato = 1.april,
+                        yrkeskode = "1234567",
+                        yrkesbeskrivelse = "BARNEHAGEASSISTENT",
+                        stillingsprosent = 100.0,
+                    ),
+                    Ansettelsesforhold(startdato = 3.april, sluttdato = null, yrkeskode = "7654321", yrkesbeskrivelse = "SYKEPLEIER", stillingsprosent = 80.0),
                 )
-            val ansettelsesperioderPerOrgnr =
+            val ansettelsesforholdPerOrgnr =
                 mapOf(
-                    Orgnr.genererGyldig() to ansettelsesperioderInnenforFilter,
+                    Orgnr.genererGyldig() to ansettelsesforholdInnenforFilter,
                 )
 
-            testRapid.sendJson(Mock.steg1(kontekstId, ansettelsesperioderPerOrgnr))
+            testRapid.sendJson(Mock.steg1(kontekstId, ansettelsesforholdPerOrgnr))
 
             verifySequence {
                 mockRedisStore.skrivResultat(
                     kontekstId,
                     ResultJson(
-                        success = emptySet<PeriodeAapen>().toJson(PeriodeAapen.serializer().set()),
+                        success = emptyList<Ansettelsesforhold>().toJson(Ansettelsesforhold.serializer().list()),
                     ),
                 )
             }
         }
 
-        test("tåler ingen ansettelsesperioder for gitt periode") {
+        test("tåler ingen ansettelsesforhold for gitt periode") {
             val kontekstId = UUID.randomUUID()
 
-            val ansettelsesperioderUtenforFilter =
-                setOf(
-                    PeriodeAapen(3.januar, 13.januar),
-                    PeriodeAapen(20.januar, 8.februar),
+            val ansettelsesforholdUtenforFilter =
+                listOf(
+                    Ansettelsesforhold(
+                        startdato = 3.januar,
+                        sluttdato = 13.januar,
+                        yrkeskode = "1234567",
+                        yrkesbeskrivelse = "BARNEHAGEASSISTENT",
+                        stillingsprosent = 100.0,
+                    ),
+                    Ansettelsesforhold(
+                        startdato = 20.januar,
+                        sluttdato = 8.februar,
+                        yrkeskode = "7654321",
+                        yrkesbeskrivelse = "SYKEPLEIER",
+                        stillingsprosent = 80.0,
+                    ),
                 )
-            val ansettelsesperioderPerOrgnr =
+            val ansettelsesforholdPerOrgnr =
                 mapOf(
-                    Mock.orgnr to ansettelsesperioderUtenforFilter,
+                    Mock.orgnr to ansettelsesforholdUtenforFilter,
                 )
 
-            testRapid.sendJson(Mock.steg1(kontekstId, ansettelsesperioderPerOrgnr))
+            testRapid.sendJson(Mock.steg1(kontekstId, ansettelsesforholdPerOrgnr))
 
             verifySequence {
                 mockRedisStore.skrivResultat(
                     kontekstId,
                     ResultJson(
-                        success = emptySet<PeriodeAapen>().toJson(PeriodeAapen.serializer().set()),
+                        success = emptyList<Ansettelsesforhold>().toJson(Ansettelsesforhold.serializer().list()),
                     ),
                 )
             }
@@ -205,12 +283,12 @@ class HentArbeidsforholdSelvbestemtServiceTest :
 
         fun steg1(
             kontekstId: UUID,
-            ansettelsesperioder: Map<Orgnr, Set<PeriodeAapen>>,
+            ansettelsesforhold: Map<Orgnr, List<Ansettelsesforhold>>,
         ): Map<Key, JsonElement> =
             steg0(kontekstId)
                 .plus(Key.EVENT_NAME to EventName.SERVICE_HENT_ARBEIDSFORHOLD_SELVBESTEMT.toJson())
                 .plusData(
-                    Key.ANSETTELSESPERIODER to ansettelsesperioder.toJson(MapSerializer(Orgnr.serializer(), PeriodeAapen.serializer().set())),
+                    Key.ANSETTELSESFORHOLD to ansettelsesforhold.toJson(MapSerializer(Orgnr.serializer(), Ansettelsesforhold.serializer().list())),
                 )
     }
 }

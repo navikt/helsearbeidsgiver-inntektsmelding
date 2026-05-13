@@ -2,6 +2,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.aareg
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.Ansettelsesforhold
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.ansettelsesforholdSerializer
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
@@ -57,6 +59,31 @@ class HentAnsettelsesperioderRiver(
     override fun HentAnsettelsesperioderMelding.bestemNoekkel(): KafkaKey = svarKafkaKey
 
     override fun HentAnsettelsesperioderMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
+        // TODO: Fjern duplikat API-kall mot aareg når ansettelsesperioder ikke lenger brukes
+        val ansettelsesforholdFraKlient =
+            runBlocking {
+                aaregClient.hentAnsettelsesforhold(fnr.verdi, kontekstId.toString())
+            }
+
+        sikkerLogger.debug(
+            "Hentet ${ansettelsesforholdFraKlient.size} ansettelsesforhold for fnr ${fnr.verdi}. " +
+                "Detaljer: $ansettelsesforholdFraKlient",
+        )
+
+        val ansettelsesforhold =
+            ansettelsesforholdFraKlient.mapValues { (_, forholdListe) ->
+                forholdListe
+                    .map {
+                        Ansettelsesforhold(
+                            startdato = it.startdato,
+                            sluttdato = it.sluttdato,
+                            yrkeskode = it.yrkeskode,
+                            yrkesbeskrivelse = it.yrkesbeskrivelse,
+                            stillingsprosent = it.stillingsprosent,
+                        )
+                    }
+            }
+
         val ansettelsesperioder =
             runBlocking {
                 aaregClient.hentAnsettelsesperioder(fnr.verdi, kontekstId.toString())
@@ -80,9 +107,9 @@ class HentAnsettelsesperioderRiver(
             Key.KONTEKST_ID to kontekstId.toJson(),
             Key.DATA to
                 data
-                    .plus(
-                        Key.ANSETTELSESPERIODER to ansettelsesperioder.toJson(ansettelsesperioderSerializer),
-                    ).toJson(),
+                    .plus(Key.ANSETTELSESPERIODER to ansettelsesperioder.toJson(ansettelsesperioderSerializer))
+                    .plus(Key.ANSETTELSESFORHOLD to ansettelsesforhold.toJson(ansettelsesforholdSerializer))
+                    .toJson(),
         )
     }
 

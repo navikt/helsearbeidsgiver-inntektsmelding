@@ -11,6 +11,8 @@ import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.Ansettelsesforhold
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.ansettelsesforholdSerializer
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
@@ -35,6 +37,7 @@ import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
+import no.nav.helsearbeidsgiver.aareg.Ansettelsesforhold as KlientAnsettelsesforhold
 import no.nav.helsearbeidsgiver.aareg.Periode as KlientPeriode
 
 class HentAnsettelsesperioderRiverTest :
@@ -54,34 +57,8 @@ class HentAnsettelsesperioderRiverTest :
         }
 
         test("henter ansettelsesperioder") {
-            val orgnr = Orgnr.genererGyldig()
-            val periode =
-                Periode(
-                    fom = 1.januar,
-                    tom = 16.januar,
-                )
-            val ansettelsesperioderFraKlient =
-                mapOf(
-                    orgnr to
-                        setOf(
-                            KlientPeriode(
-                                fom = periode.fom,
-                                tom = periode.tom,
-                            ),
-                        ),
-                )
-            val ansettelsesperioder =
-                mapOf(
-                    orgnr to
-                        setOf(
-                            PeriodeAapen(
-                                fom = periode.fom,
-                                tom = periode.tom,
-                            ),
-                        ),
-                )
-
-            coEvery { mockAaregClient.hentAnsettelsesperioder(any(), any()) } returns ansettelsesperioderFraKlient
+            coEvery { mockAaregClient.hentAnsettelsesforhold(any(), any()) } returns Mock.ansettelsesforholdFraKlient
+            coEvery { mockAaregClient.hentAnsettelsesperioder(any(), any()) } returns Mock.ansettelsesperioderFraKlient
 
             val innkommendeMelding = Mock.innkommendeMelding()
 
@@ -95,16 +72,19 @@ class HentAnsettelsesperioderRiverTest :
                     Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.DATA to
                         innkommendeMelding.data
-                            .plus(Key.ANSETTELSESPERIODER to ansettelsesperioder.toJson(ansettelsesperioderSerializer))
+                            .plus(Key.ANSETTELSESPERIODER to Mock.ansettelsesperioder.toJson(ansettelsesperioderSerializer))
+                            .plus(Key.ANSETTELSESFORHOLD to Mock.ansettelsesforhold.toJson(ansettelsesforholdSerializer))
                             .toJson(),
                 )
 
             coVerifySequence {
+                mockAaregClient.hentAnsettelsesforhold(innkommendeMelding.fnr.verdi, innkommendeMelding.kontekstId.toString())
                 mockAaregClient.hentAnsettelsesperioder(innkommendeMelding.fnr.verdi, innkommendeMelding.kontekstId.toString())
             }
         }
 
         test("håndterer feil") {
+            coEvery { mockAaregClient.hentAnsettelsesforhold(any(), any()) } returns emptyMap()
             coEvery { mockAaregClient.hentAnsettelsesperioder(any(), any()) } throws NullPointerException()
 
             val innkommendeMelding = Mock.innkommendeMelding()
@@ -123,6 +103,7 @@ class HentAnsettelsesperioderRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             coVerifySequence {
+                mockAaregClient.hentAnsettelsesforhold(innkommendeMelding.fnr.verdi, innkommendeMelding.kontekstId.toString())
                 mockAaregClient.hentAnsettelsesperioder(innkommendeMelding.fnr.verdi, innkommendeMelding.kontekstId.toString())
             }
         }
@@ -145,6 +126,7 @@ class HentAnsettelsesperioderRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 coVerify(exactly = 0) {
+                    mockAaregClient.hentAnsettelsesforhold(any(), any())
                     mockAaregClient.hentAnsettelsesperioder(any(), any())
                 }
             }
@@ -152,6 +134,61 @@ class HentAnsettelsesperioderRiverTest :
     })
 
 private object Mock {
+    val orgnr = Orgnr.genererGyldig()
+
+    val periode =
+        Periode(
+            fom = 1.januar,
+            tom = 16.januar,
+        )
+
+    val ansettelsesforholdFraKlient =
+        mapOf(
+            orgnr to
+                listOf(
+                    KlientAnsettelsesforhold(
+                        startdato = periode.fom,
+                        sluttdato = periode.tom,
+                    ),
+                ),
+        )
+
+    val ansettelsesforhold =
+        mapOf(
+            orgnr to
+                listOf(
+                    Ansettelsesforhold(
+                        startdato = periode.fom,
+                        sluttdato = periode.tom,
+                        yrkeskode = null,
+                        yrkesbeskrivelse = null,
+                        stillingsprosent = null,
+                    ),
+                ),
+        )
+
+    val ansettelsesperioderFraKlient =
+        mapOf(
+            orgnr to
+                setOf(
+                    KlientPeriode(
+                        fom = periode.fom,
+                        tom = periode.tom,
+                    ),
+                ),
+        )
+
+    val ansettelsesperioder =
+        mapOf(
+            orgnr to
+                setOf(
+                    PeriodeAapen(
+                        fom = periode.fom,
+                        tom = periode.tom,
+                    ),
+                ),
+        )
+
     fun innkommendeMelding(): HentAnsettelsesperioderMelding {
         val fnr = Fnr.genererGyldig()
         val svarKafkaKey = KafkaKey(fnr)

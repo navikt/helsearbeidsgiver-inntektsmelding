@@ -24,7 +24,6 @@ fun List<Periode>.tilKortFormat(): String {
 
 private fun LocalDate.tilNorskFormatKort(): String = format(norskDatoFormatKort)
 
-// TODO: implementer tester for denne (om den skal beholdes)
 fun Periode.overlapperMed(annen: PeriodeAapen): Boolean {
     val endA = this.tom
     val endB = annen.tom ?: LocalDate.MAX

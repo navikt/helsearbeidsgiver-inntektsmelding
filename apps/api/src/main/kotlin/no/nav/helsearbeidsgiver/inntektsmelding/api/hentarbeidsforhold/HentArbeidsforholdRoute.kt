@@ -2,9 +2,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.hentarbeidsforhold
 
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.kafka.Producer
@@ -51,7 +51,7 @@ fun Route.hentArbeidsforholdRoute(
                         redisPoller = redisPoller,
                         kontekstId = kontekstId,
                         inntektsmeldingTypeId = forespoerselId,
-                        logOnFailure = "Klarte ikke hente arbeidsforholdsdata.",
+                        logOnFailure = "Klarte ikke hente arbeidsforhold.",
                         successSerializer = Ansettelsesforhold.serializer().list(),
                     ) { ansettelsesforhold ->
                         val response =
@@ -60,7 +60,7 @@ fun Route.hentArbeidsforholdRoute(
                             )
                         val responseJson = response.toJson(HentArbeidsforholdResponse.serializer())
 
-                        "Arbeidsforholdsdata hentet OK.".also {
+                        "Arbeidsforhold hentet OK.".also {
                             logger.info(it)
                             sikkerLogger.info("$it\n${responseJson.toPretty()}")
                         }

@@ -1,4 +1,5 @@
 dependencies {
+    implementation(project(":kontrakt-domene-ansettelsesforhold"))
     implementation(project(":kontrakt-domene-forespoersel"))
     implementation(project(":utils-valkey"))
 

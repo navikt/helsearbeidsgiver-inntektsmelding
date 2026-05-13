@@ -8,14 +8,14 @@ import io.mockk.clearAllMocks
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.Ansettelsesforhold
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.ansettelsesforholdSerializer
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.domene.ResultJson
-import no.nav.hag.simba.utils.felles.json.ansettelsesforholdSerializer
 import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.test.json.lesBehov

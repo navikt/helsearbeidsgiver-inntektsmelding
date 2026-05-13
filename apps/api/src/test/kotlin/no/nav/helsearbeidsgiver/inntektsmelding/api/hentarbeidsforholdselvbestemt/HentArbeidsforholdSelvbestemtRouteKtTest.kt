@@ -11,9 +11,9 @@ import io.mockk.coEvery
 import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonObject
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode

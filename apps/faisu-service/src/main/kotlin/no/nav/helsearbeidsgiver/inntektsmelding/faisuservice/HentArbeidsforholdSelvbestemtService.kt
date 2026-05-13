@@ -1,17 +1,17 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.faisuservice
 
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.Ansettelsesforhold
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.ansettelsesforholdSerializer
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.overlapperMed
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.domene.ResultJson
-import no.nav.hag.simba.utils.felles.json.ansettelsesforholdSerializer
 import no.nav.hag.simba.utils.felles.json.les
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.Log
-import no.nav.hag.simba.utils.felles.utils.overlapperMed
 import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.Publisher
 import no.nav.hag.simba.utils.rr.service.ServiceMed1Steg

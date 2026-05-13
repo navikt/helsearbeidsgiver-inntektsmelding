@@ -8,9 +8,9 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerifySequence
 import kotlinx.serialization.builtins.serializer
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.valkey.RedisPrefix

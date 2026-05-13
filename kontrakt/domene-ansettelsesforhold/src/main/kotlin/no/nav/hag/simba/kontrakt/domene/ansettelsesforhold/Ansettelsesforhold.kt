@@ -1,6 +1,6 @@
 @file:UseSerializers(LocalDateSerializer::class)
 
-package no.nav.hag.simba.utils.felles.domene
+package no.nav.hag.simba.kontrakt.domene.ansettelsesforhold
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers

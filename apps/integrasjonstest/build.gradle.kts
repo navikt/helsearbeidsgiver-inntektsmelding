@@ -53,6 +53,7 @@ dependencies {
         testImplementation(project(":$it"))
     }
 
+    testImplementation(project(":kontrakt-domene-ansettelsesforhold"))
     testImplementation(project(":kontrakt-domene-arbeidsgiver"))
     testImplementation(project(":kontrakt-domene-forespoersel"))
     testImplementation(project(":kontrakt-domene-inntektsmelding"))

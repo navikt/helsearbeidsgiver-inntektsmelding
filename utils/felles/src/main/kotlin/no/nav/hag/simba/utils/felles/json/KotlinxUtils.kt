@@ -9,14 +9,12 @@ import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.IKey
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
 import no.nav.hag.simba.utils.felles.domene.Person
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer
-import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -45,12 +43,6 @@ val ansettelsesperioderSerializer =
     MapSerializer(
         Orgnr.serializer(),
         PeriodeAapen.serializer().set(),
-    )
-
-val ansettelsesforholdSerializer =
-    MapSerializer(
-        Orgnr.serializer(),
-        Ansettelsesforhold.serializer().list(),
     )
 
 fun EventName.toJson(): JsonElement = toJson(EventName.serializer())

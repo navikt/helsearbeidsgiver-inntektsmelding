@@ -2,9 +2,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.hentarbeidsforholdselvbeste
 
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.kafka.Producer

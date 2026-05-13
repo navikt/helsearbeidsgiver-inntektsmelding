@@ -57,56 +57,8 @@ class HentAnsettelsesperioderRiverTest :
         }
 
         test("henter ansettelsesperioder") {
-            val orgnr = Orgnr.genererGyldig()
-            val periode =
-                Periode(
-                    fom = 1.januar,
-                    tom = 16.januar,
-                )
-            val ansettelsesperioderFraKlient =
-                mapOf(
-                    orgnr to
-                        setOf(
-                            KlientPeriode(
-                                fom = periode.fom,
-                                tom = periode.tom,
-                            ),
-                        ),
-                )
-            val ansettelsesperioder =
-                mapOf(
-                    orgnr to
-                        setOf(
-                            PeriodeAapen(
-                                fom = periode.fom,
-                                tom = periode.tom,
-                            ),
-                        ),
-                )
-
-            val ansettelsesforholdFraKlient =
-                mapOf(
-                    orgnr to
-                        listOf(
-                            KlientAnsettelsesforhold(
-                                startdato = periode.fom,
-                                sluttdato = periode.tom,
-                            ),
-                        ),
-                )
-            val ansettelsesforhold =
-                mapOf(
-                    orgnr to
-                        listOf(
-                            Ansettelsesforhold(
-                                startdato = periode.fom,
-                                sluttdato = periode.tom,
-                            ),
-                        ),
-                )
-
-            coEvery { mockAaregClient.hentAnsettelsesforhold(any(), any()) } returns ansettelsesforholdFraKlient
-            coEvery { mockAaregClient.hentAnsettelsesperioder(any(), any()) } returns ansettelsesperioderFraKlient
+            coEvery { mockAaregClient.hentAnsettelsesforhold(any(), any()) } returns Mock.ansettelsesforholdFraKlient
+            coEvery { mockAaregClient.hentAnsettelsesperioder(any(), any()) } returns Mock.ansettelsesperioderFraKlient
 
             val innkommendeMelding = Mock.innkommendeMelding()
 
@@ -120,8 +72,8 @@ class HentAnsettelsesperioderRiverTest :
                     Key.KONTEKST_ID to innkommendeMelding.kontekstId.toJson(),
                     Key.DATA to
                         innkommendeMelding.data
-                            .plus(Key.ANSETTELSESPERIODER to ansettelsesperioder.toJson(ansettelsesperioderSerializer))
-                            .plus(Key.ANSETTELSESFORHOLD to ansettelsesforhold.toJson(ansettelsesforholdSerializer))
+                            .plus(Key.ANSETTELSESPERIODER to Mock.ansettelsesperioder.toJson(ansettelsesperioderSerializer))
+                            .plus(Key.ANSETTELSESFORHOLD to Mock.ansettelsesforhold.toJson(ansettelsesforholdSerializer))
                             .toJson(),
                 )
 
@@ -182,6 +134,58 @@ class HentAnsettelsesperioderRiverTest :
     })
 
 private object Mock {
+    val orgnr = Orgnr.genererGyldig()
+
+    val periode =
+        Periode(
+            fom = 1.januar,
+            tom = 16.januar,
+        )
+
+    val ansettelsesforholdFraKlient =
+        mapOf(
+            orgnr to
+                listOf(
+                    KlientAnsettelsesforhold(
+                        startdato = periode.fom,
+                        sluttdato = periode.tom,
+                    ),
+                ),
+        )
+
+    val ansettelsesforhold =
+        mapOf(
+            orgnr to
+                listOf(
+                    Ansettelsesforhold(
+                        startdato = periode.fom,
+                        sluttdato = periode.tom,
+                    ),
+                ),
+        )
+
+    val ansettelsesperioderFraKlient =
+        mapOf(
+            orgnr to
+                setOf(
+                    KlientPeriode(
+                        fom = periode.fom,
+                        tom = periode.tom,
+                    ),
+                ),
+        )
+
+    val ansettelsesperioder =
+        mapOf(
+            orgnr to
+                setOf(
+                    PeriodeAapen(
+                        fom = periode.fom,
+                        tom = periode.tom,
+                    ),
+                ),
+        )
+
     fun innkommendeMelding(): HentAnsettelsesperioderMelding {
         val fnr = Fnr.genererGyldig()
         val svarKafkaKey = KafkaKey(fnr)

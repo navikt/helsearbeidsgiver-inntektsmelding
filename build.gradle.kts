@@ -101,15 +101,11 @@ subprojects {
     dependencies {
         // Sjekk om disse er nødvendige ved oppgradering av pakker
         constraints {
-            implementation("commons-beanutils:commons-beanutils:1.11.0") {
-                because("helsearbeidsgiver-kontrakt-inntektsmelding")
-            }
             implementation("io.ktor:ktor-client-core-jvm:2.3.13") {
                 because("hag-bakgrunnsjobb")
             }
-            implementation("org.apache.commons:commons-lang3:3.18.0") {
-                because("helsearbeidsgiver-kontrakt-inntektsmelding")
-            }
+            // Transitiv avhengighet fra 'io.lettuce:lettuce-core'. Sjekk om nødvendig for versjon >7.5.1.RELEASE.
+            implementation("io.netty:netty-codec-dns:4.2.13.Final")
         }
 
         if (erAppModul()) {

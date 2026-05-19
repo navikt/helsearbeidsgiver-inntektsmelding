@@ -122,6 +122,9 @@ class HentArbeidsforholdService(
                     sykmeldingPeriode.overlapperMed(forhold)
                 }
             }
+        sikkerLogger.debug(
+            "Forespørsel ${steg0.forespoerselId} for orgnr ${forespoersel.orgnr} har ${ansettelsesforholdForAktuellOrg.size} ansettelsesforhold, hvorav ${ansettelsesforholdMedSykmeldingOverlapp.size} har overlapp med sykmeldingsperioder.",
+        )
 
         val resultJson =
             ResultJson(

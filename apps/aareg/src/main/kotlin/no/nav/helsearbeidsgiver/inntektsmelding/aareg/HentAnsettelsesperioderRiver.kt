@@ -74,6 +74,13 @@ class HentAnsettelsesperioderRiver(
             ansettelsesforholdFraKlient.mapValues { (_, forholdListe) ->
                 forholdListe
                     .map {
+                        if (it.yrkeskode == null || it.yrkesbeskrivelse == null || it.stillingsprosent == null) {
+                            sikkerLogger.warn(
+                                "Ansettelsesforhold har null-verdier: " +
+                                    "yrkeskode=${it.yrkeskode}, yrkesbeskrivelse=${it.yrkesbeskrivelse}, " +
+                                    "stillingsprosent=${it.stillingsprosent} (kontekstId=$kontekstId)",
+                            )
+                        }
                         Ansettelsesforhold(
                             startdato = it.startdato,
                             sluttdato = it.sluttdato,

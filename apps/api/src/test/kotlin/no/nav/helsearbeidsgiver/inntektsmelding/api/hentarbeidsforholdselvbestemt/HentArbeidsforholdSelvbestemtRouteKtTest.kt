@@ -11,9 +11,9 @@ import io.mockk.coEvery
 import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonObject
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
@@ -24,18 +24,18 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.set
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
-import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.Ansettelsesforhold as AnsettelsesforholdResponse
 
 class HentArbeidsforholdSelvbestemtRouteKtTest : ApiTest() {
     private val path = Routes.PREFIX + Routes.HENT_ARBEIDSFORHOLD_SELVBESTEMT
@@ -49,21 +49,47 @@ class HentArbeidsforholdSelvbestemtRouteKtTest : ApiTest() {
     fun `henter arbeidsforhold`() =
         testApi {
             val request = mockRequest()
-            val ansettelsesperioder =
-                setOf(
-                    PeriodeAapen(11.februar, 15.mars),
-                    PeriodeAapen(10.mars, 1.april),
-                    PeriodeAapen(3.april, 16.april),
-                    PeriodeAapen(3.april, null),
-                    PeriodeAapen(1.januar, 1.juni),
+            val ansettelsesforhold =
+                listOf(
+                    Ansettelsesforhold(
+                        startdato = 11.februar,
+                        sluttdato = 15.mars,
+                        yrkeskode = "1234567",
+                        yrkesbeskrivelse = "BARNEHAGEASSISTENT",
+                        stillingsprosent = 100.0,
+                    ),
+                    Ansettelsesforhold(
+                        startdato = 10.mars,
+                        sluttdato = 1.april,
+                        yrkeskode = "7654321",
+                        yrkesbeskrivelse = "SYKEPLEIER",
+                        stillingsprosent = 80.0,
+                    ),
+                    Ansettelsesforhold(
+                        startdato = 3.april,
+                        sluttdato = null,
+                        yrkeskode = "2345678",
+                        yrkesbeskrivelse = "HJELPEPLEIER",
+                        stillingsprosent = 50.0,
+                    ),
+                    Ansettelsesforhold(
+                        startdato = 1.januar,
+                        sluttdato = 1.april,
+                        yrkeskode = "8765432",
+                        yrkesbeskrivelse = "RENHOLDER",
+                        stillingsprosent = 60.0,
+                    ),
                 )
-            val forventetResponse = HentArbeidsforholdSelvbestemtResponse(ansettelsesperioder)
+            val forventetResponse =
+                HentArbeidsforholdSelvbestemtResponse(
+                    ansettelsesforhold = ansettelsesforhold.map(AnsettelsesforholdResponse::fra),
+                )
 
             coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     ResultJson(
-                        success = ansettelsesperioder.toJson(PeriodeAapen.serializer().set()),
+                        success = ansettelsesforhold.toJson(Ansettelsesforhold.serializer().list()),
                     ),
                 )
 

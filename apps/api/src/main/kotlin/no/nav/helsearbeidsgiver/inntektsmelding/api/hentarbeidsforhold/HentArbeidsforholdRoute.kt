@@ -2,9 +2,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.hentarbeidsforhold
 
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.Ansettelsesforhold
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.kafka.Producer
@@ -20,11 +20,12 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedisOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readPathParamOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
-import no.nav.helsearbeidsgiver.utils.json.serializer.set
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import java.util.UUID
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.Ansettelsesforhold as AnsettelsesforholdResponse
 
 fun Route.hentArbeidsforholdRoute(
     producer: Producer,
@@ -51,9 +52,12 @@ fun Route.hentArbeidsforholdRoute(
                         kontekstId = kontekstId,
                         inntektsmeldingTypeId = forespoerselId,
                         logOnFailure = "Klarte ikke hente arbeidsforhold.",
-                        successSerializer = PeriodeAapen.serializer().set(),
-                    ) { ansettelsesperioder ->
-                        val response = HentArbeidsforholdResponse(ansettelsesperioder)
+                        successSerializer = Ansettelsesforhold.serializer().list(),
+                    ) { ansettelsesforhold ->
+                        val response =
+                            HentArbeidsforholdResponse(
+                                ansettelsesforhold = ansettelsesforhold.map(AnsettelsesforholdResponse::fra),
+                            )
                         val responseJson = response.toJson(HentArbeidsforholdResponse.serializer())
 
                         "Arbeidsforhold hentet OK.".also {

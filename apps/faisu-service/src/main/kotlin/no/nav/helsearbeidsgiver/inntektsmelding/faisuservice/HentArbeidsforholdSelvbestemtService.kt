@@ -1,17 +1,17 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.faisuservice
 
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.Ansettelsesforhold
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.ansettelsesforholdSerializer
+import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.overlapperMed
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Fail
-import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
 import no.nav.hag.simba.utils.felles.domene.ResultJson
-import no.nav.hag.simba.utils.felles.json.ansettelsesperioderSerializer
 import no.nav.hag.simba.utils.felles.json.les
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.Log
-import no.nav.hag.simba.utils.felles.utils.overlapperMed
 import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.Publisher
 import no.nav.hag.simba.utils.rr.service.ServiceMed1Steg
@@ -44,7 +44,7 @@ class HentArbeidsforholdSelvbestemtService(
     )
 
     data class Steg1(
-        val ansettelsesperioder: Map<Orgnr, Set<PeriodeAapen>>,
+        val ansettelsesforhold: Map<Orgnr, List<Ansettelsesforhold>>,
     )
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
@@ -57,7 +57,7 @@ class HentArbeidsforholdSelvbestemtService(
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
         Steg1(
-            ansettelsesperioder = Key.ANSETTELSESPERIODER.les(ansettelsesperioderSerializer, melding),
+            ansettelsesforhold = Key.ANSETTELSESFORHOLD.les(ansettelsesforholdSerializer, melding),
         )
 
     override fun utfoerSteg0(
@@ -87,15 +87,14 @@ class HentArbeidsforholdSelvbestemtService(
         steg0: Steg0,
         steg1: Steg1,
     ) {
-        val relevanteAnsettelsesperioder =
-            steg1.ansettelsesperioder[steg0.orgnr]
+        val relevanteAnsettelsesforhold =
+            steg1.ansettelsesforhold[steg0.orgnr]
                 .orEmpty()
                 .filter { steg0.periode.overlapperMed(it) }
-                .toSet()
 
         val resultJson =
             ResultJson(
-                success = relevanteAnsettelsesperioder.toJson(PeriodeAapen.serializer()),
+                success = relevanteAnsettelsesforhold.toJson(Ansettelsesforhold.serializer()),
             )
 
         redisStore.skrivResultat(steg0.kontekstId, resultJson)

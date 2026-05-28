@@ -8,6 +8,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.utenPaakrevdAGP
+import no.nav.hag.simba.utils.felles.test.mock.mockFlereArbeidsforhold
 import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
@@ -241,6 +242,47 @@ class MapInntektsmeldingKtTest :
                     it.inntektsdato shouldBe forespoersel.forslagInntektsdato()
                     it.inntektsdato shouldBe 4.juli
                 }
+            }
+
+            test("flereArbeidsforhold fra skjema mappes til Inntektsmelding.Type.Forespurt") {
+                val forespoersel = mockForespoersel()
+                val flereArbeidsforhold = mockFlereArbeidsforhold()
+                val skjema = mockSkjemaInntektsmelding().copy(flereArbeidsforhold = flereArbeidsforhold)
+
+                val inntektsmelding =
+                    mapInntektsmelding(
+                        inntektsmeldingId = UUID.randomUUID(),
+                        forespoersel = forespoersel,
+                        skjema = skjema,
+                        aarsakInnsending = AarsakInnsending.Ny,
+                        virksomhetNavn = "Test AS",
+                        sykmeldtNavn = "Test Person",
+                        avsenderNavn = "Avsender Person",
+                        mottatt = 6.desember.atStartOfDay(),
+                    )
+
+                val type = inntektsmelding.type as Inntektsmelding.Type.Forespurt
+                type.flereArbeidsforhold shouldBe flereArbeidsforhold
+            }
+
+            test("flereArbeidsforhold er null når skjema ikke har det") {
+                val forespoersel = mockForespoersel()
+                val skjema = mockSkjemaInntektsmelding()
+
+                val inntektsmelding =
+                    mapInntektsmelding(
+                        inntektsmeldingId = UUID.randomUUID(),
+                        forespoersel = forespoersel,
+                        skjema = skjema,
+                        aarsakInnsending = AarsakInnsending.Ny,
+                        virksomhetNavn = "Test AS",
+                        sykmeldtNavn = "Test Person",
+                        avsenderNavn = "Avsender Person",
+                        mottatt = 6.desember.atStartOfDay(),
+                    )
+
+                val type = inntektsmelding.type as Inntektsmelding.Type.Forespurt
+                type.flereArbeidsforhold.shouldBeNull()
             }
         }
     })

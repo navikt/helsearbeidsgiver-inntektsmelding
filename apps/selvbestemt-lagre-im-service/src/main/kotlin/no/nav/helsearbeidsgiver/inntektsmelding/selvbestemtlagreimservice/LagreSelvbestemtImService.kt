@@ -27,6 +27,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.ArbeidsforholdType
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.FlereArbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
@@ -366,9 +367,12 @@ fun ArbeidsforholdType.tilVedtaksperiodeId(): UUID? =
         else -> null
     }
 
-fun ArbeidsforholdType.tilInntektsmeldingType(id: UUID): Inntektsmelding.Type =
+fun ArbeidsforholdType.tilInntektsmeldingType(
+    id: UUID,
+    flereArbeidsforhold: FlereArbeidsforhold? = null,
+): Inntektsmelding.Type =
     when (this) {
-        is ArbeidsforholdType.MedArbeidsforhold -> Inntektsmelding.Type.Selvbestemt(id = id)
+        is ArbeidsforholdType.MedArbeidsforhold -> Inntektsmelding.Type.Selvbestemt(id = id, flereArbeidsforhold = flereArbeidsforhold)
         is ArbeidsforholdType.Fisker -> Inntektsmelding.Type.Fisker(id = id)
         is ArbeidsforholdType.UtenArbeidsforhold -> Inntektsmelding.Type.UtenArbeidsforhold(id = id)
         is ArbeidsforholdType.Behandlingsdager -> Inntektsmelding.Type.Behandlingsdager(id = id)
@@ -393,6 +397,7 @@ fun tilInntektsmelding(
         type =
             skjema.arbeidsforholdType.tilInntektsmeldingType(
                 id = skjema.selvbestemtId ?: UUID.randomUUID(),
+                flereArbeidsforhold = skjema.flereArbeidsforhold,
             ),
         sykmeldt =
             Sykmeldt(

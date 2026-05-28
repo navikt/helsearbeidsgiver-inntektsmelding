@@ -1,6 +1,7 @@
 package no.nav.hag.simba.utils.felles.test.mock
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
@@ -14,6 +15,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.AvsenderSystem
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.ArbeidsforholdType
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.FlereArbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaAvsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
@@ -187,4 +189,25 @@ fun mockAvsenderSystem(): AvsenderSystem =
         orgnr = Orgnr.genererGyldig(),
         navn = "Slapp Tiger",
         versjon = "8.8.8",
+    )
+
+fun mockFlereArbeidsforhold(): FlereArbeidsforhold =
+    FlereArbeidsforhold(
+        harLikLoenn = false,
+        erSykmeldtFraAlle = false,
+        arbeidsforhold =
+            listOf(
+                Arbeidsforhold(
+                    inkludertISykefravaer = true,
+                    yrkesbeskrivelse = "Utvikler",
+                    stillingsprosent = 80.0,
+                    inntekt = 40000.0,
+                ),
+                Arbeidsforhold(
+                    inkludertISykefravaer = false,
+                    yrkesbeskrivelse = "Konsulent",
+                    stillingsprosent = 20.0,
+                    inntekt = 10000.0,
+                ),
+            ),
     )

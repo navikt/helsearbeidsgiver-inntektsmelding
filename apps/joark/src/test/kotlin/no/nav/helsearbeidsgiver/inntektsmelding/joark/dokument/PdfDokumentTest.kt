@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
+import no.nav.hag.simba.utils.felles.test.mock.mockFlereArbeidsforhold
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
@@ -355,6 +356,55 @@ class PdfDokumentTest {
 
             pdfTekst shouldContain forventetTittel
         }
+    }
+
+    @Test
+    fun `med flere arbeidsforhold viser spørsmål og tabell`() {
+        val flereArbeidsforhold = mockFlereArbeidsforhold()
+
+        val imMedFlereArbeidsforhold =
+            im.copy(
+                type = Inntektsmelding.Type.Forespurt(UUID.randomUUID(), flereArbeidsforhold = flereArbeidsforhold),
+            )
+
+        val pdfTekst = pdfTekstFraIm(imMedFlereArbeidsforhold)
+        writePDF("med_flere_arbeidsforhold", imMedFlereArbeidsforhold)
+
+        pdfTekst shouldContain "Flere arbeidsforhold"
+        pdfTekst shouldContain "Har lik lønn i alle arbeidsforhold?"
+        pdfTekst shouldContain "Nei"
+        pdfTekst shouldContain "Er sykmeldt fra alle arbeidsforhold?"
+        pdfTekst shouldContain "Utvikler"
+        pdfTekst shouldContain "Konsulent"
+    }
+
+    @Test
+    fun `med flere arbeidsforhold og lik lønn viser kun spørsmål uten tabell`() {
+        val flereArbeidsforhold =
+            mockFlereArbeidsforhold().copy(
+                harLikLoenn = true,
+                erSykmeldtFraAlle = true,
+            )
+
+        val imMedFlereArbeidsforhold =
+            im.copy(
+                type = Inntektsmelding.Type.Forespurt(UUID.randomUUID(), flereArbeidsforhold = flereArbeidsforhold),
+            )
+
+        val pdfTekst = pdfTekstFraIm(imMedFlereArbeidsforhold)
+        writePDF("med_flere_arbeidsforhold_lik_loenn", imMedFlereArbeidsforhold)
+
+        pdfTekst shouldContain "Flere arbeidsforhold"
+        pdfTekst shouldContain "Har lik lønn i alle arbeidsforhold?"
+        pdfTekst shouldContain "Ja"
+        pdfTekst shouldNotContain "Utvikler"
+        pdfTekst shouldNotContain "Konsulent"
+    }
+
+    @Test
+    fun `uten flere arbeidsforhold viser ikke seksjonen`() {
+        val pdfTekst = pdfTekstFraIm(im)
+        pdfTekst shouldNotContain "Flere arbeidsforhold"
     }
 
     private fun List<InntektEndringAarsak>.tilIm(): Inntektsmelding =

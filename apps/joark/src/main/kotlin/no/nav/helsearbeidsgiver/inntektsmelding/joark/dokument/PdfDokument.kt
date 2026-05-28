@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Permittering
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykefravaer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.FlereArbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.utils.utledEgenmeldinger
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.tittel
 import no.nav.helsearbeidsgiver.utils.date.tilNorskFormat
@@ -42,6 +43,7 @@ class PdfDokument(
         addLine()
         addInntekt()
         addLine()
+        addFlereArbeidsforhold()
         addRefusjon()
         addLine()
         addNaturalytelser()
@@ -268,6 +270,43 @@ class PdfDokument(
     ) {
         addLabel(forklaringEndring, nyStillingsprosent.beskrivelse(), linefeed = false)
         addLabel("Gjelder fra", nyStillingsprosent.gjelderFra.tilNorskFormat(), kolonneTo)
+    }
+
+    private fun addFlereArbeidsforhold() {
+        val flereArbeidsforhold = inntektsmelding.type.let {
+            when (it) {
+                is Inntektsmelding.Type.Forespurt -> it.flereArbeidsforhold
+                is Inntektsmelding.Type.Selvbestemt -> it.flereArbeidsforhold
+                else -> null
+            }
+        } ?: return
+
+        addSection("Flere arbeidsforhold")
+        addLabel("Har lik lønn i alle arbeidsforhold?", flereArbeidsforhold.harLikLoenn.tilNorskFormat())
+        addLabel("Er sykmeldt fra alle arbeidsforhold?", flereArbeidsforhold.erSykmeldtFraAlle.tilNorskFormat())
+
+        if (!flereArbeidsforhold.harLikLoenn && !flereArbeidsforhold.erSykmeldtFraAlle) {
+            addLabel("Arbeidsforhold", x = kolonneEn)
+
+            val kolInkludert = kolonneEn
+            val kolYrke = kolonneEn + 200
+            val kolStilling = kolonneEn + 500
+            val kolInntekt = kolonneEn + 700
+
+            addText("Inkludert i sykefravær", kolInkludert, linefeed = false)
+            addText("Yrkesbeskrivelse", kolYrke, linefeed = false)
+            addText("Stillingsprosent", kolStilling, linefeed = false)
+            addText("Inntekt", kolInntekt)
+
+            flereArbeidsforhold.arbeidsforhold.forEach {
+                addText(it.inkludertISykefravaer.tilNorskFormat(), kolInkludert, linefeed = false)
+                addText(it.yrkesbeskrivelse, kolYrke, linefeed = false)
+                addText("${it.stillingsprosent.tilNorskFormat()} %", kolStilling, linefeed = false)
+                addText("${it.inntekt.tilNorskFormat()} kr", kolInntekt)
+            }
+        }
+
+        addLine()
     }
 
     private fun addRefusjon() {

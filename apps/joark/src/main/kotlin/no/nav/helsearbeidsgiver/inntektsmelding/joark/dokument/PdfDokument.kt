@@ -155,10 +155,12 @@ class PdfDokument(
 
     private fun addFravaersperiode() {
         addSection("Fraværsperiode")
-        val seksjonStartY = y // Husk når denne seksjonen starter i y-aksen
 
         // --- Kolonnen til venstre -------------------------------------------------
         addLabel("Bestemmende fraværsdag (skjæringstidpunkt)", inntektsmelding.inntekt?.inntektsdato?.tilNorskFormat(), kolonneEn)
+
+        val seksjonStartY = y // Husk når denne seksjonen starter etter Bestemmende fraværsdag i y-aksen
+
         addLabel("Arbeidsgiverperiode", x = kolonneEn)
         addPerioder(kolonneEn, inntektsmelding.agp?.perioder.orEmpty())
 
@@ -172,8 +174,13 @@ class PdfDokument(
                 sykmeldingsperioder = inntektsmelding.sykmeldingsperioder,
             )
         moveCursorTo(seksjonStartY) // Gjenopprett y-aksen fra tidligere
+
         addLabel("Egenmelding", x = kolonneTo)
-        addPerioder(kolonneTo, egenmeldinger)
+        if (egenmeldinger.isEmpty()) {
+            addLabel("(Ingen egenmeldingsperioder oppgitt)", x = kolonneTo)
+        } else {
+            addPerioder(kolonneTo, egenmeldinger)
+        }
         addLabel("Sykemeldingsperioder", x = kolonneTo)
         addPerioder(kolonneTo, inntektsmelding.sykmeldingsperioder)
 
@@ -190,8 +197,8 @@ class PdfDokument(
         perioder: List<Periode>,
     ) {
         perioder.forEach {
-            addLabel("Fra", it.fom.tilNorskFormat(), x, linefeed = false)
-            addLabel("Til", it.tom.tilNorskFormat(), x + 200)
+            addLabel("Fra", it.fom.tilNorskFormat() + "    -", x, linefeed = false)
+            addLabel("Til", it.tom.tilNorskFormat(), x + 130)
         }
     }
 
@@ -336,7 +343,7 @@ class PdfDokument(
             addLabel("Endringer i refusjon i perioden", refusjon.endringer.isNotEmpty().tilNorskFormat())
             refusjon.endringer.forEach {
                 addLabel("Beløp", it.beloep.tilNorskFormat(), kolonneEn, linefeed = false)
-                addLabel("Dato", it.startdato.tilNorskFormat(), kolonneTo)
+                addLabel("Dato", it.startdato.tilNorskFormat(), kolonneEn + 170)
             }
         }
     }

@@ -147,6 +147,7 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
                     "Sykmeldingsperioder må fylles ut",
                     "Beløp må være større eller lik 0",
                     "Refusjonsbeløp må være mindre eller lik inntekt",
+                    "Summen av inntekter fra flere arbeidsforhold må være lik innrapportert inntekt",
                 )
 
             coEvery { anyConstructed<RedisPoller>().hent(any()) } returns harTilgangResultat

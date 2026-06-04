@@ -38,6 +38,7 @@ fun mapInntektsmelding(
                 ?: Inntektsmelding.Type.Forespurt(
                     id = skjema.forespoerselId,
                     erAgpForespurt = forespoersel.forespurtData.arbeidsgiverperiode.paakrevd,
+                    flereArbeidsforhold = skjema.flereArbeidsforhold,
                 ),
         sykmeldt =
             Sykmeldt(

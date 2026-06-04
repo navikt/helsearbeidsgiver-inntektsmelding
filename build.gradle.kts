@@ -101,14 +101,8 @@ subprojects {
     dependencies {
         // Sjekk om disse er nødvendige ved oppgradering av pakker
         constraints {
-            implementation("commons-beanutils:commons-beanutils:1.11.0") {
-                because("helsearbeidsgiver-kontrakt-inntektsmelding")
-            }
             implementation("io.ktor:ktor-client-core-jvm:2.3.13") {
                 because("hag-bakgrunnsjobb")
-            }
-            implementation("org.apache.commons:commons-lang3:3.18.0") {
-                because("helsearbeidsgiver-kontrakt-inntektsmelding")
             }
         }
 

@@ -27,6 +27,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.ArbeidsforholdType
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.FlereArbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
@@ -38,7 +39,6 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.collections.orEmpty
@@ -125,8 +125,6 @@ class LagreSelvbestemtImService(
         steg0: Steg0,
     ) {
         val svarKafkaKey = KafkaKey(steg0.skjema.sykmeldtFnr)
-
-        kontrollerSkjema(steg0.skjema)
 
         publisher.publish(
             key = steg0.skjema.sykmeldtFnr,
@@ -333,25 +331,6 @@ class LagreSelvbestemtImService(
         }
     }
 
-    private fun kontrollerSkjema(skjema: SkjemaInntektsmeldingSelvbestemt) {
-        skjema.agp?.let { arbeidsgiverperiode ->
-            if (arbeidsgiverperiode.perioder.sumOf
-                    {
-                        it.fom.datesUntil(it.tom).count() + 1 // datesuntil er eksklusiv t.o.m, så legg til 1
-                    } < 16
-            ) {
-                sikkerLogger.info("Skjema fra orgnr ${skjema.avsender.orgnr} har kort AGP")
-            }
-        }
-        skjema.sykmeldingsperioder.let { smp ->
-            smp.forEach {
-                if (it.tom.isAfter(LocalDate.now())) {
-                    sikkerLogger.warn("Skjema fra orgnr ${skjema.avsender.orgnr} har sykemeldingsperiode med tom-dato fram i tid")
-                }
-            }
-        }
-    }
-
     override fun Steg0.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this@LagreSelvbestemtImService),
@@ -359,20 +338,6 @@ class LagreSelvbestemtImService(
             Log.kontekstId(kontekstId),
         )
 }
-
-fun ArbeidsforholdType.tilVedtaksperiodeId(): UUID? =
-    when (this) {
-        is ArbeidsforholdType.MedArbeidsforhold -> vedtaksperiodeId
-        else -> null
-    }
-
-fun ArbeidsforholdType.tilInntektsmeldingType(id: UUID): Inntektsmelding.Type =
-    when (this) {
-        is ArbeidsforholdType.MedArbeidsforhold -> Inntektsmelding.Type.Selvbestemt(id = id)
-        is ArbeidsforholdType.Fisker -> Inntektsmelding.Type.Fisker(id = id)
-        is ArbeidsforholdType.UtenArbeidsforhold -> Inntektsmelding.Type.UtenArbeidsforhold(id = id)
-        is ArbeidsforholdType.Behandlingsdager -> Inntektsmelding.Type.Behandlingsdager(id = id)
-    }
 
 fun tilInntektsmelding(
     skjema: SkjemaInntektsmeldingSelvbestemt,
@@ -393,6 +358,7 @@ fun tilInntektsmelding(
         type =
             skjema.arbeidsforholdType.tilInntektsmeldingType(
                 id = skjema.selvbestemtId ?: UUID.randomUUID(),
+                flereArbeidsforhold = skjema.flereArbeidsforhold,
             ),
         sykmeldt =
             Sykmeldt(
@@ -413,7 +379,27 @@ fun tilInntektsmelding(
         naturalytelser = skjema.naturalytelser,
         aarsakInnsending = aarsakInnsending,
         mottatt = mottatt.toOffsetDateTimeOslo(),
-        // TODO: Fjerne "?: skjema.vedtaksperiodeId" etter frontend har implementert arbeidsforholdType
-        vedtaksperiodeId = skjema.arbeidsforholdType.tilVedtaksperiodeId() ?: skjema.vedtaksperiodeId,
+        vedtaksperiodeId = skjema.arbeidsforholdType.tilVedtaksperiodeId(),
     )
 }
+
+fun ArbeidsforholdType.tilInntektsmeldingType(
+    id: UUID,
+    flereArbeidsforhold: FlereArbeidsforhold?,
+): Inntektsmelding.Type =
+    when (this) {
+        is ArbeidsforholdType.MedArbeidsforhold -> Inntektsmelding.Type.Selvbestemt(id, flereArbeidsforhold)
+        is ArbeidsforholdType.Fisker -> Inntektsmelding.Type.Fisker(id)
+        is ArbeidsforholdType.UtenArbeidsforhold -> Inntektsmelding.Type.UtenArbeidsforhold(id)
+        is ArbeidsforholdType.Behandlingsdager -> Inntektsmelding.Type.Behandlingsdager(id)
+    }
+
+fun ArbeidsforholdType.tilVedtaksperiodeId(): UUID? =
+    when (this) {
+        is ArbeidsforholdType.MedArbeidsforhold -> vedtaksperiodeId
+
+        ArbeidsforholdType.Behandlingsdager,
+        ArbeidsforholdType.Fisker,
+        ArbeidsforholdType.UtenArbeidsforhold,
+        -> null
+    }

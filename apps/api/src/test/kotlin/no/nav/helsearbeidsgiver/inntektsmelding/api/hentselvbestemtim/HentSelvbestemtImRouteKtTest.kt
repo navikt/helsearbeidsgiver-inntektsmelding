@@ -16,7 +16,9 @@ import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.felles.test.mock.mockFlereArbeidsforhold
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
@@ -41,6 +43,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.AvsenderSystem
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.FlereArbeidsforhold
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
@@ -274,6 +277,7 @@ private fun mockSelvbestemtInntektsmelding(): Inntektsmelding =
         type =
             Inntektsmelding.Type.Selvbestemt(
                 id = UUID.randomUUID(),
+                flereArbeidsforhold = mockFlereArbeidsforhold(),
             ),
     )
 
@@ -301,7 +305,8 @@ private fun Inntektsmelding.Type.hardcodedJson(): String =
             """
             {
                 "type": "Forespurt",
-                "id": "$id"
+                "id": "$id",
+                "flereArbeidsforhold": ${flereArbeidsforhold?.hardcodedJson()}
             }
             """
         }
@@ -320,7 +325,8 @@ private fun Inntektsmelding.Type.hardcodedJson(): String =
             """
             {
                 "type": "Selvbestemt",
-                "id": "$id"
+                "id": "$id",
+                "flereArbeidsforhold": ${flereArbeidsforhold?.hardcodedJson()}
             }
             """
         }
@@ -377,6 +383,25 @@ private fun AvsenderSystem.hardcodedJson(): String =
         "orgnr": "$orgnr",
         "navn": "$navn",
         "versjon": "$versjon"
+    }
+    """
+
+private fun FlereArbeidsforhold.hardcodedJson(): String =
+    """
+    {
+        "harLikLoenn": $harLikLoenn,
+        "erSykmeldtFraAlle": $erSykmeldtFraAlle,
+        "arbeidsforhold": [${arbeidsforhold.joinToString(transform = Arbeidsforhold::hardcodedJson)}]
+    }
+    """
+
+private fun Arbeidsforhold.hardcodedJson(): String =
+    """
+    {
+        "inkludertISykefravaer": $inkludertISykefravaer,
+        "yrkesbeskrivelse": "$yrkesbeskrivelse",
+        "stillingsprosent": $stillingsprosent,
+        "inntekt": $inntekt
     }
     """
 

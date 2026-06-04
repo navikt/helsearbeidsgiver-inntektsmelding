@@ -30,6 +30,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.ArbeidsforholdType
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
@@ -64,10 +65,10 @@ class LagreSelvbestemtIT : EndToEndTest() {
                 type =
                     Inntektsmelding.Type.Selvbestemt(
                         id = UUID.randomUUID(),
+                        flereArbeidsforhold = Mock.skjema.flereArbeidsforhold,
                     ),
                 aarsakInnsending = AarsakInnsending.Ny,
             )
-
         coEvery { brregClient.hentOrganisasjonNavn(any()) } returns mapOf(Mock.organisasjon)
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
         coEvery { aaregClient.hentAnsettelsesperioder(any(), any()) } returns Mock.ansettelsesperioder
@@ -418,6 +419,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
                 type =
                     Inntektsmelding.Type.Selvbestemt(
                         id = skjema.selvbestemtId.shouldNotBeNull(),
+                        flereArbeidsforhold = skjema.flereArbeidsforhold,
                     ),
                 sykmeldt =
                     Sykmeldt(
@@ -432,7 +434,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
                         tlf = skjema.avsender.tlf,
                     ),
                 aarsakInnsending = AarsakInnsending.Endring,
-                vedtaksperiodeId = skjema.vedtaksperiodeId.shouldNotBeNull(),
+                vedtaksperiodeId = (skjema.arbeidsforholdType as? ArbeidsforholdType.MedArbeidsforhold)?.vedtaksperiodeId,
             )
     }
 }

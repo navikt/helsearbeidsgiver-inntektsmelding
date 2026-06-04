@@ -30,6 +30,7 @@ import no.nav.hag.simba.utils.felles.test.json.lesData
 import no.nav.hag.simba.utils.felles.test.json.minusData
 import no.nav.hag.simba.utils.felles.test.json.plusData
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
+import no.nav.hag.simba.utils.felles.test.mock.mockFlereArbeidsforhold
 import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.service.ServiceRiverStateful
 import no.nav.hag.simba.utils.rr.test.message
@@ -47,6 +48,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RefusjonEndring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.ArbeidsforholdType
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.FlereArbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaAvsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
@@ -86,29 +88,38 @@ class LagreSelvbestemtImServiceTest :
         }
 
         context("Inntektsmeldinger AarsakInnsending.Ny lagres og sak opprettes") {
-
-            fun ArbeidsforholdType.skalHaArbeidsforhold(): Boolean =
-                when (this) {
-                    is ArbeidsforholdType.MedArbeidsforhold, is ArbeidsforholdType.Behandlingsdager -> true
-                    is ArbeidsforholdType.UtenArbeidsforhold, is ArbeidsforholdType.Fisker -> false
-                }
-
             withData(
-                nameFn = { "med skjema ${ArbeidsforholdType::class.simpleName}.${it::class.simpleName}" },
-                ts =
-                    setOf(
-                        Mock.skjema.arbeidsforholdType,
-                        ArbeidsforholdType.Fisker,
-                        ArbeidsforholdType.UtenArbeidsforhold,
-                    ),
-            ) { arbeidsforholdType ->
-
-                val skjema = Mock.skjema.copy(selvbestemtId = null, arbeidsforholdType = arbeidsforholdType)
-
-                val inntektsmeldingType = arbeidsforholdType.tilInntektsmeldingType(UUID.randomUUID())
-                val nyInntektsmelding = Mock.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Ny, type = inntektsmeldingType)
-
+                nameFn = {
+                    "skjema med ${ArbeidsforholdType::class.simpleName}.${it.first::class.simpleName} og ${FlereArbeidsforhold::class.simpleName} (antall ${it.second?.arbeidsforhold.orEmpty().size})"
+                },
+                ArbeidsforholdType.MedArbeidsforhold(UUID.randomUUID()) to null,
+                ArbeidsforholdType.MedArbeidsforhold(UUID.randomUUID()) to mockFlereArbeidsforhold(),
+                ArbeidsforholdType.Behandlingsdager to null,
+                ArbeidsforholdType.Fisker to null,
+                ArbeidsforholdType.UtenArbeidsforhold to null,
+            ) { (arbeidsforholdType, flereArbeidsforhold) ->
                 val kontekstId = UUID.randomUUID()
+                val skjema =
+                    Mock.skjema.copy(
+                        selvbestemtId = null,
+                        arbeidsforholdType = arbeidsforholdType,
+                        flereArbeidsforhold = flereArbeidsforhold,
+                    )
+
+                val inntektsmeldingType = arbeidsforholdType.tilInntektsmeldingType(UUID.randomUUID(), skjema.flereArbeidsforhold)
+                val nyInntektsmelding =
+                    Mock.inntektsmelding.copy(
+                        aarsakInnsending = AarsakInnsending.Ny,
+                        type = inntektsmeldingType,
+                        vedtaksperiodeId = arbeidsforholdType.tilVedtaksperiodeId(),
+                    )
+
+                val arbeidsforholdListe =
+                    if (arbeidsforholdType.skalHaArbeidsforhold()) {
+                        Mock.lagAnsettelsesperioder(orgnr = Mock.skjema.avsender.orgnr)
+                    } else {
+                        emptyMap()
+                    }
 
                 testRapid.sendJson(
                     Mock
@@ -136,13 +147,6 @@ class LagreSelvbestemtImServiceTest :
                     it.lesBehov() shouldBe BehovType.HENT_ANSETTELSESPERIODER
                     Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), it.lesData()) shouldBe KafkaKey(skjema.sykmeldtFnr)
                 }
-
-                val arbeidsforholdListe =
-                    if (arbeidsforholdType.skalHaArbeidsforhold()) {
-                        Mock.lagAnsettelsesperioder(orgnr = Mock.skjema.avsender.orgnr)
-                    } else {
-                        emptyMap()
-                    }
 
                 mockStatic(OffsetDateTime::class) {
                     every { OffsetDateTime.now() } returns nyInntektsmelding.mottatt
@@ -462,6 +466,12 @@ class LagreSelvbestemtImServiceTest :
         }
     })
 
+private fun ArbeidsforholdType.skalHaArbeidsforhold(): Boolean =
+    when (this) {
+        is ArbeidsforholdType.MedArbeidsforhold, is ArbeidsforholdType.Behandlingsdager -> true
+        is ArbeidsforholdType.UtenArbeidsforhold, is ArbeidsforholdType.Fisker -> false
+    }
+
 private fun Map<Key, JsonElement>.lesInntektsmelding(): Inntektsmelding {
     val data = this[Key.DATA].shouldNotBeNull().toMap()
     return Key.SELVBESTEMT_INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), data).shouldNotBeNull()
@@ -485,6 +495,7 @@ private object Mock {
     val skjema =
         SkjemaInntektsmeldingSelvbestemt(
             selvbestemtId = UUID.randomUUID(),
+            arbeidsforholdType = ArbeidsforholdType.MedArbeidsforhold(vedtaksperiodeId = vedtaksperiodeId),
             sykmeldtFnr = sykmeldt.fnr,
             avsender =
                 SkjemaAvsender(
@@ -545,8 +556,6 @@ private object Mock {
                             ),
                         ),
                 ),
-            vedtaksperiodeId = vedtaksperiodeId,
-            arbeidsforholdType = ArbeidsforholdType.MedArbeidsforhold(vedtaksperiodeId = vedtaksperiodeId),
         )
 
     val inntektsmelding =
@@ -605,7 +614,7 @@ private object Mock {
             Key.SAK_ID to "folkelig-lurendreier-sak-id".toJson(),
         )
 
-    fun lagAnsettelsesperioder(orgnr: Orgnr) =
+    fun lagAnsettelsesperioder(orgnr: Orgnr): Map<Orgnr, Set<PeriodeAapen>> =
         mapOf(
             orgnr to
                 setOf(

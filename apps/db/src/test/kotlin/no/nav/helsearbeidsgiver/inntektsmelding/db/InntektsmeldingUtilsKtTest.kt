@@ -5,11 +5,13 @@ import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.hag.simba.utils.felles.test.mock.randomDigitString
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RefusjonEndring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.FlereArbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.november
@@ -42,6 +44,13 @@ class InntektsmeldingUtilsKtTest :
                 test("skjema med ulik refusjon er _ikke_ duplikater") {
                     val gammel = mockSkjemaInntektsmelding()
                     val ny = gammel.copy(refusjon = nyRefusjon)
+
+                    ny.erDuplikatAv(gammel).shouldBeFalse()
+                }
+
+                test("skjema med ulik 'flere arbeidsforhold' er _ikke_ duplikater") {
+                    val gammel = mockSkjemaInntektsmelding()
+                    val ny = gammel.copy(flereArbeidsforhold = nyFlereArbeidsforhold)
 
                     ny.erDuplikatAv(gammel).shouldBeFalse()
                 }
@@ -85,4 +94,19 @@ private val nyRefusjon =
     Refusjon(
         beloepPerMaaned = 4021.1,
         endringer = listOf(RefusjonEndring(beloep = 0.0, startdato = 31.desember)),
+    )
+
+private val nyFlereArbeidsforhold =
+    FlereArbeidsforhold(
+        harLikLoenn = true,
+        erSykmeldtFraAlle = true,
+        arbeidsforhold =
+            listOf(
+                Arbeidsforhold(
+                    inkludertISykefravaer = false,
+                    yrkesbeskrivelse = "Lokomotivfører",
+                    stillingsprosent = 100.0,
+                    inntekt = 815.0,
+                ),
+            ),
     )

@@ -6,6 +6,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.utenPaakrevdAGP
 import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
@@ -55,6 +56,7 @@ class MapInntektsmeldingKtTest :
                         Inntektsmelding.Type.Forespurt(
                             id = skjema.forespoerselId,
                             erAgpForespurt = true,
+                            flereArbeidsforhold = skjema.flereArbeidsforhold,
                         )
 
                     sykmeldt shouldBe
@@ -91,13 +93,14 @@ class MapInntektsmeldingKtTest :
                 }
             }
 
-            test("beholder tomme verdier for AGP, inntekt og refusjon") {
+            test("beholder tomme verdier for AGP, inntekt, refusjon og flere arbeidsforhold") {
                 val forespoersel = mockForespoersel()
                 val skjema =
                     mockSkjemaInntektsmelding().copy(
                         agp = null,
                         inntekt = null,
                         refusjon = null,
+                        flereArbeidsforhold = null,
                     )
 
                 val inntektsmelding =
@@ -115,6 +118,9 @@ class MapInntektsmeldingKtTest :
                 inntektsmelding.agp.shouldBeNull()
                 inntektsmelding.inntekt.shouldBeNull()
                 inntektsmelding.refusjon.shouldBeNull()
+                inntektsmelding.type.shouldBeInstanceOf<Inntektsmelding.Type.Forespurt> {
+                    it.flereArbeidsforhold.shouldBeNull()
+                }
             }
 
             test("setter AGP som ikke forespurt dersom AGP _ikke_ er påkrevd") {

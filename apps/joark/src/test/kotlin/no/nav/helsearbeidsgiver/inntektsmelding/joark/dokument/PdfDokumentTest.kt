@@ -370,12 +370,19 @@ class PdfDokumentTest {
         val pdfTekst = pdfTekstFraIm(imMedFlereArbeidsforhold)
         writePDF("med_flere_arbeidsforhold", imMedFlereArbeidsforhold)
 
-        pdfTekst shouldContain "Flere arbeidsforhold"
-        pdfTekst shouldContain "Har lik lønn i alle arbeidsforhold?"
-        pdfTekst shouldContain "Nei"
-        pdfTekst shouldContain "Er sykmeldt fra alle arbeidsforhold?"
-        pdfTekst shouldContain "Utvikler"
-        pdfTekst shouldContain "Konsulent"
+        pdfTekst shouldContain
+            """
+            Flere arbeidsforhold
+            Har lik lønn i alle arbeidsforhold?
+            Nei
+            Er sykmeldt fra alle arbeidsforhold?
+            Nei
+            Arbeidsforhold
+            Inkludert i sykefravær Yrkesbeskrivelse Stillingsprosent Inntekt
+            Ja Utvikler 80,00 % 40 000,00 kr
+            Nei Konsulent 20,00 % 10 000,00 kr
+            """.trimIndent()
+        println(pdfTekst)
     }
 
     @Test
@@ -394,11 +401,14 @@ class PdfDokumentTest {
         val pdfTekst = pdfTekstFraIm(imMedFlereArbeidsforhold)
         writePDF("med_flere_arbeidsforhold_lik_loenn", imMedFlereArbeidsforhold)
 
-        pdfTekst shouldContain "Flere arbeidsforhold"
-        pdfTekst shouldContain "Har lik lønn i alle arbeidsforhold?"
-        pdfTekst shouldContain "Ja"
-        pdfTekst shouldNotContain "Utvikler"
-        pdfTekst shouldNotContain "Konsulent"
+        pdfTekst shouldContain
+            """
+            Flere arbeidsforhold
+            Har lik lønn i alle arbeidsforhold?
+            Ja
+            Er sykmeldt fra alle arbeidsforhold?
+            Ja
+            """.trimIndent()
     }
 
     @Test

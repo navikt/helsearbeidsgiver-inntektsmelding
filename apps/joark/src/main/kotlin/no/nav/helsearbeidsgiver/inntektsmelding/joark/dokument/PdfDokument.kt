@@ -15,7 +15,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Permittering
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykefravaer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.FlereArbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.utils.utledEgenmeldinger
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.tittel
 import no.nav.helsearbeidsgiver.utils.date.tilNorskFormat
@@ -280,13 +279,14 @@ class PdfDokument(
     }
 
     private fun addFlereArbeidsforhold() {
-        val flereArbeidsforhold = inntektsmelding.type.let {
-            when (it) {
-                is Inntektsmelding.Type.Forespurt -> it.flereArbeidsforhold
-                is Inntektsmelding.Type.Selvbestemt -> it.flereArbeidsforhold
-                else -> null
-            }
-        } ?: return
+        val flereArbeidsforhold =
+            inntektsmelding.type.let {
+                when (it) {
+                    is Inntektsmelding.Type.Forespurt -> it.flereArbeidsforhold
+                    is Inntektsmelding.Type.Selvbestemt -> it.flereArbeidsforhold
+                    else -> null
+                }
+            } ?: return
 
         addSection("Flere arbeidsforhold")
         addLabel("Har lik lønn i alle arbeidsforhold?", flereArbeidsforhold.harLikLoenn.tilNorskFormat())

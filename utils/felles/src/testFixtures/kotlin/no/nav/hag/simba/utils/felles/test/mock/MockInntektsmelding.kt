@@ -4,6 +4,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.FlereArbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
@@ -15,13 +16,14 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.AvsenderSystem
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.ArbeidsforholdType
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.FlereArbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaAvsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
+import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.kl
+import no.nav.helsearbeidsgiver.utils.test.date.mai
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.date.november
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
@@ -198,19 +200,37 @@ fun mockFlereArbeidsforhold(): FlereArbeidsforhold =
     FlereArbeidsforhold(
         harLikLoenn = false,
         erSykmeldtFraAlle = false,
-        arbeidsforhold =
-            listOf(
-                Arbeidsforhold(
-                    inkludertISykefravaer = true,
-                    yrkesbeskrivelse = "Mekker",
-                    stillingsprosent = 30.0,
-                    inntekt = 1000.0,
-                ),
-                Arbeidsforhold(
-                    inkludertISykefravaer = false,
-                    yrkesbeskrivelse = "Betjent",
-                    stillingsprosent = 60.0,
-                    inntekt = 544.6,
-                ),
+        arbeidsforholdPerSykmeldingStartdato =
+            mapOf(
+                17.mai to
+                    listOf(
+                        Arbeidsforhold(
+                            inkludertISykefravaer = true,
+                            yrkesbeskrivelse = "Mekker",
+                            stillingsprosent = 30.0,
+                            inntekt = 1000.0,
+                        ),
+                        Arbeidsforhold(
+                            inkludertISykefravaer = false,
+                            yrkesbeskrivelse = "Betjent",
+                            stillingsprosent = 60.0,
+                            inntekt = 544.6,
+                        ),
+                    ),
+                5.juni to
+                    listOf(
+                        Arbeidsforhold(
+                            inkludertISykefravaer = true,
+                            yrkesbeskrivelse = "Mekker",
+                            stillingsprosent = 50.0,
+                            inntekt = 1200.0,
+                        ),
+                        Arbeidsforhold(
+                            inkludertISykefravaer = false,
+                            yrkesbeskrivelse = "Betjent",
+                            stillingsprosent = 20.0,
+                            inntekt = 344.6,
+                        ),
+                    ),
             ),
     )

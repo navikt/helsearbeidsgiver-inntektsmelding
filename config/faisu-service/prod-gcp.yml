@@ -1,2 +1,2 @@
-kafkaPool: nav-dev
+kafkaPool: nav-prod
 valkeyAccess: write

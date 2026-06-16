@@ -7,7 +7,6 @@ val apps =
         "altinn",
         "api",
         "berik-inntektsmelding-service",
-        "bro-spinn",
         "brreg",
         "db",
         "distribusjon",

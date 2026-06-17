@@ -62,11 +62,13 @@ dependencies {
     testImplementation(project(":kontrakt-resultat-tilgang"))
     testImplementation(project(":utils-db-exposed"))
     testImplementation(project(":utils-kafka"))
+    testImplementation(project(":utils-rapids-and-rivers"))
     testImplementation(project(":utils-valkey"))
     testImplementation(testFixtures(project(":kontrakt-domene-forespoersel")))
     testImplementation(testFixtures(project(":kontrakt-domene-inntektsmelding")))
     testImplementation(testFixtures(project(":utils-db-exposed")))
     testImplementation(testFixtures(project(":utils-kafka")))
+    testImplementation(testFixtures(project(":utils-rapids-and-rivers")))
     testImplementation(testFixtures(project(":utils-valkey")))
 
     // Klienter

@@ -13,6 +13,7 @@ tasks {
 
 dependencies {
     implementation(project(":utils-auth"))
+    implementation(project(":utils-rapids-and-rivers"))
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbApiVersion")
     implementation("no.nav.helsearbeidsgiver:dokarkiv-client:$dokarkivKlientVersion")
     implementation("no.nav.helsearbeidsgiver:helsearbeidsgiver-kontrakt-inntektsmelding:$hagImXmlKontraktVersion") {
@@ -26,6 +27,7 @@ dependencies {
 
     runtimeOnly("org.glassfish.jaxb:jaxb-runtime:$jaxbRuntimeVersion")
 
+    testImplementation(testFixtures(project(":utils-rapids-and-rivers")))
     testImplementation("tools.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
     testImplementation("tools.jackson.module:jackson-module-jaxb-annotations:$jacksonVersion")
 }

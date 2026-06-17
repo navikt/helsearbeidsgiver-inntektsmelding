@@ -108,10 +108,8 @@ subprojects {
 
         if (erAppModul()) {
             implementation(project(":utils-felles"))
-            implementation(project(":utils-rapids-and-rivers"))
 
             testImplementation(testFixtures(project(":utils-felles")))
-            testImplementation(testFixtures(project(":utils-rapids-and-rivers")))
         }
 
         implementation("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion")

@@ -5,11 +5,14 @@ val postgresqlVersion: String by project
 val testcontainersVersion: String by project
 
 dependencies {
+    implementation(project(":utils-rapids-and-rivers"))
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
     implementation("no.nav.helsearbeidsgiver:hag-bakgrunnsjobb:$bakgrunnsjobbVersion")
 
     runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")
+
+    testImplementation(testFixtures(project(":utils-rapids-and-rivers")))
     testImplementation("org.testcontainers:testcontainers-postgresql:$testcontainersVersion")
 }

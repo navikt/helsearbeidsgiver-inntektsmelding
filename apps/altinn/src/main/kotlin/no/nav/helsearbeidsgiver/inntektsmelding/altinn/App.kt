@@ -23,7 +23,6 @@ fun createAltinn(altinnClient: Altinn3M2MClient): List<ObjectRiver.Simba<*>> =
 private fun createAltinnClient(): Altinn3M2MClient =
     Altinn3M2MClient(
         baseUrl = Env.altinnTilgangerBaseUrl,
-        serviceCode = Env.serviceCode,
         ressurs = Altinn3Ressurs.INNTEKTSMELDING,
         cacheConfig = LocalCache.Config(60.minutes, 1000),
         getToken = AuthClient().tokenGetter(IdentityProvider.AZURE_AD, Env.altinnScope),

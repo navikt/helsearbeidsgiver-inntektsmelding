@@ -75,5 +75,6 @@ private fun mockEnv(server: MockWebServer) {
     mockkStatic("no.nav.hag.simba.utils.felles.utils.EnvUtilsKt")
 
     every { "ALTINN_TILGANGER_BASE_URL".fromEnv() } returns server.url("/altinn").toString()
+    every { "ALTINN_SERVICE_CODE".fromEnv() } returns "4936"
     every { "ALTINN_TILGANGER_SCOPE".fromEnv() } returns "test:test/test"
 }

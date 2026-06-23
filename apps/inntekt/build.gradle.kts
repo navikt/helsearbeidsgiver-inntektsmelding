@@ -1,4 +1,4 @@
-val inntektKlientVersion: String by project
+val inntektKlientVersion = project.property("inntektKlientVersion") as String
 
 dependencies {
     implementation(project(":utils-auth"))

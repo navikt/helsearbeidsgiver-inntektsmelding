@@ -1,6 +1,6 @@
-val lettuceVersion: String by project
-val mockkVersion: String by project
-val utilsVersion: String by project
+val lettuceVersion = project.property("lettuceVersion") as String
+val mockkVersion = project.property("mockkVersion") as String
+val utilsVersion = project.property("utilsVersion") as String
 
 plugins {
     id("java-test-fixtures")

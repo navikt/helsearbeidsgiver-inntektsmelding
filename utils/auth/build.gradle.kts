@@ -1,4 +1,4 @@
-val ktorVersion: String by project
+val ktorVersion = project.property("ktorVersion") as String
 
 dependencies {
     implementation(project(":utils-felles"))

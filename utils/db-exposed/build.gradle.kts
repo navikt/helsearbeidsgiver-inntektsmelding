@@ -1,9 +1,9 @@
-val exposedVersion: String by project
-val flywayVersion: String by project
-val hikariVersion: String by project
-val kotestVersion: String by project
-val postgresqlVersion: String by project
-val testcontainersVersion: String by project
+val exposedVersion = project.property("exposedVersion") as String
+val flywayVersion = project.property("flywayVersion") as String
+val hikariVersion = project.property("hikariVersion") as String
+val kotestVersion = project.property("kotestVersion") as String
+val postgresqlVersion = project.property("postgresqlVersion") as String
+val testcontainersVersion = project.property("testcontainersVersion") as String
 
 plugins {
     id("java-test-fixtures")

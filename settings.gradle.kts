@@ -21,9 +21,9 @@ projects.forEach {
 
 pluginManagement {
     plugins {
-        val kotestVersion: String by settings
-        val kotlinVersion: String by settings
-        val kotlinterVersion: String by settings
+        val kotestVersion = providers.gradleProperty("kotestVersion").get()
+        val kotlinVersion = providers.gradleProperty("kotlinVersion").get()
+        val kotlinterVersion = providers.gradleProperty("kotlinterVersion").get()
 
         kotlin("jvm") version kotlinVersion
         kotlin("plugin.serialization") version kotlinVersion

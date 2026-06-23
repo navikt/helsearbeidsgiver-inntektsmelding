@@ -1,6 +1,6 @@
 dependencies {
-    val altinnClientVersion: String by project
-    val mockwebserverVersion: String by project
+    val altinnClientVersion = project.property("altinnClientVersion") as String
+    val mockwebserverVersion = project.property("mockwebserverVersion") as String
 
     implementation(project(":kontrakt-resultat-tilgang"))
     implementation(project(":utils-auth"))

@@ -1,4 +1,4 @@
-val aaregClientVersion: String by project
+val aaregClientVersion = project.property("aaregClientVersion") as String
 
 dependencies {
     implementation(project(":kontrakt-domene-ansettelsesforhold"))

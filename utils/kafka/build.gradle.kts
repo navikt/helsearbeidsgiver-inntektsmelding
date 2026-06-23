@@ -1,4 +1,4 @@
-val kafkaClientVersion: String by project
+val kafkaClientVersion = project.property("kafkaClientVersion") as String
 
 plugins {
     id("java-test-fixtures")

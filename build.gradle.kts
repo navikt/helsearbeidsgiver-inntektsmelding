@@ -167,7 +167,8 @@ fun getBuildableProjects(): List<String> {
     val testfilRegex = Regex("^(?:apps|kontrakt|utils)/[\\w-]+/src/test(?:Fixtures)?.+")
 
     val changedFiles =
-        providers.gradleProperty("changedFiles")
+        providers
+            .gradleProperty("changedFiles")
             .orNull
             ?.takeIf(String::isNotBlank)
             ?.split(",")

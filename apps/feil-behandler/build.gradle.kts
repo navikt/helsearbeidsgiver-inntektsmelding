@@ -1,8 +1,8 @@
-val bakgrunnsjobbVersion: String by project
-val flywayVersion: String by project
-val hikariVersion: String by project
-val postgresqlVersion: String by project
-val testcontainersVersion: String by project
+val bakgrunnsjobbVersion = project.property("bakgrunnsjobbVersion") as String
+val flywayVersion = project.property("flywayVersion") as String
+val hikariVersion = project.property("hikariVersion") as String
+val postgresqlVersion = project.property("postgresqlVersion") as String
+val testcontainersVersion = project.property("testcontainersVersion") as String
 
 dependencies {
     implementation(project(":utils-rapids-and-rivers"))

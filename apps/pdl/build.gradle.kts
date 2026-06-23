@@ -1,4 +1,4 @@
-val pdlKlientVersion: String by project
+val pdlKlientVersion = project.property("pdlKlientVersion") as String
 
 dependencies {
     implementation(project(":utils-auth"))

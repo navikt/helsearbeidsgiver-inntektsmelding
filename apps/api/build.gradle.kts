@@ -1,9 +1,9 @@
-val ktorVersion: String by project
-val logbackEncoderVersion: String by project
-val logbackVersion: String by project
-val mockOauth2ServerVersion: String by project
-val slf4jVersion: String by project
-val tokenSupportVersion: String by project
+val ktorVersion = project.property("ktorVersion") as String
+val logbackEncoderVersion = project.property("logbackEncoderVersion") as String
+val logbackVersion = project.property("logbackVersion") as String
+val mockOauth2ServerVersion = project.property("mockOauth2ServerVersion") as String
+val slf4jVersion = project.property("slf4jVersion") as String
+val tokenSupportVersion = project.property("tokenSupportVersion") as String
 
 tasks {
     test {

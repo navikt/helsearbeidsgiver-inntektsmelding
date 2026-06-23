@@ -15,7 +15,7 @@ kotlin {
 
 allprojects {
     repositories {
-        val githubPassword: String by project
+        val githubPassword = project.property("githubPassword") as String
         mavenCentral()
         maven {
             setUrl("https://maven.pkg.github.com/navikt/*")
@@ -39,7 +39,9 @@ subprojects {
     )
 
     tasks {
-        register<DependencyReportTask>("allDependencies") {}
+        register<DependencyReportTask>("allDependencies") {
+            description = "Printer alle avhengigheter."
+        }
 
         withType<Test> {
             useJUnitPlatform()
@@ -90,13 +92,13 @@ subprojects {
         }
     }
 
-    val hagDomeneInntektsmeldingVersion: String by project
-    val junitJupiterVersion: String by project
-    val kotestVersion: String by project
-    val kotlinxCoroutinesVersion: String by project
-    val kotlinxSerializationVersion: String by project
-    val mockkVersion: String by project
-    val utilsVersion: String by project
+    val hagDomeneInntektsmeldingVersion = project.property("hagDomeneInntektsmeldingVersion") as String
+    val junitJupiterVersion = project.property("junitJupiterVersion") as String
+    val kotestVersion = project.property("kotestVersion") as String
+    val kotlinxCoroutinesVersion = project.property("kotlinxCoroutinesVersion") as String
+    val kotlinxSerializationVersion = project.property("kotlinxSerializationVersion") as String
+    val mockkVersion = project.property("mockkVersion") as String
+    val utilsVersion = project.property("utilsVersion") as String
 
     dependencies {
         // Sjekk om disse er nødvendige ved oppgradering av pakker
@@ -140,6 +142,7 @@ dependencies {
 tasks {
     // Krever -PchangedFiles=<filA,filB,filC,...>
     register("buildMatrix") {
+        description = "Printer byggbare prosjekter basert på endrede filer. Krever -PchangedFiles=<filA,filB,filC,...>."
         doLast {
             taskOutputJson(
                 "project" to getBuildableProjects().toJsonList(),
@@ -149,6 +152,7 @@ tasks {
 
     // Krever -PclusterEnv=<dev/prod> og -PchangedFiles=<filA,filB,filC,...>
     register("deployMatrix") {
+        description = "Printer deploybare prosjekter basert på endrede filer og cluster. Krever -PclusterEnv=<dev/prod> og -PchangedFiles=<filA,filB,filC,...>."
         doLast {
             deployMatrix()
         }
@@ -163,8 +167,8 @@ fun getBuildableProjects(): List<String> {
     val testfilRegex = Regex("^(?:apps|kontrakt|utils)/[\\w-]+/src/test(?:Fixtures)?.+")
 
     val changedFiles =
-        properties["changedFiles"]
-            ?.toString()
+        providers.gradleProperty("changedFiles")
+            .orNull
             ?.takeIf(String::isNotBlank)
             ?.split(",")
             ?.filterNot(testfilRegex::matches)
@@ -202,7 +206,7 @@ fun getBuildableProjects(): List<String> {
 }
 
 fun deployMatrix() {
-    val cluster = "${properties["clusterEnv"]}-gcp"
+    val cluster = "${providers.gradleProperty("clusterEnv")}-gcp"
 
     val deployableProjects =
         getBuildableProjects()
@@ -221,7 +225,7 @@ fun deployMatrix() {
 
 fun PluginAware.applyPlugins(vararg ids: String) {
     ids.forEach {
-        apply(plugin = it)
+        pluginManager.apply(it)
     }
 }
 

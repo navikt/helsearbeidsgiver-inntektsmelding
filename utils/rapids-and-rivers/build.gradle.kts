@@ -1,9 +1,9 @@
-val hagDomeneInntektsmeldingVersion: String by project
-val kotestVersion: String by project
-val micrometerVersion: String by project
-val mockkVersion: String by project
-val rapidsAndRiversVersion: String by project
-val utilsVersion: String by project
+val hagDomeneInntektsmeldingVersion = project.property("hagDomeneInntektsmeldingVersion") as String
+val kotestVersion = project.property("kotestVersion") as String
+val micrometerVersion = project.property("micrometerVersion") as String
+val mockkVersion = project.property("mockkVersion") as String
+val rapidsAndRiversVersion = project.property("rapidsAndRiversVersion") as String
+val utilsVersion = project.property("utilsVersion") as String
 
 plugins {
     id("java-test-fixtures")

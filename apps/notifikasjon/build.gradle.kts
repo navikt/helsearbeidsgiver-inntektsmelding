@@ -1,5 +1,5 @@
 dependencies {
-    val arbeidsgiverNotifikasjonKlientVersion: String by project
+    val arbeidsgiverNotifikasjonKlientVersion = project.property("arbeidsgiverNotifikasjonKlientVersion") as String
 
     implementation(project(":kontrakt-domene-forespoersel"))
     implementation(project(":utils-auth"))

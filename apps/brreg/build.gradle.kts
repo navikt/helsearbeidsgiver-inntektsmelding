@@ -1,4 +1,4 @@
-val brregKlientVersion: String by project
+val brregKlientVersion = project.property("brregKlientVersion") as String
 
 dependencies {
     implementation(project(":utils-rapids-and-rivers"))

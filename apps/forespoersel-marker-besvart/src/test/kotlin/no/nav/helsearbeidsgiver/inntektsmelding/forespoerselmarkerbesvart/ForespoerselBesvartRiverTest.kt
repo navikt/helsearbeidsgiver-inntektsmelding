@@ -68,14 +68,12 @@ class ForespoerselBesvartRiverTest :
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                            Key.SPINN_INNTEKTSMELDING_ID to spinnInntektsmeldingId.toJson(),
                         ).toJson(),
                 )
 
             testRapid.sendJson(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                 Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Pri.Key.SPINN_INNTEKTSMELDING_ID to spinnInntektsmeldingId.toJson(),
             )
 
             testRapid.inspektør.size shouldBeExactly 1

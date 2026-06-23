@@ -7,12 +7,10 @@ import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.json.krev
 import no.nav.hag.simba.utils.felles.json.les
-import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.river.ObjectRiver
-import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -23,7 +21,6 @@ data class BesvartMelding(
     val notisType: Pri.NotisType,
     val kontekstId: UUID,
     val forespoerselId: UUID,
-    val spinnInntektsmeldingId: UUID?,
 )
 
 /** Tar imot notifikasjon om at en forespørsel om arbeidsgiveropplysninger er besvart. */
@@ -36,7 +33,6 @@ class ForespoerselBesvartRiver : ObjectRiver.PriTopic<BesvartMelding>() {
             notisType = Pri.Key.NOTIS.krev(Pri.NotisType.FORESPOERSEL_BESVART, Pri.NotisType.serializer(), json),
             kontekstId = UUID.randomUUID(),
             forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, json),
-            spinnInntektsmeldingId = Pri.Key.SPINN_INNTEKTSMELDING_ID.lesOrNull(UuidSerializer, json),
         )
 
     override fun BesvartMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
@@ -51,9 +47,7 @@ class ForespoerselBesvartRiver : ObjectRiver.PriTopic<BesvartMelding>() {
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.SPINN_INNTEKTSMELDING_ID to spinnInntektsmeldingId?.toJson(),
-                ).mapValuesNotNull { it }
-                    .toJson(),
+                ).toJson(),
         )
     }
 

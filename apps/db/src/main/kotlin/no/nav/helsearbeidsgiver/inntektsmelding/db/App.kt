@@ -4,7 +4,6 @@ import no.nav.hag.simba.utils.db.exposed.Database
 import no.nav.hag.simba.utils.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentLagretImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentSelvbestemtImRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreEksternImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreImSkjemaRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreJournalpostIdRiver
@@ -46,7 +45,6 @@ fun createDbRivers(
         LagreImSkjemaRiver(imRepo),
         LagreImRiver(imRepo),
         LagreJournalpostIdRiver(imRepo, selvbestemtImRepo),
-        LagreEksternImRiver(imRepo),
         LagreSelvbestemtImRiver(selvbestemtImRepo),
         OppdaterImSomProsessertRiver(imRepo, selvbestemtImRepo),
     )

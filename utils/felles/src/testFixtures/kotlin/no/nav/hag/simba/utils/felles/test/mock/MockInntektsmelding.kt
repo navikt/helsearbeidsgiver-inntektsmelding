@@ -4,6 +4,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.FlereArbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
@@ -21,7 +22,9 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsm
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
+import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.kl
+import no.nav.helsearbeidsgiver.utils.test.date.mai
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.date.november
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
@@ -41,6 +44,7 @@ fun mockSkjemaInntektsmelding(): SkjemaInntektsmelding {
         inntekt = inntektsmelding.inntekt,
         naturalytelser = inntektsmelding.naturalytelser,
         refusjon = inntektsmelding.refusjon,
+        flereArbeidsforhold = mockFlereArbeidsforhold(),
     )
 }
 
@@ -66,6 +70,10 @@ fun mockSkjemaInntektsmeldingSelvbestemt(): SkjemaInntektsmeldingSelvbestemt {
     val vedtaksperiodeId = UUID.randomUUID()
     return SkjemaInntektsmeldingSelvbestemt(
         selvbestemtId = UUID.randomUUID(),
+        arbeidsforholdType =
+            ArbeidsforholdType.MedArbeidsforhold(
+                vedtaksperiodeId = vedtaksperiodeId,
+            ),
         sykmeldtFnr = inntektsmelding.sykmeldt.fnr,
         avsender =
             SkjemaAvsender(
@@ -77,11 +85,7 @@ fun mockSkjemaInntektsmeldingSelvbestemt(): SkjemaInntektsmeldingSelvbestemt {
         inntekt = inntektsmelding.inntekt!!,
         naturalytelser = inntektsmelding.naturalytelser,
         refusjon = inntektsmelding.refusjon,
-        vedtaksperiodeId = vedtaksperiodeId,
-        arbeidsforholdType =
-            ArbeidsforholdType.MedArbeidsforhold(
-                vedtaksperiodeId = vedtaksperiodeId,
-            ),
+        flereArbeidsforhold = mockFlereArbeidsforhold(),
     )
 }
 
@@ -91,6 +95,8 @@ fun mockInntektsmeldingV1(): Inntektsmelding =
         type =
             Inntektsmelding.Type.Forespurt(
                 id = UUID.randomUUID(),
+                erAgpForespurt = true,
+                flereArbeidsforhold = mockFlereArbeidsforhold(),
             ),
         sykmeldt =
             Sykmeldt(
@@ -136,7 +142,7 @@ fun mockArbeidsgiverperiode(): Arbeidsgiverperiode =
 
 fun mockInntekt(): Inntekt =
     Inntekt(
-        beloep = 544.6,
+        beloep = 1544.6,
         inntektsdato = 28.september,
         endringAarsaker =
             listOf(

@@ -16,13 +16,16 @@ import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.felles.test.mock.mockFlereArbeidsforhold
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Feilregistrert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferie
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferietrekk
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.FlereArbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.InntektEndringAarsak
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
@@ -53,6 +56,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 
 private val pathMedId =
@@ -274,6 +278,7 @@ private fun mockSelvbestemtInntektsmelding(): Inntektsmelding =
         type =
             Inntektsmelding.Type.Selvbestemt(
                 id = UUID.randomUUID(),
+                flereArbeidsforhold = mockFlereArbeidsforhold(),
             ),
     )
 
@@ -301,7 +306,8 @@ private fun Inntektsmelding.Type.hardcodedJson(): String =
             """
             {
                 "type": "Forespurt",
-                "id": "$id"
+                "id": "$id",
+                "flereArbeidsforhold": ${flereArbeidsforhold?.hardcodedJson()}
             }
             """
         }
@@ -320,7 +326,8 @@ private fun Inntektsmelding.Type.hardcodedJson(): String =
             """
             {
                 "type": "Selvbestemt",
-                "id": "$id"
+                "id": "$id",
+                "flereArbeidsforhold": ${flereArbeidsforhold?.hardcodedJson()}
             }
             """
         }
@@ -377,6 +384,36 @@ private fun AvsenderSystem.hardcodedJson(): String =
         "orgnr": "$orgnr",
         "navn": "$navn",
         "versjon": "$versjon"
+    }
+    """
+
+private fun FlereArbeidsforhold.hardcodedJson(): String =
+    """
+    {
+        "harLikLoenn": $harLikLoenn,
+        "erSykmeldtFraAlle": $erSykmeldtFraAlle,
+        "arbeidsforholdPerSykmeldingStartdato": ${arbeidsforholdPerSykmeldingStartdato.hardcodedJson()}
+    }
+    """
+
+private fun Map<LocalDate, List<Arbeidsforhold>>.hardcodedJson(): String =
+    """
+    {
+    ${entries.joinToString { (startdato, arbeidsforhold) ->
+        """
+        "$startdato": [${arbeidsforhold.joinToString(transform = Arbeidsforhold::hardcodedJson)}]
+        """
+    }}
+    }
+    """
+
+private fun Arbeidsforhold.hardcodedJson(): String =
+    """
+    {
+        "inkludertISykefravaer": $inkludertISykefravaer,
+        "yrkesbeskrivelse": "$yrkesbeskrivelse",
+        "stillingsprosent": $stillingsprosent,
+        "inntekt": $inntekt
     }
     """
 

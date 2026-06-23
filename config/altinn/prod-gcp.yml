@@ -1,12 +1,13 @@
 kafkaPool: nav-prod
 replicasMax: 5
 entraIdEnabled: true
+requestMem: 2048Mi
+limitMem: 4096Mi
+
 apps:
   - name: arbeidsgiver-altinn-tilganger
     namespace: fager
 env:
-  - name: ALTINN_SERVICE_CODE
-    value: 4936
   - name: ALTINN_TILGANGER_SCOPE
     value: api://prod-gcp.fager.arbeidsgiver-altinn-tilganger/.default
   - name: ALTINN_TILGANGER_BASE_URL

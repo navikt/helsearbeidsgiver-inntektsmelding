@@ -1,5 +1,8 @@
 val ktorVersion: String by project
+val logbackEncoderVersion: String by project
+val logbackVersion: String by project
 val mockOauth2ServerVersion: String by project
+val slf4jVersion: String by project
 val tokenSupportVersion: String by project
 
 tasks {
@@ -26,6 +29,10 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("no.nav.security:token-client-core:$tokenSupportVersion")
     implementation("no.nav.security:token-validation-ktor-v3:$tokenSupportVersion")
+    implementation("org.slf4j:slf4j-api:$slf4jVersion")
+
+    runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
+    runtimeOnly("net.logstash.logback:logstash-logback-encoder:$logbackEncoderVersion")
 
     testImplementation(testFixtures(project(":kontrakt-domene-forespoersel")))
     testImplementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")

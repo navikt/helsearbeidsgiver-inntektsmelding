@@ -3,7 +3,6 @@ val kotestVersion: String by project
 val micrometerVersion: String by project
 val mockkVersion: String by project
 val rapidsAndRiversVersion: String by project
-val slf4jVersion: String by project
 val utilsVersion: String by project
 
 plugins {
@@ -14,7 +13,6 @@ dependencies {
     api(project(":kontrakt-kafkatopic-pri"))
     api(project(":utils-felles"))
     api("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
-    api("org.slf4j:slf4j-api:$slf4jVersion")
 
     implementation(project(":utils-valkey"))
     implementation("io.micrometer:micrometer-core:$micrometerVersion")

@@ -31,8 +31,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAaregRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice.createBerikInntektsmeldingService
-import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
-import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createHentEksternImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createHentOrganisasjonNavnRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
@@ -160,7 +158,6 @@ abstract class EndToEndTest : ContainerTest() {
 
     val altinnClient = mockk<Altinn3M2MClient>()
     val pdlKlient = mockk<PdlClient>()
-    val spinnKlient = mockk<SpinnKlient>()
 
     val producer = mockk<Producer>(relaxed = true)
     val aaregClient = mockk<AaregClient>(relaxed = true)
@@ -213,7 +210,6 @@ abstract class EndToEndTest : ContainerTest() {
                 createDistribusjonRiver(producer),
                 createForespoerselEventSwitch(producer),
                 createHelsebroRivers(producer),
-                createHentEksternImRiver(spinnKlient),
                 createHentInntektRiver(inntektClient),
                 createHentOrganisasjonNavnRiver(brregClient, false),
                 createHentPersonerRiver(pdlKlient),

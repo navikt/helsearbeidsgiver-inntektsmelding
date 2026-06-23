@@ -25,7 +25,6 @@ object Pri {
         NOTIS,
         ORGNR,
         SKAL_HA_PAAMINNELSE,
-        SPINN_INNTEKTSMELDING_ID,
         VEDTAKSPERIODE_ID_LISTE,
         ;
 
@@ -34,7 +33,6 @@ object Pri {
                 BEHOV -> "@behov"
                 LOESNING -> "@løsning"
                 FORESPOERSEL_ID -> "forespoerselId"
-                SPINN_INNTEKTSMELDING_ID -> "spinnInntektsmeldingId"
                 else -> name.lowercase()
             }
 

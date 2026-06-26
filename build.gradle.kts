@@ -103,7 +103,7 @@ subprojects {
     dependencies {
         // Sjekk om disse er nødvendige ved oppgradering av pakker
         constraints {
-            implementation("io.ktor:ktor-client-core-jvm:2.3.13") {
+            implementation("io.ktor:ktor-client-core-jvm:3.5.1") {
                 because("hag-bakgrunnsjobb")
             }
         }

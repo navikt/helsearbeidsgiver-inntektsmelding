@@ -8,12 +8,11 @@ import no.nav.hag.simba.utils.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.FlereArbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RefusjonEndring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.FlereArbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
-import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.november
 
@@ -101,16 +100,13 @@ private val nyFlereArbeidsforhold =
     FlereArbeidsforhold(
         harLikLoenn = true,
         erSykmeldtFraAlle = true,
-        arbeidsforholdPerSykmeldingStartdato =
-            mapOf(
-                14.april to
-                    listOf(
-                        Arbeidsforhold(
-                            inkludertISykefravaer = false,
-                            yrkesbeskrivelse = "Lokomotivfører",
-                            stillingsprosent = 100.0,
-                            inntekt = 815.0,
-                        ),
-                    ),
+        arbeidsforhold =
+            listOf(
+                Arbeidsforhold(
+                    inkludertISykefravaer = false,
+                    yrkesbeskrivelse = "Lokomotivfører",
+                    stillingsprosent = 100.0,
+                    inntekt = 815.0,
+                ),
             ),
     )

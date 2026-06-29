@@ -167,9 +167,9 @@ fun getBuildableProjects(): List<String> {
     val testfilRegex = Regex("^(?:apps|kontrakt|utils)/[\\w-]+/src/test(?:Fixtures)?.+")
 
     val changedFiles =
-        providers
-            .gradleProperty("changedFiles")
-            .orNull
+        project
+            .property("changedFiles")
+            ?.toString()
             ?.takeIf(String::isNotBlank)
             ?.split(",")
             ?.filterNot(testfilRegex::matches)
@@ -207,7 +207,7 @@ fun getBuildableProjects(): List<String> {
 }
 
 fun deployMatrix() {
-    val cluster = "${providers.gradleProperty("clusterEnv")}-gcp"
+    val cluster = "${project.property("clusterEnv")}-gcp"
 
     val deployableProjects =
         getBuildableProjects()

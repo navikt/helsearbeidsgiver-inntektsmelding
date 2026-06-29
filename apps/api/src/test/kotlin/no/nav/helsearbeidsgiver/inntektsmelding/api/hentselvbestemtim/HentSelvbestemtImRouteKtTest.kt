@@ -25,7 +25,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Feilregistrert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferie
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Ferietrekk
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.FlereArbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.InntektEndringAarsak
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
@@ -44,6 +43,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.AvsenderSystem
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.FlereArbeidsforhold
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
@@ -56,7 +56,6 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 import java.util.UUID
 
 private val pathMedId =
@@ -392,18 +391,7 @@ private fun FlereArbeidsforhold.hardcodedJson(): String =
     {
         "harLikLoenn": $harLikLoenn,
         "erSykmeldtFraAlle": $erSykmeldtFraAlle,
-        "arbeidsforholdPerSykmeldingStartdato": ${arbeidsforholdPerSykmeldingStartdato.hardcodedJson()}
-    }
-    """
-
-private fun Map<LocalDate, List<Arbeidsforhold>>.hardcodedJson(): String =
-    """
-    {
-    ${entries.joinToString { (startdato, arbeidsforhold) ->
-        """
-        "$startdato": [${arbeidsforhold.joinToString(transform = Arbeidsforhold::hardcodedJson)}]
-        """
-    }}
+        "arbeidsforhold": [${arbeidsforhold.joinToString(transform = Arbeidsforhold::hardcodedJson)}]
     }
     """
 

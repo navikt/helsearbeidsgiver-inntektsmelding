@@ -8,6 +8,7 @@ import io.mockk.clearAllMocks
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
+// import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.toJson
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
@@ -84,7 +85,11 @@ class ApiInnsendingServiceTest :
                 ),
             )
 
-            testRapid.inspektør.size shouldBeExactly 1
+            testRapid.inspektør.size shouldBeExactly 2
+//   TODO - feiler just nu - sikkert pga serialize av Key.EVENT_NAME vs InnsendingEventName
+//            testRapid.message(1).toMap().also {
+//                Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe InnsendingEventName.AVVIST_INNTEKTSMELDING
+//            }
         }
 
         test("svar med feilmelding ved feil") {

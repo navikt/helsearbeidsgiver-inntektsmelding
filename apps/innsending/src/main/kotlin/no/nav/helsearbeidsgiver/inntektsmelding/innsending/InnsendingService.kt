@@ -136,7 +136,11 @@ class InnsendingService(
 
         val agp = steg0.skjema.agp
         if (agp == null ||
-            agp.erGyldigHvisIkkeForespurt(steg1.forespoersel.forespurtData.arbeidsgiverperiode.paakrevd, steg1.forespoersel.sykmeldingsperioder)
+            agp.erGyldigHvisIkkeForespurt(
+                erAgpForespurt = steg1.forespoersel.forespurtData.arbeidsgiverperiode.paakrevd,
+                egenmeldingsperioder = steg1.forespoersel.egenmeldingsperioder,
+                sykmeldingsperioder = steg1.forespoersel.sykmeldingsperioder,
+            )
         ) {
             publisher
                 .publish(

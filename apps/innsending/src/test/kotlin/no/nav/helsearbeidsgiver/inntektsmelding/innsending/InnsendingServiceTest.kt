@@ -24,6 +24,7 @@ import no.nav.hag.simba.utils.felles.json.personMapSerializer
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.test.json.lesBehov
+import no.nav.hag.simba.utils.felles.test.json.lesEventName
 import no.nav.hag.simba.utils.felles.test.json.plusData
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
 import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
@@ -107,24 +108,59 @@ class InnsendingServiceTest :
             }
         }
 
+        test("godtar inntektsmeldingskjema dersom ikke-forespurt AGP er gyldig") {
+            val kontekstId = UUID.randomUUID()
+            val forespoersel = mockForespoersel().utenPaakrevdAGP()
+            val skjemaMedGyldigAgp =
+                mockSkjemaInntektsmelding().copy(
+                    agp =
+                        Mock.agpFraFoersteFom(forespoersel).let { agp ->
+                            agp.copy(
+                                perioder =
+                                    agp.perioder.map {
+                                        Periode(
+                                            fom = it.fom.plusDays(1),
+                                            tom = it.tom.plusDays(1),
+                                        )
+                                    },
+                            )
+                        },
+                )
+
+            testRapid.sendJson(
+                Mock.steg2(kontekstId, skjemaMedGyldigAgp).plusData(
+                    Key.FORESPOERSEL_SVAR to forespoersel.toJson(),
+                ),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 1
+            testRapid.message(0).lesBehov() shouldBe BehovType.LAGRE_IM_SKJEMA
+
+            testRapid.sendJson(
+                Mock.steg3(kontekstId, skjemaMedGyldigAgp).plusData(
+                    Key.FORESPOERSEL_SVAR to forespoersel.toJson(),
+                ),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 2
+            testRapid.message(1).lesEventName() shouldBe EventName.INNTEKTSMELDING_SKJEMA_LAGRET
+
+            verifySequence {
+                mockRedisStore.skrivResultat(
+                    kontekstId,
+                    ResultJson(
+                        success = skjemaMedGyldigAgp.forespoerselId.toJson(),
+                    ),
+                )
+            }
+        }
+
         test("avviser inntektsmeldingskjema dersom ikke-forespurt AGP er ugyldig") {
             val kontekstId = UUID.randomUUID()
             val forespoersel = mockForespoersel().utenPaakrevdAGP()
             val skjemaMedUgyldigAgp =
                 mockSkjemaInntektsmelding().copy(
-                    agp =
-                        forespoersel.sykmeldingsperioder.minOf { it.fom }.let {
-                            Arbeidsgiverperiode(
-                                perioder =
-                                    listOf(
-                                        Periode(
-                                            fom = it,
-                                            tom = it.plusDays(15),
-                                        ),
-                                    ),
-                                redusertLoennIAgp = null,
-                            )
-                        },
+                    agp = Mock.agpFraFoersteFom(forespoersel),
                 )
 
             testRapid.sendJson(
@@ -214,6 +250,22 @@ private object Mock {
             fnr = Fnr.genererGyldig(),
             navn = "Skrue McDuck",
         )
+
+    fun agpFraFoersteFom(forespoersel: Forespoersel): Arbeidsgiverperiode =
+        (forespoersel.egenmeldingsperioder + forespoersel.sykmeldingsperioder)
+            .minOf { it.fom }
+            .let {
+                Arbeidsgiverperiode(
+                    perioder =
+                        listOf(
+                            Periode(
+                                fom = it,
+                                tom = it.plusDays(15),
+                            ),
+                        ),
+                    redusertLoennIAgp = null,
+                )
+            }
 
     fun steg0(
         kontekstId: UUID,

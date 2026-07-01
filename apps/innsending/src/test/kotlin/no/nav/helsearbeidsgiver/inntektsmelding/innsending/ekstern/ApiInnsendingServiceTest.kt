@@ -29,6 +29,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.kl
 import java.util.UUID
+import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.EventName as InnsendingEventName
 
 class ApiInnsendingServiceTest :
     FunSpec({
@@ -84,7 +85,10 @@ class ApiInnsendingServiceTest :
                 ),
             )
 
-            testRapid.inspektør.size shouldBeExactly 1
+            testRapid.inspektør.size shouldBeExactly 2
+            testRapid.message(1).toMap().also {
+                Key.EVENT_NAME.lesOrNull(InnsendingEventName.serializer(), it) shouldBe InnsendingEventName.AVVIST_INNTEKTSMELDING
+            }
         }
 
         test("svar med feilmelding ved feil") {

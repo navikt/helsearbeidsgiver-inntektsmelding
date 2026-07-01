@@ -19,6 +19,7 @@ data class AvvistInntektsmelding(
 
 enum class Feilkode {
     INNTEKT_AVVIKER_FRA_A_ORDNINGEN,
+    DUPLIKAT, // Støttes ikke i API ut til klienter out of the box..
 }
 
 @Serializable

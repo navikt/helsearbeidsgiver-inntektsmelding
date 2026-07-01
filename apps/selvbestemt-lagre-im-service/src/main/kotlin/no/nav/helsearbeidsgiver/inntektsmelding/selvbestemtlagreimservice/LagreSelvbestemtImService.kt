@@ -28,7 +28,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.FlereArbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.ArbeidsforholdType
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.FlereArbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer

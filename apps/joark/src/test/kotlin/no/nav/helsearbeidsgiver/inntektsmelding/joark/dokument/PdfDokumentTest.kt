@@ -379,8 +379,8 @@ class PdfDokumentTest {
             Nei
             Arbeidsforhold
             Inkludert i sykefravær Yrkesbeskrivelse Stillingsprosent Inntekt
-            Ja Utvikler 80,00 % 40 000,00 kr
-            Nei Konsulent 20,00 % 10 000,00 kr
+            Ja Mekker 30,00 % 1 000,00 kr
+            Nei Betjent 60,00 % 544,60 kr
             """.trimIndent()
         println(pdfTekst)
     }
@@ -436,8 +436,8 @@ class PdfDokumentTest {
         title: String,
         im: Inntektsmelding,
     ) {
-        // val file = File(System.getProperty("user.home"), "/Desktop/pdf/$title.pdf")
-        val file = File.createTempFile(title, ".pdf")
+         val file = File(System.getProperty("user.home"), "/Desktop/pdf/$title.pdf")
+//        val file = File.createTempFile(title, ".pdf")
         val writer = FileOutputStream(file)
         writer.write(PdfDokument(im).export())
         println("Lagde PDF $title med filnavn ${file.toPath()}")

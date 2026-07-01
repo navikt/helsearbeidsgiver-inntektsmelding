@@ -105,8 +105,9 @@ class PdfDokument(
         x1: Int = kolonneEn,
         y2: Int = y,
         linefeed: Boolean = true,
+        bold: Boolean = true,
     ) {
-        pdf.addText(text, x1, y2, bold = true)
+        pdf.addText(text, x1, y2, bold = bold)
         if (linefeed) {
             moveCursorBy(pdf.bodySize * 2)
         }
@@ -161,7 +162,12 @@ class PdfDokument(
         val seksjonStartY = y // Husk når denne seksjonen starter etter Bestemmende fraværsdag i y-aksen
 
         addLabel("Arbeidsgiverperiode", x = kolonneEn)
-        addPerioder(kolonneEn, inntektsmelding.agp?.perioder.orEmpty())
+        if (inntektsmelding.agp?.perioder.orEmpty().isEmpty()) {
+            addLabel("(Ingen arbeidsgiverperiode oppgitt)", x = kolonneTo)
+        } else {
+            addPerioder(kolonneEn, inntektsmelding.agp?.perioder.orEmpty())
+        }
+
 
         // Husk maks høyden på venstre side
         val kolonneVenstreMaxY = y
@@ -296,21 +302,27 @@ class PdfDokument(
             addLabel("Arbeidsforhold", x = kolonneEn)
 
             val kolInkludert = kolonneEn
-            val kolYrke = kolonneEn + 200
-            val kolStilling = kolonneEn + 500
-            val kolInntekt = kolonneEn + 700
+            val kolYrke = kolonneEn + 250
+            val kolInntekt = kolonneEn + 470
+            val kolStilling = kolonneEn + 680
 
             addText("Inkludert i sykefravær", kolInkludert, linefeed = false)
             addText("Yrkesbeskrivelse", kolYrke, linefeed = false)
-            addText("Stillingsprosent", kolStilling, linefeed = false)
-            addText("Inntekt", kolInntekt)
 
-            flereArbeidsforhold.arbeidsforhold.forEach {
-                addText(it.inkludertISykefravaer.tilNorskFormat(), kolInkludert, linefeed = false)
-                addText(it.yrkesbeskrivelse, kolYrke, linefeed = false)
-                addText("${it.stillingsprosent.tilNorskFormat()} %", kolStilling, linefeed = false)
-                addText("${it.inntekt.tilNorskFormat()} kr", kolInntekt)
+            addText("Inntekt", kolInntekt, linefeed = false)
+            addText("Stillingsprosent", kolStilling)
+
+            flereArbeidsforhold.arbeidsforhold.sortedByDescending{ it.inkludertISykefravaer }.forEach {
+                addText(it.inkludertISykefravaer.tilNorskFormat(), kolInkludert, linefeed = false, bold = false)
+                addText(it.yrkesbeskrivelse, kolYrke, linefeed = false, bold = false)
+                addText("${it.inntekt.tilNorskFormat()} kr", kolInntekt, linefeed = false, bold = false)
+                addText("${it.stillingsprosent.tilNorskFormat()} %", kolStilling, bold = false)
             }
+            moveCursorBy(pdf.bodySize)
+            addText("Sum:", kolInkludert, linefeed = false)
+
+            addText("${flereArbeidsforhold.arbeidsforhold.sumOf { it.inntekt }.tilNorskFormat()} kr", kolInntekt, linefeed = false)
+            addText("${flereArbeidsforhold.arbeidsforhold.sumOf { it.stillingsprosent }.tilNorskFormat()} %", kolStilling)
         }
 
         addLine()

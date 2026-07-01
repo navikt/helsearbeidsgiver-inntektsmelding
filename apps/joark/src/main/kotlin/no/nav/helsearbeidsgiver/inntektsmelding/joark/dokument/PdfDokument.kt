@@ -42,6 +42,7 @@ class PdfDokument(
         addLine()
         addInntekt()
         addLine()
+        addFlereArbeidsforhold()
         addRefusjon()
         addLine()
         addNaturalytelser()
@@ -104,8 +105,9 @@ class PdfDokument(
         x1: Int = kolonneEn,
         y2: Int = y,
         linefeed: Boolean = true,
+        bold: Boolean = true,
     ) {
-        pdf.addText(text, x1, y2, bold = true)
+        pdf.addText(text, x1, y2, bold = bold)
         if (linefeed) {
             moveCursorBy(pdf.bodySize * 2)
         }
@@ -153,12 +155,19 @@ class PdfDokument(
 
     private fun addFravaersperiode() {
         addSection("Fraværsperiode")
-        val seksjonStartY = y // Husk når denne seksjonen starter i y-aksen
 
         // --- Kolonnen til venstre -------------------------------------------------
         addLabel("Bestemmende fraværsdag (skjæringstidpunkt)", inntektsmelding.inntekt?.inntektsdato?.tilNorskFormat(), kolonneEn)
+
+        val seksjonStartY = y // Husk når denne seksjonen starter etter Bestemmende fraværsdag i y-aksen
+
         addLabel("Arbeidsgiverperiode", x = kolonneEn)
-        addPerioder(kolonneEn, inntektsmelding.agp?.perioder.orEmpty())
+        if (inntektsmelding.agp?.perioder.orEmpty().isEmpty()) {
+            addLabel("(Ingen arbeidsgiverperiode oppgitt)", x = kolonneTo)
+        } else {
+            addPerioder(kolonneEn, inntektsmelding.agp?.perioder.orEmpty())
+        }
+
 
         // Husk maks høyden på venstre side
         val kolonneVenstreMaxY = y
@@ -170,8 +179,13 @@ class PdfDokument(
                 sykmeldingsperioder = inntektsmelding.sykmeldingsperioder,
             )
         moveCursorTo(seksjonStartY) // Gjenopprett y-aksen fra tidligere
+
         addLabel("Egenmelding", x = kolonneTo)
-        addPerioder(kolonneTo, egenmeldinger)
+        if (egenmeldinger.isEmpty()) {
+            addLabel("(Ingen egenmeldingsperioder oppgitt)", x = kolonneTo)
+        } else {
+            addPerioder(kolonneTo, egenmeldinger)
+        }
         addLabel("Sykemeldingsperioder", x = kolonneTo)
         addPerioder(kolonneTo, inntektsmelding.sykmeldingsperioder)
 
@@ -188,8 +202,8 @@ class PdfDokument(
         perioder: List<Periode>,
     ) {
         perioder.forEach {
-            addLabel("Fra", it.fom.tilNorskFormat(), x, linefeed = false)
-            addLabel("Til", it.tom.tilNorskFormat(), x + 200)
+            addLabel("Fra", it.fom.tilNorskFormat() + "    -", x, linefeed = false)
+            addLabel("Til", it.tom.tilNorskFormat(), x + 130)
         }
     }
 
@@ -270,6 +284,50 @@ class PdfDokument(
         addLabel("Gjelder fra", nyStillingsprosent.gjelderFra.tilNorskFormat(), kolonneTo)
     }
 
+    private fun addFlereArbeidsforhold() {
+        val flereArbeidsforhold =
+            inntektsmelding.type.let {
+                when (it) {
+                    is Inntektsmelding.Type.Forespurt -> it.flereArbeidsforhold
+                    is Inntektsmelding.Type.Selvbestemt -> it.flereArbeidsforhold
+                    else -> null
+                }
+            } ?: return
+
+        addSection("Flere arbeidsforhold")
+        addLabel("Har lik lønn i alle arbeidsforhold?", flereArbeidsforhold.harLikLoenn.tilNorskFormat())
+        addLabel("Er sykmeldt fra alle arbeidsforhold?", flereArbeidsforhold.erSykmeldtFraAlle.tilNorskFormat())
+
+        if (!flereArbeidsforhold.harLikLoenn && !flereArbeidsforhold.erSykmeldtFraAlle) {
+            addLabel("Arbeidsforhold", x = kolonneEn)
+
+            val kolInkludert = kolonneEn
+            val kolYrke = kolonneEn + 250
+            val kolInntekt = kolonneEn + 470
+            val kolStilling = kolonneEn + 680
+
+            addText("Inkludert i sykefravær", kolInkludert, linefeed = false)
+            addText("Yrkesbeskrivelse", kolYrke, linefeed = false)
+
+            addText("Inntekt", kolInntekt, linefeed = false)
+            addText("Stillingsprosent", kolStilling)
+
+            flereArbeidsforhold.arbeidsforhold.sortedByDescending{ it.inkludertISykefravaer }.forEach {
+                addText(it.inkludertISykefravaer.tilNorskFormat(), kolInkludert, linefeed = false, bold = false)
+                addText(it.yrkesbeskrivelse, kolYrke, linefeed = false, bold = false)
+                addText("${it.inntekt.tilNorskFormat()} kr", kolInntekt, linefeed = false, bold = false)
+                addText("${it.stillingsprosent.tilNorskFormat()} %", kolStilling, bold = false)
+            }
+            moveCursorBy(pdf.bodySize)
+            addText("Sum:", kolInkludert, linefeed = false)
+
+            addText("${flereArbeidsforhold.arbeidsforhold.sumOf { it.inntekt }.tilNorskFormat()} kr", kolInntekt, linefeed = false)
+            addText("${flereArbeidsforhold.arbeidsforhold.sumOf { it.stillingsprosent }.tilNorskFormat()} %", kolStilling)
+        }
+
+        addLine()
+    }
+
     private fun addRefusjon() {
         val redusertLoennIAgp = inntektsmelding.agp?.redusertLoennIAgp
         val refusjon = inntektsmelding.refusjon
@@ -297,7 +355,7 @@ class PdfDokument(
             addLabel("Endringer i refusjon i perioden", refusjon.endringer.isNotEmpty().tilNorskFormat())
             refusjon.endringer.forEach {
                 addLabel("Beløp", it.beloep.tilNorskFormat(), kolonneEn, linefeed = false)
-                addLabel("Dato", it.startdato.tilNorskFormat(), kolonneTo)
+                addLabel("Dato", it.startdato.tilNorskFormat(), kolonneEn + 170)
             }
         }
     }

@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
+import no.nav.hag.simba.utils.felles.test.mock.mockFlereArbeidsforhold
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
@@ -357,6 +358,65 @@ class PdfDokumentTest {
         }
     }
 
+    @Test
+    fun `med flere arbeidsforhold viser spørsmål og tabell`() {
+        val flereArbeidsforhold = mockFlereArbeidsforhold()
+
+        val imMedFlereArbeidsforhold =
+            im.copy(
+                type = Inntektsmelding.Type.Forespurt(UUID.randomUUID(), flereArbeidsforhold = flereArbeidsforhold),
+            )
+
+        val pdfTekst = pdfTekstFraIm(imMedFlereArbeidsforhold)
+        writePDF("med_flere_arbeidsforhold", imMedFlereArbeidsforhold)
+
+        pdfTekst shouldContain
+            """
+            Flere arbeidsforhold
+            Har lik lønn i alle arbeidsforhold?
+            Nei
+            Er sykmeldt fra alle arbeidsforhold?
+            Nei
+            Arbeidsforhold
+            Inkludert i sykefravær Yrkesbeskrivelse Stillingsprosent Inntekt
+            Ja Mekker 30,00 % 1 000,00 kr
+            Nei Betjent 60,00 % 544,60 kr
+            """.trimIndent()
+        println(pdfTekst)
+    }
+
+    @Test
+    fun `med flere arbeidsforhold og lik lønn viser kun spørsmål uten tabell`() {
+        val flereArbeidsforhold =
+            mockFlereArbeidsforhold().copy(
+                harLikLoenn = true,
+                erSykmeldtFraAlle = true,
+            )
+
+        val imMedFlereArbeidsforhold =
+            im.copy(
+                type = Inntektsmelding.Type.Forespurt(UUID.randomUUID(), flereArbeidsforhold = flereArbeidsforhold),
+            )
+
+        val pdfTekst = pdfTekstFraIm(imMedFlereArbeidsforhold)
+        writePDF("med_flere_arbeidsforhold_lik_loenn", imMedFlereArbeidsforhold)
+
+        pdfTekst shouldContain
+            """
+            Flere arbeidsforhold
+            Har lik lønn i alle arbeidsforhold?
+            Ja
+            Er sykmeldt fra alle arbeidsforhold?
+            Ja
+            """.trimIndent()
+    }
+
+    @Test
+    fun `uten flere arbeidsforhold viser ikke seksjonen`() {
+        val pdfTekst = pdfTekstFraIm(im)
+        pdfTekst shouldNotContain "Flere arbeidsforhold"
+    }
+
     private fun List<InntektEndringAarsak>.tilIm(): Inntektsmelding =
         im.copy(
             inntekt =
@@ -376,8 +436,8 @@ class PdfDokumentTest {
         title: String,
         im: Inntektsmelding,
     ) {
-        // val file = File(System.getProperty("user.home"), "/Desktop/pdf/$title.pdf")
-        val file = File.createTempFile(title, ".pdf")
+         val file = File(System.getProperty("user.home"), "/Desktop/pdf/$title.pdf")
+//        val file = File.createTempFile(title, ".pdf")
         val writer = FileOutputStream(file)
         writer.write(PdfDokument(im).export())
         println("Lagde PDF $title med filnavn ${file.toPath()}")

@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending.ekstern
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
+import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.toJson
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
@@ -23,6 +24,8 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.time.LocalDateTime
 import java.util.UUID
+import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.EventName as InnsendingEventName
+import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.Key as InnsendingKey
 
 data class Steg0(
     val kontekstId: UUID,
@@ -109,6 +112,25 @@ class ApiInnsendingService(
                 logger.info("Publiserte melding.")
                 sikkerLogger.info("Publiserte melding:\n${publisert.toPretty()}")
             }
+        } else {
+            val avvistInntektsmelding =
+                AvvistInntektsmelding(
+                    inntektsmeldingId = steg0.innsending.innsendingId,
+                    forespoerselId = steg0.innsending.type.id,
+                    vedtaksperiodeId = steg0.forespoersel.vedtaksperiodeId,
+                    orgnr = steg0.forespoersel.orgnr,
+                    feil = Feil(Feilkode.DUPLIKAT, "Duplikat"),
+                )
+            publisher.publish(
+                steg0.innsending.skjema.forespoerselId,
+                Key.EVENT_NAME to InnsendingEventName.AVVIST_INNTEKTSMELDING.toJson(),
+                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        InnsendingKey.AVVIST_INNTEKTSMELDING to avvistInntektsmelding.toJson(AvvistInntektsmelding.serializer()),
+                    ).toJson(),
+            )
+            logger.info("Publiserte melding om avvist inntektsmelding (duplikat) med id ${avvistInntektsmelding.inntektsmeldingId}.")
         }
     }
 

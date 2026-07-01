@@ -3,9 +3,9 @@ plugins {
 }
 
 dependencies {
-    val hagDomeneInntektsmeldingVersion: String by project
-    val kotestVersion: String by project
-    val utilsVersion: String by project
+    val hagDomeneInntektsmeldingVersion = project.property("hagDomeneInntektsmeldingVersion") as String
+    val kotestVersion = project.property("kotestVersion") as String
+    val utilsVersion = project.property("utilsVersion") as String
 
     testFixturesApi("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion")
 

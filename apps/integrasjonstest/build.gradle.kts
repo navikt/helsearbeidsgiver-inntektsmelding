@@ -7,7 +7,6 @@ val apps =
         "altinn",
         "api",
         "berik-inntektsmelding-service",
-        "bro-spinn",
         "brreg",
         "db",
         "distribusjon",
@@ -36,17 +35,20 @@ apps
         file.inputStream().use { props.load(it) }
     }
 
-val aaregClientVersion: String by props
-val altinnClientVersion: String by props
-val arbeidsgiverNotifikasjonKlientVersion: String by props
-val bakgrunnsjobbVersion: String by props
-val brregKlientVersion: String by props
-val dokarkivKlientVersion: String by props
-val inntektKlientVersion: String by props
-val lettuceVersion: String by project
-val pdlKlientVersion: String by props
-val testcontainersRedisVersion: String by project
-val testcontainersVersion: String by project
+// Leses fra hvert prosjekt sin gradle.properties
+val aaregClientVersion = props.getProperty("aaregClientVersion") as String
+val altinnClientVersion = props.getProperty("altinnClientVersion") as String
+val arbeidsgiverNotifikasjonKlientVersion = props.getProperty("arbeidsgiverNotifikasjonKlientVersion") as String
+val bakgrunnsjobbVersion = props.getProperty("bakgrunnsjobbVersion") as String
+val brregKlientVersion = props.getProperty("brregKlientVersion") as String
+val dokarkivKlientVersion = props.getProperty("dokarkivKlientVersion") as String
+val inntektKlientVersion = props.getProperty("inntektKlientVersion") as String
+val pdlKlientVersion = props.getProperty("pdlKlientVersion") as String
+
+// Leses fra integrasjonstest sin gradle.properties
+val lettuceVersion = project.property("lettuceVersion") as String
+val testcontainersRedisVersion = project.property("testcontainersRedisVersion") as String
+val testcontainersVersion = project.property("testcontainersVersion") as String
 
 dependencies {
     apps.forEach {
@@ -62,11 +64,13 @@ dependencies {
     testImplementation(project(":kontrakt-resultat-tilgang"))
     testImplementation(project(":utils-db-exposed"))
     testImplementation(project(":utils-kafka"))
+    testImplementation(project(":utils-rapids-and-rivers"))
     testImplementation(project(":utils-valkey"))
     testImplementation(testFixtures(project(":kontrakt-domene-forespoersel")))
     testImplementation(testFixtures(project(":kontrakt-domene-inntektsmelding")))
     testImplementation(testFixtures(project(":utils-db-exposed")))
     testImplementation(testFixtures(project(":utils-kafka")))
+    testImplementation(testFixtures(project(":utils-rapids-and-rivers")))
     testImplementation(testFixtures(project(":utils-valkey")))
 
     // Klienter

@@ -90,7 +90,7 @@ class LagreSelvbestemtImServiceTest :
         context("Inntektsmeldinger AarsakInnsending.Ny lagres og sak opprettes") {
             withData(
                 nameFn = {
-                    "skjema med ${ArbeidsforholdType::class.simpleName}.${it.first::class.simpleName} og ${FlereArbeidsforhold::class.simpleName} (antall datoer ${it.second?.arbeidsforholdPerSykmeldingStartdato.orEmpty().size})"
+                    "skjema med ${ArbeidsforholdType::class.simpleName}.${it.first::class.simpleName} og ${FlereArbeidsforhold::class.simpleName} (antall ${it.second?.arbeidsforhold.orEmpty().size})"
                 },
                 ArbeidsforholdType.MedArbeidsforhold(UUID.randomUUID()) to null,
                 ArbeidsforholdType.MedArbeidsforhold(UUID.randomUUID()) to mockFlereArbeidsforhold(),

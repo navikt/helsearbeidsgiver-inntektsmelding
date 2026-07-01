@@ -1,10 +1,9 @@
-val hagDomeneInntektsmeldingVersion: String by project
-val kotestVersion: String by project
-val micrometerVersion: String by project
-val mockkVersion: String by project
-val rapidsAndRiversVersion: String by project
-val slf4jVersion: String by project
-val utilsVersion: String by project
+val hagDomeneInntektsmeldingVersion = project.property("hagDomeneInntektsmeldingVersion") as String
+val kotestVersion = project.property("kotestVersion") as String
+val micrometerVersion = project.property("micrometerVersion") as String
+val mockkVersion = project.property("mockkVersion") as String
+val rapidsAndRiversVersion = project.property("rapidsAndRiversVersion") as String
+val utilsVersion = project.property("utilsVersion") as String
 
 plugins {
     id("java-test-fixtures")
@@ -14,7 +13,6 @@ dependencies {
     api(project(":kontrakt-kafkatopic-pri"))
     api(project(":utils-felles"))
     api("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
-    api("org.slf4j:slf4j-api:$slf4jVersion")
 
     implementation(project(":utils-valkey"))
     implementation("io.micrometer:micrometer-core:$micrometerVersion")

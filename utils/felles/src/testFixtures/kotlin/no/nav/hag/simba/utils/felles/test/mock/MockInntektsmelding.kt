@@ -22,9 +22,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsm
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
-import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.kl
-import no.nav.helsearbeidsgiver.utils.test.date.mai
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.date.november
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
@@ -205,15 +203,15 @@ fun mockFlereArbeidsforhold(): FlereArbeidsforhold =
             listOf(
                 Arbeidsforhold(
                     inkludertISykefravaer = true,
-                    yrkesbeskrivelse = "Utvikler",
-                    stillingsprosent = 80.0,
-                    inntekt = 40000.0,
+                    yrkesbeskrivelse = "Mekker",
+                    stillingsprosent = 30.0,
+                    inntekt = 1000.0,
                 ),
                 Arbeidsforhold(
                     inkludertISykefravaer = false,
-                    yrkesbeskrivelse = "Konsulent",
-                    stillingsprosent = 20.0,
-                    inntekt = 10000.0,
+                    yrkesbeskrivelse = "Betjent",
+                    stillingsprosent = 60.0,
+                    inntekt = 544.6,
                 ),
             ),
     )

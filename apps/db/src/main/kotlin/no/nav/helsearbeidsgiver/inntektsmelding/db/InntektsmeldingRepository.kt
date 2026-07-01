@@ -107,6 +107,7 @@ class InntektsmeldingRepository(
         }
     }
 
+    @Deprecated("Brukes kun til tester")
     fun lagreEksternInntektsmelding(
         inntektsmeldingId: UUID,
         forespoerselId: UUID,

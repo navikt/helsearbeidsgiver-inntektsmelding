@@ -56,7 +56,6 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 import java.util.UUID
 
 private val pathMedId =
@@ -392,18 +391,7 @@ private fun FlereArbeidsforhold.hardcodedJson(): String =
     {
         "harLikLoenn": $harLikLoenn,
         "erSykmeldtFraAlle": $erSykmeldtFraAlle,
-        "arbeidsforholdPerSykmeldingStartdato": ${arbeidsforholdPerSykmeldingStartdato.hardcodedJson()}
-    }
-    """
-
-private fun Map<LocalDate, List<Arbeidsforhold>>.hardcodedJson(): String =
-    """
-    {
-    ${entries.joinToString { (startdato, arbeidsforhold) ->
-        """
-        "$startdato": [${arbeidsforhold.joinToString(transform = Arbeidsforhold::hardcodedJson)}]
-        """
-    }}
+        "arbeidsforhold": [${arbeidsforhold.joinToString(transform = Arbeidsforhold::hardcodedJson)}]
     }
     """
 

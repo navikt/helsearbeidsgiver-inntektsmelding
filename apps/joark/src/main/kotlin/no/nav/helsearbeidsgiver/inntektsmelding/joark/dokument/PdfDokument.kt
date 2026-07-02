@@ -182,15 +182,7 @@ class PdfDokument(
         val seksjonStartY = y // Husk når denne seksjonen starter etter Bestemmende fraværsdag i y-aksen
 
         addLabel("Arbeidsgiverperiode", x = kolonneEn)
-        if (inntektsmelding.agp
-                ?.perioder
-                .orEmpty()
-                .isEmpty()
-        ) {
-            addLabel("(Ingen arbeidsgiverperiode oppgitt)", x = kolonneEn)
-        } else {
-            addPerioder(kolonneEn, inntektsmelding.agp?.perioder.orEmpty())
-        }
+        addPerioder(kolonneEn, inntektsmelding.agp?.perioder.orEmpty())
 
         // Husk maks høyden på venstre side
         val kolonneVenstreMaxY = y

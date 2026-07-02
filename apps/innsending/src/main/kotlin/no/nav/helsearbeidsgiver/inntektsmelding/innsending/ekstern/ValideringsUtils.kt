@@ -12,7 +12,9 @@ private const val FEILMARGIN_INNTEKT_A_ORDNING_KRONER: Double = 1000.0
 fun Inntekt.validerInntektMotAordningen(aordningInntekt: Map<YearMonth, Double?>): Set<Feil> {
     val aordningSnittInntekt = aordningInntekt.gjennomsnitt()
 
-    val inntektErUtenforFeilmargin = abs(beloep - aordningSnittInntekt) > FEILMARGIN_INNTEKT_A_ORDNING_KRONER
+    val differanse = beloep - aordningSnittInntekt
+    sikkerLogger().info("Differanse mellom innsendt beløp og snitt fra A-inntekt: $differanse")
+    val inntektErUtenforFeilmargin = abs(differanse) > FEILMARGIN_INNTEKT_A_ORDNING_KRONER
 
     return if (inntektErUtenforFeilmargin) {
         setOf(

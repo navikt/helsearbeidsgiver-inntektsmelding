@@ -378,9 +378,10 @@ class PdfDokumentTest {
             Er sykmeldt fra alle arbeidsforhold?
             Nei
             Arbeidsforhold
-            Inkludert i sykefravær Yrkesbeskrivelse Stillingsprosent Inntekt
-            Ja Mekker 30,00 % 1 000,00 kr
-            Nei Betjent 60,00 % 544,60 kr
+            Inkludert i sykefravær Yrkesbeskrivelse Inntekt Stillingsprosent
+            Ja Mekker 1 000,00 kr 30,00 %
+            Nei Betjent 544,60 kr 60,00 %
+            Sum: 1 544,60 kr 90,00 %
             """.trimIndent()
         println(pdfTekst)
     }
@@ -412,8 +413,9 @@ class PdfDokumentTest {
     }
 
     @Test
-    fun `uten flere arbeidsforhold viser ikke seksjonen`() {
-        val pdfTekst = pdfTekstFraIm(im)
+    fun `uten flere arbeidsforhold viser ikke seksjonen med Flere arbeidsforhold`() {
+        val imUtenFlereArbeidsforhold = im.copy(type = Inntektsmelding.Type.Forespurt(UUID.randomUUID(), flereArbeidsforhold = null))
+        val pdfTekst = pdfTekstFraIm(imUtenFlereArbeidsforhold)
         pdfTekst shouldNotContain "Flere arbeidsforhold"
     }
 
@@ -436,7 +438,7 @@ class PdfDokumentTest {
         title: String,
         im: Inntektsmelding,
     ) {
-         val file = File(System.getProperty("user.home"), "/Desktop/pdf/$title.pdf")
+        val file = File(System.getProperty("user.home"), "/Desktop/pdf/$title.pdf")
 //        val file = File.createTempFile(title, ".pdf")
         val writer = FileOutputStream(file)
         writer.write(PdfDokument(im).export())

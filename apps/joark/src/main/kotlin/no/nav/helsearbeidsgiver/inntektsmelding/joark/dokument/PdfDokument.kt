@@ -122,6 +122,26 @@ class PdfDokument(
         moveCursorBy(pdf.titleSize * 2)
     }
 
+    private inner class Table(
+        val x1: Int,
+        val x2: Int,
+        val x3: Int,
+        val x4: Int,
+    ) {
+        fun addRow(
+            kolonne1: String,
+            kolonne2: String,
+            kolonne3: String,
+            kolonne4: String,
+            bold: Boolean = false,
+        ) {
+            addText(kolonne1, x1, linefeed = false, bold = bold)
+            addText(kolonne2, x2, linefeed = false, bold = bold)
+            addText(kolonne3, x3, linefeed = false, bold = bold)
+            addText(kolonne4, x4, linefeed = true, bold = bold)
+        }
+    }
+
     private fun addAnsatt() {
         addSection("Den ansatte")
         val topY = y
@@ -162,12 +182,15 @@ class PdfDokument(
         val seksjonStartY = y // Husk når denne seksjonen starter etter Bestemmende fraværsdag i y-aksen
 
         addLabel("Arbeidsgiverperiode", x = kolonneEn)
-        if (inntektsmelding.agp?.perioder.orEmpty().isEmpty()) {
-            addLabel("(Ingen arbeidsgiverperiode oppgitt)", x = kolonneTo)
+        if (inntektsmelding.agp
+                ?.perioder
+                .orEmpty()
+                .isEmpty()
+        ) {
+            addLabel("(Ingen arbeidsgiverperiode oppgitt)", x = kolonneEn)
         } else {
             addPerioder(kolonneEn, inntektsmelding.agp?.perioder.orEmpty())
         }
-
 
         // Husk maks høyden på venstre side
         val kolonneVenstreMaxY = y
@@ -182,10 +205,11 @@ class PdfDokument(
 
         addLabel("Egenmelding", x = kolonneTo)
         if (egenmeldinger.isEmpty()) {
-            addLabel("(Ingen egenmeldingsperioder oppgitt)", x = kolonneTo)
+            addLabel("(Ingen egenmeldingsperiode oppgitt)", x = kolonneTo)
         } else {
             addPerioder(kolonneTo, egenmeldinger)
         }
+        moveCursorBy(pdf.bodySize)
         addLabel("Sykemeldingsperioder", x = kolonneTo)
         addPerioder(kolonneTo, inntektsmelding.sykmeldingsperioder)
 
@@ -292,7 +316,12 @@ class PdfDokument(
                     is Inntektsmelding.Type.Selvbestemt -> it.flereArbeidsforhold
                     else -> null
                 }
-            } ?: return
+            }
+
+        // viser ikke seksjon om flereArbeidsforhold ikke definert
+        if (flereArbeidsforhold == null) {
+            return
+        }
 
         addSection("Flere arbeidsforhold")
         addLabel("Har lik lønn i alle arbeidsforhold?", flereArbeidsforhold.harLikLoenn.tilNorskFormat())
@@ -306,23 +335,32 @@ class PdfDokument(
             val kolInntekt = kolonneEn + 470
             val kolStilling = kolonneEn + 680
 
-            addText("Inkludert i sykefravær", kolInkludert, linefeed = false)
-            addText("Yrkesbeskrivelse", kolYrke, linefeed = false)
+            val faisuTabell = Table(kolInkludert, kolYrke, kolInntekt, kolStilling)
 
-            addText("Inntekt", kolInntekt, linefeed = false)
-            addText("Stillingsprosent", kolStilling)
+            faisuTabell.addRow(
+                kolonne1 = "Inkludert i sykefravær",
+                kolonne2 = "Yrkesbeskrivelse",
+                kolonne3 = "Inntekt",
+                kolonne4 = "Stillingsprosent",
+                bold = true
+            )
 
-            flereArbeidsforhold.arbeidsforhold.sortedByDescending{ it.inkludertISykefravaer }.forEach {
-                addText(it.inkludertISykefravaer.tilNorskFormat(), kolInkludert, linefeed = false, bold = false)
-                addText(it.yrkesbeskrivelse, kolYrke, linefeed = false, bold = false)
-                addText("${it.inntekt.tilNorskFormat()} kr", kolInntekt, linefeed = false, bold = false)
-                addText("${it.stillingsprosent.tilNorskFormat()} %", kolStilling, bold = false)
+            flereArbeidsforhold.arbeidsforhold.sortedByDescending { it.inkludertISykefravaer }.forEach {
+                faisuTabell.addRow(
+                    kolonne1 = it.inkludertISykefravaer.tilNorskFormat(),
+                    kolonne2 = it.yrkesbeskrivelse,
+                    kolonne3 = "${it.inntekt.tilNorskFormat()} kr",
+                    kolonne4 = "${it.stillingsprosent.tilNorskFormat()} %",
+                )
             }
             moveCursorBy(pdf.bodySize)
-            addText("Sum:", kolInkludert, linefeed = false)
-
-            addText("${flereArbeidsforhold.arbeidsforhold.sumOf { it.inntekt }.tilNorskFormat()} kr", kolInntekt, linefeed = false)
-            addText("${flereArbeidsforhold.arbeidsforhold.sumOf { it.stillingsprosent }.tilNorskFormat()} %", kolStilling)
+            faisuTabell.addRow(
+                kolonne1 = "Sum:",
+                kolonne2 = "",
+                kolonne3 = "${flereArbeidsforhold.arbeidsforhold.sumOf { it.inntekt }.tilNorskFormat()} kr",
+                kolonne4 = "${flereArbeidsforhold.arbeidsforhold.sumOf { it.stillingsprosent }.tilNorskFormat()} %",
+                bold = true
+            )
         }
 
         addLine()

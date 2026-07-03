@@ -273,7 +273,7 @@ class MapInntektsmeldingKtTest :
 
             test("flereArbeidsforhold er null når skjema ikke har det") {
                 val forespoersel = mockForespoersel()
-                val skjema = mockSkjemaInntektsmelding()
+                val skjema = mockSkjemaInntektsmelding().copy(flereArbeidsforhold = null)
 
                 val inntektsmelding =
                     mapInntektsmelding(

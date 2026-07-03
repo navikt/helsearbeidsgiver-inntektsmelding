@@ -334,7 +334,7 @@ class PdfDokument(
                 kolonne2 = "Yrkesbeskrivelse",
                 kolonne3 = "Inntekt",
                 kolonne4 = "Stillingsprosent",
-                bold = true
+                bold = true,
             )
 
             flereArbeidsforhold.arbeidsforhold.sortedByDescending { it.inkludertISykefravaer }.forEach {
@@ -351,7 +351,7 @@ class PdfDokument(
                 kolonne2 = "",
                 kolonne3 = "${flereArbeidsforhold.arbeidsforhold.sumOf { it.inntekt }.tilNorskFormat()} kr",
                 kolonne4 = "${flereArbeidsforhold.arbeidsforhold.sumOf { it.stillingsprosent }.tilNorskFormat()} %",
-                bold = true
+                bold = true,
             )
         }
 

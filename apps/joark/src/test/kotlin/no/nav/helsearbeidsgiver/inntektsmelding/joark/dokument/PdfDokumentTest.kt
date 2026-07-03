@@ -373,9 +373,9 @@ class PdfDokumentTest {
         pdfTekst shouldContain
             """
             Flere arbeidsforhold
-            Har lik lønn i alle arbeidsforhold?
+            Har ansatt lik eller tilnærmet lik lønn i arbeidsforholdene (timelønn)?
             Nei
-            Er sykmeldt fra alle arbeidsforhold?
+            Er personen sykmeldt fra alle arbeidsforhold?
             Nei
             Arbeidsforhold
             Inkludert i sykefravær Yrkesbeskrivelse Inntekt Stillingsprosent

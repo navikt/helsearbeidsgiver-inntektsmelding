@@ -317,8 +317,8 @@ class PdfDokument(
         }
 
         addSection("Flere arbeidsforhold")
-        addLabel("Har lik lønn i alle arbeidsforhold?", flereArbeidsforhold.harLikLoenn.tilNorskFormat())
-        addLabel("Er sykmeldt fra alle arbeidsforhold?", flereArbeidsforhold.erSykmeldtFraAlle.tilNorskFormat())
+        addLabel("Har ansatt lik eller tilnærmet lik lønn i arbeidsforholdene (timelønn)?", flereArbeidsforhold.harLikLoenn.tilNorskFormat())
+        addLabel("Er personen sykmeldt fra alle arbeidsforhold?", flereArbeidsforhold.erSykmeldtFraAlle.tilNorskFormat())
 
         if (!flereArbeidsforhold.harLikLoenn && !flereArbeidsforhold.erSykmeldtFraAlle) {
             addLabel("Arbeidsforhold", x = kolonneEn)

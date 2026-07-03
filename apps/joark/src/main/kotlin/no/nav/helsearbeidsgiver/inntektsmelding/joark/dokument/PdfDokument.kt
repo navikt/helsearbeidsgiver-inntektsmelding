@@ -195,10 +195,11 @@ class PdfDokument(
             )
         moveCursorTo(seksjonStartY) // Gjenopprett y-aksen fra tidligere
 
-        addLabel("Egenmelding", x = kolonneTo)
+        val egenmeldingLabel = "Egenmelding"
         if (egenmeldinger.isEmpty()) {
-            addLabel("(Ingen egenmeldingsperiode oppgitt)", x = kolonneTo)
+            addLabel(egenmeldingLabel, text = "(Ingen egenmeldingsperiode oppgitt)", x = kolonneTo)
         } else {
+            addLabel(egenmeldingLabel, x = kolonneTo)
             addPerioder(kolonneTo, egenmeldinger)
         }
         moveCursorBy(pdf.bodySize)

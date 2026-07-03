@@ -122,7 +122,7 @@ class PdfDokument(
         moveCursorBy(pdf.titleSize * 2)
     }
 
-    private inner class Table(
+    private inner class TableFourColumns(
         val x1: Int,
         val x2: Int,
         val x3: Int,
@@ -328,7 +328,7 @@ class PdfDokument(
             val kolInntekt = kolonneEn + 470
             val kolStilling = kolonneEn + 680
 
-            val faisuTabell = Table(kolInkludert, kolYrke, kolInntekt, kolStilling)
+            val faisuTabell = TableFourColumns(kolInkludert, kolYrke, kolInntekt, kolStilling)
 
             faisuTabell.addRow(
                 kolonne1 = "Inkludert i sykefravær",

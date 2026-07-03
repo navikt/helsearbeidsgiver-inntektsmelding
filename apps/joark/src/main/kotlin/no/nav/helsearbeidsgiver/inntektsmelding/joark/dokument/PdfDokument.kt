@@ -311,8 +311,8 @@ class PdfDokument(
                 }
             }
 
-        // viser ikke seksjon om flereArbeidsforhold ikke definert
-        if (flereArbeidsforhold == null) {
+        // viser bare seksjon om flereArbeidsforhold er definert
+        if (flereArbeidsforhold == null || flereArbeidsforhold.arbeidsforhold.isEmpty()) {
             return
         }
 
@@ -320,41 +320,40 @@ class PdfDokument(
         addLabel("Har ansatt lik eller tilnærmet lik lønn i arbeidsforholdene (timelønn)?", flereArbeidsforhold.harLikLoenn.tilNorskFormat())
         addLabel("Er personen sykmeldt fra alle arbeidsforhold?", flereArbeidsforhold.erSykmeldtFraAlle.tilNorskFormat())
 
-        if (!flereArbeidsforhold.harLikLoenn && !flereArbeidsforhold.erSykmeldtFraAlle) {
-            addLabel("Arbeidsforhold", x = kolonneEn)
+        addLabel("Arbeidsforhold", x = kolonneEn)
 
-            val kolInkludert = kolonneEn
-            val kolYrke = kolonneEn + 250
-            val kolInntekt = kolonneEn + 470
-            val kolStilling = kolonneEn + 680
+        val kolInkludert = kolonneEn
+        val kolYrke = kolonneEn + 250
+        val kolInntekt = kolonneEn + 470
+        val kolStilling = kolonneEn + 680
 
-            val faisuTabell = TableFourColumns(kolInkludert, kolYrke, kolInntekt, kolStilling)
+        val faisuTabell = TableFourColumns(kolInkludert, kolYrke, kolInntekt, kolStilling)
 
+        faisuTabell.addRow(
+            kolonne1 = "Inkludert i sykefravær",
+            kolonne2 = "Yrkesbeskrivelse",
+            kolonne3 = "Inntekt",
+            kolonne4 = "Stillingsprosent",
+            bold = true,
+        )
+
+        flereArbeidsforhold.arbeidsforhold.sortedByDescending { it.inkludertISykefravaer }.forEach {
             faisuTabell.addRow(
-                kolonne1 = "Inkludert i sykefravær",
-                kolonne2 = "Yrkesbeskrivelse",
-                kolonne3 = "Inntekt",
-                kolonne4 = "Stillingsprosent",
-                bold = true,
-            )
-
-            flereArbeidsforhold.arbeidsforhold.sortedByDescending { it.inkludertISykefravaer }.forEach {
-                faisuTabell.addRow(
-                    kolonne1 = it.inkludertISykefravaer.tilNorskFormat(),
-                    kolonne2 = it.yrkesbeskrivelse,
-                    kolonne3 = "${it.inntekt.tilNorskFormat()} kr",
-                    kolonne4 = "${it.stillingsprosent.tilNorskFormat()} %",
-                )
-            }
-            moveCursorBy(pdf.bodySize)
-            faisuTabell.addRow(
-                kolonne1 = "Sum:",
-                kolonne2 = "",
-                kolonne3 = "${flereArbeidsforhold.arbeidsforhold.sumOf { it.inntekt }.tilNorskFormat()} kr",
-                kolonne4 = "${flereArbeidsforhold.arbeidsforhold.sumOf { it.stillingsprosent }.tilNorskFormat()} %",
-                bold = true,
+                kolonne1 = it.inkludertISykefravaer.tilNorskFormat(),
+                kolonne2 = it.yrkesbeskrivelse,
+                kolonne3 = "${it.inntekt.tilNorskFormat()} kr",
+                kolonne4 = "${it.stillingsprosent.tilNorskFormat()} %",
             )
         }
+        moveCursorBy(pdf.bodySize)
+        faisuTabell.addRow(
+            kolonne1 = "Sum:",
+            kolonne2 = "",
+            kolonne3 = "${flereArbeidsforhold.arbeidsforhold.sumOf { it.inntekt }.tilNorskFormat()} kr",
+            kolonne4 = "${flereArbeidsforhold.arbeidsforhold.sumOf { it.stillingsprosent }.tilNorskFormat()} %",
+            bold = true,
+        )
+
 
         addLine()
     }

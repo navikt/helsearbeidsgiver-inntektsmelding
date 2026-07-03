@@ -387,32 +387,6 @@ class PdfDokumentTest {
     }
 
     @Test
-    fun `med flere arbeidsforhold og lik lønn viser kun spørsmål uten tabell`() {
-        val flereArbeidsforhold =
-            mockFlereArbeidsforhold().copy(
-                harLikLoenn = true,
-                erSykmeldtFraAlle = true,
-            )
-
-        val imMedFlereArbeidsforhold =
-            im.copy(
-                type = Inntektsmelding.Type.Forespurt(UUID.randomUUID(), flereArbeidsforhold = flereArbeidsforhold),
-            )
-
-        val pdfTekst = pdfTekstFraIm(imMedFlereArbeidsforhold)
-        writePDF("med_flere_arbeidsforhold_lik_loenn", imMedFlereArbeidsforhold)
-
-        pdfTekst shouldContain
-            """
-            Flere arbeidsforhold
-            Har lik lønn i alle arbeidsforhold?
-            Ja
-            Er sykmeldt fra alle arbeidsforhold?
-            Ja
-            """.trimIndent()
-    }
-
-    @Test
     fun `uten flere arbeidsforhold viser ikke seksjonen med Flere arbeidsforhold`() {
         val imUtenFlereArbeidsforhold = im.copy(type = Inntektsmelding.Type.Forespurt(UUID.randomUUID(), flereArbeidsforhold = null))
         val pdfTekst = pdfTekstFraIm(imUtenFlereArbeidsforhold)

@@ -133,7 +133,7 @@ class PdfDokument(
             kolonne2: String,
             kolonne3: String,
             kolonne4: String,
-            bold: Boolean ,
+            bold: Boolean,
         ) {
             addText(kolonne1, x1, linefeed = false, bold = bold)
             addText(kolonne2, x2, linefeed = false, bold = bold)

@@ -133,7 +133,7 @@ class PdfDokument(
             kolonne2: String,
             kolonne3: String,
             kolonne4: String,
-            bold: Boolean = false,
+            bold: Boolean ,
         ) {
             addText(kolonne1, x1, linefeed = false, bold = bold)
             addText(kolonne2, x2, linefeed = false, bold = bold)
@@ -337,14 +337,19 @@ class PdfDokument(
             bold = true,
         )
 
-        flereArbeidsforhold.arbeidsforhold.sortedByDescending { it.inkludertISykefravaer }.forEach {
-            faisuTabell.addRow(
-                kolonne1 = it.inkludertISykefravaer.tilNorskFormat(),
-                kolonne2 = it.yrkesbeskrivelse,
-                kolonne3 = "${it.inntekt.tilNorskFormat()} kr",
-                kolonne4 = "${it.stillingsprosent.tilNorskFormat()} %",
-            )
-        }
+        flereArbeidsforhold
+            .arbeidsforhold
+            .sortedByDescending { it.inkludertISykefravaer }
+            .sortedBy { it.yrkesbeskrivelse }
+            .forEach {
+                faisuTabell.addRow(
+                    kolonne1 = it.inkludertISykefravaer.tilNorskFormat(),
+                    kolonne2 = it.yrkesbeskrivelse,
+                    kolonne3 = "${it.inntekt.tilNorskFormat()} kr",
+                    kolonne4 = "${it.stillingsprosent.tilNorskFormat()} %",
+                    bold = false,
+                )
+            }
         moveCursorBy(pdf.bodySize)
         faisuTabell.addRow(
             kolonne1 = "Sum:",

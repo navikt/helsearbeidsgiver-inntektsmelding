@@ -379,8 +379,8 @@ class PdfDokumentTest {
             Nei
             Arbeidsforhold
             Inkludert i sykefravær Yrkesbeskrivelse Inntekt Stillingsprosent
-            Nei Betjent 544,60 kr 60,00 %
             Ja Mekker 1 000,00 kr 30,00 %
+            Nei Betjent 544,60 kr 60,00 %
             Sum: 1 544,60 kr 90,00 %
             """.trimIndent()
     }

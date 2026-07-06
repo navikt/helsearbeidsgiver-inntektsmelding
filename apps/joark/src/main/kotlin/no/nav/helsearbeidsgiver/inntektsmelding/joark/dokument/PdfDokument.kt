@@ -219,8 +219,7 @@ class PdfDokument(
         perioder: List<Periode>,
     ) {
         perioder.forEach {
-            addLabel("Fra", it.fom.tilNorskFormat() + "    -", x, linefeed = false)
-            addLabel("Til", it.tom.tilNorskFormat(), x + 130)
+            addText("${it.fom.tilNorskFormat()}    -    ${it.tom.tilNorskFormat()}", x1 = x, bold = true)
         }
     }
 

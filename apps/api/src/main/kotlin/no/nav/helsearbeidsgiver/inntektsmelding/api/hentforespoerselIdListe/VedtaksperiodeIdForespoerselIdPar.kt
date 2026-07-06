@@ -11,4 +11,5 @@ import java.util.UUID
 data class VedtaksperiodeIdForespoerselIdPar(
     val vedtaksperiodeId: UUID,
     val forespoerselId: UUID,
+    val erBesvart: Boolean,
 )

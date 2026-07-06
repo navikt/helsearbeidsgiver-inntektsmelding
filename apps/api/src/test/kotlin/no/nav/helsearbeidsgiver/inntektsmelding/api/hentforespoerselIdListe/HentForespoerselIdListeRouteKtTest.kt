@@ -316,8 +316,8 @@ private object Mock {
 
     fun mockResultat(): Map<UUID, Forespoersel> =
         mapOf(
-            forespoerselId1 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId1, orgnr = orgnr),
-            forespoerselId2 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId2, orgnr = orgnr),
+            forespoerselId1 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId1, orgnr = orgnr, erBesvart = true),
+            forespoerselId2 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId2, orgnr = orgnr, erBesvart = false),
         )
 
     fun mockResultatMedUlikeOrgnr(): Map<UUID, Forespoersel> =
@@ -331,11 +331,13 @@ private object Mock {
     [
       {
         "vedtaksperiodeId": "$vedtaksPeriodeId1",
-        "forespoerselId": "$forespoerselId1"
+        "forespoerselId": "$forespoerselId1",
+        "erBesvart": true
       },
       {
         "vedtaksperiodeId": "$vedtaksPeriodeId2",
-        "forespoerselId": "$forespoerselId2"
+        "forespoerselId": "$forespoerselId2",
+        "erBesvart": false
       }
     ]
     """.removeJsonWhitespace()

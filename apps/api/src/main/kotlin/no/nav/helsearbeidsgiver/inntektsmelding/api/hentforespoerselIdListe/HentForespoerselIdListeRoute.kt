@@ -113,6 +113,7 @@ private suspend fun RoutingContext.hentForespoersler(
                             VedtaksperiodeIdForespoerselIdPar(
                                 forespoerselId = id,
                                 vedtaksperiodeId = forespoersel.vedtaksperiodeId,
+                                erBesvart = forespoersel.erBesvart,
                             )
                         }
 

@@ -354,7 +354,6 @@ class PdfDokument(
             bold = true,
         )
 
-
         addLine()
     }
 

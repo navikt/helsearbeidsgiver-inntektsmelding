@@ -339,8 +339,8 @@ class PdfDokument(
 
         flereArbeidsforhold
             .arbeidsforhold
-            .sortedByDescending { it.inkludertISykefravaer }
             .sortedBy { it.yrkesbeskrivelse }
+            .sortedByDescending { it.inkludertISykefravaer }
             .forEach {
                 faisuTabell.addRow(
                     kolonne1 = it.inkludertISykefravaer.tilNorskFormat(),

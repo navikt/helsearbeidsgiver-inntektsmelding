@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
+import no.nav.hag.simba.utils.felles.test.mock.mockFlereArbeidsforhold
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Bonus
@@ -357,6 +358,40 @@ class PdfDokumentTest {
         }
     }
 
+    @Test
+    fun `med flere arbeidsforhold viser spørsmål og tabell`() {
+        val flereArbeidsforhold = mockFlereArbeidsforhold()
+
+        val imMedFlereArbeidsforhold =
+            im.copy(
+                type = Inntektsmelding.Type.Forespurt(UUID.randomUUID(), flereArbeidsforhold = flereArbeidsforhold),
+            )
+
+        val pdfTekst = pdfTekstFraIm(imMedFlereArbeidsforhold)
+        writePDF("med_flere_arbeidsforhold", imMedFlereArbeidsforhold)
+
+        pdfTekst shouldContain
+            """
+            Flere arbeidsforhold
+            Har ansatt lik eller tilnærmet lik lønn i arbeidsforholdene (timelønn)?
+            Nei
+            Er personen sykmeldt fra alle arbeidsforhold?
+            Nei
+            Arbeidsforhold
+            Inkludert i sykefravær Yrkesbeskrivelse Inntekt Stillingsprosent
+            Ja Mekker 1 000,00 kr 30,00 %
+            Nei Betjent 544,60 kr 60,00 %
+            Sum: 1 544,60 kr 90,00 %
+            """.trimIndent()
+    }
+
+    @Test
+    fun `uten flere arbeidsforhold viser ikke seksjonen med Flere arbeidsforhold`() {
+        val imUtenFlereArbeidsforhold = im.copy(type = Inntektsmelding.Type.Forespurt(UUID.randomUUID(), flereArbeidsforhold = null))
+        val pdfTekst = pdfTekstFraIm(imUtenFlereArbeidsforhold)
+        pdfTekst shouldNotContain "Flere arbeidsforhold"
+    }
+
     private fun List<InntektEndringAarsak>.tilIm(): Inntektsmelding =
         im.copy(
             inntekt =
@@ -376,7 +411,7 @@ class PdfDokumentTest {
         title: String,
         im: Inntektsmelding,
     ) {
-        // val file = File(System.getProperty("user.home"), "/Desktop/pdf/$title.pdf")
+//      val file = File(System.getProperty("user.home"), "/Desktop/pdf/$title.pdf")
         val file = File.createTempFile(title, ".pdf")
         val writer = FileOutputStream(file)
         writer.write(PdfDokument(im).export())

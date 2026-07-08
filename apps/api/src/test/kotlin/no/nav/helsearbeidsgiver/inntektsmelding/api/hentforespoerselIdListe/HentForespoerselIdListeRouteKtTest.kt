@@ -20,15 +20,20 @@ import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hardcodedJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.februar
+import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -45,10 +50,10 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
     }
 
     @Test
-    fun `gir OK med forespørsel-ID-er`() =
+    fun `gir OK med forespørsel-ID-er og tilleggsinfo`() =
         testApi {
             val mockResultat = Mock.mockResultat()
-            val vedtaksperiodeIdListe = setOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)
+            val vedtaksperiodeIdListe = setOf(Mock.forespoersel1.vedtaksperiodeId, Mock.forespoerselId2)
 
             coEvery { anyConstructed<RedisPoller>().hent(any()) } returnsMany
                 listOf(
@@ -113,7 +118,7 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
             val response =
                 post(
                     path,
-                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.forespoersel1.vedtaksperiodeId, Mock.forespoerselId2)),
                     HentForespoerslerRequest.serializer(),
                 )
 
@@ -132,7 +137,7 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
                         HentForespoerslerRequest::vedtaksperiodeIdListe.name to
                             listOf(
                                 "ikke en uuid",
-                                Mock.vedtaksPeriodeId2.toString(),
+                                Mock.forespoersel2.vedtaksperiodeId.toString(),
                             ).toJson(String.serializer()),
                     ),
                 )
@@ -196,7 +201,7 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
             val response =
                 post(
                     path,
-                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.forespoersel1.vedtaksperiodeId, Mock.forespoerselId2)),
                     HentForespoerslerRequest.serializer(),
                 )
 
@@ -220,7 +225,7 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
             val response =
                 post(
                     path,
-                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.forespoersel1.vedtaksperiodeId, Mock.forespoerselId2)),
                     HentForespoerslerRequest.serializer(),
                 )
 
@@ -240,7 +245,7 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
             val response =
                 post(
                     path,
-                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.forespoersel1.vedtaksperiodeId, Mock.forespoerselId2)),
                     HentForespoerslerRequest.serializer(),
                 )
 
@@ -258,7 +263,7 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
             val response =
                 post(
                     path,
-                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.forespoersel1.vedtaksperiodeId, Mock.forespoerselId2)),
                     HentForespoerslerRequest.serializer(),
                 )
 
@@ -276,7 +281,7 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
             val response =
                 post(
                     path,
-                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.forespoersel1.vedtaksperiodeId, Mock.forespoerselId2)),
                     HentForespoerslerRequest.serializer(),
                 )
 
@@ -295,7 +300,7 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
             val response =
                 post(
                     path,
-                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.vedtaksPeriodeId1, Mock.forespoerselId2)),
+                    HentForespoerslerRequest(vedtaksperiodeIdListe = setOf(Mock.forespoersel1.vedtaksperiodeId, Mock.forespoerselId2)),
                     HentForespoerslerRequest.serializer(),
                 )
 
@@ -308,41 +313,43 @@ class HentForespoerselIdListeRouteKtTest : ApiTest() {
 
 private object Mock {
     val orgnr = Orgnr.genererGyldig()
-    val vedtaksPeriodeId1: UUID = UUID.randomUUID()
     val forespoerselId1: UUID = UUID.randomUUID()
-
-    val vedtaksPeriodeId2: UUID = UUID.randomUUID()
     val forespoerselId2: UUID = UUID.randomUUID()
+    val forespoersel1 =
+        mockForespoersel().copy(
+            orgnr = orgnr,
+            sykmeldingsperioder = listOf(20.januar til 10.februar),
+            egenmeldingsperioder = listOf(18.januar til 19.januar),
+            erBesvart = true,
+        )
+    val forespoersel2 =
+        mockForespoersel().copy(
+            orgnr = orgnr,
+            sykmeldingsperioder = listOf(15.februar til 28.februar),
+            egenmeldingsperioder = listOf(12.februar til 12.februar),
+            erBesvart = false,
+        )
 
     fun mockResultat(): Map<UUID, Forespoersel> =
         mapOf(
-            forespoerselId1 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId1, orgnr = orgnr, erBesvart = true),
-            forespoerselId2 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId2, orgnr = orgnr, erBesvart = false),
+            forespoerselId1 to forespoersel1,
+            forespoerselId2 to forespoersel2,
         )
 
     fun mockResultatMedUlikeOrgnr(): Map<UUID, Forespoersel> =
         mapOf(
-            forespoerselId1 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId1),
-            forespoerselId2 to mockForespoersel().copy(vedtaksperiodeId = vedtaksPeriodeId2),
+            forespoerselId1 to forespoersel1,
+            forespoerselId2 to forespoersel2.copy(orgnr = Orgnr.genererGyldig()),
         )
 
     fun successResponseJson(): String =
         """
-    [
-      {
-        "vedtaksperiodeId": "$vedtaksPeriodeId1",
-        "forespoerselId": "$forespoerselId1",
-        "erBesvart": true
-      },
-      {
-        "vedtaksperiodeId": "$vedtaksPeriodeId2",
-        "forespoerselId": "$forespoerselId2",
-        "erBesvart": false
-      }
-    ]
-    """.removeJsonWhitespace()
+        [
+            ${mockResultat().entries.joinToString { it.toPair().hardcodedJson() }}
+        ]
+        """.removeJsonWhitespace()
 
-    fun successEmptyResponseJson(): String = """[]""".removeJsonWhitespace()
+    fun successEmptyResponseJson(): String = "[]"
 
     fun successResult(resultat: Map<UUID, Forespoersel>): ResultJson =
         ResultJson(
@@ -355,4 +362,15 @@ private object Mock {
         )
 
     fun emptyResult(): ResultJson = ResultJson()
+
+    private fun Pair<UUID, Forespoersel>.hardcodedJson(): String =
+        """
+        {
+            "vedtaksperiodeId": "${second.vedtaksperiodeId}",
+            "forespoerselId": "$first",
+            "sykmeldingsperioder": [${second.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
+            "egenmeldingsperioder": [${second.egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
+            "erBesvart": ${second.erBesvart}
+        }
+        """
 }

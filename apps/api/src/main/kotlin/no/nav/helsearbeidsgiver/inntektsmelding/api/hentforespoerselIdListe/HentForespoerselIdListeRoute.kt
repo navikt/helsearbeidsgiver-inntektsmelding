@@ -111,8 +111,10 @@ private suspend fun RoutingContext.hentForespoersler(
                     val respons =
                         success.map { (id, forespoersel) ->
                             VedtaksperiodeIdForespoerselIdPar(
-                                forespoerselId = id,
                                 vedtaksperiodeId = forespoersel.vedtaksperiodeId,
+                                forespoerselId = id,
+                                sykmeldingsperioder = forespoersel.sykmeldingsperioder,
+                                egenmeldingsperioder = forespoersel.egenmeldingsperioder,
                                 erBesvart = forespoersel.erBesvart,
                             )
                         }

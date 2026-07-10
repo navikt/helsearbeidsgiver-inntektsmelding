@@ -9,7 +9,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import java.util.UUID
 
 @Serializable
-data class VedtaksperiodeIdForespoerselIdPar(
+data class ForespoerselResponse(
     val vedtaksperiodeId: UUID,
     val forespoerselId: UUID,
     val sykmeldingsperioder: List<Periode>,

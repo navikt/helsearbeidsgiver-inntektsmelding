@@ -103,14 +103,14 @@ private suspend fun RoutingContext.hentForespoersler(
 
             // Dersom orgnr er 'null' betyr det at ingen forespørsler ble funnet.
             orgnr == null -> {
-                respondOk(emptyList(), VedtaksperiodeIdForespoerselIdPar.serializer().list())
+                respondOk(emptyList(), ForespoerselResponse.serializer().list())
             }
 
             else -> {
                 validerTilgangOrgnrOrError(tilgangskontroll, kontekstId, orgnr) {
                     val respons =
                         success.map { (id, forespoersel) ->
-                            VedtaksperiodeIdForespoerselIdPar(
+                            ForespoerselResponse(
                                 vedtaksperiodeId = forespoersel.vedtaksperiodeId,
                                 forespoerselId = id,
                                 sykmeldingsperioder = forespoersel.sykmeldingsperioder,
@@ -119,7 +119,7 @@ private suspend fun RoutingContext.hentForespoersler(
                             )
                         }
 
-                    respondOk(respons, VedtaksperiodeIdForespoerselIdPar.serializer().list())
+                    respondOk(respons, ForespoerselResponse.serializer().list())
                 }
             }
         }

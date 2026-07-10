@@ -9,5 +9,5 @@ data class KvitteringResultat(
     val forespoersel: Forespoersel,
     val sykmeldtNavn: String,
     val orgNavn: String,
-    val lagret: LagretInntektsmelding?,
+    val lagret: LagretInntektsmelding,
 )

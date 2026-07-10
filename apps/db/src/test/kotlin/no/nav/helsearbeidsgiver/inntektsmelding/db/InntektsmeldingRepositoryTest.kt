@@ -20,10 +20,7 @@ import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.januar
-import no.nav.helsearbeidsgiver.utils.test.date.juni
-import no.nav.helsearbeidsgiver.utils.test.date.mai
 import no.nav.helsearbeidsgiver.utils.test.date.mars
-import no.nav.helsearbeidsgiver.utils.test.date.september
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
@@ -53,69 +50,6 @@ class InntektsmeldingRepositoryTest :
 
         val inntektsmeldingRepo = InntektsmeldingRepository(db)
         val testRepo = TestRepo(db)
-
-        context(InntektsmeldingRepository::hentInntektsmelding.name) {
-            test("henter skjema med inntektsmelding-ID") {
-                val forespoerselId = UUID.randomUUID()
-                val inntektsmeldingId = UUID.randomUUID()
-                val mottatt = 20.september.atStartOfDay()
-
-                val a = mockSkjemaInntektsmelding().copy(forespoerselId = forespoerselId)
-                val b = mockEksternInntektsmelding().copy(tidspunkt = mottatt.plusHours(1))
-                val c = mockSkjemaInntektsmelding().copy(forespoerselId = forespoerselId)
-                val d = mockSkjemaInntektsmelding().copy(forespoerselId = forespoerselId)
-                val e = mockEksternInntektsmelding().copy(tidspunkt = mottatt.plusHours(4))
-
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), a, AVSENDER_NAVN, mottatt)
-                inntektsmeldingRepo.lagreEksternInntektsmelding(UUID.randomUUID(), forespoerselId, b)
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId, c, AVSENDER_NAVN, mottatt.plusHours(2))
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), d, AVSENDER_NAVN, mottatt.plusHours(3))
-                inntektsmeldingRepo.lagreEksternInntektsmelding(UUID.randomUUID(), forespoerselId, e)
-
-                val lagret = inntektsmeldingRepo.hentInntektsmelding(inntektsmeldingId)
-
-                lagret shouldBe
-                    LagretInntektsmelding.Skjema(
-                        avsenderNavn = AVSENDER_NAVN,
-                        skjema = c,
-                        mottatt = mottatt.plusHours(2),
-                    )
-            }
-
-            test("henter ekstern inntektsmelding med inntektsmelding-ID") {
-                val forespoerselId = UUID.randomUUID()
-                val inntektsmeldingId = UUID.randomUUID()
-                val mottatt = 3.mai.atStartOfDay()
-
-                val a = mockSkjemaInntektsmelding().copy(forespoerselId = forespoerselId)
-                val b = mockEksternInntektsmelding().copy(tidspunkt = mottatt.plusHours(1))
-                val c = mockEksternInntektsmelding().copy(tidspunkt = mottatt.plusHours(2))
-                val d = mockSkjemaInntektsmelding().copy(forespoerselId = forespoerselId)
-                val e = mockEksternInntektsmelding().copy(tidspunkt = mottatt.plusHours(4))
-
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), a, AVSENDER_NAVN, mottatt)
-                inntektsmeldingRepo.lagreEksternInntektsmelding(UUID.randomUUID(), forespoerselId, b)
-                inntektsmeldingRepo.lagreEksternInntektsmelding(inntektsmeldingId, forespoerselId, c)
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), d, AVSENDER_NAVN, mottatt.plusHours(3))
-                inntektsmeldingRepo.lagreEksternInntektsmelding(UUID.randomUUID(), forespoerselId, e)
-
-                val lagret = inntektsmeldingRepo.hentInntektsmelding(inntektsmeldingId)
-
-                lagret shouldBe
-                    LagretInntektsmelding.Ekstern(
-                        ekstern = c,
-                    )
-            }
-
-            test("tåler at det er ingenting å hente med inntektsmelding-ID") {
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), mockSkjemaInntektsmelding(), AVSENDER_NAVN, 16.juni.atStartOfDay())
-                inntektsmeldingRepo.lagreEksternInntektsmelding(UUID.randomUUID(), UUID.randomUUID(), mockEksternInntektsmelding())
-
-                val lagret = inntektsmeldingRepo.hentInntektsmelding(UUID.randomUUID())
-
-                lagret.shouldBeNull()
-            }
-        }
 
         context(InntektsmeldingRepository::hentNyesteInntektsmelding.name) {
 
@@ -191,7 +125,7 @@ class InntektsmeldingRepositoryTest :
 
                 val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(UUID.randomUUID())
 
-                lagret.shouldBeNull()
+                lagret shouldBe LagretInntektsmelding.IkkeFunnet
             }
         }
 

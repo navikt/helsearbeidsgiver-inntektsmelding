@@ -8,11 +8,11 @@ import io.mockk.verify
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Tekst
-import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
 import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.valkey.RedisStore
+import no.nav.hag.simba.utils.valkey.ResultJson
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.TilgangForespoerselService
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.BeforeEach

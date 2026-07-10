@@ -10,7 +10,6 @@ import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.domene.Person
-import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.inntektMapSerializer
 import no.nav.hag.simba.utils.felles.json.les
 import no.nav.hag.simba.utils.felles.json.lesOrNull
@@ -23,6 +22,7 @@ import no.nav.hag.simba.utils.rr.Publisher
 import no.nav.hag.simba.utils.rr.service.Service
 import no.nav.hag.simba.utils.rr.service.ServiceMed2Steg
 import no.nav.hag.simba.utils.valkey.RedisStore
+import no.nav.hag.simba.utils.valkey.ResultJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty

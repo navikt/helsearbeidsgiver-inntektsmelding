@@ -8,7 +8,6 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.SerializationException
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.valkey.test.redisWithMockRedisClient
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID

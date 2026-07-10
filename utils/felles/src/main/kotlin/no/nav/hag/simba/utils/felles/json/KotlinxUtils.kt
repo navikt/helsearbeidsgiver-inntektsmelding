@@ -11,7 +11,6 @@ import no.nav.hag.simba.utils.felles.IKey
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.PeriodeAapen
 import no.nav.hag.simba.utils.felles.domene.Person
-import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer
@@ -48,8 +47,6 @@ val ansettelsesperioderSerializer =
 fun EventName.toJson(): JsonElement = toJson(EventName.serializer())
 
 fun BehovType.toJson(): JsonElement = toJson(BehovType.serializer())
-
-fun ResultJson.toJson(): JsonElement = toJson(ResultJson.serializer())
 
 fun <T> Set<T>.toJson(elementSerializer: KSerializer<T>): JsonElement =
     toJson(

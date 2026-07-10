@@ -16,7 +16,6 @@ import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Fail
-import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
@@ -53,7 +52,7 @@ class HentLagretImRiverTest :
                     "kun skjema (med navn)" to LagretInntektsmelding.Skjema("Nifs Krumkake", mockSkjemaInntektsmelding(), 12.april.atStartOfDay()),
                     "kun skjema (uten navn)" to LagretInntektsmelding.Skjema(null, mockSkjemaInntektsmelding(), 12.april.atStartOfDay()),
                     "kun ekstern inntektsmelding" to LagretInntektsmelding.Ekstern(mockEksternInntektsmelding()),
-                    "ingen funnet" to null,
+                    "ingen funnet" to LagretInntektsmelding.IkkeFunnet,
                 ),
             ) { lagret ->
                 every { mockImRepo.hentNyesteInntektsmelding(any()) } returns lagret
@@ -73,10 +72,7 @@ class HentLagretImRiverTest :
                         Key.DATA to
                             innkommendeMelding.data
                                 .plus(
-                                    Key.LAGRET_INNTEKTSMELDING to
-                                        ResultJson(
-                                            success = lagret?.toJson(LagretInntektsmelding.serializer()),
-                                        ).toJson(),
+                                    Key.LAGRET_INNTEKTSMELDING to lagret.toJson(LagretInntektsmelding.serializer()),
                                 ).toJson(),
                     )
 

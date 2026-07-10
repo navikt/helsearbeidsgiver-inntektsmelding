@@ -17,7 +17,6 @@ import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Person
-import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.orgMapSerializer
 import no.nav.hag.simba.utils.felles.json.personMapSerializer
 import no.nav.hag.simba.utils.felles.json.toJson
@@ -30,6 +29,7 @@ import no.nav.hag.simba.utils.rr.test.message
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.hag.simba.utils.valkey.RedisPrefix
+import no.nav.hag.simba.utils.valkey.ResultJson
 import no.nav.hag.simba.utils.valkey.test.MockRedis
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.november
@@ -61,7 +61,7 @@ class KvitteringServiceTest :
                 mapOf(
                     "inntektsmelding hentes" to LagretInntektsmelding.Skjema("Barbie Roberts", mockSkjemaInntektsmelding(), 6.november.atStartOfDay()),
                     "ekstern inntektsmelding hentes" to LagretInntektsmelding.Ekstern(mockEksternInntektsmelding()),
-                    "ingen inntektsmelding funnet" to null,
+                    "ingen inntektsmelding funnet" to LagretInntektsmelding.IkkeFunnet,
                 ),
             ) { lagret ->
                 val kontekstId: UUID = UUID.randomUUID()
@@ -162,7 +162,7 @@ private object MockKvittering {
         kontekstId: UUID,
         orgnrMedNavn: Map<Orgnr, String>,
         personer: Map<Fnr, Person>,
-        lagret: LagretInntektsmelding?,
+        lagret: LagretInntektsmelding,
     ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SERVICE_FORESPURT_IM_HENT.toJson(),
@@ -171,10 +171,7 @@ private object MockKvittering {
                 mapOf(
                     Key.VIRKSOMHETER to orgnrMedNavn.toJson(orgMapSerializer),
                     Key.PERSONER to personer.toJson(personMapSerializer),
-                    Key.LAGRET_INNTEKTSMELDING to
-                        ResultJson(
-                            success = lagret?.toJson(LagretInntektsmelding.serializer()),
-                        ).toJson(),
+                    Key.LAGRET_INNTEKTSMELDING to lagret.toJson(LagretInntektsmelding.serializer()),
                 ).toJson(),
         )
 

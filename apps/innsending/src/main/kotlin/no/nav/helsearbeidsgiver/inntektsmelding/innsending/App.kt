@@ -48,6 +48,7 @@ fun createInnsendingServices(
         ServiceRiverStateless(
             ApiInnsendingService(
                 publisher = publisher,
+                producer = producer,
             ),
         ),
         ServiceRiverStateless(

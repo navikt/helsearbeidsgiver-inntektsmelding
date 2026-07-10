@@ -5,9 +5,12 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
+import io.mockk.mockk
+import io.mockk.verifySequence
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
+import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.toJson
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
@@ -18,6 +21,7 @@ import no.nav.hag.simba.utils.felles.test.json.lesBehov
 import no.nav.hag.simba.utils.felles.test.json.plusData
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
 import no.nav.hag.simba.utils.felles.test.mock.mockInnsending
+import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
 import no.nav.hag.simba.utils.rr.test.message
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
@@ -28,18 +32,23 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.kl
+import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerRecord
 import java.util.UUID
 import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.EventName as InnsendingEventName
+import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.Key as InnsendingKey
 
 class ApiInnsendingServiceTest :
     FunSpec({
 
         val testRapid = TestRapid()
+        val mockKafkaProducer = mockk<KafkaProducer<String, JsonElement>>()
+        val testTopic = "test-topic"
 
         mockConnectToRapid(testRapid) {
             listOf(
                 ServiceRiverStateless(
-                    ApiInnsendingService(it),
+                    ApiInnsendingService(it, Producer(testTopic, mockKafkaProducer)),
                 ),
             )
         }
@@ -71,7 +80,7 @@ class ApiInnsendingServiceTest :
             }
         }
 
-        test("duplikat skjema sendes _ikke_ videre til beriking") {
+        test("duplikat skjema sendes _ikke_ videre til beriking, men sendes til api-innsending-topicet som avvist") {
             val kontekstId = UUID.randomUUID()
 
             testRapid.sendJson(Mock.steg0(kontekstId))
@@ -84,11 +93,17 @@ class ApiInnsendingServiceTest :
                     Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
                 ),
             )
+            testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.inspektør.size shouldBeExactly 2
-            testRapid.message(1).toMap().also {
-                Key.EVENT_NAME.lesOrNull(InnsendingEventName.serializer(), it) shouldBe InnsendingEventName.AVVIST_INNTEKTSMELDING
-            }
+            val forventetNoekkel = Mock.innsending.skjema.forespoerselId
+            val forventetRecord =
+                ProducerRecord(
+                    testTopic,
+                    forventetNoekkel.toString(),
+                    Mock.mockAvvistDuplikatMelding(kontekstId).toJson(),
+                )
+
+            verifySequence { mockKafkaProducer.send(forventetRecord) }
         }
 
         test("svar med feilmelding ved feil") {
@@ -110,6 +125,7 @@ class ApiInnsendingServiceTest :
 private object Mock {
     val innsending = mockInnsending()
     val mottatt = 15.august.kl(12, 0, 0, 0)
+    val forespoersel = mockForespoersel()
 
     fun steg0(kontekstId: UUID): Map<Key, JsonElement> =
         mapOf(
@@ -119,7 +135,7 @@ private object Mock {
                 mapOf(
                     Key.INNSENDING to innsending.toJson(Innsending.serializer()),
                     Key.MOTTATT to mottatt.toJson(),
-                    Key.FORESPOERSEL_SVAR to mockForespoersel().toJson(),
+                    Key.FORESPOERSEL_SVAR to forespoersel.toJson(),
                 ).toJson(),
         )
 
@@ -133,4 +149,23 @@ private object Mock {
                     Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
                 ),
             )
+
+    fun mockAvvistDuplikatMelding(kontekstId: UUID): Map<InnsendingKey, JsonElement> {
+        val avvistInntektsmelding =
+            AvvistInntektsmelding(
+                inntektsmeldingId = innsending.innsendingId,
+                forespoerselId = innsending.type.id,
+                vedtaksperiodeId = forespoersel.vedtaksperiodeId,
+                orgnr = forespoersel.orgnr,
+                feil = Feil(Feilkode.DUPLIKAT, "Duplikat"),
+            )
+        return mapOf(
+            InnsendingKey.EVENT_NAME to InnsendingEventName.AVVIST_INNTEKTSMELDING.toJson(),
+            InnsendingKey.KONTEKST_ID to kontekstId.toJson(),
+            InnsendingKey.DATA to
+                mapOf(
+                    InnsendingKey.AVVIST_INNTEKTSMELDING to avvistInntektsmelding.toJson(AvvistInntektsmelding.serializer()),
+                ).toJson(),
+        )
+    }
 }

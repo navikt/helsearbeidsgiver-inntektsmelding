@@ -11,6 +11,7 @@ import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.json.les
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.Log
+import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.rr.Publisher
 import no.nav.hag.simba.utils.rr.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.api.Innsending
@@ -41,6 +42,7 @@ data class Steg1(
 
 class ApiInnsendingService(
     private val publisher: Publisher,
+    private val producer: Producer,
 ) : ServiceMed1Steg<Steg0, Steg1>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
@@ -121,16 +123,19 @@ class ApiInnsendingService(
                     orgnr = steg0.forespoersel.orgnr,
                     feil = Feil(Feilkode.DUPLIKAT, "Duplikat"),
                 )
-            publisher.publish(
-                steg0.innsending.skjema.forespoerselId,
-                Key.EVENT_NAME to InnsendingEventName.AVVIST_INNTEKTSMELDING.toJson(),
-                Key.KONTEKST_ID to steg0.kontekstId.toJson(),
-                Key.DATA to
+            producer.send(
+                key = steg0.innsending.skjema.forespoerselId,
+                message =
                     mapOf(
-                        InnsendingKey.AVVIST_INNTEKTSMELDING to avvistInntektsmelding.toJson(AvvistInntektsmelding.serializer()),
-                    ).toJson(),
+                        InnsendingKey.EVENT_NAME to InnsendingEventName.AVVIST_INNTEKTSMELDING.toJson(),
+                        InnsendingKey.KONTEKST_ID to steg0.kontekstId.toJson(),
+                        InnsendingKey.DATA to
+                            mapOf(
+                                InnsendingKey.AVVIST_INNTEKTSMELDING to avvistInntektsmelding.toJson(AvvistInntektsmelding.serializer()),
+                            ).toJson(),
+                    ),
             )
-            logger.info("Publiserte melding om avvist inntektsmelding (duplikat) med id ${avvistInntektsmelding.inntektsmeldingId}.")
+            logger.info("Sendte melding om avvist inntektsmelding (duplikat) med id ${avvistInntektsmelding.inntektsmeldingId}.")
         }
     }
 

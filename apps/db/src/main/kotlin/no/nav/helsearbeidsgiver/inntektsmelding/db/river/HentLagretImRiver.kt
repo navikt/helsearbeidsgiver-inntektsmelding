@@ -7,7 +7,6 @@ import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Fail
-import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.krev
 import no.nav.hag.simba.utils.felles.json.les
 import no.nav.hag.simba.utils.felles.json.toJson
@@ -68,10 +67,7 @@ class HentLagretImRiver(
             Key.DATA to
                 data
                     .plus(
-                        Key.LAGRET_INNTEKTSMELDING to
-                            ResultJson(
-                                success = lagret?.toJson(LagretInntektsmelding.serializer()),
-                            ).toJson(),
+                        Key.LAGRET_INNTEKTSMELDING to lagret.toJson(LagretInntektsmelding.serializer()),
                     ).toJson(),
         )
     }
@@ -102,7 +98,7 @@ class HentLagretImRiver(
             Log.forespoerselId(forespoerselId),
         )
 
-    private fun loggHentet(lagret: LagretInntektsmelding?) {
+    private fun loggHentet(lagret: LagretInntektsmelding) {
         when (lagret) {
             is LagretInntektsmelding.Skjema -> {
                 logger.info("Fant lagret inntektsmeldingsskjema.")
@@ -114,7 +110,7 @@ class HentLagretImRiver(
                 sikkerLogger.info("Fant lagret ekstern inntektsmelding.\n${lagret.ekstern.toJson(EksternInntektsmelding.serializer()).toPretty()}")
             }
 
-            null -> {
+            is LagretInntektsmelding.IkkeFunnet -> {
                 "Fant _ikke_ lagret inntektsmeldingsskjema eller ekstern inntektsmelding.".also {
                     logger.info(it)
                     sikkerLogger.info(it)

@@ -6,7 +6,6 @@ import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.test.mockEksternInntektsmelding
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
@@ -64,13 +63,15 @@ class KvitteringIT : EndToEndTest() {
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
 
-                val success = data[Key.LAGRET_INNTEKTSMELDING].shouldNotBeNull().fromJson(ResultJson.serializer()).success
-                success.shouldNotBeNull()
-                success.fromJson(LagretInntektsmelding.serializer()) shouldBe
-                    LagretInntektsmelding.Skjema(
-                        avsenderNavn = arveAvsender.navn.fulltNavn(),
-                        skjema = skjema,
-                        mottatt = mottatt,
+                data[Key.LAGRET_INNTEKTSMELDING]
+                    .shouldNotBeNull()
+                    .fromJson(LagretInntektsmelding.serializer())
+                    .shouldBe(
+                        LagretInntektsmelding.Skjema(
+                            avsenderNavn = arveAvsender.navn.fulltNavn(),
+                            skjema = skjema,
+                            mottatt = mottatt,
+                        ),
                     )
             }
 
@@ -109,9 +110,10 @@ class KvitteringIT : EndToEndTest() {
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
 
-                val success = data[Key.LAGRET_INNTEKTSMELDING].shouldNotBeNull().fromJson(ResultJson.serializer()).success
-                success.shouldNotBeNull()
-                success.fromJson(LagretInntektsmelding.serializer()) shouldBe LagretInntektsmelding.Ekstern(eksternIm)
+                data[Key.LAGRET_INNTEKTSMELDING]
+                    .shouldNotBeNull()
+                    .fromJson(LagretInntektsmelding.serializer())
+                    .shouldBe(LagretInntektsmelding.Ekstern(eksternIm))
             }
 
         redisConnection.get(RedisPrefix.Kvittering, kontekstId).shouldNotBeNull()
@@ -146,7 +148,7 @@ class KvitteringIT : EndToEndTest() {
             .also {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
 
-                data[Key.LAGRET_INNTEKTSMELDING] shouldBe ResultJson(success = null).toJson()
+                data[Key.LAGRET_INNTEKTSMELDING] shouldBe LagretInntektsmelding.IkkeFunnet.toJson(LagretInntektsmelding.serializer())
             }
     }
 }

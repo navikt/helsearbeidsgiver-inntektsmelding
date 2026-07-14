@@ -2,7 +2,6 @@ package no.nav.hag.simba.utils.valkey
 
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.utils.felles.Key
-import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.helsearbeidsgiver.utils.collection.mapKeysNotNull
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull

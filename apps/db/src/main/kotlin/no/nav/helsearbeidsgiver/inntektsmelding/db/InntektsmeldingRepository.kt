@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsm
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -26,27 +27,7 @@ class InntektsmeldingRepository(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    fun hentInntektsmelding(inntektsmeldingId: UUID): LagretInntektsmelding? =
-        transaction(db) {
-            InntektsmeldingEntitet
-                .select(
-                    InntektsmeldingEntitet.skjema,
-                    InntektsmeldingEntitet.eksternInntektsmelding,
-                    InntektsmeldingEntitet.innsendt,
-                    InntektsmeldingEntitet.avsenderNavn,
-                ).where { InntektsmeldingEntitet.inntektsmeldingId eq inntektsmeldingId }
-                .map {
-                    InntektsmeldingResult(
-                        it[InntektsmeldingEntitet.skjema],
-                        it[InntektsmeldingEntitet.eksternInntektsmelding],
-                        it[InntektsmeldingEntitet.innsendt],
-                        it[InntektsmeldingEntitet.avsenderNavn],
-                    )
-                }
-        }.firstOrNull()
-            ?.tilLagretInntektsmelding()
-
-    fun hentNyesteInntektsmelding(forespoerselId: UUID): LagretInntektsmelding? =
+    fun hentNyesteInntektsmelding(forespoerselId: UUID): LagretInntektsmelding =
         transaction(db) {
             InntektsmeldingEntitet
                 .select(
@@ -67,6 +48,7 @@ class InntektsmeldingRepository(
                 }
         }.firstOrNull()
             ?.tilLagretInntektsmelding()
+            .orDefault(LagretInntektsmelding.IkkeFunnet)
 
     fun hentNyesteInntektsmeldingSkjema(forespoerselId: UUID): SkjemaInntektsmelding? =
         transaction(db) {

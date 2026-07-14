@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
+import no.nav.hag.simba.kontrakt.domene.inntektsmelding.EksternInntektsmelding
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
 import no.nav.hag.simba.kontrakt.resultat.kvittering.KvitteringResultat
 import no.nav.hag.simba.utils.felles.BehovType
@@ -10,7 +11,6 @@ import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.domene.Person
-import no.nav.hag.simba.utils.felles.domene.ResultJson
 import no.nav.hag.simba.utils.felles.json.les
 import no.nav.hag.simba.utils.felles.json.orgMapSerializer
 import no.nav.hag.simba.utils.felles.json.personMapSerializer
@@ -21,7 +21,7 @@ import no.nav.hag.simba.utils.rr.Publisher
 import no.nav.hag.simba.utils.rr.service.Service
 import no.nav.hag.simba.utils.rr.service.ServiceMed2Steg
 import no.nav.hag.simba.utils.valkey.RedisStore
-import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.hag.simba.utils.valkey.ResultJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -30,6 +30,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import java.time.LocalDateTime
 import java.util.UUID
 
 class KvitteringService(
@@ -56,7 +57,7 @@ class KvitteringService(
         data class Komplett(
             val orgnrMedNavn: Map<Orgnr, String>,
             val personer: Map<Fnr, Person>,
-            val lagret: LagretInntektsmelding?,
+            val lagret: LagretInntektsmelding,
         ) : Steg2()
 
         data object Delvis : Steg2()
@@ -76,13 +77,7 @@ class KvitteringService(
     override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 {
         val orgnrMedNavn = runCatching { Key.VIRKSOMHETER.les(orgMapSerializer, melding) }
         val personer = runCatching { Key.PERSONER.les(personMapSerializer, melding) }
-        val lagret =
-            runCatching {
-                Key.LAGRET_INNTEKTSMELDING
-                    .les(ResultJson.serializer(), melding)
-                    .success
-                    ?.fromJson(LagretInntektsmelding.serializer())
-            }
+        val lagret = runCatching { Key.LAGRET_INNTEKTSMELDING.les(LagretInntektsmelding.serializer(), melding) }
 
         val results = listOf(orgnrMedNavn, personer, lagret)
 
@@ -170,6 +165,7 @@ class KvitteringService(
         if (steg2 is Steg2.Komplett) {
             val sykmeldtNavn = steg2.personer[steg1.forespoersel.fnr]?.navn ?: Tekst.UKJENT_NAVN
             val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr] ?: Tekst.UKJENT_VIRKSOMHET
+            val lagretEllerFallback = steg2.lagret.ellerFallback(steg1.forespoersel.erBesvart)
 
             val resultJson =
                 ResultJson(
@@ -178,7 +174,7 @@ class KvitteringService(
                             forespoersel = steg1.forespoersel,
                             sykmeldtNavn = sykmeldtNavn,
                             orgNavn = orgNavn,
-                            lagret = steg2.lagret,
+                            lagret = lagretEllerFallback,
                         ).toJson(KvitteringResultat.serializer()),
                 )
 
@@ -221,10 +217,33 @@ class KvitteringService(
         MdcUtils.withLogFields(
             Log.behov(behovType),
         ) {
-            "Publiserte melding med behov $behovType.".let {
+            "Publiserte melding med behov $behovType.".also {
                 logger.info(it)
                 sikkerLogger.info("$it\n${publisert.toPretty()}")
             }
         }
     }
+
+    // Vi mangler noen inntektsmeldinger i databasen. Frontend sliter når backend ikke svarer med en lagret inntektsmelding.
+    private fun LagretInntektsmelding.ellerFallback(erForespoerselBesvart: Boolean): LagretInntektsmelding =
+        // Alle forespørsler vi henter kvittering for skal være besvart, men vi sjekker for sikkerhets skyld
+        if (this is LagretInntektsmelding.IkkeFunnet && erForespoerselBesvart) {
+            "Mangler inntektsmelding i databasen. Bruker reserveløsning for kvittering.".also {
+                logger.warn(it)
+                sikkerLogger.warn(it)
+            }
+
+            LagretInntektsmelding.Ekstern(
+                EksternInntektsmelding(
+                    avsenderSystemNavn = "et system tilknyttet Altinn 2 (avviklet)",
+                    // Vises ikke til arbeidsgiver
+                    avsenderSystemVersjon = "0",
+                    arkivreferanse = "ikke tilgjengelig",
+                    // Vises ikke til arbeidsgiver
+                    tidspunkt = LocalDateTime.of(2000, 1, 1, 0, 0),
+                ),
+            )
+        } else {
+            this
+        }
 }

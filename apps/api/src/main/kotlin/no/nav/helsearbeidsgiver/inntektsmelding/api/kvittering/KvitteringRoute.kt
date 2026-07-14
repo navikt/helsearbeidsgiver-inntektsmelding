@@ -66,7 +66,7 @@ fun Route.kvittering(
                             respondOk(eksternResponse, KvitteringResponse.serializer())
                         }
 
-                        null -> {
+                        is LagretInntektsmelding.IkkeFunnet -> {
                             respondError(ErrorResponse.NotFound(kontekstId, "Kvittering ikke funnet for forespørsel-ID '$forespoerselId'."))
                         }
                     }

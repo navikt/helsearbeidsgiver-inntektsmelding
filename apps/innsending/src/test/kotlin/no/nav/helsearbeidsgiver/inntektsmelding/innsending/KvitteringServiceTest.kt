@@ -10,6 +10,7 @@ import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
+import no.nav.hag.simba.kontrakt.domene.inntektsmelding.EksternInntektsmelding
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.test.mockEksternInntektsmelding
 import no.nav.hag.simba.kontrakt.resultat.kvittering.KvitteringResultat
@@ -35,6 +36,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.november
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import java.time.LocalDateTime
 import java.util.UUID
 
 class KvitteringServiceTest :
@@ -61,16 +63,91 @@ class KvitteringServiceTest :
                 mapOf(
                     "inntektsmelding hentes" to LagretInntektsmelding.Skjema("Barbie Roberts", mockSkjemaInntektsmelding(), 6.november.atStartOfDay()),
                     "ekstern inntektsmelding hentes" to LagretInntektsmelding.Ekstern(mockEksternInntektsmelding()),
-                    "ingen inntektsmelding funnet" to LagretInntektsmelding.IkkeFunnet,
                 ),
             ) { lagret ->
+                withData(
+                    nameFn = { "forespoersel.erBesvart=${it.erBesvart}" },
+                    mockForespoersel().copy(erBesvart = true),
+                    mockForespoersel().copy(erBesvart = false),
+                ) { forespoersel ->
+                    val kontekstId: UUID = UUID.randomUUID()
+                    val expectedResult =
+                        KvitteringResultat(
+                            forespoersel = forespoersel,
+                            sykmeldtNavn = "Kenneth Sean Carson",
+                            orgNavn = "Mattel",
+                            lagret = lagret,
+                        )
+                    val sykmeldtFnr = expectedResult.forespoersel.fnr
+
+                    testRapid.sendJson(
+                        MockKvittering.steg0(kontekstId),
+                    )
+
+                    testRapid.inspektør.size shouldBeExactly 1
+                    testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_TRENGER_IM
+
+                    testRapid.sendJson(
+                        MockKvittering.steg1(kontekstId, expectedResult.forespoersel),
+                    )
+
+                    testRapid.inspektør.size shouldBeExactly 4
+                    testRapid.message(1).lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
+                    testRapid.message(2).lesBehov() shouldBe BehovType.HENT_PERSONER
+                    testRapid.message(3).lesBehov() shouldBe BehovType.HENT_LAGRET_IM
+
+                    testRapid.sendJson(
+                        MockKvittering.steg2(
+                            kontekstId,
+                            mapOf(expectedResult.forespoersel.orgnr to expectedResult.orgNavn),
+                            mapOf(sykmeldtFnr to Person(sykmeldtFnr, expectedResult.sykmeldtNavn)),
+                            expectedResult.lagret,
+                        ),
+                    )
+
+                    testRapid.inspektør.size shouldBeExactly 4
+
+                    verify {
+                        mockRedis.store.skrivResultat(
+                            kontekstId,
+                            ResultJson(
+                                success = expectedResult.toJson(KvitteringResultat.serializer()),
+                            ),
+                        )
+                    }
+                }
+            }
+        }
+
+        context("inntektsmelding ikke funnet") {
+            withData(
+                mapOf(
+                    "svarer at inntektsmelding ikke ble funnet dersom forespørsel ikke er besvart" to
+                        Pair(
+                            mockForespoersel().copy(erBesvart = false),
+                            LagretInntektsmelding.IkkeFunnet,
+                        ),
+                    "svarer med reserveløsning dersom forespørsel er besvart" to
+                        Pair(
+                            mockForespoersel().copy(erBesvart = true),
+                            LagretInntektsmelding.Ekstern(
+                                EksternInntektsmelding(
+                                    avsenderSystemNavn = "et system tilknyttet Altinn 2 (avviklet)",
+                                    avsenderSystemVersjon = "0",
+                                    arkivreferanse = "ikke tilgjengelig",
+                                    tidspunkt = LocalDateTime.of(2000, 1, 1, 0, 0),
+                                ),
+                            ),
+                        ),
+                ),
+            ) { (forespoersel, expectedLagret) ->
                 val kontekstId: UUID = UUID.randomUUID()
                 val expectedResult =
                     KvitteringResultat(
-                        forespoersel = mockForespoersel(),
-                        sykmeldtNavn = "Kenneth Sean Carson",
-                        orgNavn = "Mattel",
-                        lagret = lagret,
+                        forespoersel = forespoersel,
+                        sykmeldtNavn = "Viggo Mortensen",
+                        orgNavn = "Gondor",
+                        lagret = expectedLagret,
                     )
                 val sykmeldtFnr = expectedResult.forespoersel.fnr
 
@@ -95,7 +172,8 @@ class KvitteringServiceTest :
                         kontekstId,
                         mapOf(expectedResult.forespoersel.orgnr to expectedResult.orgNavn),
                         mapOf(sykmeldtFnr to Person(sykmeldtFnr, expectedResult.sykmeldtNavn)),
-                        expectedResult.lagret,
+                        // database svarer at inntektsmelding ikke ble funnet
+                        LagretInntektsmelding.IkkeFunnet,
                     ),
                 )
 

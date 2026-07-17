@@ -67,7 +67,7 @@ spec:
   {{#if database}}
   gcp:
     sqlInstances:
-      - type: POSTGRES_14
+      - type: {{#if database.type}}{{ database.type }}{{else}}POSTGRES_14{{/if}}
         tier: {{ database.tier }}
         databases:
           - name: {{ database.name }}

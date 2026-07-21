@@ -2,7 +2,7 @@ kafkaPool: nav-dev
 database:
   name: im-error-recovery
   tier: db-f1-micro
-  type: POSTGRES_15
+  type: POSTGRES_16
 envFrom:
   - type: secret
     name: google-sql-im-feil-behandler

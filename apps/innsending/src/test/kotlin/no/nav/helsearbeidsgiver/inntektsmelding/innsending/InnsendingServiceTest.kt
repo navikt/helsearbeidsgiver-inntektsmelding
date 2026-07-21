@@ -36,10 +36,12 @@ import no.nav.hag.simba.utils.valkey.ResultJson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
+import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -103,6 +105,104 @@ class InnsendingServiceTest :
                     kontekstId,
                     ResultJson(
                         success = skjema.forespoerselId.toJson(),
+                    ),
+                )
+            }
+        }
+
+        test("godtar inntektsmeldingskjema dersom egenmeldinger i AGP er gyldige") {
+            val kontekstId = UUID.randomUUID()
+            val forespoersel =
+                mockForespoersel().copy(
+                    sykmeldingsperioder =
+                        listOf(
+                            1.februar til 12.februar,
+                            19.februar til 28.februar,
+                        ),
+                    egenmeldingsperioder = emptyList(), // fjerner for å vektlegge at det ikke er disse egenmeldingene vi validerer
+                )
+            val skjemaMedGyldigeEgenmenldinger =
+                mockSkjemaInntektsmelding().copy(
+                    agp =
+                        Arbeidsgiverperiode(
+                            perioder =
+                                listOf(
+                                    1.februar til 12.februar,
+                                    14.februar til 15.februar, // egenmelding er gyldig pga. gjenopptatt arbeid 13.
+                                    19.februar til 20.februar,
+                                ),
+                            redusertLoennIAgp = null,
+                        ),
+                )
+
+            testRapid.sendJson(
+                Mock.steg2(kontekstId, skjemaMedGyldigeEgenmenldinger).plusData(
+                    Key.FORESPOERSEL_SVAR to forespoersel.toJson(),
+                ),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 1
+            testRapid.message(0).lesBehov() shouldBe BehovType.LAGRE_IM_SKJEMA
+
+            testRapid.sendJson(
+                Mock.steg3(kontekstId, skjemaMedGyldigeEgenmenldinger).plusData(
+                    Key.FORESPOERSEL_SVAR to forespoersel.toJson(),
+                ),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 2
+            testRapid.message(1).lesEventName() shouldBe EventName.INNTEKTSMELDING_SKJEMA_LAGRET
+
+            verifySequence {
+                mockRedisStore.skrivResultat(
+                    kontekstId,
+                    ResultJson(
+                        success = skjemaMedGyldigeEgenmenldinger.forespoerselId.toJson(),
+                    ),
+                )
+            }
+        }
+
+        test("avviser inntektsmeldingskjema dersom egenmeldinger i AGP er ugyldige") {
+            val kontekstId = UUID.randomUUID()
+            val forespoersel =
+                mockForespoersel().copy(
+                    sykmeldingsperioder =
+                        listOf(
+                            1.februar til 12.februar,
+                            19.februar til 28.februar,
+                        ),
+                    egenmeldingsperioder = emptyList(), // fjerner for å vektlegge at det ikke er disse egenmeldingene vi validerer
+                )
+            val skjemaMedUgyldigeEgenmenldinger =
+                mockSkjemaInntektsmelding().copy(
+                    agp =
+                        Arbeidsgiverperiode(
+                            perioder =
+                                listOf(
+                                    1.februar til 14.februar, // egenmelding 13.-14. er ikke gyldig ettersom arbeid ikke er gjenopptatt før 13.
+                                    19.februar til 20.februar,
+                                ),
+                            redusertLoennIAgp = null,
+                        ),
+                )
+
+            testRapid.sendJson(
+                Mock.steg2(kontekstId, skjemaMedUgyldigeEgenmenldinger).plusData(
+                    Key.FORESPOERSEL_SVAR to forespoersel.toJson(),
+                ),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 0
+
+            verifySequence {
+                mockRedisStore.skrivResultat(
+                    kontekstId,
+                    ResultJson(
+                        failure =
+                            LagreImError(
+                                valideringsfeil = setOf("Egenmelding kan ikke benyttes dagen etter en sykmeldingsperiode."),
+                            ).toJson(LagreImError.serializer()),
                     ),
                 )
             }
@@ -175,7 +275,7 @@ class InnsendingServiceTest :
                     ResultJson(
                         failure =
                             LagreImError(
-                                feiletValidering = "Arbeidsgiverperioden må indikere at sykmeldt arbeidet i starten av sykmeldingsperioden.",
+                                valideringsfeil = setOf("Arbeidsgiverperioden må indikere at sykmeldt arbeidet i starten av sykefraværet."),
                             ).toJson(LagreImError.serializer()),
                     ),
                 )
@@ -237,7 +337,7 @@ class InnsendingServiceTest :
                 mockRedisStore.skrivResultat(
                     fail.kontekstId,
                     ResultJson(
-                        failure = LagreImError().toJson(LagreImError.serializer()),
+                        failure = LagreImError(valideringsfeil = emptySet()).toJson(LagreImError.serializer()),
                     ),
                 )
             }

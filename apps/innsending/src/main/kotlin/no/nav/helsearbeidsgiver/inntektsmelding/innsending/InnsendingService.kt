@@ -134,14 +134,16 @@ class InnsendingService(
         val inntektsmeldingId = UUID.randomUUID()
         val avsenderNavn = steg2.personer[steg0.avsenderFnr]?.navn ?: Tekst.UKJENT_NAVN
 
-        val agp = steg0.skjema.agp
-        if (agp == null ||
-            agp.erGyldigHvisIkkeForespurt(
-                erAgpForespurt = steg1.forespoersel.forespurtData.arbeidsgiverperiode.paakrevd,
-                egenmeldingsperioder = steg1.forespoersel.egenmeldingsperioder,
-                sykmeldingsperioder = steg1.forespoersel.sykmeldingsperioder,
-            )
-        ) {
+        val agpValideringsfeil =
+            steg0.skjema
+                .agp
+                ?.validerMotSykmeldingsperioder(
+                    erAgpForespurt = steg1.forespoersel.forespurtData.arbeidsgiverperiode.paakrevd,
+                    egenmeldingerFraForespoersel = steg1.forespoersel.egenmeldingsperioder,
+                    sykmeldingsperioder = steg1.forespoersel.sykmeldingsperioder,
+                ).orEmpty()
+
+        if (agpValideringsfeil.isEmpty()) {
             publisher
                 .publish(
                     key = steg0.skjema.forespoerselId,
@@ -158,7 +160,7 @@ class InnsendingService(
                             ).toJson(),
                 ).also { loggBehovPublisert(BehovType.LAGRE_IM_SKJEMA, it) }
         } else {
-            "Avviser inntektsmelding som inneholder ikke-forespurt AGP som er ugyldig.".also {
+            "Avviser inntektsmelding som inneholder ugyldig AGP. Valideringsfeil: $agpValideringsfeil".also {
                 logger.warn(it)
                 sikkerLogger.warn(it)
             }
@@ -167,7 +169,7 @@ class InnsendingService(
                 ResultJson(
                     failure =
                         LagreImError(
-                            feiletValidering = "Arbeidsgiverperioden må indikere at sykmeldt arbeidet i starten av sykmeldingsperioden.",
+                            valideringsfeil = agpValideringsfeil,
                         ).toJson(LagreImError.serializer()),
                 )
 
@@ -227,7 +229,7 @@ class InnsendingService(
 
         val resultJson =
             ResultJson(
-                failure = LagreImError().toJson(LagreImError.serializer()),
+                failure = LagreImError(valideringsfeil = emptySet()).toJson(LagreImError.serializer()),
             )
 
         redisStore.skrivResultat(fail.kontekstId, resultJson)

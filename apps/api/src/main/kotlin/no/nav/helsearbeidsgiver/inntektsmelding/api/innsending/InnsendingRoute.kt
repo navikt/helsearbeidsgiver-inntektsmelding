@@ -68,8 +68,9 @@ fun Route.innsending(
                         onFailureCustomError = { failure ->
                             failure
                                 ?.fromJson(LagreImError.serializer())
-                                ?.feiletValidering
-                                ?.let { ErrorResponse.Validering(kontekstId, setOf(it)) }
+                                ?.valideringsfeil
+                                ?.ifEmpty { null }
+                                ?.let { ErrorResponse.Validering(kontekstId, it) }
                         },
                         successSerializer = JsonElement.serializer(),
                     ) {

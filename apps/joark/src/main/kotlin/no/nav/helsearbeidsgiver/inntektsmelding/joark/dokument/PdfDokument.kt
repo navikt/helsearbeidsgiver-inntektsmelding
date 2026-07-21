@@ -15,10 +15,8 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Permittering
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykefravaer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.utils.utledEgenmeldinger
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.tittel
 import no.nav.helsearbeidsgiver.utils.date.tilNorskFormat
-import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 
 private const val FORKLARING_ENDRING = "Endringsårsak"
 
@@ -189,10 +187,10 @@ class PdfDokument(
 
         // --- Kolonnen til høyre ---------------------------------------------------
         val egenmeldinger =
-            utledEgenmeldinger(
-                arbeidsgiverperioder = inntektsmelding.agp?.perioder.orEmpty(),
-                sykmeldingsperioder = inntektsmelding.sykmeldingsperioder,
-            )
+            inntektsmelding
+                .agp
+                ?.utledEgenmeldinger(inntektsmelding.sykmeldingsperioder)
+                .orEmpty()
         moveCursorTo(seksjonStartY) // Gjenopprett y-aksen fra tidligere
 
         val egenmeldingLabel = "Egenmelding"
@@ -233,7 +231,7 @@ class PdfDokument(
                 "${inntektsmelding.inntekt?.beloep?.tilNorskFormat()} kr/måned",
             )
         }
-        val endringAarsaker = inntektsmelding.inntekt?.endringAarsaker.orDefault(emptyList())
+        val endringAarsaker = inntektsmelding.inntekt?.endringAarsaker.orEmpty()
         val antall = endringAarsaker.size
         endringAarsaker.forEachIndexed { indeks, endringAarsak ->
 

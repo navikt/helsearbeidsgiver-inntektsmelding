@@ -3,7 +3,7 @@ replicasMax: 5
 database:
   name: inntektsmelding
   tier: db-custom-1-3840
-  type: POSTGRES_15
+  type: POSTGRES_16
   logicalDecoding: true
   user: simba_datastream_bruker
 envFrom:

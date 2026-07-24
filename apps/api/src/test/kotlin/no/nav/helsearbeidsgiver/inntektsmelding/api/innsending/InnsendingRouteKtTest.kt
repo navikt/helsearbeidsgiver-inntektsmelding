@@ -12,6 +12,7 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.resultat.lagreim.LagreImError
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.json.toJson
@@ -130,7 +131,43 @@ class InnsendingRouteKtTest : ApiTest() {
         }
 
     @Test
-    fun `skal returnere feilmelding ved timeout fra Redis`() =
+    fun `svarer med valideringsfeil`() =
+        testApi {
+            val skjema = mockSkjemaInntektsmelding()
+            val valideringsfeil =
+                setOf(
+                    "Surely you can't be serious.",
+                    "I am serious. And don't call me Shirley.",
+                )
+            val failure = ResultJson(failure = LagreImError(valideringsfeil).toJson(LagreImError.serializer()))
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns harTilgangResultat andThen failure
+
+            val response = post(path, skjema, SkjemaInntektsmelding.serializer())
+            val responseBody = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.BadRequest
+            responseBody.shouldBeTypeOf<ErrorResponse.Validering>()
+            responseBody.valideringsfeil shouldBe valideringsfeil
+        }
+
+    @Test
+    fun `svarer med ukjent feil`() =
+        testApi {
+            val skjema = mockSkjemaInntektsmelding()
+            val failure = ResultJson(failure = LagreImError(emptySet()).toJson(LagreImError.serializer()))
+
+            coEvery { anyConstructed<RedisPoller>().hent(any()) } returns harTilgangResultat andThen failure
+
+            val response = post(path, skjema, SkjemaInntektsmelding.serializer())
+            val responseBody = response.bodyAsText().fromJson(ErrorResponse.serializer())
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            responseBody.shouldBeTypeOf<ErrorResponse.Unknown>()
+        }
+
+    @Test
+    fun `svarer med Redis-timeout`() =
         testApi {
             val skjema = mockSkjemaInntektsmelding()
 

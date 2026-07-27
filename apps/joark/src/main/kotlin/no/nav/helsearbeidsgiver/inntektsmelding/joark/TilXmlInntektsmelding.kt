@@ -48,8 +48,8 @@ private fun tilSkjemainnhold(im: Inntektsmelding): Skjemainnhold =
         skjema.avsendersystem =
             Avsendersystem().also {
                 it.innsendingstidspunkt = im.mottatt.toLocalDateTime()
-                it.systemnavn = "NAV_NO"
-                it.systemversjon = "1.0"
+                it.systemnavn = im.type.avsenderSystem.navn
+                it.systemversjon = im.type.avsenderSystem.versjon
             }
         skjema.opphoerAvNaturalytelseListe = im.naturalytelser.map(Naturalytelse::map)
         skjema.refusjon = im.refusjon.map()

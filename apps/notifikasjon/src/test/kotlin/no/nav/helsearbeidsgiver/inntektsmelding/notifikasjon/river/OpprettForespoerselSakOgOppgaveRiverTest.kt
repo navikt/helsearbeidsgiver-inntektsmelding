@@ -23,8 +23,6 @@ import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Altinn3Ressurs
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.AltinnMottaker
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveDuplikatException
@@ -54,7 +52,6 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
         beforeTest {
             testRapid.reset()
             clearAllMocks()
-            coEvery { mockAgNotifikasjonKlient.mottaker } returns AltinnMottaker.Altinn3(Altinn3Ressurs.INNTEKTSMELDING)
         }
 
         test("oppretter sak og oppgave") {
@@ -73,7 +70,6 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding, sakId, oppgaveId)
 
             coVerifySequence {
-                mockAgNotifikasjonKlient.mottaker
                 mockAgNotifikasjonKlient.opprettNySak(
                     virksomhetsnummer = innkommendeMelding.forespoersel.orgnr.verdi,
                     grupperingsid = innkommendeMelding.forespoerselId.toString(),
@@ -134,7 +130,6 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding, sakId, duplikatOppgaveId)
 
             coVerifySequence {
-                mockAgNotifikasjonKlient.mottaker
                 mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
                 mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
@@ -159,7 +154,6 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding, duplikatSakId, oppgaveId)
 
             coVerifySequence {
-                mockAgNotifikasjonKlient.mottaker
                 mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
                 mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
@@ -186,7 +180,6 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetUtgaaendeMelding(innkommendeMelding, duplikatSakId, duplikatOppgaveId)
 
             coVerifySequence {
-                mockAgNotifikasjonKlient.mottaker
                 mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
                 mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
@@ -206,7 +199,6 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail(innkommendeMelding).tilMelding()
 
             coVerifySequence {
-                mockAgNotifikasjonKlient.mottaker
                 mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
@@ -229,7 +221,6 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail(innkommendeMelding).tilMelding()
 
             coVerifySequence {
-                mockAgNotifikasjonKlient.mottaker
                 mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
                 mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             }

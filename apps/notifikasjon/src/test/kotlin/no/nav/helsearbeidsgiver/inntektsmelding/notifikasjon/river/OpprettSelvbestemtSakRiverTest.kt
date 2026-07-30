@@ -22,8 +22,6 @@ import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
 import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Altinn3Ressurs
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.AltinnMottaker
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveDuplikatException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
@@ -47,7 +45,6 @@ class OpprettSelvbestemtSakRiverTest :
         beforeTest {
             testRapid.reset()
             clearAllMocks()
-            coEvery { mockagNotifikasjonKlient.mottaker } returns AltinnMottaker.Altinn3(Altinn3Ressurs.INNTEKTSMELDING)
         }
 
         test("opprett sak") {
@@ -72,7 +69,6 @@ class OpprettSelvbestemtSakRiverTest :
                 )
 
             coVerifySequence {
-                mockagNotifikasjonKlient.mottaker
                 mockagNotifikasjonKlient.opprettNySak(
                     virksomhetsnummer = innkommendeMelding.inntektsmelding.avsender.orgnr.verdi,
                     merkelapp = "Inntektsmelding sykepenger",
@@ -115,7 +111,6 @@ class OpprettSelvbestemtSakRiverTest :
                 )
 
             coVerifySequence {
-                mockagNotifikasjonKlient.mottaker
                 mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
@@ -135,7 +130,6 @@ class OpprettSelvbestemtSakRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             coVerifySequence {
-                mockagNotifikasjonKlient.mottaker
                 mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
@@ -157,7 +151,6 @@ class OpprettSelvbestemtSakRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 coVerify(exactly = 0) {
-                    mockagNotifikasjonKlient.mottaker
                     mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
                 }
             }

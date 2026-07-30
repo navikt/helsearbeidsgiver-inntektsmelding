@@ -6,7 +6,6 @@ import no.nav.hag.simba.utils.rr.Publisher
 import no.nav.hag.simba.utils.rr.river.ObjectRiver
 import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Altinn3Ressurs
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.AltinnMottaker
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.Sendevindu
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FerdigstillSakOgOppgaveRiver
@@ -51,7 +50,6 @@ fun createNotifikasjonRivers(
 
 private fun agNotifikasjonKlient(): ArbeidsgiverNotifikasjonKlient {
     val tokenGetter = AuthClient().tokenGetter(IdentityProvider.AZURE_AD, Env.agNotifikasjonScope)
-    val altinnMottaker = AltinnMottaker.Altinn3(Altinn3Ressurs.INNTEKTSMELDING)
-    sikkerLogger().info("Oppretter ArbeidsgiverNotifikasjonKlient med mottaker ${altinnMottaker.tilTekst()}")
-    return ArbeidsgiverNotifikasjonKlient(Env.agNotifikasjonUrl, altinnMottaker, tokenGetter, Sendevindu.NKS_AAPNINGSTID)
+    sikkerLogger().info("Oppretter ArbeidsgiverNotifikasjonKlient med ressurs ${Altinn3Ressurs.INNTEKTSMELDING}}")
+    return ArbeidsgiverNotifikasjonKlient(Env.agNotifikasjonUrl, Altinn3Ressurs.INNTEKTSMELDING, tokenGetter, Sendevindu.NKS_AAPNINGSTID)
 }

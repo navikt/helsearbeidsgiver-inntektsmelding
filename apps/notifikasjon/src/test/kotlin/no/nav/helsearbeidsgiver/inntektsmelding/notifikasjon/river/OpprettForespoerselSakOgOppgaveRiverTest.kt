@@ -57,9 +57,11 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
         test("oppretter sak og oppgave") {
             val sakId = UUID.randomUUID().toString()
             val oppgaveId = UUID.randomUUID().toString()
+            val beskjedId = UUID.randomUUID().toString()
 
             coEvery { mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns sakId
             coEvery { mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns oppgaveId
+            coEvery { mockAgNotifikasjonKlient.opprettNyBeskjed(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns beskjedId
 
             val innkommendeMelding = innkommendeOpprettForespoerselSakOgOppgaveMelding()
 
@@ -108,18 +110,38 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                             tidMellomOppgaveopprettelseOgPaaminnelse = "P28D",
                         ),
                 )
+                mockAgNotifikasjonKlient.opprettNyBeskjed(
+                    virksomhetsnummer = innkommendeMelding.forespoersel.orgnr.verdi,
+                    eksternId = "beskjed-${innkommendeMelding.forespoerselId}",
+                    grupperingsid = innkommendeMelding.forespoerselId.toString(),
+                    merkelapp = NotifikasjonTekst.MERKELAPP,
+                    lenke = "en-slags-url/im-dialog/${innkommendeMelding.forespoerselId}",
+                    tekst = NotifikasjonTekst.OPPGAVE_TEKST,
+                    tidspunkt = null,
+                    varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
+                    varslingInnhold =
+                        NotifikasjonTekst.oppgaveInnhold(
+                            innkommendeMelding.forespoersel.orgnr,
+                            innkommendeMelding.orgNavn,
+                            innkommendeMelding.forespoersel.sykmeldingsperioder,
+                        ),
+                    hardDeleteOm = sakLevetid,
+                )
             }
         }
 
         test("sak opprettes selv om oppgave har duplikat") {
             val sakId = UUID.randomUUID().toString()
             val duplikatOppgaveId = UUID.randomUUID().toString()
+            val beskjedId = UUID.randomUUID().toString()
 
             coEvery { mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns sakId
 
             coEvery {
                 mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             } throws SakEllerOppgaveDuplikatException(duplikatOppgaveId, "mock feilmelding")
+
+            coEvery { mockAgNotifikasjonKlient.opprettNyBeskjed(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns beskjedId
 
             val innkommendeMelding = innkommendeOpprettForespoerselSakOgOppgaveMelding()
 
@@ -132,18 +154,21 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             coVerifySequence {
                 mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
                 mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyBeskjed(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
 
         test("oppgave opprettes selv om sak har duplikat") {
             val duplikatSakId = UUID.randomUUID().toString()
             val oppgaveId = UUID.randomUUID().toString()
+            val beskjedId = UUID.randomUUID().toString()
 
             coEvery {
                 mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
             } throws SakEllerOppgaveDuplikatException(duplikatSakId, "mock feilmelding")
 
             coEvery { mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns oppgaveId
+            coEvery { mockAgNotifikasjonKlient.opprettNyBeskjed(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns beskjedId
 
             val innkommendeMelding = innkommendeOpprettForespoerselSakOgOppgaveMelding()
 
@@ -156,12 +181,14 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             coVerifySequence {
                 mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
                 mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyBeskjed(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
 
         test("sak og oppgave som har duplikat håndteres") {
             val duplikatSakId = UUID.randomUUID().toString()
             val duplikatOppgaveId = UUID.randomUUID().toString()
+            val beskjedId = UUID.randomUUID().toString()
 
             coEvery {
                 mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
@@ -170,6 +197,8 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             coEvery {
                 mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             } throws SakEllerOppgaveDuplikatException(duplikatOppgaveId, "mock feilmelding")
+
+            coEvery { mockAgNotifikasjonKlient.opprettNyBeskjed(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns beskjedId
 
             val innkommendeMelding = innkommendeOpprettForespoerselSakOgOppgaveMelding()
 
@@ -182,6 +211,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
             coVerifySequence {
                 mockAgNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any(), any())
                 mockAgNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+                mockAgNotifikasjonKlient.opprettNyBeskjed(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
 

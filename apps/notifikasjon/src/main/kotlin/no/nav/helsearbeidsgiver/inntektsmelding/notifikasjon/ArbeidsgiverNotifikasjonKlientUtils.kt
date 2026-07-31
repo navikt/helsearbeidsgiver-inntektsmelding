@@ -180,6 +180,36 @@ fun ArbeidsgiverNotifikasjonKlient.avbrytSak(
     }
 }
 
+fun ArbeidsgiverNotifikasjonKlient.opprettBeskjed(
+    lenke: String,
+    forespoerselId: UUID,
+    orgnr: Orgnr,
+    orgNavn: String,
+    sykmeldingsPerioder: List<Periode>,
+): String =
+    try {
+        runBlocking {
+            opprettNyBeskjed(
+                virksomhetsnummer = orgnr.verdi,
+                eksternId = "beskjed-$forespoerselId",
+                grupperingsid = forespoerselId.toString(),
+                merkelapp = NotifikasjonTekst.MERKELAPP,
+                lenke = lenke,
+                tekst = NotifikasjonTekst.OPPGAVE_TEKST,
+                tidspunkt = null,
+                varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
+                varslingInnhold = NotifikasjonTekst.oppgaveInnhold(orgnr, orgNavn, sykmeldingsPerioder),
+                hardDeleteOm = sakLevetid,
+            )
+        }
+    } catch (e: SakEllerOppgaveDuplikatException) {
+        "Fant duplikat (lik ID, ulikt innhold) under opprettelse av beskjed.".also {
+            logger.error(it)
+            sikkerLogger.error(it, e)
+        }
+        e.eksisterendeId
+    }
+
 fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
     lenke: String,
     forespoerselId: UUID,

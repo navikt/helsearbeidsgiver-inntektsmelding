@@ -17,6 +17,7 @@ import no.nav.hag.simba.utils.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.opprettBeskjed
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.opprettOppgave
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.opprettSak
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -84,6 +85,17 @@ class OpprettForespoerselSakOgOppgaveRiver(
                 tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveOpprettelseOgPaaminnelse,
                 sykmeldingsPerioder = forespoersel.sykmeldingsperioder,
             )
+
+        val beskjedId =
+            agNotifikasjonKlient.opprettBeskjed(
+                lenke = lenke,
+                forespoerselId = forespoerselId,
+                orgnr = forespoersel.orgnr,
+                orgNavn = orgNavn,
+                sykmeldingsPerioder = forespoersel.sykmeldingsperioder,
+            )
+
+        logger.info("Opprettet beskjed med id $beskjedId for forespørsel $forespoerselId")
 
         return mapOf(
             Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETTET.toJson(),

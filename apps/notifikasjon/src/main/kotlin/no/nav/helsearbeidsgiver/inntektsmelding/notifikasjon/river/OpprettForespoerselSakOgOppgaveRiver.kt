@@ -95,7 +95,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
                 sykmeldingsPerioder = forespoersel.sykmeldingsperioder,
             )
 
-        logger.info("Opprettet beskjed med id $beskjedId for forespørsel $forespoerselId")
+        logger.info("DEMO: Opprettet beskjed med id $beskjedId for forespørsel $forespoerselId")
 
         return mapOf(
             Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETTET.toJson(),

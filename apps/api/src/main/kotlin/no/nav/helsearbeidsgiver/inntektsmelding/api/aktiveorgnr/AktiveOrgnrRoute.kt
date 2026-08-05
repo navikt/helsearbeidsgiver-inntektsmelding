@@ -6,6 +6,7 @@ import no.nav.hag.simba.kontrakt.domene.arbeidsgiver.AktiveArbeidsgivere
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.hag.simba.utils.valkey.RedisPrefix
@@ -19,6 +20,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequestOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
@@ -31,26 +33,31 @@ fun Route.aktiveOrgnrRoute(
     post(Routes.AKTIVEORGNR) {
         val kontekstId = UUID.randomUUID()
 
-        readRequestOrError(
-            kontekstId,
-            AktiveOrgnrRequest.serializer(),
-        ) { request ->
-            producer.sendRequestEvent(
-                kontekstId = kontekstId,
-                avsenderFnr = call.request.lesFnrFraAuthToken(),
-                sykmeldtFnr = request.sykmeldtFnr,
-            )
+        MdcUtils.withLogFields(
+            Log.apiRoute(Routes.AKTIVEORGNR),
+            Log.kontekstId(kontekstId),
+        ) {
+            readRequestOrError(
+                kontekstId,
+                AktiveOrgnrRequest.serializer(),
+            ) { request ->
+                producer.sendRequestEvent(
+                    kontekstId = kontekstId,
+                    avsenderFnr = call.request.lesFnrFraAuthToken(),
+                    sykmeldtFnr = request.sykmeldtFnr,
+                )
 
-            hentResultatFraRedisOrError(
-                redisPoller = redisPoller,
-                kontekstId = kontekstId,
-                logOnFailure = "Klarte ikke hente aktive arbeidsforhold pga. feil.",
-                successSerializer = AktiveArbeidsgivere.serializer(),
-            ) {
-                if (it.arbeidsgivere.isEmpty()) {
-                    respondError(ErrorResponse.NotFound(kontekstId, "Fant ingen arbeidsforhold."))
-                } else {
-                    respondOk(it.toResponse(), AktiveOrgnrResponse.serializer())
+                hentResultatFraRedisOrError(
+                    redisPoller = redisPoller,
+                    kontekstId = kontekstId,
+                    logOnFailure = "Klarte ikke hente aktive arbeidsforhold pga. feil.",
+                    successSerializer = AktiveArbeidsgivere.serializer(),
+                ) {
+                    if (it.arbeidsgivere.isEmpty()) {
+                        respondError(ErrorResponse.NotFound(kontekstId, "Fant ingen arbeidsforhold."))
+                    } else {
+                        respondOk(it.toResponse(), AktiveOrgnrResponse.serializer())
+                    }
                 }
             }
         }

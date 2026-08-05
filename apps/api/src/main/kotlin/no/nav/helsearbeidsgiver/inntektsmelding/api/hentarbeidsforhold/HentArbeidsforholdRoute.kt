@@ -37,35 +37,37 @@ fun Route.hentArbeidsforholdRoute(
     get(Routes.HENT_ARBEIDSFORHOLD) {
         val kontekstId = UUID.randomUUID()
 
-        readPathParamOrError(kontekstId, Routes.Params.forespoerselId) { forespoerselId ->
+        MdcUtils.withLogFields(
+            Log.apiRoute(Routes.HENT_ARBEIDSFORHOLD),
+            Log.kontekstId(kontekstId),
+        ) {
+            readPathParamOrError(kontekstId, Routes.Params.forespoerselId) { forespoerselId ->
+                MdcUtils.withLogFields(
+                    Log.forespoerselId(forespoerselId),
+                ) {
+                    validerTilgangForespoerselOrError(tilgangskontroll, kontekstId, forespoerselId) {
+                        producer.sendRequestEvent(kontekstId, forespoerselId)
 
-            MdcUtils.withLogFields(
-                Log.apiRoute(Routes.HENT_ARBEIDSFORHOLD),
-                Log.kontekstId(kontekstId),
-                Log.forespoerselId(forespoerselId),
-            ) {
-                validerTilgangForespoerselOrError(tilgangskontroll, kontekstId, forespoerselId) {
-                    producer.sendRequestEvent(kontekstId, forespoerselId)
+                        hentResultatFraRedisOrError(
+                            redisPoller = redisPoller,
+                            kontekstId = kontekstId,
+                            inntektsmeldingTypeId = forespoerselId,
+                            logOnFailure = "Klarte ikke hente arbeidsforhold.",
+                            successSerializer = Ansettelsesforhold.serializer().list(),
+                        ) { ansettelsesforhold ->
+                            val response =
+                                HentArbeidsforholdResponse(
+                                    ansettelsesforhold = ansettelsesforhold.map(AnsettelsesforholdResponse::fra),
+                                )
+                            val responseJson = response.toJson(HentArbeidsforholdResponse.serializer())
 
-                    hentResultatFraRedisOrError(
-                        redisPoller = redisPoller,
-                        kontekstId = kontekstId,
-                        inntektsmeldingTypeId = forespoerselId,
-                        logOnFailure = "Klarte ikke hente arbeidsforhold.",
-                        successSerializer = Ansettelsesforhold.serializer().list(),
-                    ) { ansettelsesforhold ->
-                        val response =
-                            HentArbeidsforholdResponse(
-                                ansettelsesforhold = ansettelsesforhold.map(AnsettelsesforholdResponse::fra),
-                            )
-                        val responseJson = response.toJson(HentArbeidsforholdResponse.serializer())
+                            "Arbeidsforhold hentet OK.".also {
+                                logger.info(it)
+                                sikkerLogger.info("$it\n${responseJson.toPretty()}")
+                            }
 
-                        "Arbeidsforhold hentet OK.".also {
-                            logger.info(it)
-                            sikkerLogger.info("$it\n${responseJson.toPretty()}")
+                            respondOk(response, HentArbeidsforholdResponse.serializer())
                         }
-
-                        respondOk(response, HentArbeidsforholdResponse.serializer())
                     }
                 }
             }

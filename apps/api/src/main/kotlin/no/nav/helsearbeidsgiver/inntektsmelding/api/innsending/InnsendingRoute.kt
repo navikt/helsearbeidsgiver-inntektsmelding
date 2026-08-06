@@ -7,6 +7,7 @@ import no.nav.hag.simba.kontrakt.resultat.lagreim.LagreImError
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.hag.simba.utils.valkey.RedisPrefix
@@ -26,6 +27,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondCreated
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondError
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.time.LocalDateTime
 import java.util.UUID
@@ -41,41 +43,50 @@ fun Route.innsending(
         val kontekstId = UUID.randomUUID()
         val mottatt = LocalDateTime.now()
 
-        readRequestOrError(
-            kontekstId,
-            SkjemaInntektsmelding.serializer(),
-        ) { skjema ->
-            if (skjema.valider().isNotEmpty()) {
-                val valideringsfeil = skjema.valider()
+        MdcUtils.withLogFields(
+            Log.apiRoute(Routes.INNSENDING),
+            Log.kontekstId(kontekstId),
+        ) {
+            readRequestOrError(
+                kontekstId,
+                SkjemaInntektsmelding.serializer(),
+            ) { skjema ->
+                MdcUtils.withLogFields(
+                    Log.forespoerselId(skjema.forespoerselId),
+                ) {
+                    if (skjema.valider().isNotEmpty()) {
+                        val valideringsfeil = skjema.valider()
 
-                "Fikk valideringsfeil: $valideringsfeil".also {
-                    logger.error(it)
-                    sikkerLogger.error(it)
-                }
+                        "Fikk valideringsfeil: $valideringsfeil".also {
+                            logger.error(it)
+                            sikkerLogger.error(it)
+                        }
 
-                respondError(ErrorResponse.Validering(kontekstId, valideringsfeil))
-            } else {
-                validerTilgangForespoerselOrError(tilgangskontroll, kontekstId, skjema.forespoerselId) {
-                    val avsenderFnr = call.request.lesFnrFraAuthToken()
+                        respondError(ErrorResponse.Validering(kontekstId, valideringsfeil))
+                    } else {
+                        validerTilgangForespoerselOrError(tilgangskontroll, kontekstId, skjema.forespoerselId) {
+                            val avsenderFnr = call.request.lesFnrFraAuthToken()
 
-                    producer.sendRequestEvent(kontekstId, skjema, avsenderFnr, mottatt)
+                            producer.sendRequestEvent(kontekstId, skjema, avsenderFnr, mottatt)
 
-                    hentResultatFraRedisOrError(
-                        redisPoller = redisPoller,
-                        kontekstId = kontekstId,
-                        inntektsmeldingTypeId = skjema.forespoerselId,
-                        logOnFailure = "Klarte ikke motta forespurt inntektsmelding pga. feil.",
-                        onFailureCustomError = { failure ->
-                            failure
-                                ?.fromJson(LagreImError.serializer())
-                                ?.valideringsfeil
-                                ?.ifEmpty { null }
-                                ?.let { ErrorResponse.Validering(kontekstId, it) }
-                        },
-                        successSerializer = JsonElement.serializer(),
-                    ) {
-                        sikkerLogger.info("Fikk resultat for innsending:\n$it")
-                        respondCreated(InnsendingResponse(skjema.forespoerselId), InnsendingResponse.serializer())
+                            hentResultatFraRedisOrError(
+                                redisPoller = redisPoller,
+                                kontekstId = kontekstId,
+                                inntektsmeldingTypeId = skjema.forespoerselId,
+                                logOnFailure = "Klarte ikke motta forespurt inntektsmelding pga. feil.",
+                                onFailureCustomError = { failure ->
+                                    failure
+                                        ?.fromJson(LagreImError.serializer())
+                                        ?.valideringsfeil
+                                        ?.ifEmpty { null }
+                                        ?.let { ErrorResponse.Validering(kontekstId, it) }
+                                },
+                                successSerializer = JsonElement.serializer(),
+                            ) {
+                                sikkerLogger.info("Fikk resultat for innsending:\n$it")
+                                respondCreated(InnsendingResponse(skjema.forespoerselId), InnsendingResponse.serializer())
+                            }
+                        }
                     }
                 }
             }

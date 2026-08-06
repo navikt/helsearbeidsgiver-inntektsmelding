@@ -6,6 +6,7 @@ import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.json.inntektMapSerializer
 import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.felles.utils.gjennomsnitt
 import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.valkey.RedisConnection
@@ -21,6 +22,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedisOr
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequestOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import java.util.UUID
 
 fun Route.inntektRoute(
@@ -33,34 +35,43 @@ fun Route.inntektRoute(
     post(Routes.INNTEKT) {
         val kontekstId = UUID.randomUUID()
 
-        readRequestOrError(
-            kontekstId,
-            InntektRequest.serializer(),
-        ) { request ->
-            validerTilgangForespoerselOrError(tilgangskontroll, kontekstId, request.forespoerselId) {
-                "Henter oppdatert inntekt for forespoerselId: ${request.forespoerselId}".let {
-                    logger.info(it)
-                    sikkerLogger.info("$it og request:\n$request")
-                }
-
-                producer.sendRequestEvent(kontekstId, request)
-
-                hentResultatFraRedisOrError(
-                    redisPoller = redisPoller,
-                    kontekstId = kontekstId,
-                    inntektsmeldingTypeId = request.forespoerselId,
-                    logOnFailure = "Klarte ikke hente oppdatert inntekt pga. feil.",
-                    successSerializer = inntektMapSerializer,
+        MdcUtils.withLogFields(
+            Log.apiRoute(Routes.INNTEKT),
+            Log.kontekstId(kontekstId),
+        ) {
+            readRequestOrError(
+                kontekstId,
+                InntektRequest.serializer(),
+            ) { request ->
+                MdcUtils.withLogFields(
+                    Log.forespoerselId(request.forespoerselId),
                 ) {
-                    sikkerLogger.info("Resultat for henting av inntekt:\n$it")
+                    validerTilgangForespoerselOrError(tilgangskontroll, kontekstId, request.forespoerselId) {
+                        "Henter oppdatert inntekt for forespoerselId: ${request.forespoerselId}".let {
+                            logger.info(it)
+                            sikkerLogger.info("$it og request:\n$request")
+                        }
 
-                    val response =
-                        InntektResponse(
-                            gjennomsnitt = it.gjennomsnitt(),
-                            historikk = it,
-                        )
+                        producer.sendRequestEvent(kontekstId, request)
 
-                    respondOk(response, InntektResponse.serializer())
+                        hentResultatFraRedisOrError(
+                            redisPoller = redisPoller,
+                            kontekstId = kontekstId,
+                            inntektsmeldingTypeId = request.forespoerselId,
+                            logOnFailure = "Klarte ikke hente oppdatert inntekt pga. feil.",
+                            successSerializer = inntektMapSerializer,
+                        ) {
+                            sikkerLogger.info("Resultat for henting av inntekt:\n$it")
+
+                            val response =
+                                InntektResponse(
+                                    gjennomsnitt = it.gjennomsnitt(),
+                                    historikk = it,
+                                )
+
+                            respondOk(response, InntektResponse.serializer())
+                        }
+                    }
                 }
             }
         }

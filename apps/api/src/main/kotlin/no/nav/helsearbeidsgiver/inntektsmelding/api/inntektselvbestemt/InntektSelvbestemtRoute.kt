@@ -6,6 +6,7 @@ import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.json.inntektMapSerializer
 import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.felles.utils.gjennomsnitt
 import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.valkey.RedisConnection
@@ -20,6 +21,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hentResultatFraRedisOr
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.readRequestOrError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import java.util.UUID
 
 fun Route.inntektSelvbestemtRoute(
@@ -32,28 +34,33 @@ fun Route.inntektSelvbestemtRoute(
     post(Routes.INNTEKT_SELVBESTEMT) {
         val kontekstId = UUID.randomUUID()
 
-        readRequestOrError(
-            kontekstId,
-            InntektSelvbestemtRequest.serializer(),
-        ) { request ->
-            validerTilgangOrgnrOrError(tilgangskontroll, kontekstId, request.orgnr) {
-                producer.sendRequestEvent(kontekstId, request)
+        MdcUtils.withLogFields(
+            Log.apiRoute(Routes.INNTEKT_SELVBESTEMT),
+            Log.kontekstId(kontekstId),
+        ) {
+            readRequestOrError(
+                kontekstId,
+                InntektSelvbestemtRequest.serializer(),
+            ) { request ->
+                validerTilgangOrgnrOrError(tilgangskontroll, kontekstId, request.orgnr) {
+                    producer.sendRequestEvent(kontekstId, request)
 
-                hentResultatFraRedisOrError(
-                    redisPoller = redisPoller,
-                    kontekstId = kontekstId,
-                    logOnFailure = "Klarte ikke hente oppdatert inntekt for selvbestemt inntektsmelding pga. feil.",
-                    successSerializer = inntektMapSerializer,
-                ) {
-                    sikkerLogger.info("Resultat for henting av inntekt for selvbestemt inntektsmelding:\n$it")
+                    hentResultatFraRedisOrError(
+                        redisPoller = redisPoller,
+                        kontekstId = kontekstId,
+                        logOnFailure = "Klarte ikke hente oppdatert inntekt for selvbestemt inntektsmelding pga. feil.",
+                        successSerializer = inntektMapSerializer,
+                    ) {
+                        sikkerLogger.info("Resultat for henting av inntekt for selvbestemt inntektsmelding:\n$it")
 
-                    val response =
-                        InntektSelvbestemtResponse(
-                            gjennomsnitt = it.gjennomsnitt(),
-                            historikk = it,
-                        )
+                        val response =
+                            InntektSelvbestemtResponse(
+                                gjennomsnitt = it.gjennomsnitt(),
+                                historikk = it,
+                            )
 
-                    respondOk(response, InntektSelvbestemtResponse.serializer())
+                        respondOk(response, InntektSelvbestemtResponse.serializer())
+                    }
                 }
             }
         }

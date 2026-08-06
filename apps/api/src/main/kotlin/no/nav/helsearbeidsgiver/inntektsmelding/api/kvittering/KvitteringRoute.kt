@@ -9,6 +9,7 @@ import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.hag.simba.utils.valkey.RedisPrefix
@@ -29,6 +30,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import java.util.UUID
 
 fun Route.kvittering(
@@ -41,33 +43,46 @@ fun Route.kvittering(
     get(Routes.KVITTERING) {
         val kontekstId = UUID.randomUUID()
 
-        readPathParamOrError(kontekstId, Routes.Params.forespoerselId) { forespoerselId ->
-            validerTilgangForespoerselOrError(tilgangskontroll, kontekstId, forespoerselId) {
-                logger.info("Henter kvittering for forespørsel-ID '$forespoerselId'.")
-                producer.sendRequestEvent(kontekstId, forespoerselId)
-
-                hentResultatFraRedisOrError(
-                    redisPoller = redisPoller,
-                    kontekstId = kontekstId,
-                    inntektsmeldingTypeId = forespoerselId,
-                    logOnFailure = "Klarte ikke hente inntektsmelding pga. feil.",
-                    successSerializer = KvitteringResultat.serializer(),
+        MdcUtils.withLogFields(
+            Log.apiRoute(Routes.KVITTERING),
+            Log.kontekstId(kontekstId),
+        ) {
+            readPathParamOrError(kontekstId, Routes.Params.forespoerselId) { forespoerselId ->
+                MdcUtils.withLogFields(
+                    Log.forespoerselId(forespoerselId),
                 ) {
-                    sikkerLogger.info("Hentet kvittering for forespørsel-ID '$forespoerselId'.\n${it.toJson(KvitteringResultat.serializer()).toPretty()}")
+                    validerTilgangForespoerselOrError(tilgangskontroll, kontekstId, forespoerselId) {
+                        logger.info("Henter kvittering for forespørsel-ID '$forespoerselId'.")
+                        producer.sendRequestEvent(kontekstId, forespoerselId)
 
-                    when (val lagret = it.lagret) {
-                        is LagretInntektsmelding.Skjema -> {
-                            val skjemaResponse = lagResponse(it.forespoersel, it.sykmeldtNavn, it.orgNavn, lagret)
-                            respondOk(skjemaResponse, KvitteringResponse.serializer())
-                        }
+                        hentResultatFraRedisOrError(
+                            redisPoller = redisPoller,
+                            kontekstId = kontekstId,
+                            inntektsmeldingTypeId = forespoerselId,
+                            logOnFailure = "Klarte ikke hente inntektsmelding pga. feil.",
+                            successSerializer = KvitteringResultat.serializer(),
+                        ) {
+                            sikkerLogger.info(
+                                "Hentet kvittering for forespørsel-ID '$forespoerselId'.\n${
+                                    it.toJson(KvitteringResultat.serializer()).toPretty()
+                                }",
+                            )
 
-                        is LagretInntektsmelding.Ekstern -> {
-                            val eksternResponse = lagResponse(lagret)
-                            respondOk(eksternResponse, KvitteringResponse.serializer())
-                        }
+                            when (val lagret = it.lagret) {
+                                is LagretInntektsmelding.Skjema -> {
+                                    val skjemaResponse = lagResponse(it.forespoersel, it.sykmeldtNavn, it.orgNavn, lagret)
+                                    respondOk(skjemaResponse, KvitteringResponse.serializer())
+                                }
 
-                        is LagretInntektsmelding.IkkeFunnet -> {
-                            respondError(ErrorResponse.NotFound(kontekstId, "Kvittering ikke funnet for forespørsel-ID '$forespoerselId'."))
+                                is LagretInntektsmelding.Ekstern -> {
+                                    val eksternResponse = lagResponse(lagret)
+                                    respondOk(eksternResponse, KvitteringResponse.serializer())
+                                }
+
+                                is LagretInntektsmelding.IkkeFunnet -> {
+                                    respondError(ErrorResponse.NotFound(kontekstId, "Kvittering ikke funnet for forespørsel-ID '$forespoerselId'."))
+                                }
+                            }
                         }
                     }
                 }

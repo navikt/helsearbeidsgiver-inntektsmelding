@@ -37,33 +37,36 @@ fun Route.hentSelvbestemtImRoute(
     get(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID) {
         val kontekstId = UUID.randomUUID()
 
-        readPathParamOrError(kontekstId, Routes.Params.selvbestemtId) { selvbestemtId ->
-            MdcUtils.withLogFields(
-                Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID),
-                Log.kontekstId(kontekstId),
-                Log.selvbestemtId(selvbestemtId),
-            ) {
-                producer.sendRequestEvent(kontekstId, selvbestemtId)
+        MdcUtils.withLogFields(
+            Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID),
+            Log.kontekstId(kontekstId),
+        ) {
+            readPathParamOrError(kontekstId, Routes.Params.selvbestemtId) { selvbestemtId ->
+                MdcUtils.withLogFields(
+                    Log.selvbestemtId(selvbestemtId),
+                ) {
+                    producer.sendRequestEvent(kontekstId, selvbestemtId)
 
-                hentResultatFraRedisOrError(
-                    redisPoller = redisPoller,
-                    kontekstId = kontekstId,
-                    inntektsmeldingTypeId = selvbestemtId,
-                    logOnFailure = "Klarte ikke hente selvbestemt inntektsmelding pga. feil.",
-                    successSerializer = Inntektsmelding.serializer(),
-                ) { inntektsmelding ->
-                    validerTilgangOrgnrOrError(tilgangskontroll, kontekstId, inntektsmelding.avsender.orgnr) {
-                        val response =
-                            HentSelvbestemtImResponseSuccess(inntektsmelding.fjernNavnHvisIngenArbeidsforhold())
-                                .toJson(HentSelvbestemtImResponseSuccess.serializer())
+                    hentResultatFraRedisOrError(
+                        redisPoller = redisPoller,
+                        kontekstId = kontekstId,
+                        inntektsmeldingTypeId = selvbestemtId,
+                        logOnFailure = "Klarte ikke hente selvbestemt inntektsmelding pga. feil.",
+                        successSerializer = Inntektsmelding.serializer(),
+                    ) { inntektsmelding ->
+                        validerTilgangOrgnrOrError(tilgangskontroll, kontekstId, inntektsmelding.avsender.orgnr) {
+                            val response =
+                                HentSelvbestemtImResponseSuccess(inntektsmelding.fjernNavnHvisIngenArbeidsforhold())
+                                    .toJson(HentSelvbestemtImResponseSuccess.serializer())
 
-                        "Selvbestemt inntektsmelding hentet OK.".also {
-                            logger.info(it)
-                            sikkerLogger.info("$it\n${response.toPretty()}")
+                            "Selvbestemt inntektsmelding hentet OK.".also {
+                                logger.info(it)
+                                sikkerLogger.info("$it\n${response.toPretty()}")
+                            }
+
+                            // TODO trenger ikke å wrappe i ResultJson (må endres i frontend først)
+                            respondOk(ResultJson(success = response), ResultJson.serializer())
                         }
-
-                        // TODO trenger ikke å wrappe i ResultJson (må endres i frontend først)
-                        respondOk(ResultJson(success = response), ResultJson.serializer())
                     }
                 }
             }

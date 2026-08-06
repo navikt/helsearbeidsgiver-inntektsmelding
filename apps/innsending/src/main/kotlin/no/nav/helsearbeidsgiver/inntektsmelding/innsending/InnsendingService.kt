@@ -142,6 +142,9 @@ class InnsendingService(
                     egenmeldingerFraForespoersel = steg1.forespoersel.egenmeldingsperioder,
                     sykmeldingsperioder = steg1.forespoersel.sykmeldingsperioder,
                 ).orEmpty()
+                // MIDLERTIDIG: Ignorerer denne feilmeldingen til egenmeldingsvalideringen blir mer presis
+                .filter { it != "Egenmelding kan ikke benyttes dagen etter en sykmeldingsperiode." }
+                .toSet()
 
         if (agpValideringsfeil.isEmpty()) {
             publisher

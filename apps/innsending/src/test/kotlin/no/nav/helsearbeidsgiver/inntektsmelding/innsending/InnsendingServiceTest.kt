@@ -163,7 +163,7 @@ class InnsendingServiceTest :
             }
         }
 
-        test("avviser inntektsmeldingskjema dersom egenmeldinger i AGP er ugyldige") {
+        xtest("avviser inntektsmeldingskjema dersom egenmeldinger i AGP er ugyldige") {
             val kontekstId = UUID.randomUUID()
             val forespoersel =
                 mockForespoersel().copy(

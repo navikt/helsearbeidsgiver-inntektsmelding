@@ -38,38 +38,41 @@ fun Route.hentForespoersel(
     get(Routes.HENT_FORESPOERSEL) {
         val kontekstId = UUID.randomUUID()
 
-        readPathParamOrError(kontekstId, Routes.Params.forespoerselId) { forespoerselId ->
-            MdcUtils.withLogFields(
-                Log.apiRoute(Routes.HENT_FORESPOERSEL),
-                Log.kontekstId(kontekstId),
-                Log.forespoerselId(forespoerselId),
-            ) {
-                validerTilgangForespoerselOrError(tilgangskontroll, kontekstId, forespoerselId) {
-                    "Henter forespørsel.".also {
-                        logger.info(it)
-                        sikkerLogger.info(it)
-                    }
-
-                    producer.sendRequestEvent(
-                        kontekstId = kontekstId,
-                        forespoerselId = forespoerselId,
-                        arbeidsgiverFnr = call.request.lesFnrFraAuthToken(),
-                    )
-
-                    hentResultatFraRedisOrError(
-                        redisPoller = redisPoller,
-                        kontekstId = kontekstId,
-                        logOnFailure = "Klarte ikke hente forespørsel for '$forespoerselId'.",
-                        successSerializer = HentForespoerselResultat.serializer(),
-                    ) { success ->
-                        val response = success.toResponse()
-
-                        "Forespørsel hentet OK.".also {
+        MdcUtils.withLogFields(
+            Log.apiRoute(Routes.HENT_FORESPOERSEL),
+            Log.kontekstId(kontekstId),
+        ) {
+            readPathParamOrError(kontekstId, Routes.Params.forespoerselId) { forespoerselId ->
+                MdcUtils.withLogFields(
+                    Log.forespoerselId(forespoerselId),
+                ) {
+                    validerTilgangForespoerselOrError(tilgangskontroll, kontekstId, forespoerselId) {
+                        "Henter forespørsel.".also {
                             logger.info(it)
-                            sikkerLogger.info("$it\n${response.toJson(HentForespoerselResponse.serializer()).toPretty()}")
+                            sikkerLogger.info(it)
                         }
 
-                        respondOk(response, HentForespoerselResponse.serializer())
+                        producer.sendRequestEvent(
+                            kontekstId = kontekstId,
+                            forespoerselId = forespoerselId,
+                            arbeidsgiverFnr = call.request.lesFnrFraAuthToken(),
+                        )
+
+                        hentResultatFraRedisOrError(
+                            redisPoller = redisPoller,
+                            kontekstId = kontekstId,
+                            logOnFailure = "Klarte ikke hente forespørsel for '$forespoerselId'.",
+                            successSerializer = HentForespoerselResultat.serializer(),
+                        ) { success ->
+                            val response = success.toResponse()
+
+                            "Forespørsel hentet OK.".also {
+                                logger.info(it)
+                                sikkerLogger.info("$it\n${response.toJson(HentForespoerselResponse.serializer()).toPretty()}")
+                            }
+
+                            respondOk(response, HentForespoerselResponse.serializer())
+                        }
                     }
                 }
             }

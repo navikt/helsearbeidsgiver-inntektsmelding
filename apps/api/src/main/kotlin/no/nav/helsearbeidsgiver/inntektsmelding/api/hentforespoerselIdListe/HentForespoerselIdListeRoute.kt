@@ -8,6 +8,7 @@ import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.json.toJson
+import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.valkey.RedisConnection
 import no.nav.hag.simba.utils.valkey.RedisPrefix
@@ -26,6 +27,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import java.util.UUID
 
 const val MAKS_ANTALL_VEDTAKSPERIODE_IDER = 100
@@ -40,27 +42,32 @@ fun Route.hentForespoerselIdListe(
     post(Routes.HENT_FORESPOERSEL_ID_LISTE) {
         val kontekstId = UUID.randomUUID()
 
-        readRequestOrError(
-            kontekstId,
-            HentForespoerslerRequest.serializer(),
+        MdcUtils.withLogFields(
+            Log.apiRoute(Routes.HENT_FORESPOERSEL_ID_LISTE),
+            Log.kontekstId(kontekstId),
         ) {
-            val vedtaksperiodeIdListe = it.vedtaksperiodeIdListe
+            readRequestOrError(
+                kontekstId,
+                HentForespoerslerRequest.serializer(),
+            ) {
+                val vedtaksperiodeIdListe = it.vedtaksperiodeIdListe
 
-            when {
-                vedtaksperiodeIdListe.isEmpty() -> {
-                    loggErrorSikkerOgUsikker("Kan ikke hente forespørsler for tom vedtaksperiode-ID-liste.")
-                    respondError(ErrorResponse.Unknown(kontekstId))
-                }
+                when {
+                    vedtaksperiodeIdListe.isEmpty() -> {
+                        loggErrorSikkerOgUsikker("Kan ikke hente forespørsler for tom vedtaksperiode-ID-liste.")
+                        respondError(ErrorResponse.Unknown(kontekstId))
+                    }
 
-                vedtaksperiodeIdListe.size > MAKS_ANTALL_VEDTAKSPERIODE_IDER -> {
-                    loggErrorSikkerOgUsikker(
-                        "Stopper forsøk på å hente forespørsler for mer enn $MAKS_ANTALL_VEDTAKSPERIODE_IDER vedtaksperiode-ID-er på en gang.",
-                    )
-                    respondError(ErrorResponse.Unknown(kontekstId))
-                }
+                    vedtaksperiodeIdListe.size > MAKS_ANTALL_VEDTAKSPERIODE_IDER -> {
+                        loggErrorSikkerOgUsikker(
+                            "Stopper forsøk på å hente forespørsler for mer enn $MAKS_ANTALL_VEDTAKSPERIODE_IDER vedtaksperiode-ID-er på en gang.",
+                        )
+                        respondError(ErrorResponse.Unknown(kontekstId))
+                    }
 
-                else -> {
-                    hentForespoersler(producer, tilgangskontroll, redisPoller, kontekstId, vedtaksperiodeIdListe)
+                    else -> {
+                        hentForespoersler(producer, tilgangskontroll, redisPoller, kontekstId, vedtaksperiodeIdListe)
+                    }
                 }
             }
         }

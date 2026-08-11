@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Fail
@@ -17,6 +18,7 @@ import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender
 import no.nav.helsearbeidsgiver.dokarkiv.domene.GjelderPerson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Kanal
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.bestemmendeFravaersdag
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -28,6 +30,7 @@ import no.nav.helsearbeidsgiver.dokarkiv.domene.Kanal as DokarkivKanal
 data class JournalfoerImMelding(
     val eventName: EventName,
     val kontekstId: UUID,
+    val forespoersel: Forespoersel?,
     val inntektsmelding: Inntektsmelding,
 )
 
@@ -45,11 +48,25 @@ class JournalfoerImRiver(
             val eventName = Key.EVENT_NAME.les(EventName.serializer(), json)
             val kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json)
 
-            val inntektsmelding =
+            val (inntektsmelding, forespoersel) =
                 when (eventName) {
-                    EventName.INNTEKTSMELDING_MOTTATT -> Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), data)
-                    EventName.SELVBESTEMT_IM_LAGRET -> Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), data)
-                    else -> null
+                    EventName.INNTEKTSMELDING_MOTTATT -> {
+                        Pair(
+                            Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
+                            Key.FORESPOERSEL.les(Forespoersel.serializer(), data),
+                        )
+                    }
+
+                    EventName.SELVBESTEMT_IM_LAGRET -> {
+                        Pair(
+                            Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), data),
+                            null,
+                        )
+                    }
+
+                    else -> {
+                        Pair(null, null)
+                    }
                 }
 
             if (inntektsmelding == null) {
@@ -58,6 +75,7 @@ class JournalfoerImRiver(
                 JournalfoerImMelding(
                     eventName = eventName,
                     kontekstId = kontekstId,
+                    forespoersel = forespoersel,
                     inntektsmelding = inntektsmelding,
                 )
             }
@@ -71,7 +89,7 @@ class JournalfoerImRiver(
             sikkerLogger.info("$it Innkommende melding:\n${json.toPretty()}")
         }
 
-        val journalpostId = opprettOgFerdigstillJournalpost(inntektsmelding)
+        val journalpostId = opprettOgFerdigstillJournalpost(forespoersel, inntektsmelding)
 
         return mapOf(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
@@ -110,12 +128,16 @@ class JournalfoerImRiver(
             Log.inntektsmeldingTypeId(inntektsmelding.type),
         )
 
-    private fun opprettOgFerdigstillJournalpost(inntektsmelding: Inntektsmelding): String {
+    private fun opprettOgFerdigstillJournalpost(
+        forespoersel: Forespoersel?,
+        inntektsmelding: Inntektsmelding,
+    ): String {
         "Prøver å opprette og ferdigstille journalpost.".also {
             logger.info(it)
             sikkerLogger.info(it)
         }
 
+        val bestemmendeFravaersdag = bestemmendeFravaersdag(forespoersel, inntektsmelding)
         val dokarkivKanal = inntektsmelding.type.kanal.tilDokarkivKanal()
 
         val response =
@@ -129,7 +151,7 @@ class JournalfoerImRiver(
                             navn = inntektsmelding.avsender.orgNavn,
                         ),
                     datoMottatt = LocalDate.now(),
-                    dokumenter = tilDokumenter(inntektsmelding),
+                    dokumenter = tilDokumenter(inntektsmelding, bestemmendeFravaersdag),
                     eksternReferanseId = "ARI-${inntektsmelding.id}",
                     callId = "callId_${inntektsmelding.id}",
                     kanal = dokarkivKanal,
@@ -156,4 +178,19 @@ class JournalfoerImRiver(
             Kanal.HR_SYSTEM_API -> DokarkivKanal.HR_SYSTEM_API
             Kanal.NAV_NO -> DokarkivKanal.NAV_NO
         }
+}
+
+private fun bestemmendeFravaersdag(
+    forespoersel: Forespoersel?,
+    inntektsmelding: Inntektsmelding,
+): LocalDate {
+    val forslag = forespoersel?.bestemmendeFravaersdager[forespoersel.orgnr]
+    return if (inntektsmelding.agp == null && forslag != null) {
+        forslag
+    } else {
+        bestemmendeFravaersdag(
+            arbeidsgiverperioder = inntektsmelding.agp?.perioder.orEmpty(),
+            sykefravaersperioder = inntektsmelding.sykmeldingsperioder,
+        )
+    }
 }

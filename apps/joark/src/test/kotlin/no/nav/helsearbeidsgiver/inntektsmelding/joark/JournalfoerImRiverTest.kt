@@ -12,13 +12,16 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
+import no.nav.hag.simba.utils.felles.test.json.plusData
 import no.nav.hag.simba.utils.felles.test.mock.mockAvsenderSystem
 import no.nav.hag.simba.utils.felles.test.mock.mockFail
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
@@ -31,9 +34,15 @@ import no.nav.helsearbeidsgiver.dokarkiv.domene.DokumentVariant
 import no.nav.helsearbeidsgiver.dokarkiv.domene.GjelderPerson
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Kanal
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.Mock.toMap
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.november
+import no.nav.helsearbeidsgiver.utils.test.date.oktober
+import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import java.time.LocalDate
 import java.util.UUID
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender as KlientAvsender
@@ -58,10 +67,10 @@ class JournalfoerImRiverTest :
         context("oppretter journalpost og publiserer melding for å lagre journalpost-ID") {
             withData(
                 mapOf(
-                    "forespurt inntektsmelding" to Triple(EventName.INNTEKTSMELDING_MOTTATT, Key.INNTEKTSMELDING, Mock.inntektsmelding),
-                    "selvbestemt inntektsmelding" to Triple(EventName.SELVBESTEMT_IM_LAGRET, Key.SELVBESTEMT_INNTEKTSMELDING, Mock.selvbestemtInntektsmelding),
+                    "forespurt inntektsmelding" to Pair(EventName.INNTEKTSMELDING_MOTTATT, Mock.inntektsmelding),
+                    "selvbestemt inntektsmelding" to Pair(EventName.SELVBESTEMT_IM_LAGRET, Mock.selvbestemtInntektsmelding),
                 ),
-            ) { (innkommendeEvent, inntektsmeldingKey, inntektsmelding) ->
+            ) { (innkommendeEvent, inntektsmelding) ->
                 val journalpostId = randomDigitString(6)
                 val innkommendeMelding = Mock.innkommendeMelding(innkommendeEvent, inntektsmelding)
 
@@ -69,7 +78,7 @@ class JournalfoerImRiverTest :
                     mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
                 } returns Mock.opprettOgFerdigstillResponse(journalpostId)
 
-                testRapid.sendJson(innkommendeMelding.toMap(inntektsmeldingKey))
+                testRapid.sendJson(innkommendeMelding.toMap())
 
                 testRapid.inspektør.size shouldBeExactly 1
 
@@ -107,7 +116,6 @@ class JournalfoerImRiverTest :
         test("oppretter journalpost og publiserer melding for å lagre journalpost-ID ved inntektsmelding fra LPS-API") {
             val innkommendeEvent = EventName.INNTEKTSMELDING_MOTTATT
             val inntektsmelding = Mock.eksternInntektsmelding
-            val inntektsmeldingKey = Key.INNTEKTSMELDING
             val journalpostId = randomDigitString(6)
             val innkommendeMelding = Mock.innkommendeMelding(innkommendeEvent, inntektsmelding)
 
@@ -115,7 +123,7 @@ class JournalfoerImRiverTest :
                 mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
             } returns Mock.opprettOgFerdigstillResponse(journalpostId)
 
-            testRapid.sendJson(innkommendeMelding.toMap(inntektsmeldingKey))
+            testRapid.sendJson(innkommendeMelding.toMap())
 
             testRapid.inspektør.size shouldBeExactly 1
 
@@ -177,6 +185,21 @@ class JournalfoerImRiverTest :
         }
 
         context("ignorerer melding") {
+            test("forespurt uten forespørsel") {
+                testRapid.sendJson(
+                    Mock
+                        .innkommendeMelding(EventName.INNTEKTSMELDING_MOTTATT, Mock.inntektsmelding)
+                        .copy(forespoersel = null)
+                        .toMap(),
+                )
+
+                testRapid.inspektør.size shouldBeExactly 0
+
+                coVerify(exactly = 0) {
+                    mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
+                }
+            }
+
             withData(
                 mapOf(
                     "melding med uønsket event" to Pair(Key.EVENT_NAME, EventName.SERVICE_HENT_TILGANG_ORG.toJson()),
@@ -196,6 +219,156 @@ class JournalfoerImRiverTest :
 
                 coVerify(exactly = 0) {
                     mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
+                }
+            }
+        }
+
+        context("bestemmende fraværsdag") {
+            val bfFraForslag = 17.oktober
+            val bfFraSykmeldinger = 19.oktober
+            val bfFraAgp = 18.oktober
+            val forespoersel =
+                mockForespoersel().let {
+                    it.copy(
+                        bestemmendeFravaersdager =
+                            mapOf(
+                                it.orgnr to bfFraForslag,
+                            ),
+                    )
+                }
+            val inntektsmelding =
+                Mock.inntektsmelding.copy(
+                    sykmeldingsperioder =
+                        listOf(
+                            5.oktober til 15.oktober,
+                            bfFraSykmeldinger til 3.november,
+                        ),
+                    agp =
+                        Arbeidsgiverperiode(
+                            perioder =
+                                listOf(
+                                    5.oktober til 15.oktober,
+                                    bfFraAgp til 22.oktober,
+                                ),
+                            redusertLoennIAgp = null,
+                        ),
+                )
+
+            test("forespurt med agp og forslag") {
+                val innkommendeMelding =
+                    Mock
+                        .innkommendeMelding(EventName.INNTEKTSMELDING_MOTTATT, inntektsmelding)
+                        .copy(forespoersel = forespoersel)
+
+                mockStatic(::tilDokumenter) {
+                    testRapid.sendJson(innkommendeMelding.toMap())
+
+                    verify(exactly = 1) {
+                        tilDokumenter(innkommendeMelding.inntektsmelding, bfFraAgp)
+                    }
+                }
+            }
+
+            test("forespurt med agp, men uten forslag") {
+                val innkommendeMelding =
+                    Mock
+                        .innkommendeMelding(EventName.INNTEKTSMELDING_MOTTATT, inntektsmelding)
+                        .copy(
+                            forespoersel = forespoersel.copy(bestemmendeFravaersdager = emptyMap()),
+                        )
+
+                mockStatic(::tilDokumenter) {
+                    testRapid.sendJson(innkommendeMelding.toMap())
+
+                    verify(exactly = 1) {
+                        tilDokumenter(innkommendeMelding.inntektsmelding, bfFraAgp)
+                    }
+                }
+            }
+
+            test("forespurt uten agp, men med forslag") {
+                val innkommendeMelding =
+                    Mock
+                        .innkommendeMelding(EventName.INNTEKTSMELDING_MOTTATT, inntektsmelding.copy(agp = null))
+                        .copy(forespoersel = forespoersel)
+
+                mockStatic(::tilDokumenter) {
+                    testRapid.sendJson(innkommendeMelding.toMap())
+
+                    verify(exactly = 1) {
+                        tilDokumenter(innkommendeMelding.inntektsmelding, bfFraForslag)
+                    }
+                }
+            }
+
+            test("forespurt uten agp og forslag") {
+                val innkommendeMelding =
+                    Mock
+                        .innkommendeMelding(EventName.INNTEKTSMELDING_MOTTATT, inntektsmelding.copy(agp = null))
+                        .copy(
+                            forespoersel = forespoersel.copy(bestemmendeFravaersdager = emptyMap()),
+                        )
+
+                mockStatic(::tilDokumenter) {
+                    testRapid.sendJson(innkommendeMelding.toMap())
+
+                    verify(exactly = 1) {
+                        tilDokumenter(innkommendeMelding.inntektsmelding, bfFraSykmeldinger)
+                    }
+                }
+            }
+
+            test("selvbestemt med agp") {
+                val selvbestemt =
+                    inntektsmelding.copy(
+                        type = Inntektsmelding.Type.Selvbestemt(UUID.randomUUID()),
+                    )
+                val innkommendeMelding = Mock.innkommendeMelding(EventName.SELVBESTEMT_IM_LAGRET, selvbestemt)
+
+                mockStatic(::tilDokumenter) {
+                    testRapid.sendJson(innkommendeMelding.toMap())
+
+                    verify(exactly = 1) {
+                        tilDokumenter(innkommendeMelding.inntektsmelding, bfFraAgp)
+                    }
+                }
+            }
+
+            test("selvbestemt uten agp") {
+                val selvbestemt =
+                    inntektsmelding.copy(
+                        type = Inntektsmelding.Type.Selvbestemt(UUID.randomUUID()),
+                        agp = null,
+                    )
+                val innkommendeMelding = Mock.innkommendeMelding(EventName.SELVBESTEMT_IM_LAGRET, selvbestemt)
+
+                mockStatic(::tilDokumenter) {
+                    testRapid.sendJson(innkommendeMelding.toMap())
+
+                    verify(exactly = 1) {
+                        tilDokumenter(innkommendeMelding.inntektsmelding, bfFraSykmeldinger)
+                    }
+                }
+            }
+
+            test("selvbestemt uten agp, men med forslag fra forespørsel (ignorerer forespørsel)") {
+                val selvbestemt =
+                    inntektsmelding.copy(
+                        type = Inntektsmelding.Type.Selvbestemt(UUID.randomUUID()),
+                        agp = null,
+                    )
+                val innkommendeMelding = Mock.innkommendeMelding(EventName.SELVBESTEMT_IM_LAGRET, selvbestemt)
+
+                mockStatic(::tilDokumenter) {
+                    testRapid.sendJson(
+                        innkommendeMelding
+                            .toMap()
+                            .plusData(Key.FORESPOERSEL to forespoersel.toJson()),
+                    )
+
+                    verify(exactly = 1) {
+                        tilDokumenter(innkommendeMelding.inntektsmelding, bfFraSykmeldinger)
+                    }
                 }
             }
         }
@@ -222,18 +395,37 @@ private object Mock {
         JournalfoerImMelding(
             eventName = eventName,
             kontekstId = UUID.randomUUID(),
+            forespoersel = mockForespoersel(),
             inntektsmelding = inntektsmelding,
         )
 
-    fun JournalfoerImMelding.toMap(imKey: Key = Key.INNTEKTSMELDING): Map<Key, JsonElement> =
-        mapOf(
+    fun JournalfoerImMelding.toMap(): Map<Key, JsonElement> {
+        val data =
+            when (eventName) {
+                EventName.INNTEKTSMELDING_MOTTATT -> {
+                    mapOf(
+                        Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                        Key.FORESPOERSEL to forespoersel?.toJson(),
+                    ).mapValuesNotNull { it }
+                }
+
+                EventName.SELVBESTEMT_IM_LAGRET -> {
+                    mapOf(
+                        Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                    )
+                }
+
+                else -> {
+                    throw IllegalStateException("Ugyldig verdi for 'eventName': '$eventName'")
+                }
+            }
+
+        return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.KONTEKST_ID to kontekstId.toJson(),
-            Key.DATA to
-                mapOf(
-                    imKey to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                ).toJson(),
+            Key.DATA to data.toJson(),
         )
+    }
 
     fun opprettOgFerdigstillResponse(journalpostId: String): OpprettOgFerdigstillResponse =
         OpprettOgFerdigstillResponse(

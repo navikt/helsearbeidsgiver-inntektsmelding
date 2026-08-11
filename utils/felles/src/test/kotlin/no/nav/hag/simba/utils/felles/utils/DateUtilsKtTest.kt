@@ -2,7 +2,9 @@ package no.nav.hag.simba.utils.felles.utils
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.mai
+import java.time.LocalDate
 import java.time.Month
 import java.time.YearMonth
 
@@ -23,5 +25,9 @@ class DateUtilsKtTest :
             val actual = month.toLocalDate(15)
 
             actual shouldBe 15.mai(2015)
+        }
+
+        test(LocalDate::tilNorskFormatKort.name) {
+            21.april(2018).tilNorskFormatKort() shouldBe "2018-04-21"
         }
     })

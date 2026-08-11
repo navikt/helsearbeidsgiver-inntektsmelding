@@ -22,7 +22,7 @@ class TilXmlInntektsmeldingTest {
     @Test
     fun `skal mappe inntektsmelding til xml-skjema`() {
         val im = mockInntektsmeldingV1()
-        val imXml = tilXmlInntektsmelding(im)
+        val imXml = tilXmlInntektsmelding(im, 20.oktober)
         val skjema = imXml.skjemainnhold
         Assertions.assertNotNull(skjema.aarsakTilInnsending)
         Assertions.assertNotNull(skjema.arbeidsgiver)
@@ -67,7 +67,7 @@ class TilXmlInntektsmeldingTest {
                         endringAarsaker = emptyList(),
                     ),
             )
-        val im = tilXmlInntektsmelding(inntektmeldingUtenAarsak)
+        val im = tilXmlInntektsmelding(inntektmeldingUtenAarsak, 20.oktober)
         Assertions.assertNull(im.skjemainnhold.arbeidsforhold.beregnetInntekt.aarsakVedEndring)
     }
 

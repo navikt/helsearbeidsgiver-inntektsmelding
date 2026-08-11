@@ -20,7 +20,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RefusjonEndring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykefravaer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.bestemmendeFravaersdag
 import no.seres.xsd.nav.inntektsmelding_m._20181211.Arbeidsforhold
 import no.seres.xsd.nav.inntektsmelding_m._20181211.Arbeidsgiver
 import no.seres.xsd.nav.inntektsmelding_m._20181211.Avsendersystem
@@ -30,31 +29,33 @@ import no.seres.xsd.nav.inntektsmelding_m._20181211.Kontaktinformasjon
 import no.seres.xsd.nav.inntektsmelding_m._20181211.NaturalytelseDetaljer
 import no.seres.xsd.nav.inntektsmelding_m._20181211.Skjemainnhold
 import no.seres.xsd.nav.inntektsmelding_m._20181211.SykepengerIArbeidsgiverperioden
+import java.time.LocalDate
 import no.seres.xsd.nav.inntektsmelding_m._20181211.Inntekt as InntektXml
 import no.seres.xsd.nav.inntektsmelding_m._20181211.Periode as PeriodeXml
 import no.seres.xsd.nav.inntektsmelding_m._20181211.Refusjon as RefusjonXml
 
-fun tilXmlInntektsmelding(im: Inntektsmelding): InntektsmeldingM =
+fun tilXmlInntektsmelding(
+    im: Inntektsmelding,
+    bestemmendeFravaersdag: LocalDate,
+): InntektsmeldingM =
     InntektsmeldingM().also {
-        it.skjemainnhold = tilSkjemainnhold(im)
-    }
-
-private fun tilSkjemainnhold(im: Inntektsmelding): Skjemainnhold =
-    Skjemainnhold().also { skjema ->
-        skjema.aarsakTilInnsending = im.aarsakInnsending.name
-        skjema.arbeidsforhold = im.tilArbeidsforhold()
-        skjema.arbeidsgiver = im.avsender.map()
-        skjema.arbeidstakerFnr = im.sykmeldt.fnr.verdi
-        skjema.avsendersystem =
-            Avsendersystem().also {
-                it.innsendingstidspunkt = im.mottatt.toLocalDateTime()
-                it.systemnavn = im.type.avsenderSystem.navn
-                it.systemversjon = im.type.avsenderSystem.versjon
+        it.skjemainnhold =
+            Skjemainnhold().also { skjema ->
+                skjema.aarsakTilInnsending = im.aarsakInnsending.name
+                skjema.arbeidsforhold = im.tilArbeidsforhold(bestemmendeFravaersdag)
+                skjema.arbeidsgiver = im.avsender.map()
+                skjema.arbeidstakerFnr = im.sykmeldt.fnr.verdi
+                skjema.avsendersystem =
+                    Avsendersystem().also {
+                        it.innsendingstidspunkt = im.mottatt.toLocalDateTime()
+                        it.systemnavn = im.type.avsenderSystem.navn
+                        it.systemversjon = im.type.avsenderSystem.versjon
+                    }
+                skjema.opphoerAvNaturalytelseListe = im.naturalytelser.map(Naturalytelse::map)
+                skjema.refusjon = im.refusjon.map()
+                skjema.sykepengerIArbeidsgiverperioden = im.agp.map()
+                skjema.ytelse = "Sykepenger"
             }
-        skjema.opphoerAvNaturalytelseListe = im.naturalytelser.map(Naturalytelse::map)
-        skjema.refusjon = im.refusjon.map()
-        skjema.sykepengerIArbeidsgiverperioden = im.agp.map()
-        skjema.ytelse = "Sykepenger"
     }
 
 private fun Avsender.map(): Arbeidsgiver =
@@ -67,7 +68,7 @@ private fun Avsender.map(): Arbeidsgiver =
         ag.virksomhetsnummer = orgnr.verdi
     }
 
-private fun Inntektsmelding.tilArbeidsforhold(): Arbeidsforhold =
+private fun Inntektsmelding.tilArbeidsforhold(bestemmendeFravaersdag: LocalDate): Arbeidsforhold =
     Arbeidsforhold().also { af ->
         af.beregnetInntekt =
             InntektXml().also {
@@ -75,11 +76,7 @@ private fun Inntektsmelding.tilArbeidsforhold(): Arbeidsforhold =
                 it.aarsakVedEndring = inntekt?.endringAarsaker?.firstOrNull()?.tilTekst()
                 it.beloep = inntekt?.beloep?.toBigDecimal()
             }
-        af.foersteFravaersdag =
-            bestemmendeFravaersdag(
-                arbeidsgiverperioder = agp?.perioder.orEmpty(),
-                sykefravaersperioder = sykmeldingsperioder,
-            )
+        af.foersteFravaersdag = bestemmendeFravaersdag
     }
 
 private fun Refusjon?.map(): RefusjonXml =

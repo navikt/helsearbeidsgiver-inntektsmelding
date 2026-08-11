@@ -195,6 +195,7 @@ class BerikInntektsmeldingService(
                     Key.DATA to
                         mapOf(
                             Key.FORESPOERSEL_ID to steg0.skjema.forespoerselId.toJson(),
+                            Key.FORESPOERSEL to steg0.forespoersel.toJson(),
                             Key.INNTEKTSMELDING to steg3.inntektsmelding.toJson(Inntektsmelding.serializer()),
                         ).toJson(),
                 )

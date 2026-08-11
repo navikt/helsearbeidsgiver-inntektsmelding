@@ -10,7 +10,6 @@ import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.Ansettelsesforhold
 import no.nav.hag.simba.kontrakt.domene.ansettelsesforhold.ansettelsesforholdSerializer
-import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
@@ -180,7 +179,7 @@ private object Mock {
         steg0(kontekstId)
             .plus(Key.EVENT_NAME to EventName.SERVICE_HENT_ARBEIDSFORHOLD.toJson())
             .plusData(
-                Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
+                Key.FORESPOERSEL_SVAR to forespoersel.toJson(),
             )
 
     fun steg2(

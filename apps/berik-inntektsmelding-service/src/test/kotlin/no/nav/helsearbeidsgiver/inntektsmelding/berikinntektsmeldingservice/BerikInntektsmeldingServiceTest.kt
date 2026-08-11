@@ -9,6 +9,7 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.clearAllMocks
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
+import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
@@ -106,6 +107,7 @@ class BerikInntektsmeldingServiceTest :
 
                 val data = it.lesData()
                 Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data) shouldBe Mock.skjema.forespoerselId
+                Key.FORESPOERSEL.lesOrNull(Forespoersel.serializer(), data) shouldBe Mock.forespoersel
                 Key.INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), data) shouldNotBe null
             }
         }
@@ -177,8 +179,7 @@ class BerikInntektsmeldingServiceTest :
 private object Mock {
     val skjema = mockSkjemaInntektsmelding()
     val innsending = mockInnsending()
-
-    private val forespoersel = mockForespoersel()
+    val forespoersel = mockForespoersel()
 
     private val sykmeldt =
         Person(

@@ -138,6 +138,10 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                         .shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
+                    data[Key.FORESPOERSEL]
+                        .shouldNotBeNull()
+                        .fromJson(Forespoersel.serializer())
+
                     data[Key.INNTEKTSMELDING]
                         .shouldNotBeNull()
                         .fromJson(Inntektsmelding.serializer())
@@ -261,6 +265,10 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                     data[Key.FORESPOERSEL_ID]
                         .shouldNotBeNull()
                         .fromJson(UuidSerializer)
+
+                    data[Key.FORESPOERSEL]
+                        .shouldNotBeNull()
+                        .fromJson(Forespoersel.serializer())
 
                     data[Key.INNTEKTSMELDING]
                         .shouldNotBeNull()

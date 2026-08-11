@@ -28,6 +28,6 @@ class DateUtilsKtTest :
         }
 
         test(LocalDate::tilNorskFormatKort.name) {
-            21.april(2018).tilNorskFormatKort() shouldBe "2018-04-21"
+            21.april(2018).tilNorskFormatKort() shouldBe "21.04.18"
         }
     })

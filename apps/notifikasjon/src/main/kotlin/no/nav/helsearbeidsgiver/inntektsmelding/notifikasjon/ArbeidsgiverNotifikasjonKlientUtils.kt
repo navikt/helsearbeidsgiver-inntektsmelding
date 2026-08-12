@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 import kotlinx.coroutines.runBlocking
 import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.domene.Person
-import no.nav.hag.simba.utils.felles.utils.tilKortFormat
+import no.nav.hag.simba.utils.felles.utils.tilNorskFormatKort
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Altinn3Ressurs
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
@@ -263,6 +263,14 @@ private fun Fnr.lesFoedselsdato(): String {
     } else {
         (foersteSiffer - 4).toString() + verdi.substring(1, 6)
     }
+}
+
+private fun List<Periode>.tilKortFormat(): String {
+    val fom = minOfOrNull { it.fom }?.tilNorskFormatKort()
+    val tom = maxOfOrNull { it.tom }?.tilNorskFormatKort()
+    val ellipse = "[…]".takeIf { size > 1 }
+
+    return listOfNotNull(fom, ellipse, tom).joinToString(separator = "–")
 }
 
 private fun loggWarnIkkeFunnetEllerThrow(

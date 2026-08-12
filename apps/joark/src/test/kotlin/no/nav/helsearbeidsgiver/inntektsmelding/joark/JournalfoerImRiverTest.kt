@@ -224,15 +224,15 @@ class JournalfoerImRiverTest :
         }
 
         context("bestemmende fraværsdag") {
-            val bfFraForslag = 17.oktober
-            val bfFraSykmeldinger = 19.oktober
-            val bfFraAgp = 18.oktober
+            val bestemmendeFravaersdagFraForslag = 17.oktober
+            val bestemmendeFravaersdagFraSykmeldinger = 19.oktober
+            val bestemmendeFravaersdagFraAgp = 18.oktober
             val forespoersel =
                 mockForespoersel().let {
                     it.copy(
                         bestemmendeFravaersdager =
                             mapOf(
-                                it.orgnr to bfFraForslag,
+                                it.orgnr to bestemmendeFravaersdagFraForslag,
                             ),
                     )
                 }
@@ -241,14 +241,14 @@ class JournalfoerImRiverTest :
                     sykmeldingsperioder =
                         listOf(
                             5.oktober til 15.oktober,
-                            bfFraSykmeldinger til 3.november,
+                            bestemmendeFravaersdagFraSykmeldinger til 3.november,
                         ),
                     agp =
                         Arbeidsgiverperiode(
                             perioder =
                                 listOf(
                                     5.oktober til 15.oktober,
-                                    bfFraAgp til 22.oktober,
+                                    bestemmendeFravaersdagFraAgp til 22.oktober,
                                 ),
                             redusertLoennIAgp = null,
                         ),
@@ -264,7 +264,7 @@ class JournalfoerImRiverTest :
                     testRapid.sendJson(innkommendeMelding.toMap())
 
                     verify(exactly = 1) {
-                        tilDokumenter(innkommendeMelding.inntektsmelding, bfFraAgp)
+                        tilDokumenter(innkommendeMelding.inntektsmelding, bestemmendeFravaersdagFraAgp)
                     }
                 }
             }
@@ -281,7 +281,7 @@ class JournalfoerImRiverTest :
                     testRapid.sendJson(innkommendeMelding.toMap())
 
                     verify(exactly = 1) {
-                        tilDokumenter(innkommendeMelding.inntektsmelding, bfFraAgp)
+                        tilDokumenter(innkommendeMelding.inntektsmelding, bestemmendeFravaersdagFraAgp)
                     }
                 }
             }
@@ -296,7 +296,7 @@ class JournalfoerImRiverTest :
                     testRapid.sendJson(innkommendeMelding.toMap())
 
                     verify(exactly = 1) {
-                        tilDokumenter(innkommendeMelding.inntektsmelding, bfFraForslag)
+                        tilDokumenter(innkommendeMelding.inntektsmelding, bestemmendeFravaersdagFraForslag)
                     }
                 }
             }
@@ -313,7 +313,7 @@ class JournalfoerImRiverTest :
                     testRapid.sendJson(innkommendeMelding.toMap())
 
                     verify(exactly = 1) {
-                        tilDokumenter(innkommendeMelding.inntektsmelding, bfFraSykmeldinger)
+                        tilDokumenter(innkommendeMelding.inntektsmelding, bestemmendeFravaersdagFraSykmeldinger)
                     }
                 }
             }
@@ -329,7 +329,7 @@ class JournalfoerImRiverTest :
                     testRapid.sendJson(innkommendeMelding.toMap())
 
                     verify(exactly = 1) {
-                        tilDokumenter(innkommendeMelding.inntektsmelding, bfFraAgp)
+                        tilDokumenter(innkommendeMelding.inntektsmelding, bestemmendeFravaersdagFraAgp)
                     }
                 }
             }
@@ -346,7 +346,7 @@ class JournalfoerImRiverTest :
                     testRapid.sendJson(innkommendeMelding.toMap())
 
                     verify(exactly = 1) {
-                        tilDokumenter(innkommendeMelding.inntektsmelding, bfFraSykmeldinger)
+                        tilDokumenter(innkommendeMelding.inntektsmelding, bestemmendeFravaersdagFraSykmeldinger)
                     }
                 }
             }
@@ -367,7 +367,7 @@ class JournalfoerImRiverTest :
                     )
 
                     verify(exactly = 1) {
-                        tilDokumenter(innkommendeMelding.inntektsmelding, bfFraSykmeldinger)
+                        tilDokumenter(innkommendeMelding.inntektsmelding, bestemmendeFravaersdagFraSykmeldinger)
                     }
                 }
             }

@@ -6,6 +6,6 @@ apps:
     namespace: flex
 env:
   - name: SOEKNAD_BASE_URL
-  - value: http://sykepengesoknad-backend.flex
+    value: http://sykepengesoknad-backend.flex
   - name: SOEKNAD_SCOPE
-  - value: api://prod-gcp.flex.sykepengesoknad-backend/.default
+    value: api://prod-gcp.flex.sykepengesoknad-backend/.default

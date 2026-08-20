@@ -8,6 +8,7 @@ dependencies {
 
     implementation(project(":kontrakt-domene-soeknad"))
     implementation(project(":utils-auth"))
+    implementation(project(":utils-rapids-and-rivers"))
     implementation("io.ktor:ktor-client-apache5:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-client-core:$ktorVersion")

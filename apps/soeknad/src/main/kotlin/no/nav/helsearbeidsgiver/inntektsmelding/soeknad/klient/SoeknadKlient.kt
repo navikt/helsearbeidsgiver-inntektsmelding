@@ -30,25 +30,35 @@ class SoeknadKlient(
         orgnr: String,
         fnr: String,
         eldsteFom: LocalDate,
-    ): List<Soeknad> =
-        cache.getOrPut("$orgnr|$fnr|$eldsteFom") {
-            hentSoeknaderFraFlex(
-                orgnr = orgnr,
-                fnr = fnr,
-                eldsteFom = eldsteFom,
-            ).mapNotNull {
-                val soeknad = tilSoeknad(it)
-                // Midlertidig: Logger for å vurdere søknader som ikke har ønskede verdier
-                if (soeknad == null) {
-                    sikkerLogger.warn("Søknad uten ønskede verdier:\n${it.toJson(HentSoeknaderResponse.serializer()).toPretty()}")
-                }
-                soeknad
-            }.sortedBy { it.fom }
-                .also {
-                    logger.info("Hentet ${it.size} søknader.")
-                    sikkerLogger.info("Hentet ${it.size} søknader.")
-                }
+    ): List<Soeknad> {
+        "Henter søknader siden '$eldsteFom' fra Flex.".also {
+            logger.info(it)
+            sikkerLogger.info(it)
         }
+
+        val soeknader =
+            cache.getOrPut("$orgnr|$fnr|$eldsteFom") {
+                hentSoeknaderFraFlex(
+                    orgnr = orgnr,
+                    fnr = fnr,
+                    eldsteFom = eldsteFom,
+                ).mapNotNull {
+                    val soeknad = tilSoeknad(it)
+                    // Midlertidig: Logger for å vurdere søknader som ikke har ønskede verdier
+                    if (soeknad == null) {
+                        sikkerLogger.warn("Søknad uten ønskede verdier:\n${it.toJson(HentSoeknaderResponse.serializer()).toPretty()}")
+                    }
+                    soeknad
+                }.sortedBy { it.fom }
+            }
+
+        "Hentet ${soeknader.size} søknader siden '$eldsteFom' fra Flex.".also {
+            logger.info(it)
+            sikkerLogger.info(it)
+        }
+
+        return soeknader
+    }
 
     private suspend fun hentSoeknaderFraFlex(
         orgnr: String,

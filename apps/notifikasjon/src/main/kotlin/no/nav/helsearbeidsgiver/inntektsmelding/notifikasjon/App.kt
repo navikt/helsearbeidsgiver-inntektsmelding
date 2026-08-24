@@ -56,5 +56,5 @@ fun createNotifikasjonRivers(
 private fun agNotifikasjonKlient(): ArbeidsgiverNotifikasjonKlient {
     val tokenGetter = AuthClient().tokenGetter(IdentityProvider.AZURE_AD, Env.agNotifikasjonScope)
     sikkerLogger().info("Oppretter ArbeidsgiverNotifikasjonKlient med ressurs ${Altinn3Ressurs.INNTEKTSMELDING}}")
-    return ArbeidsgiverNotifikasjonKlient(Env.agNotifikasjonUrl, tokenGetter, Sendevindu.NKS_AAPNINGSTID)
+    return ArbeidsgiverNotifikasjonKlient(Env.agNotifikasjonUrl, tokenGetter, Sendevindu.LOEPENDE)
 }

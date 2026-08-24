@@ -8,6 +8,7 @@ import no.nav.hag.simba.utils.rr.service.ServiceRiverStateless
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Altinn3Ressurs
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.Sendevindu
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.EndreOppgavePaaminnelseRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FerdigstillSakOgOppgaveRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.FjernPaaminnelseRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettForespoerselSakOgOppgaveRiver
@@ -29,6 +30,9 @@ fun createNotifikasjonServices(publisher: Publisher): List<ServiceRiverStateless
         ServiceRiverStateless(
             HentDataTilSakOgOppgaveService(publisher),
         ),
+        ServiceRiverStateless(
+            HentDataTilEndreOppgaveService(publisher),
+        ),
     )
 
 fun createNotifikasjonRivers(
@@ -46,10 +50,11 @@ fun createNotifikasjonRivers(
         FerdigstillSakOgOppgaveRiver(linkUrl, agNotifikasjonKlient),
         UtgaattForespoerselRiver(linkUrl, agNotifikasjonKlient),
         FjernPaaminnelseRiver(agNotifikasjonKlient),
+        EndreOppgavePaaminnelseRiver(tidMellomOppgaveOpprettelseOgPaaminnelse, agNotifikasjonKlient),
     )
 
 private fun agNotifikasjonKlient(): ArbeidsgiverNotifikasjonKlient {
     val tokenGetter = AuthClient().tokenGetter(IdentityProvider.AZURE_AD, Env.agNotifikasjonScope)
     sikkerLogger().info("Oppretter ArbeidsgiverNotifikasjonKlient med ressurs ${Altinn3Ressurs.INNTEKTSMELDING}}")
-    return ArbeidsgiverNotifikasjonKlient(Env.agNotifikasjonUrl, Altinn3Ressurs.INNTEKTSMELDING, tokenGetter, Sendevindu.NKS_AAPNINGSTID)
+    return ArbeidsgiverNotifikasjonKlient(Env.agNotifikasjonUrl, tokenGetter, Sendevindu.NKS_AAPNINGSTID)
 }

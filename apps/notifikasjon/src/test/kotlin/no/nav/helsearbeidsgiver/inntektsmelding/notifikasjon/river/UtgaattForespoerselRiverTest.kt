@@ -22,6 +22,7 @@ import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Tjeneste
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.Mock.toMap
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakUtgaattLevetid
@@ -54,13 +55,13 @@ class UtgaattForespoerselRiverTest :
 
             coVerifySequence {
                 mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
-                    merkelapp = "Inntektsmelding sykepenger",
+                    tjeneste = Tjeneste.INNTEKTSMELDING,
                     eksternId = innkommendeMelding.forespoerselId.toString(),
                     nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
                 )
                 mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
                     grupperingsid = innkommendeMelding.forespoerselId.toString(),
-                    merkelapp = "Inntektsmelding sykepenger",
+                    tjeneste = Tjeneste.INNTEKTSMELDING,
                     status = SaksStatus.FERDIG,
                     tidspunkt = null,
                     statusTekst = "Avbrutt av Nav",
@@ -85,14 +86,14 @@ class UtgaattForespoerselRiverTest :
             coVerifySequence {
                 // Feiler
                 mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
-                    merkelapp = "Inntektsmelding sykepenger",
+                    tjeneste = Tjeneste.INNTEKTSMELDING,
                     eksternId = innkommendeMelding.forespoerselId.toString(),
                     nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
                 )
                 // Feiler ikke
                 mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
                     grupperingsid = innkommendeMelding.forespoerselId.toString(),
-                    merkelapp = "Inntektsmelding sykepenger",
+                    tjeneste = Tjeneste.INNTEKTSMELDING,
                     status = SaksStatus.FERDIG,
                     statusTekst = "Avbrutt av Nav",
                     nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
@@ -116,14 +117,14 @@ class UtgaattForespoerselRiverTest :
             coVerifySequence {
                 // Feiler ikke
                 mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
-                    merkelapp = "Inntektsmelding sykepenger",
+                    tjeneste = Tjeneste.INNTEKTSMELDING,
                     eksternId = innkommendeMelding.forespoerselId.toString(),
                     nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
                 )
                 // Feiler
                 mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
                     grupperingsid = innkommendeMelding.forespoerselId.toString(),
-                    merkelapp = "Inntektsmelding sykepenger",
+                    tjeneste = Tjeneste.INNTEKTSMELDING,
                     status = SaksStatus.FERDIG,
                     statusTekst = "Avbrutt av Nav",
                     nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
@@ -147,7 +148,7 @@ class UtgaattForespoerselRiverTest :
             coVerifySequence {
                 // Feiler
                 mockAgNotifikasjonKlient.oppgaveUtgaattByEksternId(
-                    merkelapp = "Inntektsmelding sykepenger",
+                    tjeneste = Tjeneste.INNTEKTSMELDING,
                     eksternId = innkommendeMelding.forespoerselId.toString(),
                     nyLenke = "${Mock.LINK_URL}/im-dialog/utgatt",
                 )

@@ -13,7 +13,7 @@ import no.nav.hag.simba.utils.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OppgaveAlleredeUtfoertException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Tjeneste
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -78,7 +78,7 @@ class FjernPaaminnelseRiver(
         runCatching {
             runBlocking {
                 agNotifikasjonKlient.slettOppgavePaaminnelserByEksternId(
-                    merkelapp = NotifikasjonTekst.MERKELAPP,
+                    tjeneste = Tjeneste.INNTEKTSMELDING,
                     eksternId = forespoerselId.toString(),
                 )
             }

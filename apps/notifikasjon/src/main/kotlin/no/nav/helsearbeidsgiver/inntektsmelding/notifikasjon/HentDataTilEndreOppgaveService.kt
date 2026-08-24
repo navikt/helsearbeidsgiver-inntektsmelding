@@ -1,16 +1,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Fail
-import no.nav.hag.simba.utils.felles.domene.Person
 import no.nav.hag.simba.utils.felles.json.les
 import no.nav.hag.simba.utils.felles.json.orgMapSerializer
-import no.nav.hag.simba.utils.felles.json.personMapSerializer
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.utils.Log
 import no.nav.hag.simba.utils.rr.KafkaKey
@@ -20,57 +17,75 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
-data class Steg0(
+data class EndreOppgaveSteg0(
     val kontekstId: UUID,
     val forespoerselId: UUID,
-    val forespoersel: Forespoersel,
-    val skalHaPaaminnelse: Boolean,
 )
 
-data class Steg1(
+data class EndreOppgaveSteg1(
+    val forespoersel: Forespoersel,
+)
+
+data class EndreOppgaveSteg2(
     val orgnrMedNavn: Map<Orgnr, String>,
 )
 
-data class Steg2(
-    val personer: Map<Fnr, Person>,
-)
-
-class HentDataTilSakOgOppgaveService(
+class HentDataTilEndreOppgaveService(
     private val publisher: Publisher,
-) : ServiceMed2Steg<Steg0, Steg1, Steg2>() {
+) : ServiceMed2Steg<EndreOppgaveSteg0, EndreOppgaveSteg1, EndreOppgaveSteg2>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
-    override val initialEventName = EventName.FORESPOERSEL_MOTTATT
-    override val serviceEventName = EventName.SERVICE_HENT_DATA_TIL_SAK_OG_OPPGAVE
+    override val initialEventName = EventName.OVERSTYR_OPPGAVE_PAAMINNELSE_REQUESTED
+    override val serviceEventName = EventName.SERVICE_HENT_DATA_TIL_ENDRE_OPPGAVE
 
-    override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
-        Steg0(
+    override fun lesSteg0(melding: Map<Key, JsonElement>): EndreOppgaveSteg0 =
+        EndreOppgaveSteg0(
             kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
-            forespoersel = Key.FORESPOERSEL.les(Forespoersel.serializer(), melding),
-            skalHaPaaminnelse = Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), melding),
         )
 
-    override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
-        Steg1(
+    override fun lesSteg1(melding: Map<Key, JsonElement>): EndreOppgaveSteg1 =
+        EndreOppgaveSteg1(
+            forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding),
+        )
+
+    override fun lesSteg2(melding: Map<Key, JsonElement>): EndreOppgaveSteg2 =
+        EndreOppgaveSteg2(
             orgnrMedNavn = Key.VIRKSOMHETER.les(orgMapSerializer, melding),
-        )
-
-    override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 =
-        Steg2(
-            personer = Key.PERSONER.les(personMapSerializer, melding),
         )
 
     override fun utfoerSteg0(
         data: Map<Key, JsonElement>,
-        steg0: Steg0,
+        steg0: EndreOppgaveSteg0,
     ) {
-        "Henter data for å opprette sak og oppgave.".also {
+        "Henter forespørsel for å endre oppgave-påminnelse.".also {
+            logger.info(it)
+            sikkerLogger.info(it)
+        }
+
+        publisher.publish(
+            key = steg0.forespoerselId,
+            Key.EVENT_NAME to serviceEventName.toJson(),
+            Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
+            Key.KONTEKST_ID to steg0.kontekstId.toJson(),
+            Key.DATA to
+                data
+                    .plus(
+                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                    ).toJson(),
+        )
+    }
+
+    override fun utfoerSteg1(
+        data: Map<Key, JsonElement>,
+        steg0: EndreOppgaveSteg0,
+        steg1: EndreOppgaveSteg1,
+    ) {
+        "Forespørsel hentet. Henter virksomhetsnavn.".also {
             logger.info(it)
             sikkerLogger.info(it)
         }
@@ -85,28 +100,7 @@ class HentDataTilSakOgOppgaveService(
                     .plus(
                         mapOf(
                             Key.SVAR_KAFKA_KEY to KafkaKey(steg0.forespoerselId).toJson(),
-                            Key.ORGNR_UNDERENHETER to setOf(steg0.forespoersel.orgnr).toJson(Orgnr.serializer()),
-                        ),
-                    ).toJson(),
-        )
-    }
-
-    override fun utfoerSteg1(
-        data: Map<Key, JsonElement>,
-        steg0: Steg0,
-        steg1: Steg1,
-    ) {
-        publisher.publish(
-            key = steg0.forespoerselId,
-            Key.EVENT_NAME to serviceEventName.toJson(),
-            Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
-            Key.KONTEKST_ID to steg0.kontekstId.toJson(),
-            Key.DATA to
-                data
-                    .plus(
-                        mapOf(
-                            Key.SVAR_KAFKA_KEY to KafkaKey(steg0.forespoerselId).toJson(),
-                            Key.FNR_LISTE to setOf(steg0.forespoersel.fnr).toJson(Fnr.serializer()),
+                            Key.ORGNR_UNDERENHETER to setOf(steg1.forespoersel.orgnr).toJson(Orgnr.serializer()),
                         ),
                     ).toJson(),
         )
@@ -114,36 +108,33 @@ class HentDataTilSakOgOppgaveService(
 
     override fun utfoerSteg2(
         data: Map<Key, JsonElement>,
-        steg0: Steg0,
-        steg1: Steg1,
-        steg2: Steg2,
+        steg0: EndreOppgaveSteg0,
+        steg1: EndreOppgaveSteg1,
+        steg2: EndreOppgaveSteg2,
     ) {
-        "Data hentet. Sender events for å opprette sak og oppgave.".also {
+        "Data hentet. Sender event for å endre oppgave-påminnelse.".also {
             logger.info(it)
             sikkerLogger.info(it)
         }
 
-        val orgNavn = steg1.orgnrMedNavn[steg0.forespoersel.orgnr] ?: ORG_NAVN_DEFAULT
-        val sykmeldt = steg2.personer[steg0.forespoersel.fnr] ?: personDefault(steg0.forespoersel.fnr)
+        val orgNavn = steg2.orgnrMedNavn[steg1.forespoersel.orgnr] ?: ORG_NAVN_DEFAULT
 
         publisher.publish(
             key = steg0.forespoerselId,
-            Key.EVENT_NAME to EventName.SAK_OG_OPPGAVE_OPPRETT_REQUESTED.toJson(),
+            Key.EVENT_NAME to EventName.ENDRE_OPPGAVE_PAAMINNELSE_REQUESTED.toJson(),
             Key.KONTEKST_ID to steg0.kontekstId.toJson(),
             Key.DATA to
                 mapOf(
                     Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                    Key.FORESPOERSEL to steg0.forespoersel.toJson(),
-                    Key.SYKMELDT to sykmeldt.toJson(Person.serializer()),
+                    Key.FORESPOERSEL to steg1.forespoersel.toJson(),
                     Key.VIRKSOMHET to orgNavn.toJson(),
-                    Key.SKAL_HA_PAAMINNELSE to steg0.skalHaPaaminnelse.toJson(Boolean.serializer()),
                 ).toJson(),
         )
     }
 
-    override fun Steg0.loggfelt(): Map<String, String> =
+    override fun EndreOppgaveSteg0.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this@HentDataTilSakOgOppgaveService),
+            Log.klasse(this@HentDataTilEndreOppgaveService),
             Log.event(serviceEventName),
             Log.kontekstId(kontekstId),
             Log.forespoerselId(forespoerselId),
@@ -153,13 +144,9 @@ class HentDataTilSakOgOppgaveService(
         melding: Map<Key, JsonElement>,
         fail: Fail,
     ) {
-        "Klarte ikke hente data for å opprette sak og oppgave pga. feil: '${fail.feilmelding}'".also {
+        "Klarte ikke hente data for å endre oppgave-påminnelse pga. feil: '${fail.feilmelding}'".also {
             logger.error(it)
             sikkerLogger.error(it)
         }
     }
 }
-
-internal const val ORG_NAVN_DEFAULT = "Arbeidsgiver"
-
-private fun personDefault(fnr: Fnr): Person = Person(fnr, "Ukjent person")

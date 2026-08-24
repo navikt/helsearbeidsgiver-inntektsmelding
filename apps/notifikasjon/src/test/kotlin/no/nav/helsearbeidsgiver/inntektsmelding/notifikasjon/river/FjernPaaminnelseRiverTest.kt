@@ -21,7 +21,7 @@ import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OppgaveEndrePaaminnelseByEksternIdException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Tjeneste
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
@@ -51,7 +51,7 @@ class FjernPaaminnelseRiverTest :
 
             coVerifySequence {
                 mockagNotifikasjonKlient.slettOppgavePaaminnelserByEksternId(
-                    NotifikasjonTekst.MERKELAPP,
+                    tjeneste = Tjeneste.INNTEKTSMELDING,
                     innkommendeMelding.forespoerselId.toString(),
                 )
             }
@@ -72,7 +72,7 @@ class FjernPaaminnelseRiverTest :
 
             coVerifySequence {
                 mockagNotifikasjonKlient.slettOppgavePaaminnelserByEksternId(
-                    NotifikasjonTekst.MERKELAPP,
+                    tjeneste = Tjeneste.INNTEKTSMELDING,
                     innkommendeMelding.forespoerselId.toString(),
                 )
             }
@@ -96,7 +96,7 @@ class FjernPaaminnelseRiverTest :
 
             coVerifySequence {
                 mockagNotifikasjonKlient.slettOppgavePaaminnelserByEksternId(
-                    NotifikasjonTekst.MERKELAPP,
+                    tjeneste = Tjeneste.INNTEKTSMELDING,
                     innkommendeMelding.forespoerselId.toString(),
                 )
             }
@@ -113,7 +113,7 @@ class FjernPaaminnelseRiverTest :
 
             coVerifySequence {
                 mockagNotifikasjonKlient.slettOppgavePaaminnelserByEksternId(
-                    NotifikasjonTekst.MERKELAPP,
+                    tjeneste = Tjeneste.INNTEKTSMELDING,
                     innkommendeMelding.forespoerselId.toString(),
                 )
             }

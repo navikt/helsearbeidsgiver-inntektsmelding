@@ -26,6 +26,7 @@ import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveDuplikatException
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Tjeneste
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonTekst
@@ -73,7 +74,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                 mockAgNotifikasjonKlient.opprettNySak(
                     virksomhetsnummer = innkommendeMelding.forespoersel.orgnr.verdi,
                     grupperingsid = innkommendeMelding.forespoerselId.toString(),
-                    merkelapp = NotifikasjonTekst.MERKELAPP,
+                    tjeneste = Tjeneste.INNTEKTSMELDING,
                     lenke = "en-slags-url/im-dialog/${innkommendeMelding.forespoerselId}",
                     tittel = NotifikasjonTekst.sakTittel(Inntektsmelding.Type.Forespurt(innkommendeMelding.forespoerselId), innkommendeMelding.sykmeldt),
                     statusTekst = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
@@ -85,7 +86,7 @@ class OpprettForespoerselSakOgOppgaveRiverTest :
                     virksomhetsnummer = innkommendeMelding.forespoersel.orgnr.verdi,
                     eksternId = innkommendeMelding.forespoerselId.toString(),
                     grupperingsid = innkommendeMelding.forespoerselId.toString(),
-                    merkelapp = NotifikasjonTekst.MERKELAPP,
+                    tjeneste = Tjeneste.INNTEKTSMELDING,
                     lenke = "en-slags-url/im-dialog/${innkommendeMelding.forespoerselId}",
                     tekst = NotifikasjonTekst.OPPGAVE_TEKST,
                     varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,

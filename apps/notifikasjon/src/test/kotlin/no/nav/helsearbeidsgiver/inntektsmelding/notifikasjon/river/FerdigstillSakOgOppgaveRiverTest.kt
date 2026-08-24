@@ -29,6 +29,7 @@ import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Tjeneste
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
@@ -84,7 +85,7 @@ class FerdigstillSakOgOppgaveRiverTest :
                 coVerifySequence {
                     mockAgNotifikasjonKlient.nyStatusSakByGrupperingsid(
                         grupperingsid = innkommendeMelding.imType.id.toString(),
-                        merkelapp = "Inntektsmelding sykepenger",
+                        tjeneste = Tjeneste.INNTEKTSMELDING,
                         status = SaksStatus.FERDIG,
                         statusTekst = "Mottatt – Se kvittering eller korriger inntektsmelding",
                         nyLenke =
@@ -98,7 +99,7 @@ class FerdigstillSakOgOppgaveRiverTest :
                     if (erForespurt) {
                         mockAgNotifikasjonKlient.oppgaveUtfoertByEksternIdV2(
                             eksternId = innkommendeMelding.imType.id.toString(),
-                            merkelapp = "Inntektsmelding sykepenger",
+                            tjeneste = Tjeneste.INNTEKTSMELDING,
                             nyLenke = "$mockLinkUrl/im-dialog/kvittering/${innkommendeMelding.imType.id}",
                         )
                     }

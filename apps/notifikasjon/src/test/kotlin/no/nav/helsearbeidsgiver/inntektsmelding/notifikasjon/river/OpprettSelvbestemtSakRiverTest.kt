@@ -24,6 +24,7 @@ import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveDuplikatException
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Tjeneste
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -71,7 +72,7 @@ class OpprettSelvbestemtSakRiverTest :
             coVerifySequence {
                 mockagNotifikasjonKlient.opprettNySak(
                     virksomhetsnummer = innkommendeMelding.inntektsmelding.avsender.orgnr.verdi,
-                    merkelapp = "Inntektsmelding sykepenger",
+                    tjeneste = Tjeneste.INNTEKTSMELDING,
                     grupperingsid =
                         innkommendeMelding.inntektsmelding.type.id
                             .toString(),

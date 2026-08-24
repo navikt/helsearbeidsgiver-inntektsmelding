@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Paaminnelse
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveDuplikatException
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.SakEllerOppgaveFinnesIkkeException
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.Tjeneste
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
@@ -16,6 +17,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.time.Duration.Companion.days
 
@@ -122,7 +124,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
             opprettNySak(
                 virksomhetsnummer = orgnr.verdi,
                 grupperingsid = inntektsmeldingType.id.toString(),
-                merkelapp = NotifikasjonTekst.MERKELAPP,
+                tjeneste = Tjeneste.INNTEKTSMELDING,
                 lenke = lenke,
                 tittel = NotifikasjonTekst.sakTittel(inntektsmeldingType, sykmeldt),
                 statusTekst = statusTekst,
@@ -148,7 +150,7 @@ fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(
         runCatching {
             nyStatusSakByGrupperingsid(
                 grupperingsid = inntektsmeldingTypeId.toString(),
-                merkelapp = NotifikasjonTekst.MERKELAPP,
+                tjeneste = Tjeneste.INNTEKTSMELDING,
                 status = SaksStatus.FERDIG,
                 statusTekst = NotifikasjonTekst.STATUS_TEKST_FERDIG,
                 nyLenke = nyLenke,
@@ -168,7 +170,7 @@ fun ArbeidsgiverNotifikasjonKlient.avbrytSak(
         runCatching {
             nyStatusSakByGrupperingsid(
                 grupperingsid = forespoerselId.toString(),
-                merkelapp = NotifikasjonTekst.MERKELAPP,
+                tjeneste = Tjeneste.INNTEKTSMELDING,
                 status = SaksStatus.FERDIG,
                 statusTekst = NotifikasjonTekst.STATUS_TEKST_AVBRUTT,
                 nyLenke = nyLenke,
@@ -195,7 +197,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettOppgave(
                 virksomhetsnummer = orgnr.verdi,
                 eksternId = forespoerselId.toString(),
                 grupperingsid = forespoerselId.toString(),
-                merkelapp = NotifikasjonTekst.MERKELAPP,
+                tjeneste = Tjeneste.INNTEKTSMELDING,
                 lenke = lenke,
                 tekst = NotifikasjonTekst.OPPGAVE_TEKST,
                 varslingTittel = NotifikasjonTekst.STATUS_TEKST_UNDER_BEHANDLING,
@@ -229,7 +231,7 @@ fun ArbeidsgiverNotifikasjonKlient.ferdigstillOppgave(
         runCatching {
             oppgaveUtfoertByEksternIdV2(
                 eksternId = forespoerselId.toString(),
-                merkelapp = NotifikasjonTekst.MERKELAPP,
+                tjeneste = Tjeneste.INNTEKTSMELDING,
                 nyLenke = lenke,
             )
         }.onFailure { error ->
@@ -246,12 +248,36 @@ fun ArbeidsgiverNotifikasjonKlient.settOppgaveUtgaatt(
         runCatching {
             oppgaveUtgaattByEksternId(
                 eksternId = forespoerselId.toString(),
-                merkelapp = NotifikasjonTekst.MERKELAPP,
+                tjeneste = Tjeneste.INNTEKTSMELDING,
                 nyLenke = lenke,
             )
         }.onFailure { error ->
             loggWarnIkkeFunnetEllerThrow("Fant ikke oppgave under endring til utgått.", error)
         }
+    }
+}
+
+fun ArbeidsgiverNotifikasjonKlient.endreOppgavePaaminnelse(
+    forespoerselId: UUID,
+    orgnr: Orgnr,
+    orgNavn: String,
+    tidMellomOppgaveopprettelseOgPaaminnelse: String,
+    sykmeldingsPerioder: List<Periode>,
+) {
+    runBlocking {
+        endreOppgavePaaminnelserByEksternId(
+            tjeneste = Tjeneste.INNTEKTSMELDING,
+            eksternId = forespoerselId.toString(),
+            paaminnelse =
+                Paaminnelse(
+                    tittel = NotifikasjonTekst.PAAMINNELSE_TITTEL,
+                    innhold = NotifikasjonTekst.paaminnelseInnhold(orgnr, orgNavn, sykmeldingsPerioder),
+                    tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveopprettelseOgPaaminnelse,
+                    eksaktTid = LocalDateTime.now().plusMinutes(5),
+                ),
+        )
+    }.also {
+        logger.info("Endret påminnelse for forespørsel $forespoerselId")
     }
 }
 

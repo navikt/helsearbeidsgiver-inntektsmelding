@@ -9,7 +9,7 @@ import io.mockk.clearAllMocks
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.ForespoerselFraBro
-import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespurtData
+import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.test.mockForespoerselFraBro
 import no.nav.hag.simba.kontrakt.kafkatopic.pri.Pri
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
@@ -18,12 +18,7 @@ import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.date.januar
-import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 class ForespoerselMottattRiverTest :
@@ -70,7 +65,7 @@ private fun mockInnkommendeMelding(): MottattMelding =
         notisType = Pri.NotisType.FORESPØRSEL_MOTTATT,
         kontekstId = UUID.randomUUID(),
         forespoerselId = UUID.randomUUID(),
-        forespoerselFraBro = Mock.forespoerselFraBro,
+        forespoerselFraBro = mockForespoerselFraBro(),
         skalHaPaaminnelse = true,
     )
 
@@ -81,20 +76,3 @@ private fun MottattMelding.toMap(): Map<Pri.Key, JsonElement> =
         Pri.Key.FORESPOERSEL to forespoerselFraBro.toJson(ForespoerselFraBro.serializer()),
         Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
     )
-
-object Mock {
-    private val orgnr = Orgnr.genererGyldig()
-    val forespoerselFraBro =
-        ForespoerselFraBro(
-            orgnr = orgnr,
-            fnr = Fnr.genererGyldig(),
-            vedtaksperiodeId = UUID.randomUUID(),
-            forespoerselId = UUID.randomUUID(),
-            sykmeldingsperioder = listOf(2.januar til 16.januar),
-            egenmeldingsperioder = listOf(1.januar til 1.januar),
-            bestemmendeFravaersdager = mapOf(orgnr to 1.januar),
-            forespurtData = mockForespurtData(),
-            erBesvart = false,
-            erBegrenset = false,
-        )
-}

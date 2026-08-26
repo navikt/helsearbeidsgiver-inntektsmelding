@@ -1,5 +1,3 @@
-@file:UseSerializers(UuidSerializer::class)
-
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
@@ -7,7 +5,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
-import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.builtins.MapSerializer
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.kafkatopic.pri.Pri

@@ -62,7 +62,7 @@ class ApiInnsendingIT : EndToEndTest() {
         coEvery { inntektClient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any()) } returns mapOf(Mock.orgnr.toString() to inntektFraAordningen)
 
         coEvery {
-            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
+            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any(), any())
         } returns
             OpprettOgFerdigstillResponse(
                 journalpostId = Mock.JOURNALPOST_ID,

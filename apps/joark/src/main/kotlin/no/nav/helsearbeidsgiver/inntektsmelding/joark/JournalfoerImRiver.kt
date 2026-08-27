@@ -16,6 +16,7 @@ import no.nav.hag.simba.utils.rr.river.ObjectRiver
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender
 import no.nav.helsearbeidsgiver.dokarkiv.domene.GjelderPerson
+import no.nav.helsearbeidsgiver.dokarkiv.domene.InnsynsRegler
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Kanal
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.bestemmendeFravaersdag
@@ -155,6 +156,7 @@ class JournalfoerImRiver(
                     eksternReferanseId = "ARI-${inntektsmelding.id}",
                     callId = "callId_${inntektsmelding.id}",
                     kanal = dokarkivKanal,
+                    overstyrInnsynsregler = InnsynsRegler.VISES_MASKINELT_GODKJENT,
                 )
             }
 

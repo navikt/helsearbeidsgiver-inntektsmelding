@@ -2,8 +2,8 @@ kafkaPool: nav-dev
 entraIdEnabled: true
 env:
 - name: DOKARKIV_SCOPE
-  value: "api://dev-fss.teamdokumenthandtering.dokarkiv/.default"
+  value: "api://dev-fss.teamdokumenthandtering.dokarkiv-q1/.default"
 - name: DOKARKIV_URL
-  value: "https://dokarkiv-q2.dev-fss-pub.nais.io/rest/journalpostapi/v1"
+  value: "https://dokarkiv.dev-fss-pub.nais.io/rest/journalpostapi/v1"
 externalHosts:
-  - dokarkiv-q2.dev-fss-pub.nais.io
+  - dokarkiv.dev-fss-pub.nais.io

@@ -34,7 +34,7 @@ data class Melding(
     val data: Map<Key, JsonElement>,
     val svarKafkaKey: KafkaKey,
     val orgnr: Orgnr,
-    val fnr: Fnr,
+    val sykmeldtFnr: Fnr,
     val eldsteFom: LocalDate,
 )
 
@@ -57,7 +57,7 @@ class HentSoeknaderRiver(
                 data = data,
                 svarKafkaKey = Key.SVAR_KAFKA_KEY.les(KafkaKey.serializer(), data),
                 orgnr = Key.ORGNR_UNDERENHET.les(Orgnr.serializer(), data),
-                fnr = Key.SYKMELDT_FNR.les(Fnr.serializer(), data),
+                sykmeldtFnr = Key.SYKMELDT_FNR.les(Fnr.serializer(), data),
                 eldsteFom = Key.FRA_OG_MED_DATO.les(LocalDateSerializer, data),
             )
         }
@@ -67,7 +67,7 @@ class HentSoeknaderRiver(
     override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val soeknader =
             runBlocking {
-                soeknadKlient.hentSoeknader(orgnr.verdi, fnr.verdi, eldsteFom)
+                soeknadKlient.hentSoeknader(orgnr.verdi, sykmeldtFnr.verdi, eldsteFom)
             }
 
         return mapOf(

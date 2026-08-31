@@ -32,6 +32,7 @@ import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.DokumentVariant
 import no.nav.helsearbeidsgiver.dokarkiv.domene.GjelderPerson
+import no.nav.helsearbeidsgiver.dokarkiv.domene.InnsynsRegler
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Kanal
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
@@ -75,7 +76,7 @@ class JournalfoerImRiverTest :
                 val innkommendeMelding = Mock.innkommendeMelding(innkommendeEvent, inntektsmelding)
 
                 coEvery {
-                    mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
+                    mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any(), any())
                 } returns Mock.opprettOgFerdigstillResponse(journalpostId)
 
                 testRapid.sendJson(innkommendeMelding.toMap())
@@ -108,6 +109,7 @@ class JournalfoerImRiverTest :
                         eksternReferanseId = "ARI-${innkommendeMelding.inntektsmelding.id}",
                         callId = "callId_${innkommendeMelding.inntektsmelding.id}",
                         kanal = Kanal.NAV_NO,
+                        overstyrInnsynsregler = InnsynsRegler.VISES_MASKINELT_GODKJENT,
                     )
                 }
             }
@@ -120,7 +122,7 @@ class JournalfoerImRiverTest :
             val innkommendeMelding = Mock.innkommendeMelding(innkommendeEvent, inntektsmelding)
 
             coEvery {
-                mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
+                mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any(), any())
             } returns Mock.opprettOgFerdigstillResponse(journalpostId)
 
             testRapid.sendJson(innkommendeMelding.toMap())
@@ -153,13 +155,14 @@ class JournalfoerImRiverTest :
                     eksternReferanseId = "ARI-${innkommendeMelding.inntektsmelding.id}",
                     callId = "callId_${innkommendeMelding.inntektsmelding.id}",
                     kanal = Kanal.HR_SYSTEM_API,
+                    overstyrInnsynsregler = InnsynsRegler.VISES_MASKINELT_GODKJENT,
                 )
             }
         }
 
         test("håndterer klientfeil") {
             coEvery {
-                mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
+                mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any(), any())
             } throws RuntimeException("dette går itj', nei!")
 
             val innkommendeMelding = Mock.innkommendeMelding(EventName.INNTEKTSMELDING_MOTTATT, Mock.inntektsmelding)
@@ -180,7 +183,7 @@ class JournalfoerImRiverTest :
             testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
 
             coVerifySequence {
-                mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
+                mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any(), any())
             }
         }
 
@@ -196,7 +199,7 @@ class JournalfoerImRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 coVerify(exactly = 0) {
-                    mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
+                    mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any(), any())
                 }
             }
 
@@ -218,7 +221,7 @@ class JournalfoerImRiverTest :
                 testRapid.inspektør.size shouldBeExactly 0
 
                 coVerify(exactly = 0) {
-                    mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
+                    mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any(), any())
                 }
             }
         }

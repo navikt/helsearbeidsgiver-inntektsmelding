@@ -23,6 +23,7 @@ val apps =
         "pdl",
         "selvbestemt-hent-im-service",
         "selvbestemt-lagre-im-service",
+        "soeknad",
         "tilgangservice",
         "trengerservice",
     )

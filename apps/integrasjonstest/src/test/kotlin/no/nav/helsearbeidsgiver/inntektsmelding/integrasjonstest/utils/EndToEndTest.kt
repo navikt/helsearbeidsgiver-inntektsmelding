@@ -52,6 +52,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonS
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createHentPersonerRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.selvbestemthentimservice.createHentSelvbestemtImService
 import no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice.createLagreSelvbestemtImService
+import no.nav.helsearbeidsgiver.inntektsmelding.soeknad.createHentSoeknaderRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.soeknad.klient.SoeknadKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.createTilgangServices
 import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createHentForespoerselServices
 import no.nav.helsearbeidsgiver.pdl.PdlClient
@@ -165,6 +167,7 @@ abstract class EndToEndTest : ContainerTest() {
     val brregClient = mockk<BrregClient>(relaxed = true)
     val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
     val inntektClient = mockk<InntektKlient>(relaxed = true)
+    val soeknadKlient = mockk<SoeknadKlient>(relaxed = true)
 
     @BeforeEach
     fun beforeEachEndToEnd() {
@@ -213,6 +216,7 @@ abstract class EndToEndTest : ContainerTest() {
                 createHentInntektRiver(inntektClient),
                 createHentOrganisasjonNavnRiver(brregClient, false),
                 createHentPersonerRiver(pdlKlient),
+                createHentSoeknaderRiver(soeknadKlient),
                 createJournalfoerImRiver(dokarkivClient),
                 createNotifikasjonRivers("notifikasjonLink", "P28D", agNotifikasjonKlient),
                 // Feilbehandler

@@ -7,7 +7,7 @@ import io.mockk.coEvery
 import io.mockk.slot
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
-import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.ForespoerselFraBro
+import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.test.mockForespoerselFraBro
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespurtData
 import no.nav.hag.simba.kontrakt.kafkatopic.innsending.Innsending.toJson
@@ -329,17 +329,8 @@ class ValiderApiInnsendingServiceIT : EndToEndTest() {
             )
 
         val forespoerselSvar =
-            ForespoerselFraBro(
-                orgnr = forespoersel.orgnr,
-                fnr = forespoersel.fnr,
+            mockForespoerselFraBro(forespoersel).copy(
                 forespoerselId = forespoerselId,
-                vedtaksperiodeId = forespoersel.vedtaksperiodeId,
-                egenmeldingsperioder = forespoersel.egenmeldingsperioder,
-                sykmeldingsperioder = forespoersel.sykmeldingsperioder,
-                bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager,
-                forespurtData = mockForespurtData(),
-                erBesvart = false,
-                erBegrenset = false,
             )
     }
 }

@@ -5,8 +5,8 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
 import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.ForespoerselFraBro
+import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.test.mockForespoerselFraBro
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
-import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespurtData
 import no.nav.hag.simba.kontrakt.kafkatopic.pri.Pri
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
@@ -16,15 +16,11 @@ import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.orgMapSerializer
 import no.nav.hag.simba.utils.felles.json.personMapSerializer
 import no.nav.hag.simba.utils.felles.json.toMap
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.date.januar
-import no.nav.helsearbeidsgiver.utils.test.date.mars
-import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.Test
@@ -130,19 +126,7 @@ class ForespoerselMottattIT : EndToEndTest() {
 
     private object Mock {
         const val SKAL_HA_PAAMINNELSE = false
-        val forespoersel =
-            ForespoerselFraBro(
-                orgnr = Orgnr.genererGyldig(),
-                fnr = Fnr.genererGyldig(),
-                forespoerselId = UUID.randomUUID(),
-                vedtaksperiodeId = UUID.randomUUID(),
-                sykmeldingsperioder = listOf(23.januar til 15.mars),
-                egenmeldingsperioder = emptyList(),
-                bestemmendeFravaersdager = emptyMap(),
-                forespurtData = mockForespurtData(),
-                erBesvart = false,
-                erBegrenset = false,
-            )
+        val forespoersel = mockForespoerselFraBro()
         val sakId = UUID.randomUUID().toString()
         val oppgaveId = UUID.randomUUID().toString()
     }

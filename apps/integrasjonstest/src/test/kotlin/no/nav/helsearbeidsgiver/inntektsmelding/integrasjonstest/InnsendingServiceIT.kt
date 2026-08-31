@@ -6,9 +6,8 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.ForespoerselFraBro
+import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.test.mockForespoerselFraBro
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
-import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespurtData
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.json.lesOrNull
@@ -35,7 +34,6 @@ import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import no.nav.helsearbeidsgiver.utils.test.date.september
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -178,17 +176,13 @@ class InnsendingServiceIT : EndToEndTest() {
 
     private object Mock {
         val skjema = mockSkjemaInntektsmelding()
-
         val orgnr = Orgnr.genererGyldig()
-        val vedtaksperiodeId: UUID = UUID.randomUUID()
         val mottatt = 6.september.kl(22, 18, 0, 0)
 
         val forespoerselSvar =
-            ForespoerselFraBro(
+            mockForespoerselFraBro().copy(
                 orgnr = orgnr,
-                fnr = Fnr.genererGyldig(),
                 forespoerselId = skjema.forespoerselId,
-                vedtaksperiodeId = vedtaksperiodeId,
                 sykmeldingsperioder =
                     listOf(
                         3.mars til 13.mars,
@@ -200,9 +194,6 @@ class InnsendingServiceIT : EndToEndTest() {
                         1.mars til 1.mars,
                     ),
                 bestemmendeFravaersdager = mapOf(orgnr to 17.mars),
-                forespurtData = mockForespurtData(),
-                erBesvart = false,
-                erBegrenset = false,
             )
     }
 }

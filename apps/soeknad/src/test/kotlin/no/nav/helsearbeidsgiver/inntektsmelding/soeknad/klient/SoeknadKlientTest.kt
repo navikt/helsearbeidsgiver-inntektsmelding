@@ -10,6 +10,8 @@ import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ServerResponseException
 import io.ktor.http.HttpStatusCode
 import no.nav.hag.simba.kontrakt.domene.soeknad.Soeknad
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.utils.tilDager
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
@@ -32,7 +34,7 @@ class SoeknadKlientTest :
             val soeknader =
                 klient.hentSoeknader(
                     orgnr = Orgnr.genererGyldig().verdi,
-                    fnr = Fnr.genererGyldig().verdi,
+                    sykmeldtFnr = Fnr.genererGyldig().verdi,
                     eldsteFom = 1.april,
                 )
 
@@ -52,7 +54,7 @@ class SoeknadKlientTest :
                 shouldThrowExactly<ClientRequestException> {
                     klient.hentSoeknader(
                         orgnr = Orgnr.genererGyldig().verdi,
-                        fnr = Fnr.genererGyldig().verdi,
+                        sykmeldtFnr = Fnr.genererGyldig().verdi,
                         eldsteFom = 13.mai,
                     )
                 }
@@ -76,7 +78,7 @@ class SoeknadKlientTest :
                 shouldNotThrowAny {
                     klient.hentSoeknader(
                         orgnr = Orgnr.genererGyldig().verdi,
-                        fnr = Fnr.genererGyldig().verdi,
+                        sykmeldtFnr = Fnr.genererGyldig().verdi,
                         eldsteFom = 13.mai,
                     )
                 }
@@ -95,7 +97,7 @@ class SoeknadKlientTest :
                     shouldThrowExactly<ServerResponseException> {
                         klient.hentSoeknader(
                             orgnr = Orgnr.genererGyldig().verdi,
-                            fnr = Fnr.genererGyldig().verdi,
+                            sykmeldtFnr = Fnr.genererGyldig().verdi,
                             eldsteFom = 13.mai,
                         )
                     }
@@ -116,7 +118,7 @@ class SoeknadKlientTest :
                 shouldNotThrowAny {
                     klient.hentSoeknader(
                         orgnr = Orgnr.genererGyldig().verdi,
-                        fnr = Fnr.genererGyldig().verdi,
+                        sykmeldtFnr = Fnr.genererGyldig().verdi,
                         eldsteFom = 13.mai,
                     )
                 }
@@ -129,38 +131,30 @@ private object Mock {
         Soeknad.Arbeidstaker(
             soeknadId = UUID.randomUUID(),
             vedtaksperiodeId = UUID.randomUUID(),
-            sykmeldingId = UUID.randomUUID(),
-            fom = 3.mars,
-            tom = 24.mars,
+            sykmeldingsperiode = 5.mars til 24.mars,
+            egenmeldingerFraSykmelding = listOf(3.mars til 4.mars),
             erGradert = false,
-            egenmeldingerFraSykmelding = setOf(3.mars, 4.mars),
         )
     val soeknadArbeidstakerGradert =
         Soeknad.Arbeidstaker(
             soeknadId = UUID.randomUUID(),
             vedtaksperiodeId = UUID.randomUUID(),
-            sykmeldingId = UUID.randomUUID(),
-            fom = 1.april,
-            tom = 21.april,
+            sykmeldingsperiode = 1.april til 21.april,
+            egenmeldingerFraSykmelding = emptyList(),
             erGradert = true,
-            egenmeldingerFraSykmelding = emptySet(),
         )
     val soeknadArbeidstakerGradertFraArbeid =
         Soeknad.Arbeidstaker(
             soeknadId = UUID.randomUUID(),
             vedtaksperiodeId = UUID.randomUUID(),
-            sykmeldingId = UUID.randomUUID(),
-            fom = 6.mai,
-            tom = 28.mai,
+            sykmeldingsperiode = 7.mai til 28.mai,
+            egenmeldingerFraSykmelding = listOf(6.mai til 6.mai),
             erGradert = true,
-            egenmeldingerFraSykmelding = setOf(6.mai),
         )
     val soeknadBehandlingsdager =
         Soeknad.Behandlingsdager(
             soeknadId = UUID.randomUUID(),
-            sykmeldingId = UUID.randomUUID(),
-            fom = 2.juli,
-            tom = 21.juli,
+            sykmeldingsperiode = 3.juli til 21.juli,
             behandlingsdager =
                 setOf(
                     4.juli,
@@ -181,12 +175,11 @@ private object Mock {
                 HentSoeknaderResponse(
                     sykepengesoknadUuid = it.soeknadId.toString(),
                     vedtaksperiodeId = it.vedtaksperiodeId.toString(),
-                    sykmeldingId = it.sykmeldingId.toString(),
-                    fom = it.fom,
-                    tom = it.tom,
+                    fom = it.sykmeldingsperiode.fom,
+                    tom = it.sykmeldingsperiode.tom,
                     soknadstype = HentSoeknaderResponse.Soeknadstype.ARBEIDSTAKERE,
                     soknadsperioder = listOf(sykmeldingsgrad100),
-                    egenmeldingsdagerFraSykmelding = it.egenmeldingerFraSykmelding.toList(),
+                    egenmeldingsdagerFraSykmelding = it.egenmeldingerFraSykmelding.tilDager().sorted(),
                     behandlingsdager = emptyList(),
                 )
             },
@@ -195,9 +188,8 @@ private object Mock {
                 HentSoeknaderResponse(
                     sykepengesoknadUuid = it.soeknadId.toString(),
                     vedtaksperiodeId = it.vedtaksperiodeId.toString(),
-                    sykmeldingId = it.sykmeldingId.toString(),
-                    fom = it.fom,
-                    tom = it.tom,
+                    fom = it.sykmeldingsperiode.fom,
+                    tom = it.sykmeldingsperiode.tom,
                     soknadstype = HentSoeknaderResponse.Soeknadstype.ARBEIDSTAKERE,
                     soknadsperioder =
                         listOf(
@@ -208,7 +200,7 @@ private object Mock {
                             ),
                             sykmeldingsgrad100,
                         ),
-                    egenmeldingsdagerFraSykmelding = it.egenmeldingerFraSykmelding.toList(),
+                    egenmeldingsdagerFraSykmelding = it.egenmeldingerFraSykmelding.tilDager().sorted(),
                     behandlingsdager = emptyList(),
                 )
             },
@@ -217,9 +209,8 @@ private object Mock {
                 HentSoeknaderResponse(
                     sykepengesoknadUuid = it.soeknadId.toString(),
                     vedtaksperiodeId = it.vedtaksperiodeId.toString(),
-                    sykmeldingId = it.sykmeldingId.toString(),
-                    fom = it.fom,
-                    tom = it.tom,
+                    fom = it.sykmeldingsperiode.fom,
+                    tom = it.sykmeldingsperiode.tom,
                     soknadstype = HentSoeknaderResponse.Soeknadstype.ARBEIDSTAKERE,
                     soknadsperioder =
                         listOf(
@@ -230,7 +221,7 @@ private object Mock {
                             ),
                             sykmeldingsgrad100,
                         ),
-                    egenmeldingsdagerFraSykmelding = it.egenmeldingerFraSykmelding.toList(),
+                    egenmeldingsdagerFraSykmelding = it.egenmeldingerFraSykmelding.tilDager().sorted(),
                     behandlingsdager = emptyList(),
                 )
             },
@@ -238,7 +229,6 @@ private object Mock {
             HentSoeknaderResponse(
                 sykepengesoknadUuid = UUID.randomUUID().toString(),
                 vedtaksperiodeId = null,
-                sykmeldingId = UUID.randomUUID().toString(),
                 fom = 12.juni,
                 tom = 24.juni,
                 soknadstype = HentSoeknaderResponse.Soeknadstype.ARBEIDSTAKERE,
@@ -251,9 +241,8 @@ private object Mock {
                 HentSoeknaderResponse(
                     sykepengesoknadUuid = it.soeknadId.toString(),
                     vedtaksperiodeId = null,
-                    sykmeldingId = it.sykmeldingId.toString(),
-                    fom = it.fom,
-                    tom = it.tom,
+                    fom = it.sykmeldingsperiode.fom,
+                    tom = it.sykmeldingsperiode.tom,
                     soknadstype = HentSoeknaderResponse.Soeknadstype.BEHANDLINGSDAGER,
                     soknadsperioder = listOf(sykmeldingsgrad100),
                     egenmeldingsdagerFraSykmelding = listOf(2.juli),
@@ -264,8 +253,7 @@ private object Mock {
             HentSoeknaderResponse(
                 sykepengesoknadUuid = UUID.randomUUID().toString(),
                 vedtaksperiodeId = null,
-                sykmeldingId = UUID.randomUUID().toString(),
-                fom = 4.august,
+                fom = 5.august,
                 tom = 31.august,
                 soknadstype = HentSoeknaderResponse.Soeknadstype.BEHANDLINGSDAGER,
                 soknadsperioder = listOf(sykmeldingsgrad100),

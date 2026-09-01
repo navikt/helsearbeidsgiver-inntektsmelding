@@ -25,6 +25,7 @@ import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.soeknad.Mock.toMap
 import no.nav.helsearbeidsgiver.inntektsmelding.soeknad.klient.SoeknadKlient
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
@@ -58,10 +59,9 @@ class HentSoeknaderRiverTest :
                     mockSoeknadArbeidstaker(),
                     mockSoeknadBehandlingsdager(),
                     mockSoeknadArbeidstaker().copy(
-                        fom = 14.desember,
-                        tom = 25.desember,
+                        sykmeldingsperiode = 14.desember til 25.desember,
+                        egenmeldingerFraSykmelding = emptyList(),
                         erGradert = true,
-                        egenmeldingerFraSykmelding = emptySet(),
                     ),
                 )
 
@@ -86,7 +86,7 @@ class HentSoeknaderRiverTest :
             coVerifySequence {
                 mockSoeknadKlient.hentSoeknader(
                     orgnr = innkommendeMelding.orgnr.verdi,
-                    fnr = innkommendeMelding.fnr.verdi,
+                    sykmeldtFnr = innkommendeMelding.sykmeldtFnr.verdi,
                     eldsteFom = innkommendeMelding.eldsteFom,
                 )
             }
@@ -113,7 +113,7 @@ class HentSoeknaderRiverTest :
             coVerifySequence {
                 mockSoeknadKlient.hentSoeknader(
                     orgnr = innkommendeMelding.orgnr.verdi,
-                    fnr = innkommendeMelding.fnr.verdi,
+                    sykmeldtFnr = innkommendeMelding.sykmeldtFnr.verdi,
                     eldsteFom = innkommendeMelding.eldsteFom,
                 )
             }
@@ -145,9 +145,9 @@ class HentSoeknaderRiverTest :
 private object Mock {
     fun innkommendeMelding(): Melding {
         val orgnr = Orgnr.genererGyldig()
-        val fnr = Fnr.genererGyldig()
+        val sykmeldtFnr = Fnr.genererGyldig()
         val eldsteFom = 7.september
-        val svarKafkaKey = KafkaKey(fnr)
+        val svarKafkaKey = KafkaKey(sykmeldtFnr)
 
         return Melding(
             eventName = EventName.SERVICE_HENT_FORESPOERSEL_LISTE,
@@ -157,12 +157,12 @@ private object Mock {
                 mapOf(
                     Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
                     Key.ORGNR_UNDERENHET to orgnr.toJson(),
-                    Key.SYKMELDT_FNR to fnr.toJson(),
+                    Key.SYKMELDT_FNR to sykmeldtFnr.toJson(),
                     Key.FRA_OG_MED_DATO to eldsteFom.toJson(),
                 ),
             svarKafkaKey = svarKafkaKey,
             orgnr = orgnr,
-            fnr = fnr,
+            sykmeldtFnr = sykmeldtFnr,
             eldsteFom = eldsteFom,
         )
     }

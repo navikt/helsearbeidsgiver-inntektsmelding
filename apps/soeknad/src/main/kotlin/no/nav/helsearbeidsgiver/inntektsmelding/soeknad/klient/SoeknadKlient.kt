@@ -28,7 +28,7 @@ class SoeknadKlient(
 
     suspend fun hentSoeknader(
         orgnr: String,
-        fnr: String,
+        sykmeldtFnr: String,
         eldsteFom: LocalDate,
     ): List<Soeknad> {
         "Henter søknader siden '$eldsteFom' fra Flex.".also {
@@ -37,10 +37,10 @@ class SoeknadKlient(
         }
 
         val soeknader =
-            cache.getOrPut("$orgnr|$fnr|$eldsteFom") {
+            cache.getOrPut("$orgnr|$sykmeldtFnr|$eldsteFom") {
                 hentSoeknaderFraFlex(
                     orgnr = orgnr,
-                    fnr = fnr,
+                    fnr = sykmeldtFnr,
                     eldsteFom = eldsteFom,
                 ).mapNotNull {
                     val soeknad = tilSoeknad(it)
@@ -49,7 +49,7 @@ class SoeknadKlient(
                         sikkerLogger.warn("Søknad uten ønskede verdier:\n${it.toJson(HentSoeknaderResponse.serializer()).toPretty()}")
                     }
                     soeknad
-                }.sortedBy { it.fom }
+                }.sortedBy { it.sykmeldingsperiode.fom }
             }
 
         "Hentet ${soeknader.size} søknader siden '$eldsteFom' fra Flex.".also {

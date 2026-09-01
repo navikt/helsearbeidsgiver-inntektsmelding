@@ -18,7 +18,6 @@ internal data class HentSoeknaderRequest(
 internal data class HentSoeknaderResponse(
     val sykepengesoknadUuid: String,
     val vedtaksperiodeId: String?,
-    val sykmeldingId: String,
     val fom: LocalDate,
     val tom: LocalDate,
     val soknadstype: Soeknadstype,

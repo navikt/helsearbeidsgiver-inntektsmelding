@@ -533,6 +533,10 @@ class LagreSelvbestemtImServiceTest :
             }
 
             testRapid.inspektør.size shouldBeExactly 4
+            testRapid.message(3).toMap().also {
+                Key.BEHOV.lesOrNull(BehovType.serializer(), it) shouldBe BehovType.LAGRE_SELVBESTEMT_IM
+                it.lesInntektsmelding().shouldBeEqualToIgnoringFields(inntektsmelding, Inntektsmelding::id, Inntektsmelding::type)
+            }
         }
     })
 

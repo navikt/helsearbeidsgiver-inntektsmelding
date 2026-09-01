@@ -10,6 +10,7 @@ import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.json.krev
 import no.nav.hag.simba.utils.felles.json.les
+import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.utils.Log
@@ -27,6 +28,7 @@ data class VedtaksperiodeIdForespoerselSvarMelding(
     val behovType: Pri.BehovType,
     val kontekstId: UUID,
     val data: Map<Key, JsonElement>,
+    val svarKafkaKey: KafkaKey?,
     val forespoerselSvar: ForespoerselListeSvar,
 )
 
@@ -37,18 +39,20 @@ class VedtaksperiodeIdForespoerselSvarRiver : ObjectRiver.PriTopic<Vedtaksperiod
     override fun les(json: Map<Pri.Key, JsonElement>): VedtaksperiodeIdForespoerselSvarMelding {
         val forespoerselSvar = Pri.Key.LOESNING.les(ForespoerselListeSvar.serializer(), json)
         val boomerang = forespoerselSvar.boomerang.toMap()
+        val data = boomerang[Key.DATA]?.toMap().orEmpty()
 
         return VedtaksperiodeIdForespoerselSvarMelding(
             eventName = Key.EVENT_NAME.les(EventName.serializer(), boomerang),
             behovType = Pri.Key.BEHOV.krev(Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE, Pri.BehovType.serializer(), json),
             kontekstId = Key.KONTEKST_ID.les(UuidSerializer, boomerang),
-            data = boomerang[Key.DATA]?.toMap().orEmpty(),
+            data = data,
+            svarKafkaKey = Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), data),
             forespoerselSvar = forespoerselSvar,
         )
     }
 
     // Vi har ingen gode alternativer til Kafka-nøkkel, men det er heller ikke nøye her, så det holder med en tilfeldig verdi
-    override fun VedtaksperiodeIdForespoerselSvarMelding.bestemNoekkel(): KafkaKey = KafkaKey(UUID.randomUUID())
+    override fun VedtaksperiodeIdForespoerselSvarMelding.bestemNoekkel(): KafkaKey = svarKafkaKey ?: KafkaKey(UUID.randomUUID())
 
     override fun VedtaksperiodeIdForespoerselSvarMelding.haandter(json: Map<Pri.Key, JsonElement>): Map<Key, JsonElement> {
         logger.info("Mottok løsning på pri-topic om $behovType.")

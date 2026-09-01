@@ -45,6 +45,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.FlereArbeidsforhold
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RefusjonEndring
@@ -464,6 +465,75 @@ class LagreSelvbestemtImServiceTest :
                 )
             }
         }
+
+        test("stopp flyt hvis agp går utover ansettelsesforhold") {
+            val kontekstId = UUID.randomUUID()
+            val inntektsmelding = Mock.inntektsmelding
+
+            testRapid.sendJson(
+                Mock.steg0(kontekstId),
+            )
+
+            mockStatic(OffsetDateTime::class) {
+                every { OffsetDateTime.now() } returns inntektsmelding.mottatt
+
+                testRapid.sendJson(
+                    Mock
+                        .steg1(kontekstId)
+                        .plusData(
+                            Key.ANSETTELSESPERIODER to
+                                Mock
+                                    .lagAnsettelsesperioderSomSlutterFoerAgp(
+                                        Mock.skjema.avsender.orgnr,
+                                        Mock.skjema.agp
+                                            ?.perioder
+                                            ?.first()!!,
+                                    ).toJson(ansettelsesperioderSerializer),
+                        ),
+                )
+            }
+
+            testRapid.inspektør.size shouldBeExactly 3
+
+            verify {
+                mockRedis.store.skrivResultat(
+                    kontekstId,
+                    ResultJson(
+                        failure = "Mangler arbeidsforhold i perioden".toJson(),
+                    ),
+                )
+            }
+        }
+
+        test("tillat agp innenfor aktivt arbeidsforhold") {
+            val kontekstId = UUID.randomUUID()
+            val inntektsmelding = Mock.inntektsmelding
+
+            testRapid.sendJson(
+                Mock.steg0(kontekstId),
+            )
+
+            mockStatic(OffsetDateTime::class) {
+                every { OffsetDateTime.now() } returns inntektsmelding.mottatt
+
+                testRapid.sendJson(
+                    Mock
+                        .steg1(kontekstId)
+                        .plusData(
+                            Key.ANSETTELSESPERIODER to
+                                Mock
+                                    .lagAnsettelsesperioderLikAgp(
+                                        Mock.skjema.avsender.orgnr,
+                                        Mock.skjema.agp
+                                            ?.perioder
+                                            ?.first()!!,
+                                    ).toJson(ansettelsesperioderSerializer),
+                        ),
+                )
+            }
+
+            testRapid.inspektør.size shouldBeExactly 4
+        }
     })
 
 private fun ArbeidsforholdType.skalHaArbeidsforhold(): Boolean =
@@ -624,4 +694,14 @@ private object Mock {
                     ),
                 ),
         )
+
+    fun lagAnsettelsesperioderLikAgp(
+        orgnr: Orgnr,
+        agpPeriode: Periode,
+    ): Map<Orgnr, Set<PeriodeAapen>> = mapOf(orgnr to setOf(PeriodeAapen(agpPeriode.fom, agpPeriode.tom)))
+
+    fun lagAnsettelsesperioderSomSlutterFoerAgp(
+        orgnr: Orgnr,
+        agpPeriode: Periode,
+    ): Map<Orgnr, Set<PeriodeAapen>> = mapOf(orgnr to setOf(PeriodeAapen(agpPeriode.fom, agpPeriode.tom.minusDays(1))))
 }

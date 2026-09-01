@@ -188,19 +188,17 @@ class LagreSelvbestemtImService(
                     mottatt = steg0.mottatt,
                 )
 
-            val sykeperioder =
+            val agp =
                 steg0.skjema.agp
                     ?.perioder
                     .orEmpty()
-                    .plus(steg0.skjema.sykmeldingsperioder)
-
             val ansettelsesperioderForAktuellOrg = steg1.ansettelsesperioder[steg0.skjema.avsender.orgnr].orEmpty()
 
-            val erAktivtArbeidsforhold = sykeperioder.aktivtArbeidsforholdIPeriode(ansettelsesperioderForAktuellOrg)
+            val erAktivtArbeidsforhold = agp.aktivtArbeidsforholdIPeriode(ansettelsesperioderForAktuellOrg)
 
             val harIngenArbeidsforhold = inntektsmelding.type is Inntektsmelding.Type.Fisker || inntektsmelding.type is Inntektsmelding.Type.UtenArbeidsforhold
 
-            if (erAktivtArbeidsforhold || harIngenArbeidsforhold) {
+            if (erAktivtArbeidsforhold || harIngenArbeidsforhold || agp.isEmpty()) {
                 publisher
                     .publish(
                         key = inntektsmelding.type.id,

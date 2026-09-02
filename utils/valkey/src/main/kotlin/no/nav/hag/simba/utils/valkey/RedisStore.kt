@@ -108,6 +108,7 @@ enum class RedisPrefix {
     HentArbeidsforhold,
     HentArbeidsforholdSelvbestemt,
     HentForespoersel,
+    HentSoeknader,
     HentForespoerslerForVedtaksperiodeIdListe,
     HentSelvbestemtIm,
     Innsending,

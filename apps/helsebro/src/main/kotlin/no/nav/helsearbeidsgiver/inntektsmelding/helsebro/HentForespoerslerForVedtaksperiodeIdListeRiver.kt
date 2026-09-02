@@ -8,6 +8,7 @@ import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.json.krev
 import no.nav.hag.simba.utils.felles.json.les
+import no.nav.hag.simba.utils.felles.json.lesOrNull
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.utils.Log
@@ -26,6 +27,7 @@ data class HentForespoerslerForVedtaksperiodeIdListeMelding(
     val behovType: BehovType,
     val kontekstId: UUID,
     val data: Map<Key, JsonElement>,
+    val svarKafkaKey: KafkaKey?,
     val vedtaksperiodeIdListe: List<UUID>,
 )
 
@@ -46,12 +48,13 @@ class HentForespoerslerForVedtaksperiodeIdListeRiver(
                 behovType = Key.BEHOV.krev(BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE, BehovType.serializer(), json),
                 kontekstId = Key.KONTEKST_ID.les(UuidSerializer, json),
                 data = data,
+                svarKafkaKey = Key.SVAR_KAFKA_KEY.lesOrNull(KafkaKey.serializer(), data),
                 vedtaksperiodeIdListe = Key.VEDTAKSPERIODE_ID_LISTE.les(UuidSerializer.list(), data),
             )
         }
 
     // Vi har ingen gode alternativer til Kafka-nøkkel, men det er heller ikke nøye her, så det holder med en tilfeldig verdi
-    override fun HentForespoerslerForVedtaksperiodeIdListeMelding.bestemNoekkel(): KafkaKey = KafkaKey(UUID.randomUUID())
+    override fun HentForespoerslerForVedtaksperiodeIdListeMelding.bestemNoekkel(): KafkaKey = svarKafkaKey ?: KafkaKey(UUID.randomUUID())
 
     override fun HentForespoerslerForVedtaksperiodeIdListeMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         producer

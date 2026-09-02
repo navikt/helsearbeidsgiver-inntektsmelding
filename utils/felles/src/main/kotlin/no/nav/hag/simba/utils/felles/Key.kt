@@ -17,6 +17,7 @@ enum class Key : IKey {
     ARBEIDSGIVER_FNR,
     AVSENDER_NAVN,
     DATA,
+    ER_BEHANDLINGSDAGER,
     ER_DUPLIKAT_IM,
     FAIL,
     FNR,

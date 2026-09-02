@@ -85,9 +85,9 @@ spec:
         {{#if database.logicalDecoding}}
           - name: cloudsql.logical_decoding
             value: "on"
+          - name: pgaudit.log_relation
+            value: "on"
         {{/if}}
-        - name: pgaudit.log_relation
-          value: "on"
   {{/if}}
   {{#if envFrom}}
   envFrom:

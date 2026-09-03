@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":kontrakt-resultat-forespoersel"))
     implementation(project(":kontrakt-resultat-kvittering"))
     implementation(project(":kontrakt-resultat-lagre-im"))
+    implementation(project(":kontrakt-resultat-soeknad"))
     implementation(project(":kontrakt-resultat-tilgang"))
     implementation(project(":utils-kafka"))
     implementation(project(":utils-valkey"))
@@ -35,6 +36,7 @@ dependencies {
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:$logbackEncoderVersion")
 
     testImplementation(testFixtures(project(":kontrakt-domene-forespoersel")))
+    testImplementation(testFixtures(project(":kontrakt-domene-soeknad")))
     testImplementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     testImplementation("io.ktor:ktor-client-core:$ktorVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")

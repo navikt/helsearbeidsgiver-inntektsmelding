@@ -11,6 +11,7 @@ import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 
+/** Brukes til å teste en stateful service river. */
 class MockRedis(
     keyPrefix: RedisPrefix,
 ) {

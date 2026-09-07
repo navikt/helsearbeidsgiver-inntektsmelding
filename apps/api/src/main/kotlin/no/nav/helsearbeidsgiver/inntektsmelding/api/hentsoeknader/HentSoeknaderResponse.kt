@@ -36,11 +36,13 @@ data class ForespoerselResponse(
 
 @Serializable
 data class SoeknadArbeidstakerResponse(
+    val vedtaksperiodeId: UUID,
     val sykmeldingsperiode: Periode,
     val egenmeldingsperioder: List<Periode>,
     val erGradert: Boolean,
 ) {
     constructor(soeknad: Soeknad.Arbeidstaker) : this(
+        vedtaksperiodeId = soeknad.vedtaksperiodeId,
         sykmeldingsperiode = soeknad.sykmeldingsperiode,
         egenmeldingsperioder = soeknad.egenmeldingerFraSykmelding,
         erGradert = soeknad.erGradert,

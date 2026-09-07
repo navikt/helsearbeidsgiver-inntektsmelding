@@ -297,6 +297,7 @@ private fun ForespoerselResponse.hardcodedJson(): String =
 private fun SoeknadArbeidstakerResponse.hardcodedJson(): String =
     """
     {
+        "vedtaksperiodeId": "$vedtaksperiodeId",
         "sykmeldingsperiode": ${sykmeldingsperiode.hardcodedJson()},
         "egenmeldingsperioder": [${egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
         "erGradert": $erGradert

@@ -24,6 +24,7 @@ val apps =
         "selvbestemt-hent-im-service",
         "selvbestemt-lagre-im-service",
         "soeknad",
+        "soeknad-service",
         "tilgangservice",
         "trengerservice",
     )
@@ -61,7 +62,9 @@ dependencies {
     testImplementation(project(":kontrakt-domene-bro-forespoersel"))
     testImplementation(project(":kontrakt-domene-forespoersel"))
     testImplementation(project(":kontrakt-domene-inntektsmelding"))
+    testImplementation(project(":kontrakt-domene-soeknad"))
     testImplementation(project(":kontrakt-resultat-forespoersel"))
+    testImplementation(project(":kontrakt-resultat-soeknad"))
     testImplementation(project(":kontrakt-resultat-tilgang"))
     testImplementation(project(":utils-db-exposed"))
     testImplementation(project(":utils-kafka"))
@@ -70,6 +73,7 @@ dependencies {
     testImplementation(testFixtures(project(":kontrakt-domene-bro-forespoersel")))
     testImplementation(testFixtures(project(":kontrakt-domene-forespoersel")))
     testImplementation(testFixtures(project(":kontrakt-domene-inntektsmelding")))
+    testImplementation(testFixtures(project(":kontrakt-domene-soeknad")))
     testImplementation(testFixtures(project(":utils-db-exposed")))
     testImplementation(testFixtures(project(":utils-kafka")))
     testImplementation(testFixtures(project(":utils-rapids-and-rivers")))

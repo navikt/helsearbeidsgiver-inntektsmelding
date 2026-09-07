@@ -54,6 +54,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.selvbestemthentimservice.createH
 import no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice.createLagreSelvbestemtImService
 import no.nav.helsearbeidsgiver.inntektsmelding.soeknad.createHentSoeknaderRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.soeknad.klient.SoeknadKlient
+import no.nav.helsearbeidsgiver.inntektsmelding.soeknadservice.createHentSoeknaderService
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.createTilgangServices
 import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createHentForespoerselServices
 import no.nav.helsearbeidsgiver.pdl.PdlClient
@@ -200,6 +201,7 @@ abstract class EndToEndTest : ContainerTest() {
                 createHentArbeidsforholdServices(it, redisConnection),
                 createHentForespoerselServices(it, redisConnection),
                 createHentSelvbestemtImService(it, redisConnection),
+                createHentSoeknaderService(it, redisConnection),
                 createInnsendingServices(it, redisConnection, producer),
                 createInntektSelvbestemtService(it, redisConnection),
                 createInntektService(it, redisConnection),

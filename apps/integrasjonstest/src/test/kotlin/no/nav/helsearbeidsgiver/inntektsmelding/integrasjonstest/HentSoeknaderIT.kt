@@ -71,12 +71,15 @@ class HentSoeknaderIT : EndToEndTest() {
         }
 
         readSuccess(kontekstId).also {
+            // Den første listen inneholder forespørsler som er tilknyttet søknader. Forespørslene erstatter søknadene.
             it.first shouldContainExactly
                 listOf(
                     forespoersel1.forespoerselId to forespoersel1.toForespoersel(),
                     forespoersel2.forespoerselId to forespoersel2.toForespoersel(),
                 )
+            // Den andre listen inneholder søknader uten tilknyttede forespørsler
             it.second shouldContainExactly listOf(soeknadUtenForespoersel1, soeknadUtenForespoersel2)
+            // Den tredje listen er tom, fordi vi ikke ba om behandlingsdagssøknader
             it.third.shouldBeEmpty()
         }
     }
@@ -109,8 +112,10 @@ class HentSoeknaderIT : EndToEndTest() {
         }
 
         readSuccess(kontekstId).also {
+            // De to første listene er tomme, fordi vi kun ba om behandlingsdagssøknader
             it.first.shouldBeEmpty()
             it.second.shouldBeEmpty()
+            // Den tredje listen inneholder behandlingsdagssøknader
             it.third shouldContainExactly listOf(soeknadBehandlingsdager1, soeknadBehandlingsdager2)
         }
     }
@@ -141,7 +146,7 @@ class HentSoeknaderIT : EndToEndTest() {
     }
 
     @Test
-    fun `svarer med med feil dersom noe går galt`() {
+    fun `svarer med feil dersom noe går galt`() {
         val kontekstId: UUID = UUID.randomUUID()
         val orgnr = Orgnr.genererGyldig()
         val sykmeldtFnr = Fnr.genererGyldig()

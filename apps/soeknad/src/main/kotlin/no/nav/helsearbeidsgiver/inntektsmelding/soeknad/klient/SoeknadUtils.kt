@@ -19,7 +19,7 @@ internal fun tilSoeknad(response: HentSoeknaderResponse): Soeknad? {
     val behandlingsdager = response.behandlingsdager.toSet()
 
     return when (response.soknadstype) {
-        HentSoeknaderResponse.Soeknadstype.ARBEIDSTAKERE -> {
+        HentSoeknaderResponse.SoeknadType.ARBEIDSTAKERE -> {
             if (vedtaksperiodeId == null) {
                 null
             } else {
@@ -37,7 +37,7 @@ internal fun tilSoeknad(response: HentSoeknaderResponse): Soeknad? {
             }
         }
 
-        HentSoeknaderResponse.Soeknadstype.BEHANDLINGSDAGER -> {
+        HentSoeknaderResponse.SoeknadType.BEHANDLINGSDAGER -> {
             if (behandlingsdager.isEmpty()) {
                 null
             } else {

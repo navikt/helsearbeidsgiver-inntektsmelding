@@ -7,5 +7,6 @@ dependencies {
 
     testImplementation(testFixtures(project(":kontrakt-domene-forespoersel")))
     testImplementation(testFixtures(project(":kontrakt-domene-soeknad")))
+    testImplementation(testFixtures(project(":kontrakt-resultat-soeknad")))
     testImplementation(testFixtures(project(":utils-rapids-and-rivers")))
 }

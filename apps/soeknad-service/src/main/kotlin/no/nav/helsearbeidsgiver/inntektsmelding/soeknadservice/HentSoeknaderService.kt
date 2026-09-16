@@ -5,6 +5,8 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.domene.soeknad.Soeknad
+import no.nav.hag.simba.kontrakt.resultat.soeknad.ForespoerselMedId
+import no.nav.hag.simba.kontrakt.resultat.soeknad.SoeknadMedForlengerId
 import no.nav.hag.simba.kontrakt.resultat.soeknad.hentSoeknaderResultatSerializer
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
@@ -19,6 +21,7 @@ import no.nav.hag.simba.utils.rr.Publisher
 import no.nav.hag.simba.utils.rr.service.ServiceMed2Steg
 import no.nav.hag.simba.utils.valkey.RedisStore
 import no.nav.hag.simba.utils.valkey.ResultJson
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.utils.erSammenhengendeIgnorerHelgegap
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -188,16 +191,20 @@ private fun tilKategorier(
     erBehandlingsdager: Boolean,
     soeknader: List<Soeknad>,
     forespoersler: Map<UUID, Forespoersel>,
-): Triple<List<Pair<UUID, Forespoersel>>, List<Soeknad.Arbeidstaker>, List<Soeknad.Behandlingsdager>> =
+): Triple<List<ForespoerselMedId>, List<SoeknadMedForlengerId>, List<Soeknad.Behandlingsdager>> =
     if (!erBehandlingsdager) {
-        val forespoerselPerVid = forespoersler.toList().associateBy { it.second.vedtaksperiodeId }
+        val forespoerselPerVid =
+            forespoersler.entries.associate {
+                it.value.vedtaksperiodeId to ForespoerselMedId(it.key, it.value)
+            }
 
         soeknader
             .filterIsInstance<Soeknad.Arbeidstaker>()
+            .utledForlengelser()
             .fold(
                 Triple(emptyList(), emptyList(), emptyList()),
             ) { delresultat, soeknad ->
-                val forespoerselMedId = forespoerselPerVid[soeknad.vedtaksperiodeId]
+                val forespoerselMedId = forespoerselPerVid[soeknad.soeknad.vedtaksperiodeId]
                 if (forespoerselMedId != null) {
                     delresultat.copy(
                         first = delresultat.first.plus(forespoerselMedId),
@@ -214,4 +221,20 @@ private fun tilKategorier(
             emptyList(),
             soeknader.filterIsInstance<Soeknad.Behandlingsdager>(),
         )
+    }
+
+private fun List<Soeknad.Arbeidstaker>.utledForlengelser(): List<SoeknadMedForlengerId> =
+    fold(emptyList()) { soeknaderMedForlengerId, soeknad ->
+        val forlengerVedtaksperiodeId =
+            soeknaderMedForlengerId
+                .lastOrNull()
+                ?.takeIf { forrige ->
+                    erSammenhengendeIgnorerHelgegap(forrige.soeknad.sykmeldingsperiode, soeknad.sykmeldingsperiode)
+                }?.let { forrige ->
+                    // Vi ønsker ID-en til den første søknaden som ble forlenget
+                    forrige.forlengerVedtaksperiodeId
+                        ?: forrige.soeknad.vedtaksperiodeId
+                }
+
+        soeknaderMedForlengerId + SoeknadMedForlengerId(soeknad, forlengerVedtaksperiodeId)
     }

@@ -7,6 +7,7 @@ dependencies {
     val utilsVersion = project.property("utilsVersion") as String
 
     testFixturesApi("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion")
+    testFixturesApi("no.nav.helsearbeidsgiver:utils:$utilsVersion")
 
     testFixturesImplementation(testFixtures("no.nav.helsearbeidsgiver:utils:$utilsVersion"))
 }

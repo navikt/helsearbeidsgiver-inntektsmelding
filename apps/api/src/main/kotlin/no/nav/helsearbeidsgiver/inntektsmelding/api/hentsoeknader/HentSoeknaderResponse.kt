@@ -4,8 +4,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.hentsoeknader
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
 import no.nav.hag.simba.kontrakt.domene.soeknad.Soeknad
+import no.nav.hag.simba.kontrakt.resultat.soeknad.ForespoerselMedId
+import no.nav.hag.simba.kontrakt.resultat.soeknad.SoeknadMedForlengerId
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -22,15 +23,17 @@ data class HentSoeknaderResponse(
 @Serializable
 data class ForespoerselResponse(
     val forespoerselId: UUID,
+    val vedtaksperiodeId: UUID,
     val sykmeldingsperioder: List<Periode>,
     val egenmeldingsperioder: List<Periode>,
     val erBesvart: Boolean,
 ) {
-    constructor(forespoerselMedId: Pair<UUID, Forespoersel>) : this(
-        forespoerselId = forespoerselMedId.first,
-        sykmeldingsperioder = forespoerselMedId.second.sykmeldingsperioder,
-        egenmeldingsperioder = forespoerselMedId.second.egenmeldingsperioder,
-        erBesvart = forespoerselMedId.second.erBesvart,
+    constructor(forespoerselMedId: ForespoerselMedId) : this(
+        forespoerselId = forespoerselMedId.forespoerselId,
+        vedtaksperiodeId = forespoerselMedId.forespoersel.vedtaksperiodeId,
+        sykmeldingsperioder = forespoerselMedId.forespoersel.sykmeldingsperioder,
+        egenmeldingsperioder = forespoerselMedId.forespoersel.egenmeldingsperioder,
+        erBesvart = forespoerselMedId.forespoersel.erBesvart,
     )
 }
 
@@ -40,12 +43,14 @@ data class SoeknadArbeidstakerResponse(
     val sykmeldingsperiode: Periode,
     val egenmeldingsperioder: List<Periode>,
     val erGradert: Boolean,
+    val forlengerVedtaksperiodeId: UUID?,
 ) {
-    constructor(soeknad: Soeknad.Arbeidstaker) : this(
-        vedtaksperiodeId = soeknad.vedtaksperiodeId,
-        sykmeldingsperiode = soeknad.sykmeldingsperiode,
-        egenmeldingsperioder = soeknad.egenmeldingerFraSykmelding,
-        erGradert = soeknad.erGradert,
+    constructor(soeknad: SoeknadMedForlengerId) : this(
+        vedtaksperiodeId = soeknad.soeknad.vedtaksperiodeId,
+        sykmeldingsperiode = soeknad.soeknad.sykmeldingsperiode,
+        egenmeldingsperioder = soeknad.soeknad.egenmeldingerFraSykmelding,
+        erGradert = soeknad.soeknad.erGradert,
+        forlengerVedtaksperiodeId = soeknad.forlengerVedtaksperiodeId,
     )
 }
 

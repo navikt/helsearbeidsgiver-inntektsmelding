@@ -177,7 +177,7 @@ private object Mock {
                     vedtaksperiodeId = it.vedtaksperiodeId.toString(),
                     fom = it.sykmeldingsperiode.fom,
                     tom = it.sykmeldingsperiode.tom,
-                    soknadstype = HentSoeknaderResponse.Soeknadstype.ARBEIDSTAKERE,
+                    soknadstype = HentSoeknaderResponse.SoeknadType.ARBEIDSTAKERE,
                     soknadsperioder = listOf(sykmeldingsgrad100),
                     egenmeldingsdagerFraSykmelding = it.egenmeldingerFraSykmelding.tilDager().sorted(),
                     behandlingsdager = emptyList(),
@@ -190,7 +190,7 @@ private object Mock {
                     vedtaksperiodeId = it.vedtaksperiodeId.toString(),
                     fom = it.sykmeldingsperiode.fom,
                     tom = it.sykmeldingsperiode.tom,
-                    soknadstype = HentSoeknaderResponse.Soeknadstype.ARBEIDSTAKERE,
+                    soknadstype = HentSoeknaderResponse.SoeknadType.ARBEIDSTAKERE,
                     soknadsperioder =
                         listOf(
                             sykmeldingsgrad100,
@@ -211,7 +211,7 @@ private object Mock {
                     vedtaksperiodeId = it.vedtaksperiodeId.toString(),
                     fom = it.sykmeldingsperiode.fom,
                     tom = it.sykmeldingsperiode.tom,
-                    soknadstype = HentSoeknaderResponse.Soeknadstype.ARBEIDSTAKERE,
+                    soknadstype = HentSoeknaderResponse.SoeknadType.ARBEIDSTAKERE,
                     soknadsperioder =
                         listOf(
                             sykmeldingsgrad100,
@@ -231,7 +231,7 @@ private object Mock {
                 vedtaksperiodeId = null,
                 fom = 12.juni,
                 tom = 24.juni,
-                soknadstype = HentSoeknaderResponse.Soeknadstype.ARBEIDSTAKERE,
+                soknadstype = HentSoeknaderResponse.SoeknadType.ARBEIDSTAKERE,
                 soknadsperioder = listOf(sykmeldingsgrad100),
                 egenmeldingsdagerFraSykmelding = listOf(11.juni),
                 behandlingsdager = emptyList(),
@@ -243,7 +243,7 @@ private object Mock {
                     vedtaksperiodeId = null,
                     fom = it.sykmeldingsperiode.fom,
                     tom = it.sykmeldingsperiode.tom,
-                    soknadstype = HentSoeknaderResponse.Soeknadstype.BEHANDLINGSDAGER,
+                    soknadstype = HentSoeknaderResponse.SoeknadType.BEHANDLINGSDAGER,
                     soknadsperioder = listOf(sykmeldingsgrad100),
                     egenmeldingsdagerFraSykmelding = listOf(2.juli),
                     behandlingsdager = it.behandlingsdager.toList(),
@@ -255,7 +255,7 @@ private object Mock {
                 vedtaksperiodeId = null,
                 fom = 5.august,
                 tom = 31.august,
-                soknadstype = HentSoeknaderResponse.Soeknadstype.BEHANDLINGSDAGER,
+                soknadstype = HentSoeknaderResponse.SoeknadType.BEHANDLINGSDAGER,
                 soknadsperioder = listOf(sykmeldingsgrad100),
                 egenmeldingsdagerFraSykmelding = listOf(4.august),
                 behandlingsdager = emptyList(),

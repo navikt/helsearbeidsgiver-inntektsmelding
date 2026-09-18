@@ -20,13 +20,13 @@ internal data class HentSoeknaderResponse(
     val vedtaksperiodeId: String?,
     val fom: LocalDate,
     val tom: LocalDate,
-    val soknadstype: Soeknadstype,
+    val soknadstype: SoeknadType,
     val soknadsperioder: List<Sykmeldingsgrad>,
     val egenmeldingsdagerFraSykmelding: List<LocalDate>,
     val behandlingsdager: List<LocalDate>,
 ) {
     @Serializable
-    enum class Soeknadstype {
+    enum class SoeknadType {
         ARBEIDSTAKERE,
         BEHANDLINGSDAGER,
     }

@@ -2,6 +2,7 @@
 
 package no.nav.hag.simba.kontrakt.domene.soeknad
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
@@ -16,6 +17,7 @@ sealed class Soeknad {
     abstract val sykmeldingsperiode: Periode
 
     @Serializable
+    @SerialName("Arbeidstaker")
     data class Arbeidstaker(
         override val soeknadId: UUID,
         val vedtaksperiodeId: UUID,
@@ -25,6 +27,7 @@ sealed class Soeknad {
     ) : Soeknad()
 
     @Serializable
+    @SerialName("Behandlingsdager")
     data class Behandlingsdager(
         override val soeknadId: UUID,
         override val sykmeldingsperiode: Periode,

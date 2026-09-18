@@ -12,12 +12,13 @@ import io.mockk.coEvery
 import io.mockk.verifySequence
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
-import no.nav.hag.simba.kontrakt.domene.forespoersel.test.mockForespoersel
 import no.nav.hag.simba.kontrakt.domene.soeknad.Soeknad
 import no.nav.hag.simba.kontrakt.domene.soeknad.test.mockSoeknadArbeidstaker
 import no.nav.hag.simba.kontrakt.domene.soeknad.test.mockSoeknadBehandlingsdager
+import no.nav.hag.simba.kontrakt.resultat.soeknad.ForespoerselMedId
+import no.nav.hag.simba.kontrakt.resultat.soeknad.SoeknadMedForlengerId
 import no.nav.hag.simba.kontrakt.resultat.soeknad.hentSoeknaderResultatSerializer
+import no.nav.hag.simba.kontrakt.resultat.soeknad.test.mockForespoerselMedId
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.json.toJson
@@ -31,9 +32,12 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hardcodedJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.jsonStrOrNull
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
+import no.nav.helsearbeidsgiver.utils.test.date.februar
+import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.mai
 import no.nav.helsearbeidsgiver.utils.test.date.mars
@@ -43,7 +47,6 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 class HentSoeknaderRouteKtTest : ApiTest() {
     private val path = Routes.PREFIX + Routes.HENT_SOEKNADER
@@ -217,29 +220,92 @@ class HentSoeknaderRouteKtTest : ApiTest() {
 }
 
 private object Mock {
-    fun kategorier(): Triple<List<Pair<UUID, Forespoersel>>, List<Soeknad.Arbeidstaker>, List<Soeknad.Behandlingsdager>> =
+    // forlenges
+    private val soeknadMedForespoersel1 =
+        mockSoeknadArbeidstaker().copy(
+            sykmeldingsperiode = 15.mars til 5.april,
+            egenmeldingerFraSykmelding = listOf(10.mars til 10.mars),
+            erGradert = true,
+        )
+    private val soeknadMedForespoersel2 =
+        mockSoeknadArbeidstaker().copy(
+            sykmeldingsperiode = 9.mai til 19.mai,
+            egenmeldingerFraSykmelding = emptyList(),
+        )
+    private val soeknadUtenForespoersel1 =
+        SoeknadMedForlengerId(
+            mockSoeknadArbeidstaker().copy(
+                sykmeldingsperiode = 13.januar til 29.januar,
+                egenmeldingerFraSykmelding =
+                    listOf(
+                        5.januar til 7.januar,
+                        9.januar til 9.januar,
+                    ),
+                erGradert = true,
+            ),
+            forlengerVedtaksperiodeId = null,
+        )
+
+    // forlenges
+    private val soeknadUtenForespoersel2 =
+        SoeknadMedForlengerId(
+            mockSoeknadArbeidstaker().copy(
+                sykmeldingsperiode = 2.februar til 12.februar,
+                egenmeldingerFraSykmelding = emptyList(),
+            ),
+            forlengerVedtaksperiodeId = null,
+        )
+
+    // forlenger forrige
+    private val soeknadUtenForespoersel3 =
+        SoeknadMedForlengerId(
+            mockSoeknadArbeidstaker().copy(
+                sykmeldingsperiode = 13.februar til 24.februar,
+                egenmeldingerFraSykmelding = emptyList(),
+                erGradert = true,
+            ),
+            forlengerVedtaksperiodeId = soeknadUtenForespoersel2.soeknad.vedtaksperiodeId,
+        )
+
+    // forlenger forrige
+    private val soeknadUtenForespoersel4 =
+        SoeknadMedForlengerId(
+            mockSoeknadArbeidstaker().copy(
+                sykmeldingsperiode = 25.februar til 27.februar,
+                egenmeldingerFraSykmelding = emptyList(),
+            ),
+            forlengerVedtaksperiodeId = soeknadUtenForespoersel3.forlengerVedtaksperiodeId,
+        )
+
+    // forlenger forespørsel
+    private val soeknadUtenForespoersel5 =
+        SoeknadMedForlengerId(
+            mockSoeknadArbeidstaker().copy(
+                sykmeldingsperiode = 6.april til 8.april,
+                egenmeldingerFraSykmelding = emptyList(),
+            ),
+            forlengerVedtaksperiodeId = soeknadMedForespoersel1.vedtaksperiodeId,
+        )
+
+    fun kategorier(): Triple<List<ForespoerselMedId>, List<SoeknadMedForlengerId>, List<Soeknad.Behandlingsdager>> =
         Triple(
             listOf(
-                UUID.randomUUID() to mockForespoersel(),
-                UUID.randomUUID() to
-                    mockForespoersel().copy(
-                        sykmeldingsperioder =
-                            listOf(
-                                5.mars til 13.mars,
-                                18.mars til 30.mars,
+                mockForespoerselMedId(soeknadMedForespoersel1),
+                mockForespoerselMedId(soeknadMedForespoersel2).let {
+                    it.copy(
+                        forespoersel =
+                            it.forespoersel.copy(
+                                erBesvart = true,
                             ),
-                        egenmeldingsperioder = emptyList(),
-                        erBesvart = true,
-                    ),
+                    )
+                },
             ),
             listOf(
-                mockSoeknadArbeidstaker(),
-                mockSoeknadArbeidstaker().copy(
-                    sykmeldingsperiode = 6.april til 8.april,
-                    egenmeldingerFraSykmelding = emptyList(),
-                    erGradert = true,
-                ),
-                mockSoeknadArbeidstaker(),
+                soeknadUtenForespoersel1,
+                soeknadUtenForespoersel2,
+                soeknadUtenForespoersel3,
+                soeknadUtenForespoersel4,
+                soeknadUtenForespoersel5,
             ),
             listOf(
                 mockSoeknadBehandlingsdager(),
@@ -262,7 +328,7 @@ private object Mock {
             erBehandlingsdager = false,
         )
 
-    fun successResult(kategorier: Triple<List<Pair<UUID, Forespoersel>>, List<Soeknad.Arbeidstaker>, List<Soeknad.Behandlingsdager>>): ResultJson =
+    fun successResult(kategorier: Triple<List<ForespoerselMedId>, List<SoeknadMedForlengerId>, List<Soeknad.Behandlingsdager>>): ResultJson =
         ResultJson(
             success = kategorier.toJson(hentSoeknaderResultatSerializer),
         )
@@ -288,6 +354,7 @@ private fun ForespoerselResponse.hardcodedJson(): String =
     """
     {
         "forespoerselId": "$forespoerselId",
+        "vedtaksperiodeId": "$vedtaksperiodeId",
         "sykmeldingsperioder": [${sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
         "egenmeldingsperioder": [${egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
         "erBesvart": $erBesvart
@@ -300,7 +367,8 @@ private fun SoeknadArbeidstakerResponse.hardcodedJson(): String =
         "vedtaksperiodeId": "$vedtaksperiodeId",
         "sykmeldingsperiode": ${sykmeldingsperiode.hardcodedJson()},
         "egenmeldingsperioder": [${egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
-        "erGradert": $erGradert
+        "erGradert": $erGradert,
+        "forlengerVedtaksperiodeId": ${forlengerVedtaksperiodeId.jsonStrOrNull()}
     }
     """
 

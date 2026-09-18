@@ -38,7 +38,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.time.LocalDate
 import java.util.UUID
-import kotlin.text.get
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class HentSoeknaderIT : EndToEndTest() {

@@ -27,5 +27,9 @@ val hentSoeknaderResultatSerializer =
     TripleSerializer(
         aSerializer = ForespoerselMedId.serializer().list(),
         bSerializer = SoeknadMedForlengerId.serializer().list(),
-        cSerializer = Soeknad.Behandlingsdager.serializer().list(),
+        cSerializer =
+            Soeknad.Behandlingsdager
+                .serializer()
+                .list()
+                .list(),
     )

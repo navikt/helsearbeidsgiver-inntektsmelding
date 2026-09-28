@@ -57,10 +57,11 @@ fun Route.hentSoeknaderRoute(
                         logOnFailure = "Klarte ikke hente søknader pga. feil.",
                         successSerializer = hentSoeknaderResultatSerializer,
                     ) { success ->
-                        "Hentet ${success.first.size} forespørsler, ${success.second.size} søknader og ${success.third.size} behandlingsdagssøknader.".also {
-                            logger.info(it)
-                            sikkerLogger.info(it)
-                        }
+                        "Hentet ${success.first.size} forespørsler, ${success.second.size} søknader og ${success.third.flatten().size} behandlingsdagssøknader."
+                            .also {
+                                logger.info(it)
+                                sikkerLogger.info(it)
+                            }
 
                         val response =
                             HentSoeknaderResponse(

@@ -29,6 +29,7 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
@@ -191,7 +192,7 @@ private fun tilKategorier(
     erBehandlingsdager: Boolean,
     soeknader: List<Soeknad>,
     forespoersler: Map<UUID, Forespoersel>,
-): Triple<List<ForespoerselMedId>, List<SoeknadMedForlengerId>, List<Soeknad.Behandlingsdager>> =
+): Triple<List<ForespoerselMedId>, List<SoeknadMedForlengerId>, List<List<Soeknad.Behandlingsdager>>> =
     if (!erBehandlingsdager) {
         val forespoerselPerVid =
             forespoersler.entries.associate {
@@ -219,22 +220,58 @@ private fun tilKategorier(
         Triple(
             emptyList(),
             emptyList(),
-            soeknader.filterIsInstance<Soeknad.Behandlingsdager>(),
+            soeknader
+                .filterIsInstance<Soeknad.Behandlingsdager>()
+                .utledForlengelseGrupper(),
         )
     }
 
 private fun List<Soeknad.Arbeidstaker>.utledForlengelser(): List<SoeknadMedForlengerId> =
-    fold(emptyList()) { soeknaderMedForlengerId, soeknad ->
+    mapWindowed { forrige, soeknad ->
         val forlengerVedtaksperiodeId =
-            soeknaderMedForlengerId
-                .lastOrNull()
-                ?.takeIf { forrige ->
-                    erSammenhengendeIgnorerHelgegap(forrige.soeknad.sykmeldingsperiode, soeknad.sykmeldingsperiode)
-                }?.let { forrige ->
+            forrige
+                ?.takeIf {
+                    erSammenhengendeIgnorerHelgegap(it.soeknad.sykmeldingsperiode, soeknad.sykmeldingsperiode)
+                }?.let {
                     // Vi ønsker ID-en til den første søknaden som ble forlenget
-                    forrige.forlengerVedtaksperiodeId
-                        ?: forrige.soeknad.vedtaksperiodeId
+                    it.forlengerVedtaksperiodeId
+                        ?: it.soeknad.vedtaksperiodeId
                 }
 
-        soeknaderMedForlengerId + SoeknadMedForlengerId(soeknad, forlengerVedtaksperiodeId)
+        SoeknadMedForlengerId(soeknad, forlengerVedtaksperiodeId)
+    }
+
+private fun List<Soeknad.Behandlingsdager>.utledForlengelseGrupper(): List<List<Soeknad.Behandlingsdager>> =
+    // Listen er tidligere sortert på sykmeldingsperiode, men behandlingsdagene er viktigere
+    sortedBy { it.behandlingsdager.min() }
+        .mapWindowed<_, Pair<UUID, Soeknad.Behandlingsdager>> { forrige, soeknad ->
+            val forlengerId =
+                forrige
+                    ?.takeIf {
+                        it.second.forlengesAvEllerOverlapperMed(soeknad)
+                    }?.first
+                    .orDefault(soeknad.soeknadId)
+
+            forlengerId to soeknad
+        }.groupBy { it.first }
+        .values
+        .map { soeknaderMedId ->
+            // ID-ene var kun nyttige for gruppere søknadene
+            soeknaderMedId.map { it.second }
+        }
+
+private fun Soeknad.Behandlingsdager.forlengesAvEllerOverlapperMed(other: Soeknad.Behandlingsdager): Boolean {
+    val soendagToUkerEtterSisteBehandlingsdag =
+        behandlingsdager
+            .max()
+            .let { it.plusDays(21L - it.dayOfWeek.value) }
+
+    return other.behandlingsdager.min() in behandlingsdager.min()..soendagToUkerEtterSisteBehandlingsdag
+}
+
+/** Map-funksjon med tilgang til forrige og nåværende element. Forrige er 'null' for det første elementet. */
+private fun <T : Any, R : Any> List<T>.mapWindowed(transform: (R?, T) -> R): List<R> =
+    fold<T, List<R>>(emptyList()) { preceding, current ->
+        val previous = preceding.lastOrNull()
+        preceding + transform(previous, current)
     }

@@ -11,26 +11,20 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.test.mockForespoerselFraBro
 import no.nav.hag.simba.kontrakt.domene.soeknad.Soeknad
-import no.nav.hag.simba.kontrakt.domene.soeknad.test.mockSoeknadArbeidstaker
-import no.nav.hag.simba.kontrakt.domene.soeknad.test.mockSoeknadBehandlingsdager
 import no.nav.hag.simba.kontrakt.resultat.soeknad.ForespoerselMedId
 import no.nav.hag.simba.kontrakt.resultat.soeknad.SoeknadMedForlengerId
 import no.nav.hag.simba.kontrakt.resultat.soeknad.hentSoeknaderResultatSerializer
+import no.nav.hag.simba.kontrakt.resultat.soeknad.test.MockSoeknad
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.Tekst
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.ResultJson
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.date.april
-import no.nav.helsearbeidsgiver.utils.test.date.juni
-import no.nav.helsearbeidsgiver.utils.test.date.mai
-import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -49,79 +43,14 @@ class HentSoeknaderIT : EndToEndTest() {
         val erBehandlingsdager = false
         val eldsteFom = LocalDate.now().minusYears(3)
 
-        val soeknadMedForespoersel1 =
-            mockSoeknadArbeidstaker().copy(
-                sykmeldingsperiode = 11.mai til 30.mai,
-                egenmeldingerFraSykmelding = listOf(9.mai til 10.mai),
-            )
-        // forlenges
-        val soeknadMedForespoersel2 =
-            mockSoeknadArbeidstaker().copy(
-                sykmeldingsperiode = 8.juni til 16.juni,
-                egenmeldingerFraSykmelding = emptyList(),
-            )
-        val forespoersel1 =
-            soeknadMedForespoersel1.let {
-                mockForespoerselFraBro().copy(
-                    vedtaksperiodeId = it.vedtaksperiodeId,
-                    sykmeldingsperioder = listOf(it.sykmeldingsperiode),
-                    egenmeldingsperioder = it.egenmeldingerFraSykmelding,
-                )
-            }
-        val forespoersel2 =
-            soeknadMedForespoersel2.let {
-                mockForespoerselFraBro().copy(
-                    vedtaksperiodeId = it.vedtaksperiodeId,
-                    sykmeldingsperioder = listOf(it.sykmeldingsperiode),
-                    egenmeldingsperioder = it.egenmeldingerFraSykmelding,
-                )
-            }
-        val soeknadUtenForespoersel1 =
-            mockSoeknadArbeidstaker().copy(
-                sykmeldingsperiode = 14.mars til 21.mars,
-                egenmeldingerFraSykmelding = listOf(12.mars til 12.mars),
-            )
-        // forlenges
-        val soeknadUtenForespoersel2 =
-            mockSoeknadArbeidstaker().copy(
-                sykmeldingsperiode = 9.april til 14.april,
-                egenmeldingerFraSykmelding = listOf(7.april til 7.april),
-            )
-        // forlenger forrige
-        val soeknadUtenForespoersel3 =
-            mockSoeknadArbeidstaker().copy(
-                sykmeldingsperiode = 15.april til 19.april,
-                egenmeldingerFraSykmelding = emptyList(),
-            )
-        // forlenger forrige
-        val soeknadUtenForespoersel4 =
-            mockSoeknadArbeidstaker().copy(
-                sykmeldingsperiode = 20.april til 24.april,
-                egenmeldingerFraSykmelding = emptyList(),
-            )
-        // forlenger forespørsel
-        val soeknadUtenForespoersel5 =
-            mockSoeknadArbeidstaker().copy(
-                sykmeldingsperiode = 17.juni til 23.juni,
-                egenmeldingerFraSykmelding = emptyList(),
-            )
-        val soeknader =
-            listOf(
-                soeknadUtenForespoersel1,
-                mockSoeknadBehandlingsdager(),
-                soeknadUtenForespoersel2,
-                soeknadUtenForespoersel3,
-                soeknadUtenForespoersel4,
-                soeknadMedForespoersel1,
-                mockSoeknadBehandlingsdager(),
-                soeknadMedForespoersel2,
-                soeknadUtenForespoersel5,
-            )
-
-        coEvery { soeknadKlient.hentSoeknader(orgnr.verdi, sykmeldtFnr.verdi, eldsteFom) } returns soeknader
+        coEvery { soeknadKlient.hentSoeknader(orgnr.verdi, sykmeldtFnr.verdi, eldsteFom) } returns MockSoeknad.soeknader
 
         mockForespoerselSvarFraHelsebro(
-            listOf(forespoersel1, forespoersel2),
+            MockSoeknad.forespoersler.map {
+                mockForespoerselFraBro(it.forespoersel).copy(
+                    forespoerselId = it.forespoerselId,
+                )
+            },
         )
 
         publish(*requestEvent(kontekstId, orgnr, sykmeldtFnr, erBehandlingsdager))
@@ -132,20 +61,9 @@ class HentSoeknaderIT : EndToEndTest() {
 
         readSuccess(kontekstId).also {
             // Den første listen inneholder forespørsler som er tilknyttet søknader. Forespørslene erstatter søknadene.
-            it.first shouldContainExactly
-                listOf(
-                    ForespoerselMedId(forespoersel1.forespoerselId, forespoersel1.toForespoersel()),
-                    ForespoerselMedId(forespoersel2.forespoerselId, forespoersel2.toForespoersel()),
-                )
+            it.first shouldContainExactly MockSoeknad.forespoersler
             // Den andre listen inneholder søknader uten tilknyttede forespørsler
-            it.second shouldContainExactly
-                listOf(
-                    SoeknadMedForlengerId(soeknadUtenForespoersel1, null),
-                    SoeknadMedForlengerId(soeknadUtenForespoersel2, null),
-                    SoeknadMedForlengerId(soeknadUtenForespoersel3, soeknadUtenForespoersel2.vedtaksperiodeId),
-                    SoeknadMedForlengerId(soeknadUtenForespoersel4, soeknadUtenForespoersel2.vedtaksperiodeId),
-                    SoeknadMedForlengerId(soeknadUtenForespoersel5, forespoersel2.vedtaksperiodeId),
-                )
+            it.second shouldContainExactly MockSoeknad.soeknaderUtenForespoersel
             // Den tredje listen er tom, fordi vi ikke ba om behandlingsdagssøknader
             it.third.shouldBeEmpty()
         }
@@ -159,18 +77,7 @@ class HentSoeknaderIT : EndToEndTest() {
         val erBehandlingsdager = true
         val eldsteFom = LocalDate.now().minusYears(3)
 
-        val soeknadBehandlingsdager1 = mockSoeknadBehandlingsdager()
-        val soeknadBehandlingsdager2 = mockSoeknadBehandlingsdager()
-        val soeknader =
-            listOf(
-                mockSoeknadArbeidstaker(),
-                mockSoeknadArbeidstaker(),
-                soeknadBehandlingsdager1,
-                mockSoeknadArbeidstaker(),
-                soeknadBehandlingsdager2,
-            )
-
-        coEvery { soeknadKlient.hentSoeknader(orgnr.verdi, sykmeldtFnr.verdi, eldsteFom) } returns soeknader
+        coEvery { soeknadKlient.hentSoeknader(orgnr.verdi, sykmeldtFnr.verdi, eldsteFom) } returns MockSoeknad.soeknader
 
         publish(*requestEvent(kontekstId, orgnr, sykmeldtFnr, erBehandlingsdager))
 
@@ -183,7 +90,7 @@ class HentSoeknaderIT : EndToEndTest() {
             it.first.shouldBeEmpty()
             it.second.shouldBeEmpty()
             // Den tredje listen inneholder behandlingsdagssøknader
-            it.third shouldContainExactly listOf(soeknadBehandlingsdager1, soeknadBehandlingsdager2)
+            it.third shouldContainExactly MockSoeknad.soeknaderBehandlingsdager
         }
     }
 
@@ -231,7 +138,7 @@ class HentSoeknaderIT : EndToEndTest() {
         readFailure(kontekstId) shouldBe Tekst.TEKNISK_FEIL_FORBIGAAENDE
     }
 
-    private fun readSuccess(kontekstId: UUID): Triple<List<ForespoerselMedId>, List<SoeknadMedForlengerId>, List<Soeknad.Behandlingsdager>> {
+    private fun readSuccess(kontekstId: UUID): Triple<List<ForespoerselMedId>, List<SoeknadMedForlengerId>, List<List<Soeknad.Behandlingsdager>>> {
         val resultJson = readResult(kontekstId)
 
         resultJson.failure.shouldBeNull()

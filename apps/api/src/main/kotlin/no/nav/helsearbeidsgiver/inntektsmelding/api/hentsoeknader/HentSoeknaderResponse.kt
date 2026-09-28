@@ -56,11 +56,17 @@ data class SoeknadArbeidstakerResponse(
 
 @Serializable
 data class SoeknadBehandlingsdagerResponse(
+    val soeknadIder: Set<UUID>,
     val sykmeldingsperiode: Periode,
     val behandlingsdager: List<LocalDate>,
 ) {
-    constructor(soeknad: Soeknad.Behandlingsdager) : this(
-        sykmeldingsperiode = soeknad.sykmeldingsperiode,
-        behandlingsdager = soeknad.behandlingsdager.sorted(),
+    constructor(soeknader: List<Soeknad.Behandlingsdager>) : this(
+        soeknadIder = soeknader.map { it.soeknadId }.toSet(),
+        sykmeldingsperiode =
+            Periode(
+                fom = soeknader.minOf { it.sykmeldingsperiode.fom },
+                tom = soeknader.maxOf { it.sykmeldingsperiode.tom },
+            ),
+        behandlingsdager = soeknader.flatMap { it.behandlingsdager }.distinct().sorted(),
     )
 }

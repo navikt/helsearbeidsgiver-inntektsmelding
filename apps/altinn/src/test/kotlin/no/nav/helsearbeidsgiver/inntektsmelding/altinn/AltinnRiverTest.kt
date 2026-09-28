@@ -11,18 +11,26 @@ import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.utils.felles.BehovType
+import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.domene.Fail
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.felles.json.toMap
+import no.nav.hag.simba.utils.felles.test.mock.mockFail
+import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helsearbeidsgiver.altinn.Altinn3M2MClient
-import no.nav.helsearbeidsgiver.inntektsmelding.altinn.Mock.toMap
+import no.nav.helsearbeidsgiver.inntektsmelding.altinn.AltinnRiverTest.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import java.util.UUID
 
 class AltinnRiverTest :
     FunSpec({
@@ -43,14 +51,13 @@ class AltinnRiverTest :
 
         test("henter organisasjonsrettigheter med id fra behov") {
             val innkommendeMelding = Mock.innkommendeMelding()
+            val altinnOrgnr = setOf(Orgnr.genererGyldig().verdi)
 
-            coEvery { mockAltinnClient.hentTilganger(any()) } returns Mock.altinnOrganisasjoner
+            coEvery { mockAltinnClient.hentTilganger(any()) } returns altinnOrgnr
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
             testRapid.inspektør.size shouldBeExactly 1
-
-            val altinnOrgnr = Mock.altinnOrganisasjoner
 
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
@@ -115,4 +122,34 @@ class AltinnRiverTest :
                 }
             }
         }
-    })
+    }) {
+    private object Mock {
+        fun innkommendeMelding(): Melding {
+            val fnr = Fnr.genererGyldig()
+            val svarKafkaKey = KafkaKey(fnr)
+
+            return Melding(
+                eventName = EventName.SERVICE_HENT_AKTIVE_ORGNR,
+                behovType = BehovType.ARBEIDSGIVERE,
+                kontekstId = UUID.randomUUID(),
+                data =
+                    mapOf(
+                        Key.SVAR_KAFKA_KEY to svarKafkaKey.toJson(),
+                        Key.ARBEIDSGIVER_FNR to fnr.toJson(),
+                    ),
+                svarKafkaKey = svarKafkaKey,
+                fnr = fnr,
+            )
+        }
+
+        fun Melding.toMap(): Map<Key, JsonElement> =
+            mapOf(
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.BEHOV to behovType.toJson(),
+                Key.KONTEKST_ID to kontekstId.toJson(),
+                Key.DATA to data.toJson(),
+            )
+
+        val fail = mockFail("One does not simply walk into Mordor.", EventName.SERVICE_HENT_AKTIVE_ORGNR)
+    }
+}

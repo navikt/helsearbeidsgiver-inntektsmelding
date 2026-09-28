@@ -23,7 +23,7 @@ import no.nav.hag.simba.utils.rr.test.firstMessage
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.helsearbeidsgiver.altinn.Altinn3M2MClient
-import no.nav.helsearbeidsgiver.inntektsmelding.altinn.MockTilgang.toMap
+import no.nav.helsearbeidsgiver.inntektsmelding.altinn.TilgangRiverTest.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -55,7 +55,7 @@ class TilgangRiverTest :
             ) { (altinnSvar, forventetTilgang) ->
                 coEvery { mockAltinn3M2MClient.harTilgangTilOrganisasjon(any(), any()) } returns altinnSvar
 
-                val innkommendeMelding = MockTilgang.innkommendeMelding()
+                val innkommendeMelding = Mock.innkommendeMelding()
 
                 testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -80,7 +80,7 @@ class TilgangRiverTest :
         test("håndterer feil") {
             coEvery { mockAltinn3M2MClient.harTilgangTilOrganisasjon(any(), any()) } throws NullPointerException()
 
-            val innkommendeMelding = MockTilgang.innkommendeMelding()
+            val innkommendeMelding = Mock.innkommendeMelding()
 
             val forventetFail =
                 Fail(
@@ -105,11 +105,11 @@ class TilgangRiverTest :
                 mapOf(
                     "melding med ukjent behov" to Pair(Key.BEHOV, BehovType.HENT_SELVBESTEMT_IM.toJson()),
                     "melding med data som flagg" to Pair(Key.DATA, "".toJson()),
-                    "melding med fail" to Pair(Key.FAIL, MockTilgang.fail.toJson(Fail.serializer())),
+                    "melding med fail" to Pair(Key.FAIL, Mock.fail.toJson(Fail.serializer())),
                 ),
             ) { uoensketKeyMedVerdi ->
                 testRapid.sendJson(
-                    MockTilgang
+                    Mock
                         .innkommendeMelding()
                         .toMap()
                         .plus(uoensketKeyMedVerdi),
@@ -122,34 +122,34 @@ class TilgangRiverTest :
                 }
             }
         }
-    })
+    }) {
+    private object Mock {
+        fun innkommendeMelding(): TilgangMelding {
+            val orgnr = Orgnr.genererGyldig()
+            val fnr = Fnr.genererGyldig()
 
-private object MockTilgang {
-    fun innkommendeMelding(): TilgangMelding {
-        val orgnr = Orgnr.genererGyldig()
-        val fnr = Fnr.genererGyldig()
+            return TilgangMelding(
+                eventName = EventName.SERVICE_HENT_TILGANG_FORESPOERSEL,
+                behovType = BehovType.TILGANGSKONTROLL,
+                kontekstId = UUID.randomUUID(),
+                data =
+                    mapOf(
+                        Key.ORGNR_UNDERENHET to orgnr.toJson(Orgnr.serializer()),
+                        Key.FNR to fnr.toJson(Fnr.serializer()),
+                    ),
+                orgnr = orgnr,
+                fnr = fnr,
+            )
+        }
 
-        return TilgangMelding(
-            eventName = EventName.SERVICE_HENT_TILGANG_FORESPOERSEL,
-            behovType = BehovType.TILGANGSKONTROLL,
-            kontekstId = UUID.randomUUID(),
-            data =
-                mapOf(
-                    Key.ORGNR_UNDERENHET to orgnr.toJson(Orgnr.serializer()),
-                    Key.FNR to fnr.toJson(Fnr.serializer()),
-                ),
-            orgnr = orgnr,
-            fnr = fnr,
-        )
+        fun TilgangMelding.toMap(): Map<Key, JsonElement> =
+            mapOf(
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.BEHOV to behovType.toJson(),
+                Key.KONTEKST_ID to kontekstId.toJson(),
+                Key.DATA to data.toJson(),
+            )
+
+        val fail = mockFail("You shall not pass!", EventName.SERVICE_HENT_TILGANG_FORESPOERSEL)
     }
-
-    fun TilgangMelding.toMap(): Map<Key, JsonElement> =
-        mapOf(
-            Key.EVENT_NAME to eventName.toJson(),
-            Key.BEHOV to behovType.toJson(),
-            Key.KONTEKST_ID to kontekstId.toJson(),
-            Key.DATA to data.toJson(),
-        )
-
-    val fail = mockFail("You shall not pass!", EventName.SERVICE_HENT_TILGANG_FORESPOERSEL)
 }

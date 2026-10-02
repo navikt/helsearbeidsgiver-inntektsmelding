@@ -1,6 +1,8 @@
 kafkaPool: nav-prod
 idportenEnabled: true
 valkeyAccess: read
+requestMem: 2048Mi
+limitMem: 4096Mi
 ingress: https://helsearbeidsgiver-im-api.intern.nav.no
 inboundApps:
   - name: spinntektsmelding-frontend

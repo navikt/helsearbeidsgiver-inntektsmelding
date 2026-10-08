@@ -125,7 +125,7 @@ class ForespoerselMottattIT : EndToEndTest() {
     }
 
     private object Mock {
-        const val SKAL_HA_PAAMINNELSE = false
+        const val SKAL_HA_PAAMINNELSE = true
         val forespoersel = mockForespoerselFraBro()
         val sakId = UUID.randomUUID().toString()
         val oppgaveId = UUID.randomUUID().toString()

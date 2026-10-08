@@ -258,7 +258,6 @@ fun innkommendeOpprettForespoerselSakOgOppgaveMelding(): OpprettForespoerselSakO
         forespoerselId = UUID.randomUUID(),
         sykmeldt = Person(forespoersel.fnr, "Peer Gynt"),
         orgNavn = "Peer Gynts Løgn og Bedrageri LTD",
-        skalHaPaaminnelse = true,
         forespoersel = forespoersel,
     )
 }
@@ -272,7 +271,6 @@ private fun OpprettForespoerselSakOgOppgaveMelding.toMap() =
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.SYKMELDT to sykmeldt.toJson(Person.serializer()),
                 Key.VIRKSOMHET to orgNavn.toJson(),
-                Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
                 Key.FORESPOERSEL to forespoersel.toJson(),
             ).toJson(),
     )

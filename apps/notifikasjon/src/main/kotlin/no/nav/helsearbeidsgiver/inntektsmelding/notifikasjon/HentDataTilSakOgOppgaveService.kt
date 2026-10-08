@@ -28,7 +28,6 @@ data class Steg0(
     val kontekstId: UUID,
     val forespoerselId: UUID,
     val forespoersel: Forespoersel,
-    val skalHaPaaminnelse: Boolean,
 )
 
 data class Steg1(
@@ -53,7 +52,6 @@ class HentDataTilSakOgOppgaveService(
             kontekstId = Key.KONTEKST_ID.les(UuidSerializer, melding),
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
             forespoersel = Key.FORESPOERSEL.les(Forespoersel.serializer(), melding),
-            skalHaPaaminnelse = Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), melding),
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
@@ -136,7 +134,8 @@ class HentDataTilSakOgOppgaveService(
                     Key.FORESPOERSEL to steg0.forespoersel.toJson(),
                     Key.SYKMELDT to sykmeldt.toJson(Person.serializer()),
                     Key.VIRKSOMHET to orgNavn.toJson(),
-                    Key.SKAL_HA_PAAMINNELSE to steg0.skalHaPaaminnelse.toJson(Boolean.serializer()),
+                    // TODO fjern etter overgangsperiode
+                    Key.SKAL_HA_PAAMINNELSE to (!steg0.forespoersel.erBegrenset).toJson(Boolean.serializer()),
                 ).toJson(),
         )
     }

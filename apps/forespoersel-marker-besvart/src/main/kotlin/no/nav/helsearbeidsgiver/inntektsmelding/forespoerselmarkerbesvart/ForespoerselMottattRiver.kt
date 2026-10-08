@@ -24,7 +24,6 @@ data class MottattMelding(
     val kontekstId: UUID,
     val forespoerselId: UUID,
     val forespoerselFraBro: ForespoerselFraBro,
-    val skalHaPaaminnelse: Boolean,
 )
 
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */
@@ -38,7 +37,6 @@ class ForespoerselMottattRiver : ObjectRiver.PriTopic<MottattMelding>() {
             kontekstId = UUID.randomUUID(),
             forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, json),
             forespoerselFraBro = Pri.Key.FORESPOERSEL.les(ForespoerselFraBro.serializer(), json),
-            skalHaPaaminnelse = Pri.Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), json),
         )
 
     override fun MottattMelding.bestemNoekkel(): KafkaKey = KafkaKey(forespoerselId)
@@ -54,7 +52,8 @@ class ForespoerselMottattRiver : ObjectRiver.PriTopic<MottattMelding>() {
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.FORESPOERSEL to forespoerselFraBro.toForespoersel().toJson(),
-                    Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
+                    // TODO fjern etter overgangsperiode
+                    Key.SKAL_HA_PAAMINNELSE to (!forespoerselFraBro.erBegrenset).toJson(Boolean.serializer()),
                 ).toJson(),
         )
     }

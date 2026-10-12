@@ -24,6 +24,8 @@ object Pri {
         FORESPOERSEL_ID,
         NOTIS,
         ORGNR,
+
+        // TODO fjern etter overgangsperiode
         SKAL_HA_PAAMINNELSE,
         VEDTAKSPERIODE_ID_LISTE,
         ;

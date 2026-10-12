@@ -74,7 +74,7 @@ class HentDataTilSakOgOppgaveServiceTest :
                                 Mock.orgnrMedNavn.values
                                     .first()
                                     .toJson(),
-                            Key.SKAL_HA_PAAMINNELSE to Mock.SKAL_HA_PAAMINNELSE.toJson(Boolean.serializer()),
+                            Key.SKAL_HA_PAAMINNELSE to (!Mock.forespoersel.erBegrenset).toJson(Boolean.serializer()),
                         ).toJson(),
                 )
         }
@@ -99,7 +99,6 @@ class HentDataTilSakOgOppgaveServiceTest :
     })
 
 private object Mock {
-    const val SKAL_HA_PAAMINNELSE = true
     val forespoersel = mockForespoersel()
     val kontekstId: UUID = UUID.randomUUID()
     val forespoerselId: UUID = UUID.randomUUID()
@@ -114,7 +113,6 @@ private object Mock {
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.FORESPOERSEL to forespoersel.toJson(),
-                    Key.SKAL_HA_PAAMINNELSE to SKAL_HA_PAAMINNELSE.toJson(Boolean.serializer()),
                 ).toJson(),
         )
 

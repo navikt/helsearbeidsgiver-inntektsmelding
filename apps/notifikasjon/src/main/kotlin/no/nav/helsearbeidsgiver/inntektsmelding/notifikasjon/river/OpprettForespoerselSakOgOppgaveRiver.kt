@@ -32,7 +32,6 @@ data class OpprettForespoerselSakOgOppgaveMelding(
     val forespoersel: Forespoersel,
     val sykmeldt: Person,
     val orgNavn: String,
-    val skalHaPaaminnelse: Boolean,
 )
 
 class OpprettForespoerselSakOgOppgaveRiver(
@@ -56,7 +55,6 @@ class OpprettForespoerselSakOgOppgaveRiver(
                 forespoersel = Key.FORESPOERSEL.les(Forespoersel.serializer(), data),
                 sykmeldt = Key.SYKMELDT.les(Person.serializer(), data),
                 orgNavn = Key.VIRKSOMHET.les(String.serializer(), data),
-                skalHaPaaminnelse = Key.SKAL_HA_PAAMINNELSE.les(Boolean.serializer(), data),
             )
         }
 
@@ -80,7 +78,7 @@ class OpprettForespoerselSakOgOppgaveRiver(
                 forespoerselId = forespoerselId,
                 orgnr = forespoersel.orgnr,
                 orgNavn = orgNavn,
-                skalHaPaaminnelse = skalHaPaaminnelse,
+                skalHaPaaminnelse = !forespoersel.erBegrenset,
                 tidMellomOppgaveopprettelseOgPaaminnelse = tidMellomOppgaveOpprettelseOgPaaminnelse,
                 sykmeldingsPerioder = forespoersel.sykmeldingsperioder,
             )

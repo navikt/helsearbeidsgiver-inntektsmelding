@@ -54,7 +54,7 @@ class ForespoerselMottattRiverTest :
                         mapOf(
                             Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
                             Key.FORESPOERSEL to innkommendeMelding.forespoerselFraBro.toForespoersel().toJson(),
-                            Key.SKAL_HA_PAAMINNELSE to innkommendeMelding.skalHaPaaminnelse.toJson(Boolean.serializer()),
+                            Key.SKAL_HA_PAAMINNELSE to (!innkommendeMelding.forespoerselFraBro.erBegrenset).toJson(Boolean.serializer()),
                         ).toJson(),
                 )
         }
@@ -66,7 +66,6 @@ private fun mockInnkommendeMelding(): MottattMelding =
         kontekstId = UUID.randomUUID(),
         forespoerselId = UUID.randomUUID(),
         forespoerselFraBro = mockForespoerselFraBro(),
-        skalHaPaaminnelse = true,
     )
 
 private fun MottattMelding.toMap(): Map<Pri.Key, JsonElement> =
@@ -74,5 +73,4 @@ private fun MottattMelding.toMap(): Map<Pri.Key, JsonElement> =
         Pri.Key.NOTIS to notisType.toJson(Pri.NotisType.serializer()),
         Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         Pri.Key.FORESPOERSEL to forespoerselFraBro.toJson(ForespoerselFraBro.serializer()),
-        Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
     )

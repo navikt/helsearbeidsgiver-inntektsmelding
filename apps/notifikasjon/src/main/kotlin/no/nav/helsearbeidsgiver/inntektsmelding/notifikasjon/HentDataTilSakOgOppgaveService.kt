@@ -134,8 +134,6 @@ class HentDataTilSakOgOppgaveService(
                     Key.FORESPOERSEL to steg0.forespoersel.toJson(),
                     Key.SYKMELDT to sykmeldt.toJson(Person.serializer()),
                     Key.VIRKSOMHET to orgNavn.toJson(),
-                    // TODO fjern etter overgangsperiode
-                    Key.SKAL_HA_PAAMINNELSE to (!steg0.forespoersel.erBegrenset).toJson(Boolean.serializer()),
                 ).toJson(),
         )
     }

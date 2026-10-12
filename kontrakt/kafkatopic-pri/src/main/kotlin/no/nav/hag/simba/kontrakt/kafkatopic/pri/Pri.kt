@@ -18,15 +18,10 @@ object Pri {
         LOESNING,
 
         // Egendefinerte
+        NOTIS,
         BOOMERANG,
-        FNR,
         FORESPOERSEL,
         FORESPOERSEL_ID,
-        NOTIS,
-        ORGNR,
-
-        // TODO fjern etter overgangsperiode
-        SKAL_HA_PAAMINNELSE,
         VEDTAKSPERIODE_ID_LISTE,
         ;
 
@@ -43,7 +38,7 @@ object Pri {
                 entries.firstOrNull {
                     key == it.toString()
                 }
-                    ?: throw IllegalArgumentException("Fant ingen Pri.Key med verdi som matchet '$key'.")
+                    ?: throw IllegalArgumentException("Fant ingen Pri.Key med verdi som samsvarte med '$key'.")
         }
     }
 
@@ -67,7 +62,7 @@ object Pri {
     }
 
     internal object KeySerializer : AsStringSerializer<Key>(
-        serialName = "helsearbeidsgiver.kotlinx.felles.Pri.Key",
+        serialName = "helsearbeidsgiver.kotlinx.simba.Pri.Key",
         parse = Key::fromJson,
     )
 }

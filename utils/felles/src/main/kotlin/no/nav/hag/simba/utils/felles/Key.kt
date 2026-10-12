@@ -45,9 +45,6 @@ enum class Key : IKey {
     SAK_ID,
     SELVBESTEMT_ID,
     SELVBESTEMT_INNTEKTSMELDING,
-
-    // TODO fjern etter overgangsperiode
-    SKAL_HA_PAAMINNELSE,
     SKJEMA_INNTEKTSMELDING,
     SOEKNAD_LISTE,
     SVAR_KAFKA_KEY,

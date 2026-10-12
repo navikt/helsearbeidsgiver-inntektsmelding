@@ -43,7 +43,6 @@ class ForespoerselMottattIT : EndToEndTest() {
             Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
             Pri.Key.FORESPOERSEL_ID to Mock.forespoersel.forespoerselId.toJson(),
             Pri.Key.FORESPOERSEL to Mock.forespoersel.toJson(ForespoerselFraBro.serializer()),
-            Pri.Key.SKAL_HA_PAAMINNELSE to Mock.SKAL_HA_PAAMINNELSE.toJson(Boolean.serializer()),
         )
 
         messages
@@ -57,7 +56,6 @@ class ForespoerselMottattIT : EndToEndTest() {
                 val data = it[Key.DATA].shouldNotBeNull().toMap()
                 Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data) shouldBe Mock.forespoersel.forespoerselId
                 Key.FORESPOERSEL.lesOrNull(Forespoersel.serializer(), data) shouldBe Mock.forespoersel.toForespoersel()
-                Key.SKAL_HA_PAAMINNELSE.lesOrNull(Boolean.serializer(), data) shouldBe Mock.SKAL_HA_PAAMINNELSE
             }
 
         val serviceMessages = messages.filter(EventName.SERVICE_HENT_DATA_TIL_SAK_OG_OPPGAVE)
@@ -110,7 +108,6 @@ class ForespoerselMottattIT : EndToEndTest() {
 
                 data[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoersel.forespoerselId
                 data[Key.FORESPOERSEL]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel.toForespoersel()
-                data[Key.SKAL_HA_PAAMINNELSE]?.fromJson(Boolean.serializer()) shouldBe Mock.SKAL_HA_PAAMINNELSE
             }
 
         messages
@@ -125,7 +122,6 @@ class ForespoerselMottattIT : EndToEndTest() {
     }
 
     private object Mock {
-        const val SKAL_HA_PAAMINNELSE = true
         val forespoersel = mockForespoerselFraBro()
         val sakId = UUID.randomUUID().toString()
         val oppgaveId = UUID.randomUUID().toString()

@@ -54,7 +54,6 @@ class ForespoerselMottattRiverTest :
                         mapOf(
                             Key.FORESPOERSEL_ID to innkommendeMelding.forespoerselId.toJson(),
                             Key.FORESPOERSEL to innkommendeMelding.forespoerselFraBro.toForespoersel().toJson(),
-                            Key.SKAL_HA_PAAMINNELSE to (!innkommendeMelding.forespoerselFraBro.erBegrenset).toJson(Boolean.serializer()),
                         ).toJson(),
                 )
         }

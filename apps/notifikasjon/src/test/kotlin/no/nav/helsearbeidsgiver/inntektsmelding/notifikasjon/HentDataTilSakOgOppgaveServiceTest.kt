@@ -74,7 +74,6 @@ class HentDataTilSakOgOppgaveServiceTest :
                                 Mock.orgnrMedNavn.values
                                     .first()
                                     .toJson(),
-                            Key.SKAL_HA_PAAMINNELSE to (!Mock.forespoersel.erBegrenset).toJson(Boolean.serializer()),
                         ).toJson(),
                 )
         }

@@ -52,8 +52,6 @@ class ForespoerselMottattRiver : ObjectRiver.PriTopic<MottattMelding>() {
                 mapOf(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.FORESPOERSEL to forespoerselFraBro.toForespoersel().toJson(),
-                    // TODO fjern etter overgangsperiode
-                    Key.SKAL_HA_PAAMINNELSE to (!forespoerselFraBro.erBegrenset).toJson(Boolean.serializer()),
                 ).toJson(),
         )
     }

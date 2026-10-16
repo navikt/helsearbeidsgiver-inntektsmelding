@@ -11,7 +11,7 @@ import no.nav.hag.simba.utils.felles.json.toMap
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
 import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
 import no.nav.hag.simba.utils.valkey.RedisPrefix
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselFraBro
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.arveAvsender
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -39,7 +39,7 @@ class KvitteringIT : EndToEndTest() {
         mockForespoerselSvarFraHelsebro(
             forespoerselId = skjema.forespoerselId,
             forespoerselSvar =
-                mockForespoerselSvarSuksess().copy(
+                mockForespoerselFraBro().copy(
                     forespoerselId = skjema.forespoerselId,
                 ),
         )
@@ -87,7 +87,7 @@ class KvitteringIT : EndToEndTest() {
         mockForespoerselSvarFraHelsebro(
             forespoerselId = forespoerselId,
             forespoerselSvar =
-                mockForespoerselSvarSuksess().copy(
+                mockForespoerselFraBro().copy(
                     forespoerselId = forespoerselId,
                 ),
         )
@@ -127,7 +127,7 @@ class KvitteringIT : EndToEndTest() {
         mockForespoerselSvarFraHelsebro(
             forespoerselId = forespoerselId,
             forespoerselSvar =
-                mockForespoerselSvarSuksess().copy(
+                mockForespoerselFraBro().copy(
                     forespoerselId = forespoerselId,
                 ),
         )

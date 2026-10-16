@@ -21,7 +21,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.hentarbeidsforhold.hentArbeidsforholdRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.hentarbeidsforholdselvbestemt.hentArbeidsforholdSelvbestemtRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoersel.hentForespoersel
-import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoerselIdListe.hentForespoerselIdListe
 import no.nav.helsearbeidsgiver.inntektsmelding.api.hentselvbestemtim.hentSelvbestemtImRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.hentsoeknader.hentSoeknaderRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.innsending
@@ -52,7 +51,6 @@ object Routes {
 
     const val HENT_FORESPOERSEL = "/hent-forespoersel/{$PARAM_FORESPOERSEL_ID}"
     const val HENT_SOEKNADER = "/hent-soeknader"
-    const val HENT_FORESPOERSEL_ID_LISTE = "/hent-forespoersel-id-liste"
     const val INNTEKT = "/inntekt"
     const val INNTEKT_SELVBESTEMT = "/inntekt-selvbestemt"
     const val INNSENDING = "/inntektsmelding"
@@ -144,7 +142,6 @@ fun Application.apiModule(
             route(Routes.PREFIX) {
                 hentForespoersel(producer, tilgangskontroll, redisConnection)
                 hentSoeknaderRoute(producer, tilgangskontroll, redisConnection)
-                hentForespoerselIdListe(producer, tilgangskontroll, redisConnection)
                 inntektRoute(producer, tilgangskontroll, redisConnection)
                 inntektSelvbestemtRoute(producer, tilgangskontroll, redisConnection)
                 innsending(producer, tilgangskontroll, redisConnection)

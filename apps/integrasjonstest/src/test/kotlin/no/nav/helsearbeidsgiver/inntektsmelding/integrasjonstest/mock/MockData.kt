@@ -5,9 +5,8 @@ import no.nav.hag.simba.kontrakt.domene.bro.forespoersel.test.mockForespoerselFr
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
-import java.util.UUID
 
-fun mockForespoerselSvarSuksess(): ForespoerselFraBro {
+fun mockForespoerselFraBro(): ForespoerselFraBro {
     val orgnr = Orgnr.genererGyldig()
     return mockForespoerselFraBro().copy(
         orgnr = orgnr,
@@ -18,14 +17,3 @@ fun mockForespoerselSvarSuksess(): ForespoerselFraBro {
             ),
     )
 }
-
-fun mockForespoerselListeSvarResultat(
-    vedtaksperiodeId1: UUID,
-    vedtaksperiodeId2: UUID,
-): List<ForespoerselFraBro> =
-    mockForespoerselFraBro().let {
-        listOf(
-            it.copy(vedtaksperiodeId = vedtaksperiodeId1),
-            it.copy(vedtaksperiodeId = vedtaksperiodeId2),
-        )
-    }

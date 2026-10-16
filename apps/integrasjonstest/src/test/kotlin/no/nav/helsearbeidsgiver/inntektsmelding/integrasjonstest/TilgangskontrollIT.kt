@@ -23,7 +23,7 @@ import no.nav.hag.simba.utils.kafka.Producer
 import no.nav.hag.simba.utils.kafka.test.mockRecordMetadata
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.lesFnrFraAuthToken
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselFraBro
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -85,7 +85,7 @@ class TilgangskontrollIT : EndToEndTest() {
         mockForespoerselSvarFraHelsebro(
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar =
-                mockForespoerselSvarSuksess().copy(
+                mockForespoerselFraBro().copy(
                     forespoerselId = Mock.forespoerselId,
                     orgnr = Mock.orgnrMedTilgang,
                 ),
@@ -129,7 +129,7 @@ class TilgangskontrollIT : EndToEndTest() {
         mockForespoerselSvarFraHelsebro(
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar =
-                mockForespoerselSvarSuksess().copy(
+                mockForespoerselFraBro().copy(
                     forespoerselId = Mock.forespoerselId,
                     orgnr = Mock.orgnrUtenTilgang,
                 ),

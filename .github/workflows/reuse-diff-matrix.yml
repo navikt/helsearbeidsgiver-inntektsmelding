@@ -19,7 +19,7 @@ jobs:
       build-matrix: ${{ steps.set-matrix.outputs.build-matrix }}
       deploy-matrix: ${{ steps.set-matrix.outputs.deploy-matrix }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           # Need two commits to compare for inputs.env=dev
           fetch-depth: 2

@@ -28,25 +28,19 @@ abstract class FunSpecWithDb(
     })
 
 fun postgresContainer(): PostgreSQLContainer =
-    PostgreSQLContainer("postgres:16").also {
-        it.setCommand("postgres", "-c", "fsync=off", "-c", "log_statement=all", "-c", "wal_level=logical")
+    PostgreSQLContainer("postgres:14").apply {
+        setCommand("postgres", "-c", "fsync=off", "-c", "log_statement=all", "-c", "wal_level=logical")
     }
 
 private fun PostgreSQLContainer.setupAndStart(): PostgreSQLContainer =
-    withReuse(true)
-        .withLabel("app", "simba")
-        .also {
-            it.start()
-
-            println(
-                """
-                Databasecontainer er startet opp 🐘
-                port='${it.firstMappedPort}'
-                jdbcUrl='jdbc:postgresql://localhost:${it.firstMappedPort}/test'
-                credentials: 'test' og 'test'
-                """.trimIndent(),
-            )
-        }
+    apply {
+        withReuse(true)
+        withLabel("app-navn", "test-database")
+        start()
+        println(
+            "🎩 Databasen er startet opp, portnummer: $firstMappedPort, jdbcUrl: jdbc:postgresql://localhost:$firstMappedPort/test, credentials: test og test",
+        )
+    }
 
 private fun dbConfig(): HikariConfig {
     val postgres = postgresContainer().setupAndStart()

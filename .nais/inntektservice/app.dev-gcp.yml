@@ -1,0 +1,12 @@
+metadata:
+  name: im-inntektservice
+
+spec:
+  kafka:
+    pool: nav-dev
+  valkey:
+    - instance: inntektsmelding
+      access: write
+  env:
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: helsearbeidsgiver-im-inntektservice-v1

@@ -1,0 +1,20 @@
+metadata:
+  name: im-aareg
+
+spec:
+  kafka:
+    pool: nav-dev
+  azure:
+    application:
+      enabled: true
+  accessPolicy:
+    outbound:
+      external:
+         - host: aareg-services.dev-fss-pub.nais.io
+  env:
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: helsearbeidsgiver-im-aareg-v1
+    - name: AAREG_URL
+      value: https://aareg-services.dev-fss-pub.nais.io
+    - name: AAREG_SCOPE
+      value: api://dev-fss.arbeidsforhold.aareg-services-nais/.default

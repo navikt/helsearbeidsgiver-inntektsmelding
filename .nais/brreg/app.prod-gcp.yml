@@ -1,0 +1,22 @@
+metadata:
+  name: im-brreg
+
+spec:
+  replicas:
+    max: 5
+    scalingStrategy:
+      kafka:
+        consumerGroup: helsearbeidsgiver-im-brreg-v1
+        topic: helsearbeidsgiver.rapid
+        threshold: 100
+  kafka:
+    pool: nav-prod
+  accessPolicy:
+    outbound:
+      external:
+        - host: data.brreg.no
+  env:
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: helsearbeidsgiver-im-brreg-v1
+    - name: ENHETSREGISTERET_URL
+      value: https://data.brreg.no/enhetsregisteret/api/underenheter

@@ -1,0 +1,33 @@
+metadata:
+  name: im-altinn
+
+spec:
+  resources:
+    requests:
+      memory: 2048Mi
+    limits:
+      memory: 4096Mi
+  replicas:
+    max: 5
+    scalingStrategy:
+      kafka:
+        consumerGroup: helsearbeidsgiver-im-altinn-v1
+        topic: helsearbeidsgiver.rapid
+        threshold: 100
+  kafka:
+    pool: nav-prod
+  azure:
+    application:
+      enabled: true
+  accessPolicy:
+    outbound:
+      rules:
+        - application: arbeidsgiver-altinn-tilganger
+          namespace: fager
+  env:
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: helsearbeidsgiver-im-altinn-v1
+    - name: ALTINN_TILGANGER_BASE_URL
+      value: http://arbeidsgiver-altinn-tilganger.fager
+    - name: ALTINN_TILGANGER_SCOPE
+      value: api://prod-gcp.fager.arbeidsgiver-altinn-tilganger/.default

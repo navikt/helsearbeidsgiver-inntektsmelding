@@ -1,0 +1,42 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  namespace: helsearbeidsgiver
+  labels:
+    team: helsearbeidsgiver
+spec:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 768Mi
+    limits:
+      memory: 1536Mi
+  replicas:
+    min: 2
+    max: 2
+  startup:
+    path: /isalive
+    initialDelay: 10
+    periodSeconds: 5
+    failureThreshold: 22
+  liveness:
+    path: /isalive
+  readiness:
+    path: /isready
+  observability:
+    logging:
+      destinations:
+        - id: loki
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+  env:
+    - name: KAFKA_RAPID_TOPIC
+      value: helsearbeidsgiver.rapid
+    - name: JDK_JAVA_OPTIONS
+      value: -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp
+  accessPolicy:
+    outbound:
+      rules:
+        - application: logging
+          namespace: nais-system

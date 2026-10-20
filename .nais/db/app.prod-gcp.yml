@@ -1,0 +1,37 @@
+metadata:
+  name: im-db
+
+spec:
+  replicas:
+    max: 5
+    scalingStrategy:
+      kafka:
+        consumerGroup: helsearbeidsgiver-im-db-v1
+        topic: helsearbeidsgiver.rapid
+        threshold: 100
+  kafka:
+    pool: nav-prod
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_16
+        tier: db-custom-1-3840
+        databases:
+          - name: inntektsmelding
+            users:
+              - name: simba_datastream_bruker
+        flags:
+          - name: cloudsql.logical_decoding
+            value: "on"
+          - name: cloudsql.enable_pgaudit
+            value: "on"
+          - name: pgaudit.log
+            value: "write,ddl,role"
+          - name: pgaudit.log_parameter
+            value: "on"
+          - name: pgaudit.log_relation
+            value: "on"
+  envFrom:
+    - secret: google-sql-im-db
+  env:
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: helsearbeidsgiver-im-db-v1

@@ -1,0 +1,22 @@
+metadata:
+  name: im-db
+
+spec:
+  kafka:
+    pool: nav-dev
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_16
+        tier: db-custom-1-3840
+        databases:
+          - name: inntektsmelding
+            users:
+              - name: simba_datastream_bruker
+        flags:
+          - name: cloudsql.logical_decoding
+            value: "on"
+  envFrom:
+    - secret: google-sql-im-db
+  env:
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: helsearbeidsgiver-im-db-v1

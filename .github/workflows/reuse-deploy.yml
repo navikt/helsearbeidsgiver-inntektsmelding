@@ -31,11 +31,14 @@ jobs:
         id: docker-image
         run: echo "image=$(cat ${{ matrix.project }}-image.txt)" >> $GITHUB_OUTPUT
 
+      - uses: nais/setup@v1
+        with:
+          team: helsearbeidsgiver
+
       - name: Deploy
-        uses: nais/deploy/actions/deploy@v2
-        env:
-          CLUSTER: ${{ matrix.cluster }}
-          WORKLOAD_IMAGE: ${{ steps.docker-image.outputs.image }}
-          RESOURCE: config/nais.yml
-          VAR: app=${{ matrix.project }}
-          VARS: config/${{ matrix.project }}/${{ matrix.cluster }}.yml
+        run: |
+          nais apply .nais/app.yml \
+            --environment ${{ matrix.cluster }} \
+            --mixin .nais/${{ matrix.project }}/app.${{ matrix.cluster }}.yml \
+            --set spec.image="${{ steps.docker-image.outputs.image }}" \
+            --wait

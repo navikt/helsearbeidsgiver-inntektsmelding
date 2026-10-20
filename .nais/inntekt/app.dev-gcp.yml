@@ -1,0 +1,20 @@
+metadata:
+  name: im-inntekt
+
+spec:
+  kafka:
+    pool: nav-dev
+  azure:
+    application:
+      enabled: true
+  accessPolicy:
+    outbound:
+      external:
+        - host: ikomp-q2.dev-fss-pub.nais.io
+  env:
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: helsearbeidsgiver-im-inntekt-v1
+    - name: INNTEKT_URL
+      value: https://ikomp-q2.dev-fss-pub.nais.io/rs
+    - name: INNTEKT_SCOPE
+      value: api://dev-fss.team-inntekt.ikomp-q2/.default

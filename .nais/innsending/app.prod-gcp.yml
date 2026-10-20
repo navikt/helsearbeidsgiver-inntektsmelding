@@ -1,0 +1,14 @@
+metadata:
+  name: im-innsending
+
+spec:
+  kafka:
+    pool: nav-prod
+  valkey:
+    - instance: inntektsmelding
+      access: readwrite
+  env:
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: helsearbeidsgiver-im-innsending-v1
+    - name: KAFKA_EXTRA_TOPIC
+      value: helsearbeidsgiver.api-innsending

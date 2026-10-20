@@ -1,7 +1,0 @@
-kafkaPool: nav-prod
-replicasMax: 5
-env:
-- name: ENHETSREGISTERET_URL
-  value: "https://data.brreg.no/enhetsregisteret/api/underenheter"
-externalHosts:
-  - data.brreg.no

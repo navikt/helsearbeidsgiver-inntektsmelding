@@ -199,7 +199,7 @@ fun getBuildableProjects(): List<String> {
                 projects.filter { project ->
                     changedFiles.any {
                         it.startsWith("apps/$project/") ||
-                            it.startsWith("config/$project/")
+                            it.startsWith(".nais/$project/")
                     }
                 }
             }
@@ -212,9 +212,9 @@ fun deployMatrix() {
     val deployableProjects =
         getBuildableProjects()
             .filterNot { project ->
-                File("config", project)
+                File(".nais", project)
                     .listFiles()
-                    ?.filter { it.isFile && it.name == "$cluster.yml" }
+                    ?.filter { it.isFile && it.name == "app.$cluster.yml" }
                     .isNullOrEmpty()
             }
 

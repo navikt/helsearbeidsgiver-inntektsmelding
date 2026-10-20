@@ -1,0 +1,17 @@
+metadata:
+  name: im-feil-behandler
+
+spec:
+  kafka:
+    pool: nav-dev
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_16
+        tier: db-f1-micro
+        databases:
+          - name: im-error-recovery
+  envFrom:
+    - secret: google-sql-im-feil-behandler
+  env:
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: helsearbeidsgiver-im-feil-behandler-v1

@@ -32,7 +32,7 @@ jobs:
         run: echo "image=$(cat ${{ matrix.project }}-image.txt)" >> $GITHUB_OUTPUT
 
       - name: Deploy
-        uses: nais/deploy/actions/deploy@v2
+        uses: nais/deploy/actions/deploy@v3
         env:
           CLUSTER: ${{ matrix.cluster }}
           WORKLOAD_IMAGE: ${{ steps.docker-image.outputs.image }}

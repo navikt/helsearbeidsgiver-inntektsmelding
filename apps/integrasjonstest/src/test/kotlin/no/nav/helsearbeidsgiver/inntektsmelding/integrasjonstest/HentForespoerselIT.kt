@@ -11,7 +11,7 @@ import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.json.toJson
 import no.nav.hag.simba.utils.valkey.RedisPrefix
 import no.nav.hag.simba.utils.valkey.ResultJson
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselFraBro
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
@@ -38,7 +38,7 @@ class HentForespoerselIT : EndToEndTest() {
         mockForespoerselSvarFraHelsebro(
             forespoerselId = forespoerselId,
             forespoerselSvar =
-                mockForespoerselSvarSuksess().copy(
+                mockForespoerselFraBro().copy(
                     forespoerselId = forespoerselId,
                     fnr = sykmeldtFnr,
                 ),

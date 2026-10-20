@@ -36,7 +36,7 @@ class HentForespoerslerForVedtaksperiodeIdListeRiverTest :
             // Må bare returnere en Result med gyldig JSON
             every { mockProducer.send(any(), any<Map<Pri.Key, JsonElement>>()) } just Runs
 
-            val expectedEvent = EventName.SERVICE_HENT_FORESPOERSEL_LISTE
+            val expectedEvent = EventName.SERVICE_HENT_SOEKNAD_LISTE
             val expectedKontekstId = UUID.randomUUID()
             val expectedVedtaksperiodeIdListe = listOf(UUID.randomUUID(), UUID.randomUUID())
 

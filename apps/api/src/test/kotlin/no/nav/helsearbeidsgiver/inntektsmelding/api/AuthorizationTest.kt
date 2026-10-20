@@ -21,6 +21,7 @@ class AuthorizationTest : ApiTest() {
         testApi {
             listOf(
                 Routes.HENT_FORESPOERSEL to ::getUtenAuth,
+                Routes.HENT_SOEKNADER to ::postUtenAuth,
                 Routes.INNTEKT to ::postUtenAuth,
                 Routes.INNTEKT_SELVBESTEMT to ::postUtenAuth,
                 Routes.INNSENDING to ::postUtenAuth,
@@ -28,8 +29,9 @@ class AuthorizationTest : ApiTest() {
                 Routes.SELVBESTEMT_INNTEKTSMELDING + "/0" to ::getUtenAuth,
                 Routes.KVITTERING to ::getUtenAuth,
                 Routes.AKTIVEORGNR to ::postUtenAuth,
-                Routes.HENT_FORESPOERSEL_ID_LISTE to ::postUtenAuth,
                 Routes.TILGANG_ORGNR to ::getUtenAuth,
+                Routes.HENT_ARBEIDSFORHOLD to ::getUtenAuth,
+                Routes.HENT_ARBEIDSFORHOLD_SELVBESTEMT to ::postUtenAuth,
             ).forEach { (path, callFn) ->
                 val response = callFn(Routes.PREFIX + path)
 

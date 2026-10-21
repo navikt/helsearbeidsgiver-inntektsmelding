@@ -15,7 +15,9 @@ jobs:
           java-version: 25
           distribution: temurin
 
-      - uses: gradle/actions/setup-gradle@v5
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
 
       - name: Build
         run: ./gradlew assemble --build-cache --parallel
@@ -63,7 +65,9 @@ jobs:
           name: build-artifacts
           path: build/libs/
 
-      - uses: gradle/actions/setup-gradle@v5
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
 
       - name: Integrasjonstest
         run: ./gradlew integrasjonstest:test --build-cache --tests no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.${{ matrix.test }}

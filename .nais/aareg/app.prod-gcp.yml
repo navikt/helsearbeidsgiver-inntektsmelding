@@ -1,0 +1,27 @@
+metadata:
+  name: im-aareg
+
+spec:
+  replicas:
+    max: 5
+    scalingStrategy:
+      kafka:
+        consumerGroup: helsearbeidsgiver-im-aareg-v1
+        topic: helsearbeidsgiver.rapid
+        threshold: 100
+  kafka:
+    pool: nav-prod
+  azure:
+    application:
+      enabled: true
+  accessPolicy:
+    outbound:
+      external:
+        - host: aareg-services.prod-fss-pub.nais.io
+  env:
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: helsearbeidsgiver-im-aareg-v1
+    - name: AAREG_URL
+      value: https://aareg-services.prod-fss-pub.nais.io
+    - name: AAREG_SCOPE
+      value: api://prod-fss.arbeidsforhold.aareg-services-nais/.default

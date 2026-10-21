@@ -1,7 +1,0 @@
-kafkaPool: nav-dev
-idportenEnabled: true
-valkeyAccess: read
-ingress: https://helsearbeidsgiver-im-api.intern.dev.nav.no
-inboundApps:
-  - name: spinntektsmelding-frontend
-

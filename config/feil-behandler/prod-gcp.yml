@@ -1,8 +1,0 @@
-kafkaPool: nav-prod
-database:
-  name: im-error-recovery
-  tier: db-custom-1-3840
-  type: POSTGRES_16
-envFrom:
-  - type: secret
-    name: google-sql-im-feil-behandler

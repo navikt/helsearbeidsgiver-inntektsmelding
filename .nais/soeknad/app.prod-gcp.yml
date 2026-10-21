@@ -1,0 +1,28 @@
+metadata:
+  name: im-soeknad
+
+spec:
+  replicas:
+    max: 5
+    scalingStrategy:
+      kafka:
+        consumerGroup: helsearbeidsgiver-im-soeknad-v1
+        topic: helsearbeidsgiver.rapid
+        threshold: 100
+  kafka:
+    pool: nav-prod
+  azure:
+    application:
+      enabled: true
+  accessPolicy:
+    outbound:
+      rules:
+        - application: sykepengesoknad-backend
+          namespace: flex
+  env:
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: helsearbeidsgiver-im-soeknad-v1
+    - name: SOEKNAD_BASE_URL
+      value: http://sykepengesoknad-backend.flex
+    - name: SOEKNAD_SCOPE
+      value: api://prod-gcp.flex.sykepengesoknad-backend/.default

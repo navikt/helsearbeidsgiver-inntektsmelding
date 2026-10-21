@@ -1,0 +1,24 @@
+metadata:
+  name: im-api
+
+spec:
+  resources:
+    requests:
+      memory: 2048Mi
+    limits:
+      memory: 4096Mi
+  kafka:
+    pool: nav-prod
+  ingresses:
+    - https://helsearbeidsgiver-im-api.intern.nav.no
+  idporten:
+    enabled: true
+    sidecar:
+      enabled: true
+  valkey:
+    - instance: inntektsmelding
+      access: read
+  accessPolicy:
+    inbound:
+      rules:
+        - application: spinntektsmelding-frontend

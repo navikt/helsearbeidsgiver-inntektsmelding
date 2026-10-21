@@ -1,0 +1,9 @@
+metadata:
+  name: im-distribusjon
+
+spec:
+  kafka:
+    pool: nav-prod
+  env:
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: helsearbeidsgiver-im-distribusjon-v1

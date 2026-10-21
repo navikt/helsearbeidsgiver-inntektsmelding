@@ -1,0 +1,25 @@
+metadata:
+  name: im-notifikasjon
+
+spec:
+  kafka:
+    pool: nav-prod
+  azure:
+    application:
+      enabled: true
+  accessPolicy:
+    outbound:
+      rules:
+        - application: notifikasjon-produsent-api
+          namespace: fager
+  env:
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: helsearbeidsgiver-im-notifikasjon-v1
+    - name: ARBEIDSGIVER_NOTIFIKASJON_API_URL
+      value: http://notifikasjon-produsent-api.fager/api/graphql
+    - name: ARBEIDSGIVER_NOTIFIKASJON_SCOPE
+      value: api://prod-gcp.fager.notifikasjon-produsent-api/.default
+    - name: LINK_URL
+      value: https://arbeidsgiver.nav.no
+    - name: TID_MELLOM_OPPGAVEOPPRETTELSE_OG_PAAMINNELSE
+      value: P28D

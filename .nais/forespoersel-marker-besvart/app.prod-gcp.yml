@@ -1,0 +1,11 @@
+metadata:
+  name: im-forespoersel-marker-besvart
+
+spec:
+  kafka:
+    pool: nav-prod
+  env:
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: helsearbeidsgiver-im-forespoersel-marker-besvart-v1
+    - name: KAFKA_EXTRA_TOPIC
+      value: helsearbeidsgiver.pri

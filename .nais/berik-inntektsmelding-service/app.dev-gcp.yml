@@ -1,0 +1,9 @@
+metadata:
+  name: im-berik-inntektsmelding-service
+
+spec:
+  kafka:
+    pool: nav-dev
+  env:
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: helsearbeidsgiver-im-berik-inntektsmelding-service-v1

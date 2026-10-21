@@ -23,7 +23,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Last ned Docker image-fil
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: ${{ matrix.project }}-image
 

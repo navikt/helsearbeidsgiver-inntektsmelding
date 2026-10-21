@@ -45,9 +45,9 @@ jobs:
         run: echo ${{ steps.docker-image.outputs.image }} > ${{ matrix.project }}-image.txt
 
       - name: Last opp Docker image-fil
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: ${{ matrix.project }}-image
           path: ${{ matrix.project }}-image.txt
           retention-days: 1
           overwrite: true
+          archive: false

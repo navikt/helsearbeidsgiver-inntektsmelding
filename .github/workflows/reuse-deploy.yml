@@ -20,7 +20,7 @@ jobs:
     concurrency:
       group: deploy-${{ matrix.cluster }}-${{ matrix.project }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Last ned Docker image-fil
         uses: actions/download-artifact@v5

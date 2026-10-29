@@ -386,7 +386,7 @@ class PdfDokument(
             addLabel("Endringer i refusjon i perioden", refusjon.endringer.isNotEmpty().tilNorskFormat())
             refusjon.endringer.forEach {
                 addLabel("Beløp", it.beloep.tilNorskFormat(), kolonneEn, linefeed = false)
-                addLabel("Dato", it.startdato.tilNorskFormat(), kolonneEn + 170)
+                addLabel("Fra og med", it.startdato.tilNorskFormat(), kolonneEn + 170)
             }
         }
     }

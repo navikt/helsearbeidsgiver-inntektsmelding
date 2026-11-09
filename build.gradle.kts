@@ -9,7 +9,6 @@ plugins {
     id("jvm-test-suite")
 }
 
-
 kotlin {
     jvmToolchain(25)
 }

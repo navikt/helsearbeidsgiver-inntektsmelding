@@ -19,9 +19,12 @@ class MoneyUtilsKtTest :
                     // Average of A.values should be B
                     Pair(emptyMap(), 0.0),
                     Pair(mapOf(juni(2024) to null), 0.0),
+                    Pair(mapOf(juni(2024) to null, juli(2024) to null, august(2024) to null), 0.0),
                     Pair(mapOf(juni(2024) to 0.0), 0.0),
                     Pair(mapOf(juni(2024) to 97.0), 97.0),
-                    Pair(mapOf(juni(2024) to 55.0, juli(2024) to null), 27.5),
+                    Pair(mapOf(juni(2024) to 55.0, juli(2024) to null), 55.0),
+                    Pair(mapOf(juni(2024) to 55.0, juli(2024) to 55.0, august(2024) to null), 55.0),
+                    Pair(mapOf(juni(2024) to 60.0, juli(2024) to 60.0, august(2024) to 0.0), 40.0),
                     Pair(mapOf(juni(2024) to 366.0, juli(2024) to 0.0), 183.0),
                     Pair(mapOf(juni(2024) to 717.0, juli(2024) to 33.0), 375.0),
                     Pair(mapOf(juni(2024) to 840.0, juli(2024) to 38.52, august(2024) to 80.155), 319.56),

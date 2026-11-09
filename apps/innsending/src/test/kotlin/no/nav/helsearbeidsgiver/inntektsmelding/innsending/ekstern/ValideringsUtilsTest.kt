@@ -34,9 +34,9 @@ class ValideringsUtilsTest :
                     "blandet null og ikke-null innenfor feilmargin gir OK validering" to
                         Pair(
                             listOf(
-                                75000.0,
+                                50000.0,
                                 null,
-                                75000.0,
+                                50000.0,
                             ),
                             emptySet(),
                         ),

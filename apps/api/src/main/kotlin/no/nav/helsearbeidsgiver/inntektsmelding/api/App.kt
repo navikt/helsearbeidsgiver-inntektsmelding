@@ -108,7 +108,7 @@ fun Application.apiModule(
             LocalCache(
                 LocalCache.Config(
                     entryDuration = 30.minutes,
-                    maxEntries = 1,
+                    maxEntries = 10_000,
                     sync = true,
                 ),
             ),

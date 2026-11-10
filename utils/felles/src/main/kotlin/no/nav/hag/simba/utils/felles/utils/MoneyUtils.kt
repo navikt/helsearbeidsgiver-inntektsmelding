@@ -7,14 +7,14 @@ fun Map<YearMonth, Double?>.gjennomsnitt(): Double =
     if (isEmpty()) {
         0.0
     } else {
-        val harVerdi = values.filterNotNull().size
-        if (harVerdi == 0) {
+        val antallMaanederMedInntekt = values.filterNotNull().size
+        if (antallMaanederMedInntekt == 0) {
             return 0.0
         }
         values
             .mapNotNull { it }
             .sumMoney()
-            .divideMoney(harVerdi)
+            .divideMoney(antallMaanederMedInntekt)
     }
 
 /** Forhindrer avrundingsfeil. */

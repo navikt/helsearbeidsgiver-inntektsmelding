@@ -108,8 +108,8 @@ fun Application.apiModule(
             LocalCache(
                 LocalCache.Config(
                     entryDuration = 30.minutes,
-                    maxEntries = 20_000,
-                    sync = true,
+                    maxEntries = 10_000,
+                    concurrency = true,
                 ),
             ),
             redisConnection,

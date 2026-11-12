@@ -224,7 +224,7 @@ class PdfDokument(
     private fun addInntekt() {
         addSection("Beregnet månedslønn")
         if (inntektsmelding.inntekt == null) {
-            addLabel("Inntekt ikke oppgitt")
+            addLabel("Nav har ikke bedt om inntekt")
         } else {
             addLabel(
                 "Registrert inntekt (per ${inntektsmelding.inntekt?.inntektsdato?.tilNorskFormat()})",

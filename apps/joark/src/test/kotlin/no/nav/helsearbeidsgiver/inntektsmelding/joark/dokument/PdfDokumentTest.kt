@@ -306,7 +306,7 @@ class PdfDokumentTest {
             "uten_inntekt",
             inntektsmeldingUtenInntekt,
         )
-        pdfTekstFraIm(inntektsmeldingUtenInntekt) shouldContain "Inntekt ikke oppgitt"
+        pdfTekstFraIm(inntektsmeldingUtenInntekt) shouldContain "Nav har ikke bedt om inntekt"
     }
 
     @Test

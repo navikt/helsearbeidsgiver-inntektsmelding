@@ -17,12 +17,14 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.tittel
 import no.nav.helsearbeidsgiver.utils.date.tilNorskFormat
+import no.nav.helsearbeidsgiver.utils.log.logger
 
 private const val FORKLARING_ENDRING = "Endringsårsak"
 
 class PdfDokument(
     val inntektsmelding: Inntektsmelding,
 ) {
+    private val logger = logger()
     private val pdf = PdfBuilder(bodySize = 20, topText = "Innsendt: ${inntektsmelding.mottatt.tilNorskFormat()}") // Setter skriftstørrelsen på labels og text
     private var y = 0
     private val kolonneEn = 0
@@ -32,6 +34,7 @@ class PdfDokument(
     private val naturalytelse3 = kolonneEn + 700
 
     fun export(): ByteArray {
+        logger.info("Genererer PDF med PdfDokument for inntektsmelding '${inntektsmelding.id}'.")
         addHeader()
         addAnsatt()
         addArbeidsgiver()
@@ -46,7 +49,9 @@ class PdfDokument(
         addNaturalytelser()
         addLine()
         addTidspunkt()
-        return pdf.export()
+        return pdf.export().also {
+            logger.info("Genererte PDF med PdfDokument for inntektsmelding '${inntektsmelding.id}'.")
+        }
     }
 
     private fun moveCursorBy(y: Int) {
@@ -224,7 +229,9 @@ class PdfDokument(
     private fun addInntekt() {
         addSection("Beregnet månedslønn")
         if (inntektsmelding.inntekt == null) {
-            addLabel("Nav har ikke bedt om inntekt")
+            val tekst = "Nav har ikke bedt om inntekt"
+            logger.info("PdfDokument bruker teksten '$tekst' for inntektsmelding '${inntektsmelding.id}'.")
+            addLabel(tekst)
         } else {
             addLabel(
                 "Registrert inntekt (per ${inntektsmelding.inntekt?.inntektsdato?.tilNorskFormat()})",

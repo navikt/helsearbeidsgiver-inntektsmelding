@@ -14,5 +14,6 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")
 
     testImplementation(testFixtures(project(":utils-rapids-and-rivers")))
+    testImplementation(testFixtures("no.nav.helsearbeidsgiver:hag-bakgrunnsjobb:$bakgrunnsjobbVersion"))
     testImplementation("org.testcontainers:testcontainers-postgresql:$testcontainersVersion")
 }

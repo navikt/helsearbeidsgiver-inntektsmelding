@@ -15,7 +15,6 @@ import no.nav.hag.simba.utils.rr.KafkaKey
 import no.nav.hag.simba.utils.rr.river.ObjectRiver
 import no.nav.hag.utils.bakgrunnsjobb.Bakgrunnsjobb
 import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbRepository
-import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbStatus
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.prosessor.FeilProsessor
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
@@ -178,22 +177,25 @@ class FeilLytter(
     private fun oppdater(jobb: Bakgrunnsjobb) {
         // Dette må gjøres her fordi jobbene er asynkrone og bakgrunnsjobbService ikke får vite at jobben feiler i disse tilfellene
         // BakgrunnsjobbService finnVentende() tar heller ikke hensyn til forsøk, kun status på jobben!
-        jobb.status =
-            if (jobb.forsoek > jobb.maksAntallForsoek) {
-                "Maks forsøk nådd, stopper jobb med ID '${jobb.uuid}' permanent!".also {
-                    logger.error(it)
-                    sikkerLogger.error(it)
-                }
-                BakgrunnsjobbStatus.STOPPET
-            } else {
-                BakgrunnsjobbStatus.FEILET
-            }
+        val jobbMedNyStatus =
+            jobb.copy(
+                status =
+                    if (jobb.forsoek > jobb.maksAntallForsoek) {
+                        "Maks forsøk nådd, stopper jobb med ID '${jobb.uuid}' permanent!".also {
+                            logger.error(it)
+                            sikkerLogger.error(it)
+                        }
+                        Bakgrunnsjobb.Status.STOPPET
+                    } else {
+                        Bakgrunnsjobb.Status.FEILET
+                    },
+            )
 
         "Oppdaterer eksisterende jobb med ID '${jobb.uuid}'.".also {
             logger.info(it)
             sikkerLogger.info(it)
         }
 
-        repository.update(jobb)
+        repository.update(jobbMedNyStatus)
     }
 }

@@ -10,6 +10,15 @@ plugins {
 }
 
 dependencies {
+    constraints {
+        implementation("at.yawk.lz4:lz4-java:1.11.4") {
+            because("com.github.navikt:rapids-and-rivers")
+        }
+        implementation("org.xerial.snappy:snappy-java:1.1.10.9") {
+            because("com.github.navikt:rapids-and-rivers")
+        }
+    }
+
     api(project(":kontrakt-kafkatopic-pri"))
     api(project(":utils-felles"))
     api("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")

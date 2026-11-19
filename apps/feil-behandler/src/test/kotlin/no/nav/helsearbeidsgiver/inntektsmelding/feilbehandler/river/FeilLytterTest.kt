@@ -15,8 +15,7 @@ import no.nav.hag.simba.utils.felles.test.mock.mockFail
 import no.nav.hag.simba.utils.rr.test.mockConnectToRapid
 import no.nav.hag.simba.utils.rr.test.sendJson
 import no.nav.hag.utils.bakgrunnsjobb.Bakgrunnsjobb
-import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbStatus
-import no.nav.hag.utils.bakgrunnsjobb.MockBakgrunnsjobbRepository
+import no.nav.hag.utils.bakgrunnsjobb.test.MockBakgrunnsjobbRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.prosessor.FeilProsessor
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
@@ -47,13 +46,13 @@ class FeilLytterTest :
 
             rapid.sendJson(forespoerselMottattFail.tilMelding())
 
-            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.FEILET), true).size shouldBeExactly 0
-            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBeExactly 1
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.FEILET)).size shouldBeExactly 0
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.OPPRETTET)).size shouldBeExactly 1
 
             rapid.sendJson(forespoerselMottattFail.tilMelding())
 
-            val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.FEILET), true)
-            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBeExactly 0
+            val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.FEILET))
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.OPPRETTET)).size shouldBeExactly 0
 
             jobber.size shouldBeExactly 1
 
@@ -77,13 +76,13 @@ class FeilLytterTest :
 
             rapid.sendJson(forespoerselMottattFail.tilMelding())
 
-            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.FEILET), true).size shouldBeExactly 0
-            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBeExactly 1
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.FEILET)).size shouldBeExactly 0
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.OPPRETTET)).size shouldBeExactly 1
 
             rapid.sendJson(forespoerselMottattFailMedUliktInnhold.tilMelding())
 
-            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.FEILET), true).size shouldBeExactly 0
-            val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.OPPRETTET), true)
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.FEILET)).size shouldBeExactly 0
+            val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.OPPRETTET))
 
             jobber.size shouldBeExactly 2
 
@@ -108,13 +107,13 @@ class FeilLytterTest :
 
             rapid.sendJson(forespoerselMottattFail.tilMelding())
 
-            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.FEILET), true).size shouldBeExactly 0
-            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBeExactly 1
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.FEILET)).size shouldBeExactly 0
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.OPPRETTET)).size shouldBeExactly 1
 
             rapid.sendJson(forespoerselBesvartFail.tilMelding())
 
-            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.FEILET), true).size shouldBeExactly 0
-            val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.OPPRETTET), true)
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.FEILET)).size shouldBeExactly 0
+            val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.OPPRETTET))
 
             jobber.size shouldBeExactly 2
 
@@ -136,13 +135,13 @@ class FeilLytterTest :
 
             rapid.sendJson(forespoerselMottattFail1.tilMelding())
 
-            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.FEILET), true).size shouldBeExactly 0
-            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBeExactly 1
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.FEILET)).size shouldBeExactly 0
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.OPPRETTET)).size shouldBeExactly 1
 
             rapid.sendJson(forespoerselMottattFail2.tilMelding())
 
-            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.FEILET), true).size shouldBeExactly 0
-            val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.OPPRETTET), true)
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.FEILET)).size shouldBeExactly 0
+            val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.OPPRETTET))
 
             jobber.size shouldBeExactly 2
 
@@ -160,13 +159,13 @@ class FeilLytterTest :
 
             rapid.sendJson(forespoerselMottattFail.tilMelding())
 
-            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.FEILET), true).size shouldBeExactly 0
-            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBeExactly 1
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.FEILET)).size shouldBeExactly 0
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.OPPRETTET)).size shouldBeExactly 1
 
             rapid.sendJson(forespoerselBesvartFail.tilMelding())
 
-            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.FEILET), true).size shouldBeExactly 0
-            val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.OPPRETTET), true)
+            repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.FEILET)).size shouldBeExactly 0
+            val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.OPPRETTET))
 
             jobber.size shouldBeExactly 2
 
@@ -193,7 +192,7 @@ class FeilLytterTest :
 
             rapid.sendJson(feil.tilMelding())
 
-            val stoppede = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(BakgrunnsjobbStatus.STOPPET), true)
+            val stoppede = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, setOf(Bakgrunnsjobb.Status.STOPPET))
 
             stoppede.size shouldBeExactly 1
         }
@@ -205,7 +204,7 @@ class FeilLytterTest :
 
                 rapid.sendJson(ikkeStoettetFail.tilMelding())
 
-                val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, BakgrunnsjobbStatus.entries.toSet(), true)
+                val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, Bakgrunnsjobb.Status.entries.toSet())
 
                 jobber.size shouldBeExactly 0
             }
@@ -223,7 +222,7 @@ class FeilLytterTest :
 
                 rapid.sendJson(stoettetFailUtenEvent.tilMelding())
 
-                val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, BakgrunnsjobbStatus.entries.toSet(), true)
+                val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, Bakgrunnsjobb.Status.entries.toSet())
 
                 jobber.size shouldBeExactly 0
             }
@@ -236,7 +235,7 @@ class FeilLytterTest :
                     stoettetFail.tilMelding().plus(Key.FAIL to "ikke en fail".toJson()),
                 )
 
-                val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, BakgrunnsjobbStatus.entries.toSet(), true)
+                val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, Bakgrunnsjobb.Status.entries.toSet())
 
                 jobber.size shouldBeExactly 0
             }
@@ -249,7 +248,7 @@ class FeilLytterTest :
                     stoettetFail.tilMelding().minus(Key.FAIL),
                 )
 
-                val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, BakgrunnsjobbStatus.entries.toSet(), true)
+                val jobber = repository.findByKjoeretidBeforeAndStatusIn(omEttMinutt, Bakgrunnsjobb.Status.entries.toSet())
 
                 jobber.size shouldBeExactly 0
             }

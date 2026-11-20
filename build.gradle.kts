@@ -106,6 +106,14 @@ subprojects {
             implementation("io.ktor:ktor-client-core-jvm:2.3.13") {
                 because("hag-bakgrunnsjobb")
             }
+            implementation("at.yawk.lz4:lz4-java:1.11.4") {
+                because("com.github.navikt:rapids-and-rivers")
+                because("org.apache.kafka:kafka-clients")
+            }
+            implementation("org.xerial.snappy:snappy-java:1.1.10.9") {
+                because("com.github.navikt:rapids-and-rivers")
+                because("org.apache.kafka:kafka-clients")
+            }
         }
 
         if (erAppModul()) {

@@ -8,7 +8,6 @@ dependencies {
     implementation(project(":utils-valkey"))
 
     testImplementation(testFixtures(project(":kontrakt-domene-forespoersel")))
-    testImplementation(testFixtures(project(":kontrakt-domene-inntektsmelding")))
     testImplementation(testFixtures(project(":utils-rapids-and-rivers")))
     testImplementation(testFixtures(project(":utils-valkey")))
 }

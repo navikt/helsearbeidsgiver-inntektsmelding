@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import kotlinx.serialization.json.JsonElement
-import no.nav.hag.simba.kontrakt.domene.inntektsmelding.EksternInntektsmelding
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
@@ -105,13 +104,10 @@ class HentLagretImRiver(
                 sikkerLogger.info("Fant lagret inntektsmeldingsskjema.\n${lagret.skjema.toJson(SkjemaInntektsmelding.serializer()).toPretty()}")
             }
 
-            is LagretInntektsmelding.Ekstern -> {
-                logger.info("Fant lagret ekstern inntektsmelding.")
-                sikkerLogger.info("Fant lagret ekstern inntektsmelding.\n${lagret.ekstern.toJson(EksternInntektsmelding.serializer()).toPretty()}")
-            }
-
-            is LagretInntektsmelding.IkkeFunnet -> {
-                "Fant _ikke_ lagret inntektsmeldingsskjema eller ekstern inntektsmelding.".also {
+            is LagretInntektsmelding.IkkeFunnetMenBesvart,
+            is LagretInntektsmelding.IkkeFunnet,
+            -> {
+                "Fant _ikke_ lagret inntektsmelding.".also {
                     logger.info(it)
                     sikkerLogger.info(it)
                 }

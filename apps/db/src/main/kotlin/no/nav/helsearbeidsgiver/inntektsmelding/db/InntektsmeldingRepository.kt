@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
-import no.nav.hag.simba.kontrakt.domene.inntektsmelding.EksternInntektsmelding
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
@@ -32,7 +31,6 @@ class InntektsmeldingRepository(
             InntektsmeldingEntitet
                 .select(
                     InntektsmeldingEntitet.skjema,
-                    InntektsmeldingEntitet.eksternInntektsmelding,
                     InntektsmeldingEntitet.innsendt,
                     InntektsmeldingEntitet.avsenderNavn,
                 ).where { InntektsmeldingEntitet.forespoerselId eq forespoerselId }
@@ -41,7 +39,6 @@ class InntektsmeldingRepository(
                 .map {
                     InntektsmeldingResult(
                         it[InntektsmeldingEntitet.skjema],
-                        it[InntektsmeldingEntitet.eksternInntektsmelding],
                         it[InntektsmeldingEntitet.innsendt],
                         it[InntektsmeldingEntitet.avsenderNavn],
                     )
@@ -85,22 +82,6 @@ class InntektsmeldingRepository(
                 it[skjema] = inntektsmeldingSkjema
                 it[this.avsenderNavn] = avsenderNavn
                 it[innsendt] = mottatt
-            }
-        }
-    }
-
-    @Deprecated("Brukes kun til tester")
-    fun lagreEksternInntektsmelding(
-        inntektsmeldingId: UUID,
-        forespoerselId: UUID,
-        eksternIm: EksternInntektsmelding,
-    ) {
-        transaction(db) {
-            InntektsmeldingEntitet.insert {
-                it[this.inntektsmeldingId] = inntektsmeldingId
-                it[this.forespoerselId] = forespoerselId
-                it[eksternInntektsmelding] = eksternIm
-                it[innsendt] = eksternIm.tidspunkt
             }
         }
     }
@@ -175,26 +156,18 @@ class InntektsmeldingRepository(
 
 private class InntektsmeldingResult(
     val skjema: SkjemaInntektsmelding?,
-    val eksternInntektsmelding: EksternInntektsmelding?,
     val mottatt: LocalDateTime,
     val avsenderNavn: String?,
 ) {
     fun tilLagretInntektsmelding(): LagretInntektsmelding? =
-        when {
-            skjema != null -> {
-                LagretInntektsmelding.Skjema(
-                    avsenderNavn = avsenderNavn,
-                    skjema = skjema,
-                    mottatt = mottatt,
-                )
-            }
-
-            eksternInntektsmelding != null -> {
-                LagretInntektsmelding.Ekstern(eksternInntektsmelding)
-            }
-
-            else -> {
-                null
-            }
+        if (skjema != null) {
+            LagretInntektsmelding.Skjema(
+                avsenderNavn = avsenderNavn,
+                skjema = skjema,
+                mottatt = mottatt,
+            )
+        } else {
+            // Eksterne inntektsmeldinger omgjøres til LagretInntektsmelding.IkkeFunnetMenBesvart i KvitteringService
+            null
         }
 }

@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
-import no.nav.hag.simba.kontrakt.domene.inntektsmelding.test.mockEksternInntektsmelding
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
 import no.nav.hag.simba.utils.felles.json.toJson
@@ -73,47 +72,6 @@ class KvitteringIT : EndToEndTest() {
                             mottatt = mottatt,
                         ),
                     )
-            }
-
-        redisConnection.get(RedisPrefix.Kvittering, kontekstId).shouldNotBeNull()
-    }
-
-    @Test
-    fun `skal hente data til kvittering hvis fra eksternt system`() {
-        val kontekstId = UUID.randomUUID()
-        val forespoerselId = UUID.randomUUID()
-        val eksternIm = mockEksternInntektsmelding()
-
-        mockForespoerselSvarFraHelsebro(
-            forespoerselId = forespoerselId,
-            forespoerselSvar =
-                mockForespoerselFraBro().copy(
-                    forespoerselId = forespoerselId,
-                ),
-        )
-
-        imRepository.lagreEksternInntektsmelding(UUID.randomUUID(), forespoerselId, eksternIm)
-
-        publish(
-            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-            Key.KONTEKST_ID to kontekstId.toJson(),
-            Key.DATA to
-                mapOf(
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                ).toJson(),
-        )
-
-        messages
-            .filter(EventName.SERVICE_FORESPURT_IM_HENT)
-            .filter(Key.LAGRET_INNTEKTSMELDING)
-            .firstAsMap()
-            .also {
-                val data = it[Key.DATA].shouldNotBeNull().toMap()
-
-                data[Key.LAGRET_INNTEKTSMELDING]
-                    .shouldNotBeNull()
-                    .fromJson(LagretInntektsmelding.serializer())
-                    .shouldBe(LagretInntektsmelding.Ekstern(eksternIm))
             }
 
         redisConnection.get(RedisPrefix.Kvittering, kontekstId).shouldNotBeNull()

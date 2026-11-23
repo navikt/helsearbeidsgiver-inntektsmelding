@@ -106,7 +106,7 @@ subprojects {
             implementation("io.ktor:ktor-client-core-jvm:2.3.13") {
                 because("hag-bakgrunnsjobb")
             }
-            implementation("at.yawk.lz4:lz4-java:1.11.4") {
+            implementation("at.yawk.lz4:lz4-java:1.14.1") {
                 because("com.github.navikt:rapids-and-rivers")
                 because("org.apache.kafka:kafka-clients")
             }

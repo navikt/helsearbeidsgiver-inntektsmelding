@@ -110,7 +110,7 @@ subprojects {
                 because("com.github.navikt:rapids-and-rivers")
                 because("org.apache.kafka:kafka-clients")
             }
-            implementation("org.xerial.snappy:snappy-java:1.1.10.9") {
+            implementation("org.xerial.snappy:snappy-java:1.1.10.12") {
                 because("com.github.navikt:rapids-and-rivers")
                 because("org.apache.kafka:kafka-clients")
             }

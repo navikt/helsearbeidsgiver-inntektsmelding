@@ -14,7 +14,6 @@ import java.time.OffsetDateTime
 @Serializable
 data class KvitteringResponse(
     val kvitteringNavNo: NavNo?,
-    val kvitteringEkstern: Ekstern?,
     val visGeneriskKvittering: Boolean,
 ) {
     @Serializable
@@ -23,14 +22,6 @@ data class KvitteringResponse(
         val avsender: Avsender,
         val sykmeldingsperioder: List<Periode>,
         val skjema: SkjemaInntektsmelding,
-        val mottatt: OffsetDateTime,
-    )
-
-    // TODO slett etter frontend slutter å bruke denne
-    @Serializable
-    data class Ekstern(
-        val avsenderSystem: String,
-        val referanse: String,
         val mottatt: OffsetDateTime,
     )
 }

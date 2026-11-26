@@ -31,7 +31,6 @@ import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
-import java.time.LocalDateTime
 import java.util.UUID
 
 fun Route.kvittering(
@@ -134,19 +133,11 @@ private fun lagResponse(
                 skjema = lagret.skjema,
                 mottatt = lagret.mottatt.toOffsetDateTimeOslo(),
             ),
-        kvitteringEkstern = null,
         visGeneriskKvittering = false,
     )
 
 private fun lagResponseForGeneriskKvittering(): KvitteringResponse =
     KvitteringResponse(
         kvitteringNavNo = null,
-        // Ingen av disse verdiene vises til arbeidsgiver
-        kvitteringEkstern =
-            KvitteringResponse.Ekstern(
-                avsenderSystem = "ikke tilgjengelig",
-                referanse = "ikke tilgjengelig",
-                mottatt = LocalDateTime.of(2000, 1, 1, 0, 0).toOffsetDateTimeOslo(),
-            ),
         visGeneriskKvittering = true,
     )

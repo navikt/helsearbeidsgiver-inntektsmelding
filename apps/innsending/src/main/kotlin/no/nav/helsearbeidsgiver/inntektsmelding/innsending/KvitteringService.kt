@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import kotlinx.serialization.json.JsonElement
 import no.nav.hag.simba.kontrakt.domene.forespoersel.Forespoersel
-import no.nav.hag.simba.kontrakt.domene.inntektsmelding.EksternInntektsmelding
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
 import no.nav.hag.simba.kontrakt.resultat.kvittering.KvitteringResultat
 import no.nav.hag.simba.utils.felles.BehovType
@@ -30,7 +29,6 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
-import java.time.LocalDateTime
 import java.util.UUID
 
 class KvitteringService(
@@ -224,25 +222,15 @@ class KvitteringService(
         }
     }
 
-    // Vi mangler noen inntektsmeldinger i databasen. Frontend sliter når backend ikke svarer med en lagret inntektsmelding.
     private fun LagretInntektsmelding.ellerFallback(erForespoerselBesvart: Boolean): LagretInntektsmelding =
         // Alle forespørsler vi henter kvittering for skal være besvart, men vi sjekker for sikkerhets skyld
         if (this is LagretInntektsmelding.IkkeFunnet && erForespoerselBesvart) {
-            "Mangler inntektsmelding i databasen. Bruker reserveløsning for kvittering.".also {
+            "Mangler inntektsmelding i databasen. Viser generisk kvittering.".also {
                 logger.warn(it)
                 sikkerLogger.warn(it)
             }
 
-            LagretInntektsmelding.Ekstern(
-                EksternInntektsmelding(
-                    avsenderSystemNavn = "et system tilknyttet Altinn 2 (avviklet)",
-                    // Vises ikke til arbeidsgiver
-                    avsenderSystemVersjon = "0",
-                    arkivreferanse = "ikke tilgjengelig",
-                    // Vises ikke til arbeidsgiver
-                    tidspunkt = LocalDateTime.of(2000, 1, 1, 0, 0),
-                ),
-            )
+            LagretInntektsmelding.IkkeFunnetMenBesvart
         } else {
             this
         }

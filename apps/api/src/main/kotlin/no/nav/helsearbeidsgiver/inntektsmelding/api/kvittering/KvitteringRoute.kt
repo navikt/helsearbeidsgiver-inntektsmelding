@@ -31,6 +31,7 @@ import no.nav.helsearbeidsgiver.utils.date.toOffsetDateTimeOslo
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import java.time.LocalDateTime
 import java.util.UUID
 
 fun Route.kvittering(
@@ -74,9 +75,8 @@ fun Route.kvittering(
                                     respondOk(skjemaResponse, KvitteringResponse.serializer())
                                 }
 
-                                is LagretInntektsmelding.Ekstern -> {
-                                    val eksternResponse = lagResponse(lagret)
-                                    respondOk(eksternResponse, KvitteringResponse.serializer())
+                                is LagretInntektsmelding.IkkeFunnetMenBesvart -> {
+                                    respondOk(lagResponseForGeneriskKvittering(), KvitteringResponse.serializer())
                                 }
 
                                 is LagretInntektsmelding.IkkeFunnet -> {
@@ -135,15 +135,18 @@ private fun lagResponse(
                 mottatt = lagret.mottatt.toOffsetDateTimeOslo(),
             ),
         kvitteringEkstern = null,
+        visGeneriskKvittering = false,
     )
 
-private fun lagResponse(lagret: LagretInntektsmelding.Ekstern): KvitteringResponse =
+private fun lagResponseForGeneriskKvittering(): KvitteringResponse =
     KvitteringResponse(
         kvitteringNavNo = null,
+        // Ingen av disse verdiene vises til arbeidsgiver
         kvitteringEkstern =
             KvitteringResponse.Ekstern(
-                avsenderSystem = lagret.ekstern.avsenderSystemNavn,
-                referanse = lagret.ekstern.arkivreferanse,
-                mottatt = lagret.ekstern.tidspunkt.toOffsetDateTimeOslo(),
+                avsenderSystem = "ikke tilgjengelig",
+                referanse = "ikke tilgjengelig",
+                mottatt = LocalDateTime.of(2000, 1, 1, 0, 0).toOffsetDateTimeOslo(),
             ),
+        visGeneriskKvittering = true,
     )

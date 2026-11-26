@@ -11,7 +11,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
-import no.nav.hag.simba.kontrakt.domene.inntektsmelding.test.mockEksternInntektsmelding
 import no.nav.hag.simba.utils.felles.BehovType
 import no.nav.hag.simba.utils.felles.EventName
 import no.nav.hag.simba.utils.felles.Key
@@ -49,9 +48,8 @@ class HentLagretImRiverTest :
         context("henter inntektsmelding") {
             withData(
                 mapOf(
-                    "kun skjema (med navn)" to LagretInntektsmelding.Skjema("Nifs Krumkake", mockSkjemaInntektsmelding(), 12.april.atStartOfDay()),
-                    "kun skjema (uten navn)" to LagretInntektsmelding.Skjema(null, mockSkjemaInntektsmelding(), 12.april.atStartOfDay()),
-                    "kun ekstern inntektsmelding" to LagretInntektsmelding.Ekstern(mockEksternInntektsmelding()),
+                    "skjema (med navn)" to LagretInntektsmelding.Skjema("Nifs Krumkake", mockSkjemaInntektsmelding(), 12.april.atStartOfDay()),
+                    "skjema (uten navn)" to LagretInntektsmelding.Skjema(null, mockSkjemaInntektsmelding(), 12.april.atStartOfDay()),
                     "ingen funnet" to LagretInntektsmelding.IkkeFunnet,
                 ),
             ) { lagret ->

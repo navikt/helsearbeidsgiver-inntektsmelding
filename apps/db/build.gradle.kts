@@ -5,7 +5,6 @@ dependencies {
     implementation(project(":utils-rapids-and-rivers"))
 
     testImplementation(testFixtures(project(":kontrakt-domene-forespoersel")))
-    testImplementation(testFixtures(project(":kontrakt-domene-inntektsmelding")))
     testImplementation(testFixtures(project(":utils-db-exposed")))
     testImplementation(testFixtures(project(":utils-rapids-and-rivers")))
 }

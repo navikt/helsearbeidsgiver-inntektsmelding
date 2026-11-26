@@ -20,10 +20,8 @@ sealed class LagretInntektsmelding {
     ) : LagretInntektsmelding()
 
     @Serializable
-    @SerialName("Ekstern")
-    data class Ekstern(
-        val ekstern: EksternInntektsmelding,
-    ) : LagretInntektsmelding()
+    @SerialName("IkkeFunnetMenBesvart")
+    data object IkkeFunnetMenBesvart : LagretInntektsmelding()
 
     @Serializable
     @SerialName("IkkeFunnet")

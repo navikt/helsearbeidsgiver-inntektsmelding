@@ -10,7 +10,6 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.ranges.shouldBeIn
 import io.kotest.matchers.shouldBe
 import no.nav.hag.simba.kontrakt.domene.inntektsmelding.LagretInntektsmelding
-import no.nav.hag.simba.kontrakt.domene.inntektsmelding.test.mockEksternInntektsmelding
 import no.nav.hag.simba.utils.db.exposed.test.FunSpecWithDb
 import no.nav.hag.simba.utils.felles.test.mock.mockInntektsmeldingV1
 import no.nav.hag.simba.utils.felles.test.mock.mockSkjemaInntektsmelding
@@ -57,20 +56,18 @@ class InntektsmeldingRepositoryTest :
                 val forespoerselId = UUID.randomUUID()
                 val mottatt = 9.desember.atStartOfDay()
                 val a = mockSkjemaInntektsmelding().copy(forespoerselId = forespoerselId)
-                val b = mockEksternInntektsmelding().copy(tidspunkt = mottatt.plusHours(1))
-                val c = mockSkjemaInntektsmelding().copy(forespoerselId = forespoerselId)
+                val b = mockSkjemaInntektsmelding().copy(forespoerselId = forespoerselId)
 
                 inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), a, AVSENDER_NAVN, mottatt)
-                inntektsmeldingRepo.lagreEksternInntektsmelding(UUID.randomUUID(), forespoerselId, b)
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), c, AVSENDER_NAVN, mottatt.plusHours(2))
+                inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), b, AVSENDER_NAVN, mottatt.plusHours(1))
 
                 val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(forespoerselId)
 
                 lagret shouldBe
                     LagretInntektsmelding.Skjema(
                         avsenderNavn = AVSENDER_NAVN,
-                        skjema = c,
-                        mottatt = mottatt.plusHours(2),
+                        skjema = b,
+                        mottatt = mottatt.plusHours(1),
                     )
             }
 
@@ -107,17 +104,6 @@ class InntektsmeldingRepositoryTest :
                         skjema = skjema,
                         mottatt = mottatt,
                     )
-            }
-
-            test("henter ekstern inntektsmelding") {
-                val forespoerselId = UUID.randomUUID()
-                val eksternInntektsmelding = mockEksternInntektsmelding()
-
-                inntektsmeldingRepo.lagreEksternInntektsmelding(UUID.randomUUID(), forespoerselId, eksternInntektsmelding)
-
-                val lagret = inntektsmeldingRepo.hentNyesteInntektsmelding(forespoerselId)
-
-                lagret shouldBe LagretInntektsmelding.Ekstern(eksternInntektsmelding)
             }
 
             test("tåler at det er ingenting å hente") {
@@ -189,7 +175,6 @@ class InntektsmeldingRepositoryTest :
                 record.getOrNull(InntektsmeldingEntitet.forespoerselId) shouldBe skjema.forespoerselId
                 record.getOrNull(InntektsmeldingEntitet.skjema) shouldBe skjema
                 record.getOrNull(InntektsmeldingEntitet.inntektsmelding) shouldBe null
-                record.getOrNull(InntektsmeldingEntitet.eksternInntektsmelding) shouldBe null
                 record.getOrNull(InntektsmeldingEntitet.avsenderNavn) shouldBe AVSENDER_NAVN
                 record.getOrNull(InntektsmeldingEntitet.journalpostId) shouldBe null
                 record.getOrNull(InntektsmeldingEntitet.innsendt) shouldBe mottatt
@@ -206,9 +191,6 @@ class InntektsmeldingRepositoryTest :
                 shouldThrowExactly<ExposedSQLException> {
                     inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId, mockSkjemaInntektsmelding(), AVSENDER_NAVN, mottatt)
                 }
-                shouldThrowExactly<ExposedSQLException> {
-                    inntektsmeldingRepo.lagreEksternInntektsmelding(inntektsmeldingId, UUID.randomUUID(), mockEksternInntektsmelding())
-                }
             }
 
             test("lagrer flere skjema på samme forespørsel-ID") {
@@ -218,55 +200,6 @@ class InntektsmeldingRepositoryTest :
                 shouldNotThrowAny {
                     inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, AVSENDER_NAVN, mottatt)
                     inntektsmeldingRepo.lagreInntektsmeldingSkjema(UUID.randomUUID(), skjema, AVSENDER_NAVN, mottatt)
-                }
-            }
-        }
-
-        context(InntektsmeldingRepository::lagreEksternInntektsmelding.name) {
-            test("lagrer ekstern inntektsmelding") {
-                transaction {
-                    InntektsmeldingEntitet.selectAll().toList()
-                }.shouldBeEmpty()
-
-                val inntektsmeldingId = UUID.randomUUID()
-                val forespoerselId = UUID.randomUUID()
-                val eksternIm = mockEksternInntektsmelding()
-
-                inntektsmeldingRepo.lagreEksternInntektsmelding(inntektsmeldingId, forespoerselId, eksternIm)
-
-                val record = testRepo.hentRecordFraInntektsmelding(forespoerselId).shouldNotBeNull()
-
-                record.getOrNull(InntektsmeldingEntitet.inntektsmeldingId) shouldBe inntektsmeldingId
-                record.getOrNull(InntektsmeldingEntitet.forespoerselId) shouldBe forespoerselId
-                record.getOrNull(InntektsmeldingEntitet.skjema) shouldBe null
-                record.getOrNull(InntektsmeldingEntitet.inntektsmelding) shouldBe null
-                record.getOrNull(InntektsmeldingEntitet.eksternInntektsmelding) shouldBe eksternIm
-                record.getOrNull(InntektsmeldingEntitet.avsenderNavn) shouldBe null
-                record.getOrNull(InntektsmeldingEntitet.journalpostId) shouldBe null
-                record.getOrNull(InntektsmeldingEntitet.innsendt) shouldBe eksternIm.tidspunkt
-                record.getOrNull(InntektsmeldingEntitet.prosessert) shouldBe null
-            }
-
-            test("klarer ikke lagre flere inntektsmeldinger på samme inntektsmelding-ID") {
-                val inntektsmeldingId = UUID.randomUUID()
-
-                shouldNotThrowAny {
-                    inntektsmeldingRepo.lagreEksternInntektsmelding(inntektsmeldingId, UUID.randomUUID(), mockEksternInntektsmelding())
-                }
-                shouldThrowExactly<ExposedSQLException> {
-                    inntektsmeldingRepo.lagreEksternInntektsmelding(inntektsmeldingId, UUID.randomUUID(), mockEksternInntektsmelding())
-                }
-                shouldThrowExactly<ExposedSQLException> {
-                    inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmeldingId, mockSkjemaInntektsmelding(), AVSENDER_NAVN, 4.april.atStartOfDay())
-                }
-            }
-
-            test("lagrer flere eksterne innteksmeldinger på samme forespørsel-ID") {
-                val forespoerselId = UUID.randomUUID()
-
-                shouldNotThrowAny {
-                    inntektsmeldingRepo.lagreEksternInntektsmelding(UUID.randomUUID(), forespoerselId, mockEksternInntektsmelding())
-                    inntektsmeldingRepo.lagreEksternInntektsmelding(UUID.randomUUID(), forespoerselId, mockEksternInntektsmelding())
                 }
             }
         }
@@ -290,7 +223,6 @@ class InntektsmeldingRepositoryTest :
                 record.getOrNull(InntektsmeldingEntitet.forespoerselId) shouldBe skjema.forespoerselId
                 record.getOrNull(InntektsmeldingEntitet.skjema) shouldBe skjema
                 record.getOrNull(InntektsmeldingEntitet.inntektsmelding) shouldBe inntektsmelding
-                record.getOrNull(InntektsmeldingEntitet.eksternInntektsmelding) shouldBe null
                 record.getOrNull(InntektsmeldingEntitet.avsenderNavn) shouldBe AVSENDER_NAVN
                 record.getOrNull(InntektsmeldingEntitet.journalpostId) shouldBe null
                 record.getOrNull(InntektsmeldingEntitet.innsendt) shouldBe mottatt
@@ -395,44 +327,6 @@ class InntektsmeldingRepositoryTest :
 
                     resultsEtterNyJournalpostId[1].getOrNull(this.inntektsmelding).shouldNotBeNull()
                     resultsEtterNyJournalpostId[1].getOrNull(journalpostId) shouldBe nyJournalpostId
-                }
-            }
-
-            test("skal _ikke_ oppdatere journalpostId for ekstern inntektsmelding") {
-                val skjema = mockSkjemaInntektsmelding()
-                val mottatt = 9.desember.atStartOfDay()
-                val inntektsmelding = mockInntektsmeldingV1().copy(mottatt = mottatt.toOffsetDateTimeOslo())
-                val journalpostId = "jp-slem-fryser"
-
-                inntektsmeldingRepo.lagreInntektsmeldingSkjema(inntektsmelding.id, skjema, AVSENDER_NAVN, mottatt)
-                inntektsmeldingRepo.oppdaterMedInntektsmelding(inntektsmelding)
-
-                inntektsmeldingRepo.lagreEksternInntektsmelding(
-                    UUID.randomUUID(),
-                    skjema.forespoerselId,
-                    mockEksternInntektsmelding().copy(tidspunkt = mottatt.plusHours(1)),
-                )
-
-                inntektsmeldingRepo.oppdaterMedJournalpostId(inntektsmelding.id, journalpostId)
-
-                val resultat =
-                    transaction(db) {
-                        InntektsmeldingEntitet
-                            .selectAll()
-                            .orderBy(InntektsmeldingEntitet.innsendt)
-                            .toList()
-                    }
-
-                resultat shouldHaveSize 2
-
-                InntektsmeldingEntitet.apply {
-                    resultat[0][innsendt] shouldBeLessThan resultat[1][innsendt]
-
-                    resultat[0].getOrNull(this.inntektsmelding).shouldNotBeNull()
-                    resultat[0].getOrNull(this.journalpostId) shouldBe journalpostId
-
-                    resultat[1].getOrNull(eksternInntektsmelding).shouldNotBeNull()
-                    resultat[1].getOrNull(this.journalpostId).shouldBeNull()
                 }
             }
         }

@@ -32,7 +32,7 @@ jobs:
           echo "tag=$short_sha" >> $GITHUB_OUTPUT
 
       - name: Build Docker image
-        uses: nais/docker-build-push@v0
+        uses: nais/docker-build-push@v1
         id: docker-image
         with:
           team: helsearbeidsgiver

@@ -2,6 +2,7 @@ package no.nav.hag.simba.utils.valkey
 
 import io.lettuce.core.RedisClient
 import io.lettuce.core.RedisURI
+import io.lettuce.core.SetArgs
 import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.sync.RedisCommands
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
@@ -39,7 +40,7 @@ class RedisConnection(
         key: String,
         value: String,
     ) {
-        syncCommands.setex(key, 60L, value)
+        syncCommands.set(key, value, SetArgs.Builder.ex(60L))
     }
 
     fun close() {

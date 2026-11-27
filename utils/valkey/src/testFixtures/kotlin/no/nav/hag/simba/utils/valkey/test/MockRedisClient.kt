@@ -55,7 +55,7 @@ internal fun RedisCommands<String, String>.setupMock(mockStorageInit: Map<String
             keyValuePairs
         }
 
-        every { setex(capture(key), any(), capture(value)) } answers {
+        every { set(capture(key), capture(value), any()) } answers {
             mockStorage[key.captured] = value.captured
             "OK"
         }
